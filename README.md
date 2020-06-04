@@ -13,7 +13,7 @@ For example:
 
 Can fetch this data from a SQL database, or from a No-SQL database, or from a JSON file just as easily. Why would you need to care?
 
-# Motivation
+## Motivation
 
 **QueryAny** was developed to provide developers an easy path to mature from being bound to their favorite database technology to venture out and consider other persistence technologies. Especially those developers who have gotten stuck at designing every piece of software they build from a data model upwards. (Move from 'data-modeler' to 'domain-modeler').
 
