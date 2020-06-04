@@ -11,7 +11,7 @@ For example:
 
 `Query.From("Orders").Where("OrderId", Operator.EQ, "25").Select("OrderId", "Description")`
 
-Can fetch this data from a SQL database, or from a NoSQL database just as easily.
+Can fetch this data from a SQL database, or from a No-SQL database, or from a JSON file just as easily. Why would you need to care?
 
 # Motivation
 
