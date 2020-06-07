@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -8,8 +7,12 @@ namespace QueryAny
 {
     public class Query
     {
-        public static Query Empty() => new Query(null);
-        private List<QueryExpression> expressions = new List<QueryExpression>();
+        public static Query Empty()
+        {
+            return new Query(null);
+        }
+
+        private readonly List<QueryExpression> expressions = new List<QueryExpression>();
 
         internal Query(QueryExpression expression)
         {

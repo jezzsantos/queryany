@@ -1,0 +1,16 @@
+﻿using System;
+using Storage.Interfaces;
+
+namespace CarsDomain.Entities
+{
+    public class CarEntity : IKeyedEntity
+    {
+        public string Id { get; set; }
+
+        public CarModel Model { get; set; }
+
+        public DateTime CreatedOnUtc { get; set; }
+
+        public DateTime OccupiedUntilUtc { get; set; }
+    }
+}
