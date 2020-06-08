@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using QueryAny.Primitives;
 
 namespace QueryAny
 {
@@ -37,7 +38,7 @@ namespace QueryAny
             if (value == null)
             {
                 throw CreateException(typeof(TException), GetParameterName(reference),
-                    Properties.Resources.Guard_ArgumentCanNotBeNull);
+                    Resources.Guard_ArgumentCanNotBeNull);
             }
         }
 
@@ -65,7 +66,7 @@ namespace QueryAny
                     throw new ArgumentNullException(GetParameterName(reference), messageOrFormat);
                 }
 
-                throw new ArgumentNullException(GetParameterName(reference), Properties.Resources.Guard_ArgumentCanNotBeNull);
+                throw new ArgumentNullException(GetParameterName(reference), Resources.Guard_ArgumentCanNotBeNull);
             }
         }
 
@@ -96,7 +97,7 @@ namespace QueryAny
                 }
 
                 throw CreateException(typeof(TException), GetParameterName(reference),
-                    Properties.Resources.Guard_ArgumentCanNotBeNull);
+                    Resources.Guard_ArgumentCanNotBeNull);
             }
         }
 
@@ -113,7 +114,7 @@ namespace QueryAny
             if (value.Length == 0)
             {
                 throw CreateException(typeof(TException), GetParameterName(reference),
-                    Properties.Resources.Guard_ArgumentCanNotBeEmpty);
+                    Resources.Guard_ArgumentCanNotBeEmpty);
             }
         }
 
@@ -158,7 +159,7 @@ namespace QueryAny
                 }
 
                 throw new ArgumentOutOfRangeException(GetParameterName(reference),
-                    Properties.Resources.Guard_ArgumentCanNotBeEmpty);
+                    Resources.Guard_ArgumentCanNotBeEmpty);
             }
         }
 
@@ -190,7 +191,7 @@ namespace QueryAny
                 }
 
                 throw CreateException(typeof(TException), GetParameterName(reference),
-                    Properties.Resources.Guard_ArgumentCanNotBeEmpty);
+                    Resources.Guard_ArgumentCanNotBeEmpty);
             }
         }
 

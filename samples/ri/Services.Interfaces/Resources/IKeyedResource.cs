@@ -1,4 +1,4 @@
-﻿namespace Services.Interfaces
+﻿namespace Services.Interfaces.Resources
 {
     public interface IKeyedResource
     {

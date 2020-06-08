@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using QueryAny.Primitives;
 
 namespace QueryAny
 {
@@ -84,7 +85,7 @@ namespace QueryAny
             var info = GetMemberInfo(property) as PropertyInfo;
             if (info == null)
             {
-                throw new ArgumentException(Properties.Resources.Reflector_ErrorNotProperty);
+                throw new ArgumentException(Resources.Reflector_ErrorNotProperty);
             }
 
             return info;
@@ -102,7 +103,7 @@ namespace QueryAny
             var info = GetMemberInfo(field) as FieldInfo;
             if (info == null)
             {
-                throw new ArgumentException(Properties.Resources.Reflector_ErrorNotField);
+                throw new ArgumentException(Resources.Reflector_ErrorNotField);
             }
 
             return info;
@@ -114,7 +115,7 @@ namespace QueryAny
 
             if (lambda.Body.NodeType != ExpressionType.Call)
             {
-                throw new ArgumentException(Properties.Resources.Reflector_ErrorNotMethodCall, "lambda");
+                throw new ArgumentException(Resources.Reflector_ErrorNotMethodCall, "lambda");
             }
 
             return ((MethodCallExpression)lambda.Body).Method;
@@ -129,7 +130,7 @@ namespace QueryAny
                 return ((MemberExpression)lambda.Body).Member;
             }
 
-            throw new ArgumentException(Properties.Resources.Reflector_ErrorNotMemberAccess, nameof(lambda));
+            throw new ArgumentException(Resources.Reflector_ErrorNotMemberAccess, nameof(lambda));
         }
     }
 }

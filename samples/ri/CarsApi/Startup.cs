@@ -1,13 +1,8 @@
-using CarsApi.Storage;
-using CarsDomain;
-using CarsDomain.Entities;
-using Funq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ServiceStack;
-using Storage.Interfaces;
 
 namespace CarsApi
 {
@@ -24,27 +19,10 @@ namespace CarsApi
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseServiceStack(new AppHost
+            app.UseServiceStack(new ServiceHost
             {
                 AppSettings = new NetCoreAppSettings(Configuration)
             });
-        }
-    }
-
-    public class AppHost : AppHostBase
-    {
-        public AppHost() : base("MyCarSharing", typeof(Cars).Assembly) { }
-
-        public override void Configure(Container container)
-        {
-            SetConfig(new HostConfig
-            {
-                DefaultRedirectPath = "/metadata",
-                DebugMode = AppSettings.Get(nameof(HostConfig.DebugMode), false)
-            });
-
-            container.AddSingleton<IStorage<CarEntity>, CarInMemStorage>();
-            container.AddSingleton<Cars>();
         }
     }
 }

@@ -9,21 +9,23 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QueryAny.UnitTests", "Query
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{5D6906B8-B50B-4E20-8677-5D364F9840F6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarsDomain", "..\samples\ri\CarsDomain\CarsDomain.csproj", "{976E2F12-0A56-4A6D-A2D0-44E6C59FAB91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CarsDomain", "..\samples\ri\CarsDomain\CarsDomain.csproj", "{976E2F12-0A56-4A6D-A2D0-44E6C59FAB91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage.Interfaces", "..\samples\ri\Storage.Interfaces\Storage.Interfaces.csproj", "{5D40AABA-D31A-4D9F-B997-5FB8772D69EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Storage.Interfaces", "..\samples\ri\Storage.Interfaces\Storage.Interfaces.csproj", "{5D40AABA-D31A-4D9F-B997-5FB8772D69EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services.Interfaces", "..\samples\ri\Services.Interfaces\Services.Interfaces.csproj", "{562FA530-3242-49B8-BA06-A66E5CD4ED63}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Services.Interfaces", "..\samples\ri\Services.Interfaces\Services.Interfaces.csproj", "{562FA530-3242-49B8-BA06-A66E5CD4ED63}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarsApi", "..\samples\ri\CarsApi\CarsApi.csproj", "{8583CDF9-BE01-4C0F-995D-81C2C82CBB0A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CarsApi", "..\samples\ri\CarsApi\CarsApi.csproj", "{8583CDF9-BE01-4C0F-995D-81C2C82CBB0A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage", "..\samples\ri\Storage\Storage.csproj", "{C7E52D4B-0163-49D9-BF0F-549DBCBA25F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Storage", "..\samples\ri\Storage\Storage.csproj", "{C7E52D4B-0163-49D9-BF0F-549DBCBA25F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage.UnitTests", "..\samples\ri\Storage.UnitTests\Storage.UnitTests.csproj", "{CA91C5A2-AB58-44DE-A72D-8E985717FCC5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Storage.UnitTests", "..\samples\ri\Storage.UnitTests\Storage.UnitTests.csproj", "{CA91C5A2-AB58-44DE-A72D-8E985717FCC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarsApi.IntegrationTests", "..\samples\ri\CarsApi.IntegrationTests\CarsApi.IntegrationTests.csproj", "{B0069B0D-5233-420E-963F-AEB119186387}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CarsApi.IntegrationTests", "..\samples\ri\CarsApi.IntegrationTests\CarsApi.IntegrationTests.csproj", "{B0069B0D-5233-420E-963F-AEB119186387}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D3EDC65E-B76F-40B0-9EEC-CCA172D0B165}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueryAny.Primitives", "QueryAny.Primitives\QueryAny.Primitives.csproj", "{559631D0-2556-40E6-9027-23EE38CC2C48}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,6 +69,10 @@ Global
 		{B0069B0D-5233-420E-963F-AEB119186387}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0069B0D-5233-420E-963F-AEB119186387}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0069B0D-5233-420E-963F-AEB119186387}.Release|Any CPU.Build.0 = Release|Any CPU
+		{559631D0-2556-40E6-9027-23EE38CC2C48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{559631D0-2556-40E6-9027-23EE38CC2C48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{559631D0-2556-40E6-9027-23EE38CC2C48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{559631D0-2556-40E6-9027-23EE38CC2C48}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

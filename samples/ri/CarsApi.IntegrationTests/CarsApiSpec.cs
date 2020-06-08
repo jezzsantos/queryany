@@ -9,7 +9,7 @@ using Storage.Interfaces;
 namespace CarsApi.IntegrationTests
 {
     [TestClass]
-    public class CarsSpec
+    public class CarsApiSpec
     {
         private const string serviceUrl = "http://localhost:2000/";
         private ServiceStackHost appHost;
@@ -38,7 +38,7 @@ namespace CarsApi.IntegrationTests
         {
             var client = new JsonServiceClient(serviceUrl);
 
-            var cars = client.Get(new GetAvailableCars());
+            var cars = client.Get(new SearchAvailableCarsRequest());
 
             Assert.AreEqual(0, cars.Cars.Count);
         }
@@ -53,7 +53,7 @@ namespace CarsApi.IntegrationTests
                 OccupiedUntilUtc = DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(1))
             });
 
-            var cars = client.Get(new GetAvailableCars());
+            var cars = client.Get(new SearchAvailableCarsRequest());
 
             Assert.AreEqual(1, cars.Cars.Count);
             Assert.AreEqual("acaridid1", cars.Cars[0].Id);
