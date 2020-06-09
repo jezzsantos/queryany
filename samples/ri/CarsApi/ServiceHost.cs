@@ -39,8 +39,8 @@ namespace CarsApi
         {
             Plugins.Add(new ValidationFeature());
             container.RegisterValidators(assembliesContainingServicesAndDependencies);
-            container.AddSingleton<IHasSearchOptionsValidator, Validators.HasSearchOptions>();
-            container.AddSingleton<IHasGetOptionsValidator, Validators.HasGetOptions>();
+            container.AddSingleton<IHasSearchOptionsValidator, Validators.HasSearchOptionsValidator>();
+            container.AddSingleton<IHasGetOptionsValidator, Validators.HasGetOptionsValidator>();
         }
     }
 }

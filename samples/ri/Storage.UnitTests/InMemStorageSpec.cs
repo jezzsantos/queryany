@@ -208,7 +208,7 @@ namespace Storage.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenQueryAndMatchMaany_ThenReturnsResults()
+        public void WhenQueryAndMatchMany_ThenReturnsResults()
         {
             var query = Query.Create<TestEntity>(e => e.AProperty, QueryOperator.EQ, "avalue");
             this.storage.Add(new TestEntity("anid1")

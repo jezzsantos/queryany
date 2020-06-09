@@ -47,30 +47,9 @@ namespace QueryAny
             return !value.EqualsIgnoreCase(other);
         }
 
-        /// <summary>
-        /// Whether the <see cref="formattedString" /> has been formatted from the specified <see cref="formatString" />.
-        /// </summary>
-        /// <remarks>
-        /// This function is useful for comparing two strings where the <see cref="formattedString" /> is the result of a String.Format operation on
-        /// the <see cref="formatString" />, with one or more format substitutions.
-        ///     For example: Calling this function with a string "My code is 5" and a resource string "My code is {0}" that contains one or more formatting arguments, return
-        /// <c> true </c>
-        /// </remarks>
-        public static bool IsFormattedFrom(this string formattedString, string formatString)
+        public static string Format(this string value, params object[] args)
         {
-            var escapedPattern = formatString
-                .Replace("[", "\\[")
-                .Replace("]", "\\]")
-                .Replace("(", "\\(")
-                .Replace(")", "\\)")
-                .Replace(".", "\\.")
-                .Replace("<", "\\<")
-                .Replace(">", "\\>");
-
-            var pattern = Regex.Replace(escapedPattern, @"\{\d+\}", ".*")
-                .Replace(" ", @"\s");
-
-            return new Regex(pattern).IsMatch(formattedString);
+            return string.Format(value, args);
         }
     }
 }

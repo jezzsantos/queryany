@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using QueryAny;
 using Task = System.Threading.Tasks.Task;
 
 /// <summary>
@@ -32,7 +33,7 @@ public class Assertion : IAssertion
     /// </summary>
     public static string FormatMessage(string fixedMessage, string customMessage, params object[] args)
     {
-        if (!customMessage.HasValue())
+        if (!string.IsNullOrEmpty(customMessage))
         {
             return fixedMessage;
         }
@@ -219,7 +220,7 @@ public static class BasicAssertions
                     message, args));
             }
 
-            if (!ex.Message.IsFormattedFrom(exceptionContains))
+            if (!IsFormattedFrom(ex.Message, exceptionContains))
             {
                 throw BuildThrowsException(ex, Assertion.FormatMessage(
                     $"throw exception did not match message regex match pattern '{exceptionContains}'.",
@@ -294,6 +295,24 @@ public static class BasicAssertions
 
         return null;
     }
+
+    private static bool IsFormattedFrom(string formattedString, string formatString)
+    {
+        var escapedPattern = formatString
+            .Replace("[", "\\[")
+            .Replace("]", "\\]")
+            .Replace("(", "\\(")
+            .Replace(")", "\\)")
+            .Replace(".", "\\.")
+            .Replace("<", "\\<")
+            .Replace(">", "\\>");
+
+        var pattern = Regex.Replace(escapedPattern, @"\{\d+\}", ".*")
+            .Replace(" ", @"\s");
+
+        return new Regex(pattern).IsMatch(formattedString);
+    }
+
 
     #region StackTrace Hacks
 
@@ -437,4 +456,49 @@ public static class BasicAssertions
     }
 
     #endregion
+}
+
+public static class AssertionExtensions
+{
+    /// <summary>
+    /// Asserts that a <see cref="WebException" /> was thrown with the specified <see cref="HttpStatusCode" /> and specified
+    /// <see cref="WebException.Status" />
+    /// </summary>
+    public static void ThrowsWebException(this IAssertion assertion, HttpStatusCode statusCode, Action action)
+    {
+        ThrowsWebException(assertion, statusCode, null, action);
+    }
+
+    /// <summary>
+    /// Asserts that a <see cref="WebException" /> was thrown with the specified <see cref="HttpStatusCode" /> and specified
+    /// <see cref="WebException.Status" />
+    /// </summary>
+    public static void ThrowsWebException(this IAssertion assertion, HttpStatusCode statusCode, string errorMessage, Action action)
+    {
+        try
+        {
+            action();
+
+            assertion.Fail($"Expected 'WebException' (with statusCode: '{statusCode}') to be thrown, but it was not.");
+        }
+        catch (WebException ex)
+        {
+            assertion.Equal(statusCode, GetStatus(ex),
+                $"Expected 'WebException' with statusCode: '{statusCode}' to be thrown, but was '{GetStatus(ex)}': {ex.Message}");
+            if (string.IsNullOrEmpty(errorMessage))
+            {
+                assertion.Equal(errorMessage, ex.Message,
+                    $"Expected 'WebException' (with statusCode: '{GetStatus(ex)}') to have message '{errorMessage}', but was '{ex.Message}'");
+            }
+        }
+        catch (Exception ex)
+        {
+            assertion.Fail($"Expected 'WebException' (with statusCode: '{statusCode}') to be thrown, but exception {ex.GetType()}: {ex.Message} was thrown instead");
+        }
+    }
+
+    private static HttpStatusCode? GetStatus(WebException ex)
+    {
+        return (ex?.Response as HttpWebResponse)?.StatusCode;
+    }
 }
