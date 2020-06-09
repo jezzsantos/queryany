@@ -7,7 +7,7 @@ namespace Services.Interfaces
     public static class ISearchOptionExtensions
     {
         public static SearchOptions ToSearchOptions(this IHasSearchOptions options, int? defaultLimit = null, int? defaultOffset = null, string defaultSort = null,
-    string defaultFilter = null, string defaultDistinct = null)
+                string defaultFilter = null, string defaultDistinct = null)
         {
             if (options == null)
             {

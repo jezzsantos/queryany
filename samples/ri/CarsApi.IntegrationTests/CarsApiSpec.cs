@@ -33,7 +33,7 @@ namespace CarsApi.IntegrationTests
             this.appHost.Dispose();
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Integration")]
         public void WhenGetAvailableAndNoCars_ThenReturnsNone()
         {
             var client = new JsonServiceClient(serviceUrl);
@@ -43,7 +43,7 @@ namespace CarsApi.IntegrationTests
             Assert.AreEqual(0, cars.Cars.Count);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Integration")]
         public void WhenGetAvailableAndCars_ThenReturnsNone()
         {
             var client = new JsonServiceClient(serviceUrl);
