@@ -6,7 +6,7 @@
 
 Want to learn how to abstract away your persistence layer? (**Get rid of those ugly SQL statements in your business logic?**)
 
-Want to discover how to use other data repositories than the only one you know now? (**Ever wanted to explore what a NoSQL database was good for?**)
+Want to discover how to use other data repositories than the only one you know now? (**Ever wanted to explore what a NoSQL database or InMemory database was good for?**)
 
 Want to run your unit/integration tests faster than your database can run them? (**Then stop using databases in your testing!**)
 
@@ -41,34 +41,32 @@ For example, they may define a generic repository interface like this in their c
 
 And then implement that interface in an In-Memory store (eg. `ConcurrentDictionary<TEntity>` or in Redis or MemCache) for unit testing, or for SQLServerDB, Postgres, CosmosDB, MongoDB, Redis etc. in production.
 
-But to realize that vision, developers need an effective way of querying collections from their repositories, and a query language is required to do that effectively.
+But to realize that vision, developers need an effective way of defining queries from their repositories, and a query language is required to do that effectively.
 
 Generalizing and abstracting away the database's query language details is not a trivial matter. Especially when trying to accommodate the differences between relational databases and non-relational databases.
 
-**QueryAny** provides a useful query language to access data from any repository. It's discoverable, its easy to use, and its extensible. You just need to translate it to the data store infrastructure of your choice.
-
 ## How?
 
-**QueryAny** is a .NET Standard fluent data store query language, that can be used in a repository interface.
+**QueryAny** is a .NET Standard fluent data store query language, that can be used in any repository interface.
 
 You choose to persist data in whatever store you like: SQL, MongoDB, NoSQL, CosmosDB, Redis or even JSON files, and your domain logic will not care a damn where your data is coming from or how it is persisted. Which is exactly what you want to do if you are crafting a new software product or tool, and you want to use [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) principles.
 
 You can now completely decouple your persistence store from your domain code, and focus where you should on building out your domain.
 
-For example a query in code like this:
+For example, define a query in code like this:
 
-Why would you need to care when all you care about is that the data is persisted somewhere?
-
-or even better a fully typed query, like this:
 ```
 Query.From<OrderEntity>()
     .Join<CustomerEntity, OrderEntity>(c => c.Id, o => o.CustomerId)
     .Where<OrderEntity>(o => o.Id, Operator.EQ, "25")
     .Select<OrderEntity>(o => o.Id, o=> o.Description).Select<CustomerEntity>(c => c.Name)
 ```
-can fetch this data from a SQL database, or from a Non-SQL database, or from JSON files just as easily. Why should your domain logic need to care where the data comes from?
 
-> Note: that this example query joins two different entities together to create a final result-set, but that does not require the store to implement joins natively at all, just like No-SQL databases do not.
+Can fetch this data from a SQL database, or from a Non-SQL database, or from JSON files just as easily. Why should your domain logic need to care where the data comes from?
+
+> Note: that this example query joins two different entities together to create a final result-set, but that does not require the database to implement joins natively at all, just like No-SQL databases do not.
+
+> Note: This is NOT a new version of LINQ or intended to be like LINQ at all. Its simply a language for defining queries that can work across any datastore.
 
 ## Example Usage
 
