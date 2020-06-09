@@ -1,4 +1,6 @@
 # QueryAny
+[![Build status](https://ci.appveyor.com/api/projects/status/qwg1wen94kfe52jp/branch/master?svg=true)](https://ci.appveyor.com/project/JezzSantos/queryany/branch/master)
+
 
 ## Why?
 
