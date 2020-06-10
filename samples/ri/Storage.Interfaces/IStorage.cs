@@ -13,7 +13,7 @@ namespace Storage.Interfaces
 
         TEntity Get(string id);
 
-        QueryResults<TEntity> Query(Query query, SearchOptions options);
+        QueryResults<TEntity> Query(AzureCosmosQuery query, SearchOptions options);
 
         long Count();
     }

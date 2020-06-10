@@ -156,7 +156,7 @@ namespace Storage.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenQueryAndNoExpressions_ThenReturnsEmptyResults()
         {
-            var query = Query.Empty();
+            var query = AzureCosmosQuery.Empty();
             this.storage.Add(new TestEntity("anid1")
             {
                 AProperty = "avalue"
@@ -170,7 +170,7 @@ namespace Storage.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenQueryAndEmpty_ThenReturnsEmptyResults()
         {
-            var query = Query.Create<TestEntity>(e => e.AProperty, QueryOperator.EQ, "avalue");
+            var query = AzureCosmosQuery.Create<TestEntity>(e => e.AProperty, QueryOperator.EQ, "avalue");
 
             var results = this.storage.Query(query, null);
 
@@ -180,7 +180,7 @@ namespace Storage.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenQueryAndNoMatch_ThenReturnsEmptyResults()
         {
-            var query = Query.Create<TestEntity>(e => e.AProperty, QueryOperator.EQ, "anothervalue");
+            var query = AzureCosmosQuery.Create<TestEntity>(e => e.AProperty, QueryOperator.EQ, "anothervalue");
             this.storage.Add(new TestEntity("anid1")
             {
                 AProperty = "avalue"
@@ -194,7 +194,7 @@ namespace Storage.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenQueryAndMatchOne_ThenReturnsResult()
         {
-            var query = Query.Create<TestEntity>(e => e.AProperty, QueryOperator.EQ, "avalue");
+            var query = AzureCosmosQuery.Create<TestEntity>(e => e.AProperty, QueryOperator.EQ, "avalue");
             this.storage.Add(new TestEntity("anid1")
             {
                 AProperty = "avalue"
@@ -209,7 +209,7 @@ namespace Storage.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenQueryAndMatchMany_ThenReturnsResults()
         {
-            var query = Query.Create<TestEntity>(e => e.AProperty, QueryOperator.EQ, "avalue");
+            var query = AzureCosmosQuery.Create<TestEntity>(e => e.AProperty, QueryOperator.EQ, "avalue");
             this.storage.Add(new TestEntity("anid1")
             {
                 AProperty = "avalue"

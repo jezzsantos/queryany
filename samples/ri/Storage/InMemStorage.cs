@@ -70,7 +70,7 @@ namespace Storage
             return this.store.Count;
         }
 
-        public QueryResults<TEntity> Query(Query query, SearchOptions options)
+        public QueryResults<TEntity> Query(AzureCosmosQuery query, SearchOptions options)
         {
             Guard.AgainstNull(() => query, query);
 

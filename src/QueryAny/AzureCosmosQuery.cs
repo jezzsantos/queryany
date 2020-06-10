@@ -6,11 +6,11 @@ using QueryAny.Primitives;
 
 namespace QueryAny
 {
-    public class Query
+    public class AzureCosmosQuery
     {
         private readonly List<QueryExpression> expressions = new List<QueryExpression>();
 
-        internal Query(QueryExpression expression)
+        internal AzureCosmosQuery(QueryExpression expression)
         {
             if (expression != null)
             {
@@ -20,27 +20,27 @@ namespace QueryAny
 
         public IReadOnlyList<QueryExpression> Expressions => this.expressions;
 
-        public static Query Empty()
+        public static AzureCosmosQuery Empty()
         {
-            return new Query(null);
+            return new AzureCosmosQuery(null);
         }
 
-        public static Query Create(string columnName, QueryOperator @operator, string value)
-        {
-            return CreateInternal(columnName, @operator, value);
-        }
-
-        public static Query Create(string columnName, QueryOperator @operator, DateTime value)
+        public static AzureCosmosQuery Create(string columnName, QueryOperator @operator, string value)
         {
             return CreateInternal(columnName, @operator, value);
         }
 
-        public static Query Create(string columnName, QueryOperator @operator, bool value)
+        public static AzureCosmosQuery Create(string columnName, QueryOperator @operator, DateTime value)
         {
             return CreateInternal(columnName, @operator, value);
         }
 
-        public static Query Create<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator,
+        public static AzureCosmosQuery Create(string columnName, QueryOperator @operator, bool value)
+        {
+            return CreateInternal(columnName, @operator, value);
+        }
+
+        public static AzureCosmosQuery Create<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator,
             string value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
@@ -48,7 +48,7 @@ namespace QueryAny
             return CreateInternal(columnName, @operator, value);
         }
 
-        public static Query Create<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator,
+        public static AzureCosmosQuery Create<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator,
             DateTime value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
@@ -56,7 +56,7 @@ namespace QueryAny
             return CreateInternal(columnName, @operator, value);
         }
 
-        public static Query Create<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator,
+        public static AzureCosmosQuery Create<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator,
             bool value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
@@ -64,102 +64,102 @@ namespace QueryAny
             return CreateInternal(columnName, @operator, value);
         }
 
-        public static Query CreateEmptyDate<TEntity>(Expression<Func<TEntity, DateTime>> propertyName)
+        public static AzureCosmosQuery CreateEmptyDate<TEntity>(Expression<Func<TEntity, DateTime>> propertyName)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
 
             return CreateInternal(columnName, QueryOperator.EQ, DateTime.MinValue);
         }
 
-        public static Query CreateNotEmptyDate<TEntity>(Expression<Func<TEntity, DateTime>> propertyName)
+        public static AzureCosmosQuery CreateNotEmptyDate<TEntity>(Expression<Func<TEntity, DateTime>> propertyName)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
 
             return CreateInternal(columnName, QueryOperator.NE, DateTime.MinValue);
         }
 
-        public Query From(string columnName, QueryOperator @operator, string value)
+        public AzureCosmosQuery From(string columnName, QueryOperator @operator, string value)
         {
             return AddInternal(columnName, @operator, value);
         }
 
-        public Query From(string columnName, QueryOperator @operator, DateTime value)
+        public AzureCosmosQuery From(string columnName, QueryOperator @operator, DateTime value)
         {
             return AddInternal(columnName, @operator, value);
         }
 
-        public Query From(string columnName, QueryOperator @operator, bool value)
+        public AzureCosmosQuery From(string columnName, QueryOperator @operator, bool value)
         {
             return AddInternal(columnName, @operator, value);
         }
 
-        public Query From<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator,
+        public AzureCosmosQuery From<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator,
             string value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return AddInternal(columnName, @operator, value);
         }
 
-        public Query From<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator,
+        public AzureCosmosQuery From<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator,
             DateTime value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return AddInternal(columnName, @operator, value);
         }
 
-        public Query From<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator, bool value)
+        public AzureCosmosQuery From<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator, bool value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return AddInternal(columnName, @operator, value);
         }
 
-        public Query And(string columnName, QueryOperator @operator, string value)
+        public AzureCosmosQuery And(string columnName, QueryOperator @operator, string value)
         {
             return AndInternal(columnName, @operator, value);
         }
 
-        public Query And(string columnName, QueryOperator @operator, DateTime value)
+        public AzureCosmosQuery And(string columnName, QueryOperator @operator, DateTime value)
         {
             return AndInternal(columnName, @operator, value);
         }
 
-        public Query And(string columnName, QueryOperator @operator, bool value)
+        public AzureCosmosQuery And(string columnName, QueryOperator @operator, bool value)
         {
             return AndInternal(columnName, @operator, value);
         }
 
-        public Query And<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator, string value)
+        public AzureCosmosQuery And<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator, string value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return AndInternal(columnName, @operator, value);
         }
 
-        public Query And<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator,
+        public AzureCosmosQuery And<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator,
             DateTime value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return AndInternal(columnName, @operator, value);
         }
 
-        public Query And<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator, bool value)
+        public AzureCosmosQuery And<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator, bool value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return AndInternal(columnName, @operator, value);
         }
 
-        public Query AndEmptyDate<TEntity>(Expression<Func<TEntity, DateTime>> propertyName)
+        public AzureCosmosQuery AndEmptyDate<TEntity>(Expression<Func<TEntity, DateTime>> propertyName)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return AndInternal(columnName, QueryOperator.EQ, DateTime.MinValue);
         }
 
-        public Query AndNotEmptyDate<TEntity>(Expression<Func<TEntity, DateTime>> propertyName)
+        public AzureCosmosQuery AndNotEmptyDate<TEntity>(Expression<Func<TEntity, DateTime>> propertyName)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return AndInternal(columnName, QueryOperator.NE, DateTime.MinValue);
         }
 
-        public Query And(Query query)
+        public AzureCosmosQuery And(AzureCosmosQuery query)
         {
             Guard.AgainstNull(() => query, query);
             if (query.Expressions.Any())
@@ -182,60 +182,60 @@ namespace QueryAny
             return this;
         }
 
-        public Query Or(string columnName, QueryOperator @operator, string value)
+        public AzureCosmosQuery Or(string columnName, QueryOperator @operator, string value)
         {
             return OrInternal(columnName, @operator, value);
         }
 
-        public Query Or(string columnName, QueryOperator @operator, DateTime value)
+        public AzureCosmosQuery Or(string columnName, QueryOperator @operator, DateTime value)
         {
             return OrInternal(columnName, @operator, value);
         }
 
-        public Query Or(string columnName, QueryOperator @operator, bool value)
+        public AzureCosmosQuery Or(string columnName, QueryOperator @operator, bool value)
         {
             return OrInternal(columnName, @operator, value);
         }
 
-        public Query Or<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator, string value)
+        public AzureCosmosQuery Or<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator, string value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return OrInternal(columnName, @operator, value);
         }
 
-        public Query Or<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator,
+        public AzureCosmosQuery Or<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator,
             DateTime value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return OrInternal(columnName, @operator, value);
         }
 
-        public Query Or<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator, bool value)
+        public AzureCosmosQuery Or<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator, bool value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return OrInternal(columnName, @operator, value);
         }
 
-        public Query OrEmptyDate<TEntity>(Expression<Func<TEntity, DateTime>> propertyName)
+        public AzureCosmosQuery OrEmptyDate<TEntity>(Expression<Func<TEntity, DateTime>> propertyName)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return OrInternal(columnName, QueryOperator.EQ, DateTime.MinValue);
         }
 
-        public Query OrNotEmptyDate<TEntity>(Expression<Func<TEntity, DateTime>> propertyName)
+        public AzureCosmosQuery OrNotEmptyDate<TEntity>(Expression<Func<TEntity, DateTime>> propertyName)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return OrInternal(columnName, QueryOperator.NE, DateTime.MinValue);
         }
 
-        public Query And(Func<Query, Query> subquery)
+        public AzureCosmosQuery And(Func<AzureCosmosQuery, AzureCosmosQuery> subquery)
         {
             if (!this.expressions.Any())
             {
                 throw new ArgumentOutOfRangeException();
             }
 
-            var query = new Query(null);
+            var query = new AzureCosmosQuery(null);
             subquery(query);
 
             this.expressions.Add(new QueryExpression
@@ -248,14 +248,14 @@ namespace QueryAny
             return this;
         }
 
-        public Query Or(Func<Query, Query> subquery)
+        public AzureCosmosQuery Or(Func<AzureCosmosQuery, AzureCosmosQuery> subquery)
         {
             if (!this.expressions.Any())
             {
                 throw new ArgumentOutOfRangeException();
             }
 
-            var query = new Query(null);
+            var query = new AzureCosmosQuery(null);
             subquery(query);
 
             this.expressions.Add(new QueryExpression
@@ -268,7 +268,7 @@ namespace QueryAny
             return this;
         }
 
-        public Query Or(Query query)
+        public AzureCosmosQuery Or(AzureCosmosQuery query)
         {
             Guard.AgainstNull(() => query, query);
             if (query.Expressions.Any())
@@ -306,11 +306,11 @@ namespace QueryAny
             return Expressions.ToQueryString();
         }
 
-        private static Query CreateInternal(string columnName, QueryOperator @operator, object value)
+        private static AzureCosmosQuery CreateInternal(string columnName, QueryOperator @operator, object value)
         {
             Guard.AgainstNullOrEmpty(() => columnName, columnName);
 
-            return new Query(new QueryExpression
+            return new AzureCosmosQuery(new QueryExpression
             {
                 Condition = new QueryCondition
                 {
@@ -322,7 +322,7 @@ namespace QueryAny
             });
         }
 
-        private Query AddInternal(string columnName, QueryOperator @operator, object value)
+        private AzureCosmosQuery AddInternal(string columnName, QueryOperator @operator, object value)
         {
             Guard.AgainstNullOrEmpty(() => columnName, columnName);
 
@@ -340,7 +340,7 @@ namespace QueryAny
             return this;
         }
 
-        private Query AndInternal(string columnName, QueryOperator @operator, object value)
+        private AzureCosmosQuery AndInternal(string columnName, QueryOperator @operator, object value)
         {
             Guard.AgainstNullOrEmpty(() => columnName, columnName);
 
@@ -363,7 +363,7 @@ namespace QueryAny
             return this;
         }
 
-        private Query OrInternal(string columnName, QueryOperator @operator, object value)
+        private AzureCosmosQuery OrInternal(string columnName, QueryOperator @operator, object value)
         {
             Guard.AgainstNullOrEmpty(() => columnName, columnName);
 
