@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using QueryAny.Primitives;
 
 namespace QueryAny.UnitTests
 {
@@ -238,7 +239,8 @@ namespace QueryAny.UnitTests
             [TestMethod, TestCategory("Unit")]
             public void WhenAndWithNullColumn_ThenThrows()
             {
-                Assert.Throws<ArgumentNullException>(() => Query.Create("acolumnname1", QueryOperator.EQ, "avalue1").And(null, QueryOperator.EQ, "avalue"));
+                Assert.Throws<ArgumentNullException>(() =>
+                    Query.Create("acolumnname1", QueryOperator.EQ, "avalue1").And(null, QueryOperator.EQ, "avalue"));
             }
 
             [TestMethod, TestCategory("Unit")]
@@ -368,7 +370,7 @@ namespace QueryAny.UnitTests
             public void WhenAndWithNullQuery_ThenThrows()
             {
                 Assert.Throws<ArgumentNullException>(() =>
-                    Query.Empty().And((Query)null));
+                    Query.Empty().And((Query) null));
             }
 
             [TestMethod, TestCategory("Unit")]
@@ -691,7 +693,7 @@ namespace QueryAny.UnitTests
             public void WhenOrWithNullQuery_ThenThrows()
             {
                 Assert.Throws<ArgumentNullException>(() =>
-                    Query.Empty().Or((Query)null));
+                    Query.Empty().Or((Query) null));
             }
 
             [TestMethod, TestCategory("Unit")]
@@ -751,7 +753,9 @@ namespace QueryAny.UnitTests
             {
                 var result = Query.Create("acolumnname", QueryOperator.EQ, null).ToQueryString();
 
-                Assert.Equal(AzureCosmosTableQuery.GenerateFilterCondition("acolumnname", QueryOperator.EQ.ToString().ToLowerInvariant(), null), result);
+                Assert.Equal(
+                    AzureCosmosTableQuery.GenerateFilterCondition("acolumnname",
+                        QueryOperator.EQ.ToString().ToLowerInvariant(), null), result);
             }
 
             [TestMethod, TestCategory("Unit")]
@@ -759,7 +763,9 @@ namespace QueryAny.UnitTests
             {
                 var result = Query.Create("acolumnname", QueryOperator.EQ, "avalue").ToQueryString();
 
-                Assert.Equal(AzureCosmosTableQuery.GenerateFilterCondition("acolumnname", QueryOperator.EQ.ToString().ToLowerInvariant(), "avalue"), result);
+                Assert.Equal(
+                    AzureCosmosTableQuery.GenerateFilterCondition("acolumnname",
+                        QueryOperator.EQ.ToString().ToLowerInvariant(), "avalue"), result);
             }
 
             [TestMethod, TestCategory("Unit")]
@@ -768,7 +774,8 @@ namespace QueryAny.UnitTests
                 var result = Query.Create("acolumnname", QueryOperator.EQ, DateTime.MinValue).ToQueryString();
 
                 Assert.Equal(
-                    AzureCosmosTableQuery.GenerateFilterConditionForDate("acolumnname", QueryOperator.EQ.ToString().ToLowerInvariant(),
+                    AzureCosmosTableQuery.GenerateFilterConditionForDate("acolumnname",
+                        QueryOperator.EQ.ToString().ToLowerInvariant(),
                         new DateTimeOffset(AzureCosmosTableQuery.MinAzureDateTime)), result);
             }
 
@@ -778,7 +785,9 @@ namespace QueryAny.UnitTests
                 var date = DateTime.UtcNow;
                 var result = Query.Create("acolumnname", QueryOperator.EQ, date).ToQueryString();
 
-                Assert.Equal(AzureCosmosTableQuery.GenerateFilterConditionForDate("acolumnname", QueryOperator.EQ.ToString().ToLowerInvariant(), new DateTimeOffset(date)), result);
+                Assert.Equal(
+                    AzureCosmosTableQuery.GenerateFilterConditionForDate("acolumnname",
+                        QueryOperator.EQ.ToString().ToLowerInvariant(), new DateTimeOffset(date)), result);
             }
 
             [TestMethod, TestCategory("Unit")]
@@ -786,7 +795,9 @@ namespace QueryAny.UnitTests
             {
                 var result = Query.Create("acolumnname", QueryOperator.EQ, true).ToQueryString();
 
-                Assert.Equal(AzureCosmosTableQuery.GenerateFilterCondition("acolumnname", QueryOperator.EQ.ToString().ToLowerInvariant(), true.ToLower()), result);
+                Assert.Equal(
+                    AzureCosmosTableQuery.GenerateFilterCondition("acolumnname",
+                        QueryOperator.EQ.ToString().ToLowerInvariant(), true.ToLower()), result);
             }
 
             [TestMethod, TestCategory("Unit")]
@@ -796,9 +807,12 @@ namespace QueryAny.UnitTests
                     .And("acolumnname2", QueryOperator.LT, "avalue2")
                     .ToQueryString();
 
-                var query1 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname1", QueryOperator.GT.ToString().ToLowerInvariant(), "avalue1");
-                var query2 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname2", QueryOperator.LT.ToString().ToLowerInvariant(), "avalue2");
-                var query = AzureCosmosTableQuery.CombineFilters(query1, CombineOperator.AND.ToString().ToLowerInvariant(), query2);
+                var query1 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname1",
+                    QueryOperator.GT.ToString().ToLowerInvariant(), "avalue1");
+                var query2 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname2",
+                    QueryOperator.LT.ToString().ToLowerInvariant(), "avalue2");
+                var query = AzureCosmosTableQuery.CombineFilters(query1,
+                    CombineOperator.AND.ToString().ToLowerInvariant(), query2);
 
                 Assert.Equal(query, result);
             }
@@ -810,9 +824,12 @@ namespace QueryAny.UnitTests
                     .Or("acolumnname2", QueryOperator.LT, "avalue2")
                     .ToQueryString();
 
-                var query1 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname1", QueryOperator.GT.ToString().ToLowerInvariant(), "avalue1");
-                var query2 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname2", QueryOperator.LT.ToString().ToLowerInvariant(), "avalue2");
-                var query = AzureCosmosTableQuery.CombineFilters(query1, CombineOperator.OR.ToString().ToLowerInvariant(), query2);
+                var query1 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname1",
+                    QueryOperator.GT.ToString().ToLowerInvariant(), "avalue1");
+                var query2 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname2",
+                    QueryOperator.LT.ToString().ToLowerInvariant(), "avalue2");
+                var query = AzureCosmosTableQuery.CombineFilters(query1,
+                    CombineOperator.OR.ToString().ToLowerInvariant(), query2);
 
                 Assert.Equal(query, result);
             }
@@ -825,11 +842,15 @@ namespace QueryAny.UnitTests
                     .And("acolumnname3", QueryOperator.EQ, "avalue3")
                     .ToQueryString();
 
-                var query1 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname1", QueryOperator.GT.ToString().ToLowerInvariant(), "avalue1");
-                var query2 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname2", QueryOperator.LT.ToString().ToLowerInvariant(), "avalue2");
-                var query3 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname3", QueryOperator.EQ.ToString().ToLowerInvariant(), "avalue3");
+                var query1 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname1",
+                    QueryOperator.GT.ToString().ToLowerInvariant(), "avalue1");
+                var query2 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname2",
+                    QueryOperator.LT.ToString().ToLowerInvariant(), "avalue2");
+                var query3 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname3",
+                    QueryOperator.EQ.ToString().ToLowerInvariant(), "avalue3");
                 var query = AzureCosmosTableQuery.CombineFilters(
-                    AzureCosmosTableQuery.CombineFilters(query1, CombineOperator.OR.ToString().ToLowerInvariant(), query2),
+                    AzureCosmosTableQuery.CombineFilters(query1, CombineOperator.OR.ToString().ToLowerInvariant(),
+                        query2),
                     CombineOperator.AND.ToString().ToLowerInvariant(), query3);
 
                 Assert.Equal(query, result);
@@ -839,14 +860,20 @@ namespace QueryAny.UnitTests
             public void WhenToQueryStringAndNestedExpressions_ThenReturnsQueryString()
             {
                 var result = Query.Create("acolumnname1", QueryOperator.EQ, "avalue1")
-                    .And(sub => sub.From("acolumnname2", QueryOperator.GT, "avalue2").Or("acolumnname3", QueryOperator.LT, "avalue3"))
+                    .And(sub => sub.From("acolumnname2", QueryOperator.GT, "avalue2")
+                        .Or("acolumnname3", QueryOperator.LT, "avalue3"))
                     .ToQueryString();
 
-                var query1 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname1", QueryOperator.EQ.ToString().ToLowerInvariant(), "avalue1");
-                var query2 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname2", QueryOperator.GT.ToString().ToLowerInvariant(), "avalue2");
-                var query3 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname3", QueryOperator.LT.ToString().ToLowerInvariant(), "avalue3");
-                var query = AzureCosmosTableQuery.CombineFilters(query1, CombineOperator.AND.ToString().ToLowerInvariant(),
-                    AzureCosmosTableQuery.CombineFilters(query2, CombineOperator.OR.ToString().ToLowerInvariant(), query3));
+                var query1 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname1",
+                    QueryOperator.EQ.ToString().ToLowerInvariant(), "avalue1");
+                var query2 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname2",
+                    QueryOperator.GT.ToString().ToLowerInvariant(), "avalue2");
+                var query3 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname3",
+                    QueryOperator.LT.ToString().ToLowerInvariant(), "avalue3");
+                var query = AzureCosmosTableQuery.CombineFilters(query1,
+                    CombineOperator.AND.ToString().ToLowerInvariant(),
+                    AzureCosmosTableQuery.CombineFilters(query2, CombineOperator.OR.ToString().ToLowerInvariant(),
+                        query3));
 
                 Assert.Equal(query, result);
             }
@@ -855,14 +882,20 @@ namespace QueryAny.UnitTests
             public void WhenToQueryStringAndNestedQuery_ThenReturnsQueryString()
             {
                 var result = Query.Create("acolumnname1", QueryOperator.EQ, "avalue1")
-                    .And(Query.Create("acolumnname2", QueryOperator.GT, "avalue2").Or("acolumnname3", QueryOperator.LT, "avalue3"))
+                    .And(Query.Create("acolumnname2", QueryOperator.GT, "avalue2")
+                        .Or("acolumnname3", QueryOperator.LT, "avalue3"))
                     .ToQueryString();
 
-                var query1 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname1", QueryOperator.EQ.ToString().ToLowerInvariant(), "avalue1");
-                var query2 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname2", QueryOperator.GT.ToString().ToLowerInvariant(), "avalue2");
-                var query3 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname3", QueryOperator.LT.ToString().ToLowerInvariant(), "avalue3");
-                var query = AzureCosmosTableQuery.CombineFilters(query1, CombineOperator.AND.ToString().ToLowerInvariant(),
-                    AzureCosmosTableQuery.CombineFilters(query2, CombineOperator.OR.ToString().ToLowerInvariant(), query3));
+                var query1 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname1",
+                    QueryOperator.EQ.ToString().ToLowerInvariant(), "avalue1");
+                var query2 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname2",
+                    QueryOperator.GT.ToString().ToLowerInvariant(), "avalue2");
+                var query3 = AzureCosmosTableQuery.GenerateFilterCondition("acolumnname3",
+                    QueryOperator.LT.ToString().ToLowerInvariant(), "avalue3");
+                var query = AzureCosmosTableQuery.CombineFilters(query1,
+                    CombineOperator.AND.ToString().ToLowerInvariant(),
+                    AzureCosmosTableQuery.CombineFilters(query2, CombineOperator.OR.ToString().ToLowerInvariant(),
+                        query3));
 
                 Assert.Equal(query, result);
             }

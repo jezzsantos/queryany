@@ -50,7 +50,7 @@ namespace Services.Interfaces.UnitTests
     }
 
     [TestClass]
-    public class IHasGetOptionsExtensionsSpec
+    public class HasGetOptionsExtensionsSpec
     {
         private GetOptionsDto hasGetOptions;
 
@@ -63,7 +63,7 @@ namespace Services.Interfaces.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenToGetOptionsAndNullOptions_ThenReturnsNull()
         {
-            var result = ((GetOptionsDto)null).ToGetOptions();
+            var result = ((GetOptionsDto) null).ToGetOptions();
 
             Assert.IsNull(result);
         }

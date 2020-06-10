@@ -1,16 +1,27 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Storage.Interfaces
 {
-
     [Serializable]
     public class EntityAlreadyExistsException : Exception
     {
-        public EntityAlreadyExistsException() { }
-        public EntityAlreadyExistsException(string message) : base(message) { }
-        public EntityAlreadyExistsException(string message, Exception inner) : base(message, inner) { }
+        public EntityAlreadyExistsException()
+        {
+        }
+
+        public EntityAlreadyExistsException(string message) : base(message)
+        {
+        }
+
+        public EntityAlreadyExistsException(string message, Exception inner) : base(message, inner)
+        {
+        }
+
         protected EntityAlreadyExistsException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+            SerializationInfo info,
+            StreamingContext context) : base(info, context)
+        {
+        }
     }
 }

@@ -10,26 +10,24 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Task = System.Threading.Tasks.Task;
 
 /// <summary>
-/// Hook interface for all assertion extension methods we might ever need :).
+///     Hook interface for all assertion extension methods we might ever need :).
 /// </summary>
 public interface IAssertion
 {
 }
 
 /// <summary>
-/// Basic implementation of an assertion, which provides some helper methods that extensions
-/// can use.
+///     Basic implementation of an assertion, which provides some helper methods that extensions
+///     can use.
 /// </summary>
-[DebuggerStepThrough]
-[DebuggerNonUserCode]
+[DebuggerStepThrough, DebuggerNonUserCode]
 public class Assertion : IAssertion
 {
     /// <summary>
-    /// If a custom message is provided, it's formatted with the given arguments (if any)
-    /// and prepended to the fixed message, with a new-line separating them.
+    ///     If a custom message is provided, it's formatted with the given arguments (if any)
+    ///     and prepended to the fixed message, with a new-line separating them.
     /// </summary>
     public static string FormatMessage(string fixedMessage, string customMessage, params object[] args)
     {
@@ -42,8 +40,7 @@ public class Assertion : IAssertion
     }
 }
 
-[DebuggerStepThrough]
-[DebuggerNonUserCode]
+[DebuggerStepThrough, DebuggerNonUserCode]
 public static class BasicAssertions
 {
     public static void Contains<T>(this IAssertion assertion, T expected, IEnumerable<T> collection)
@@ -75,8 +72,8 @@ public static class BasicAssertions
 
     public static void Near(this IAssertion assertion, int expected, int actual, int within = 1)
     {
-        Assert.IsTrue((expected + within) >= actual
-                      && (expected - within) <= actual,
+        Assert.IsTrue(expected + within >= actual
+                      && expected - within <= actual,
             @"Expected number ({0}) to be within {1} of actual number ({2})",
             expected, within, actual);
     }
@@ -105,7 +102,8 @@ public static class BasicAssertions
         Assert.AreNotEqual(expected, actual);
     }
 
-    public static void NotEqual<T>(this IAssertion assertion, T expected, T actual, string message, params object[] args)
+    public static void NotEqual<T>(this IAssertion assertion, T expected, T actual, string message,
+        params object[] args)
     {
         Assert.AreNotEqual(expected, actual, EscapeMessage(message), args);
     }
@@ -203,7 +201,8 @@ public static class BasicAssertions
         return Throws<TException>(assertion, exceptionContains, action, null);
     }
 
-    public static Exception Throws<TException>(this IAssertion assertion, string exceptionContains, Action action, string message,
+    public static Exception Throws<TException>(this IAssertion assertion, string exceptionContains, Action action,
+        string message,
         params object[] args)
         where TException : Exception
     {
@@ -240,7 +239,8 @@ public static class BasicAssertions
         return Throws<TException>(assertion, action, null);
     }
 
-    public static TException Throws<TException>(this IAssertion assertion, Action action, string exceptionContains, params object[] args)
+    public static TException Throws<TException>(this IAssertion assertion, Action action, string exceptionContains,
+        params object[] args)
         where TException : Exception
     {
         try
@@ -255,21 +255,21 @@ public static class BasicAssertions
                     $"expected exception of type {typeof(TException)} but was {ex.GetType()}.");
             }
 
-            return (TException)ex;
+            return (TException) ex;
         }
 
         throw new AssertFailedException(Assertion.FormatMessage(
-            "Assert.Throws() did not throw any exception. Expected " + typeof(TException).Name + ".", exceptionContains, args));
+            "Assert.Throws() did not throw any exception. Expected " + typeof(TException).Name + ".", exceptionContains,
+            args));
     }
 
-    public static async Task<TException> ThrowsAsync<TException>(this IAssertion assertion, Func<Task> func) where TException : Exception
+    public static async Task<TException> ThrowsAsync<TException>(this IAssertion assertion, Func<Task> func)
+        where TException : Exception
     {
         try
         {
             await func();
-            assertion.Throws<TException>(() =>
-            {
-            });
+            assertion.Throws<TException>(() => { });
         }
         catch (TException exception)
         {
@@ -279,14 +279,13 @@ public static class BasicAssertions
         return null;
     }
 
-    public static async Task<TException> ThrowsAsync<TException>(this IAssertion assertion, string exceptionContains, Func<Task> func) where TException : Exception
+    public static async Task<TException> ThrowsAsync<TException>(this IAssertion assertion, string exceptionContains,
+        Func<Task> func) where TException : Exception
     {
         try
         {
             await func();
-            assertion.Throws<TException>(exceptionContains, () =>
-            {
-            });
+            assertion.Throws<TException>(exceptionContains, () => { });
         }
         catch (TException exception)
         {
@@ -348,7 +347,7 @@ public static class BasicAssertions
         {
             formatter.Serialize(mem, result);
             mem.Position = 0;
-            result = (Exception)formatter.Deserialize(mem);
+            result = (Exception) formatter.Deserialize(mem);
             PreserveStackTrace(result);
         }
 
@@ -378,7 +377,8 @@ public static class BasicAssertions
         }
 
         // ReSharper disable once ParameterHidesMember
-        public ISerializationSurrogate GetSurrogate(Type type, StreamingContext context, out ISurrogateSelector selector)
+        public ISerializationSurrogate GetSurrogate(Type type, StreamingContext context,
+            out ISurrogateSelector selector)
         {
             if (typeof(Exception).IsAssignableFrom(type))
             {
@@ -394,16 +394,16 @@ public static class BasicAssertions
 
     private class ExceptionSurrogate : ISerializationSurrogate
     {
-        private static readonly MethodInfo updateMethod = typeof(SerializationInfo).GetMethod("UpdateValue",
+        private static readonly MethodInfo UpdateMethod = typeof(SerializationInfo).GetMethod("UpdateValue",
             BindingFlags.Instance |
             BindingFlags.NonPublic |
             BindingFlags.InvokeMethod);
 
-        private static readonly Action<SerializationInfo, string, object, Type> updateValue;
+        private static readonly Action<SerializationInfo, string, object, Type> UpdateValue;
 
         static ExceptionSurrogate()
         {
-            updateValue = (info, name, value, type) => updateMethod.Invoke(info, new[]
+            UpdateValue = (info, name, value, type) => UpdateMethod.Invoke(info, new[]
             {
                 name,
                 value,
@@ -413,7 +413,7 @@ public static class BasicAssertions
 
         public void GetObjectData(object obj, SerializationInfo info, StreamingContext context)
         {
-            ((ISerializable)obj).GetObjectData(info, context);
+            ((ISerializable) obj).GetObjectData(info, context);
 
             // Skip our own frames to cleanup the trace.
             var stackTrace = string.Join(Environment.NewLine,
@@ -426,7 +426,7 @@ public static class BasicAssertions
                     .Where(frame => !frame.Contains("Assertions"))
                     .ToArray());
 
-            updateValue(info, "RemoteStackTraceString", stackTrace, typeof(string));
+            UpdateValue(info, "RemoteStackTraceString", stackTrace, typeof(string));
         }
 
         public object SetObjectData(object obj, SerializationInfo info, StreamingContext context,
@@ -461,8 +461,9 @@ public static class BasicAssertions
 public static class AssertionExtensions
 {
     /// <summary>
-    /// Asserts that a <see cref="WebException" /> was thrown with the specified <see cref="HttpStatusCode" /> and specified
-    /// <see cref="WebException.Status" />
+    ///     Asserts that a <see cref="WebException" /> was thrown with the specified <see cref="HttpStatusCode" /> and
+    ///     specified
+    ///     <see cref="WebException.Status" />
     /// </summary>
     public static void ThrowsWebException(this IAssertion assertion, HttpStatusCode statusCode, Action action)
     {
@@ -470,10 +471,12 @@ public static class AssertionExtensions
     }
 
     /// <summary>
-    /// Asserts that a <see cref="WebException" /> was thrown with the specified <see cref="HttpStatusCode" /> and specified
-    /// <see cref="WebException.Status" />
+    ///     Asserts that a <see cref="WebException" /> was thrown with the specified <see cref="HttpStatusCode" /> and
+    ///     specified
+    ///     <see cref="WebException.Status" />
     /// </summary>
-    public static void ThrowsWebException(this IAssertion assertion, HttpStatusCode statusCode, string errorMessage, Action action)
+    public static void ThrowsWebException(this IAssertion assertion, HttpStatusCode statusCode, string errorMessage,
+        Action action)
     {
         try
         {
@@ -493,7 +496,8 @@ public static class AssertionExtensions
         }
         catch (Exception ex)
         {
-            assertion.Fail($"Expected 'WebException' (with statusCode: '{statusCode}') to be thrown, but exception {ex.GetType()}: {ex.Message} was thrown instead");
+            assertion.Fail(
+                $"Expected 'WebException' (with statusCode: '{statusCode}') to be thrown, but exception {ex.GetType()}: {ex.Message} was thrown instead");
         }
     }
 

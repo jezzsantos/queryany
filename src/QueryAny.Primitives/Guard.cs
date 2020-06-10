@@ -2,18 +2,17 @@
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
-using QueryAny.Primitives;
 
-namespace QueryAny
+namespace QueryAny.Primitives
 {
     /// <summary>
-    /// Guards used for argument validation
+    ///     Guards used for argument validation
     /// </summary>
     [DebuggerStepThrough]
     public static class Guard
     {
         /// <summary>
-        /// Ensures the given <paramref name="value" /> is not null, otherwise throws <see cref="ArgumentNullException" />.
+        ///     Ensures the given <paramref name="value" /> is not null, otherwise throws <see cref="ArgumentNullException" />.
         /// </summary>
         /// <typeparam name="TValue"> The type of the value to be validated. </typeparam>
         /// <param name="reference"> The expression used to extract the name of the parameter. </param>
@@ -27,7 +26,7 @@ namespace QueryAny
         }
 
         /// <summary>
-        /// Ensures the given <paramref name="value" /> is not null, otherwise throws <see cref="ArgumentNullException" />.
+        ///     Ensures the given <paramref name="value" /> is not null, otherwise throws <see cref="ArgumentNullException" />.
         /// </summary>
         /// <typeparam name="TValue"> The type of the value to be validated. </typeparam>
         /// <typeparam name="TException"> The type of the exception to throw </typeparam>
@@ -43,7 +42,7 @@ namespace QueryAny
         }
 
         /// <summary>
-        /// Ensures the given <paramref name="value" /> is not null, otherwise throws <see cref="ArgumentNullException" />.
+        ///     Ensures the given <paramref name="value" /> is not null, otherwise throws <see cref="ArgumentNullException" />.
         /// </summary>
         /// <typeparam name="TValue"> The type of the value to be validated. </typeparam>
         /// <param name="reference"> The expression used to extract the name of the parameter. </param>
@@ -71,7 +70,7 @@ namespace QueryAny
         }
 
         /// <summary>
-        /// Ensures the given <paramref name="value" /> is not null, otherwise throws <see cref="ArgumentNullException" />.
+        ///     Ensures the given <paramref name="value" /> is not null, otherwise throws <see cref="ArgumentNullException" />.
         /// </summary>
         /// <typeparam name="TValue"> The type of the value to be validated. </typeparam>
         /// <typeparam name="TException"> The type of the exception to throw </typeparam>
@@ -102,8 +101,8 @@ namespace QueryAny
         }
 
         /// <summary>
-        /// Ensures the given string <paramref name="value" /> is not null or empty. Throws <see cref="TException" />
-        /// in both cases.
+        ///     Ensures the given string <paramref name="value" /> is not null or empty. Throws <see cref="TException" />
+        ///     in both cases.
         /// </summary>
         /// <typeparam name="TException"> The type of the exception to throw </typeparam>
         /// <param name="reference"> The expression used to extract the name of the parameter. </param>
@@ -119,8 +118,9 @@ namespace QueryAny
         }
 
         /// <summary>
-        /// Ensures the given string <paramref name="value" /> is not null or empty. Throws <see cref="ArgumentNullException" />
-        /// in the first case, or <see cref="ArgumentException" /> in the latter.
+        ///     Ensures the given string <paramref name="value" /> is not null or empty. Throws
+        ///     <see cref="ArgumentNullException" />
+        ///     in the first case, or <see cref="ArgumentException" /> in the latter.
         /// </summary>
         /// <param name="reference"> The expression used to extract the name of the parameter. </param>
         /// <param name="value"> The value to check. </param>
@@ -134,8 +134,9 @@ namespace QueryAny
         }
 
         /// <summary>
-        /// Ensures the given string <paramref name="value" /> is not null or empty. Throws <see cref="ArgumentNullException" />
-        /// in the first case, or <see cref="ArgumentException" /> in the latter.
+        ///     Ensures the given string <paramref name="value" /> is not null or empty. Throws
+        ///     <see cref="ArgumentNullException" />
+        ///     in the first case, or <see cref="ArgumentException" /> in the latter.
         /// </summary>
         /// <param name="reference"> The expression used to extract the name of the parameter. </param>
         /// <param name="value"> The value to check. </param>
@@ -164,8 +165,9 @@ namespace QueryAny
         }
 
         /// <summary>
-        /// Ensures the given string <paramref name="value" /> is not null or empty. Throws <see cref="ArgumentNullException" />
-        /// in the first case, or <see cref="ArgumentException" /> in the latter.
+        ///     Ensures the given string <paramref name="value" /> is not null or empty. Throws
+        ///     <see cref="ArgumentNullException" />
+        ///     in the first case, or <see cref="ArgumentException" /> in the latter.
         /// </summary>
         /// <typeparam name="TException"> The type of the exception to throw </typeparam>
         /// <param name="reference"> The expression used to extract the name of the parameter. </param>
@@ -197,7 +199,7 @@ namespace QueryAny
 
         private static string GetParameterName<T>(Expression<T> reference)
         {
-            var member = ((MemberExpression)reference.Body).Member;
+            var member = ((MemberExpression) reference.Body).Member;
             return member.Name;
         }
 

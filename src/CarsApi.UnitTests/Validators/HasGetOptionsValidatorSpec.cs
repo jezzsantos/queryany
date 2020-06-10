@@ -1,18 +1,18 @@
-﻿using CarsApi.Validators;
+﻿using CarsApi.Properties;
+using CarsApi.Validators;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Services.Interfaces;
 using ServiceStack.FluentValidation;
-using Resources = CarsApi.Properties.Resources;
 
 namespace CarsApi.UnitTests.Validators
 {
     [TestClass]
-    public class HasGetOptionsValdatorSpec
+    public class HasGetOptionsValidatorSpec
     {
-        public static IAssertion Assert = new Assertion();
+        private static readonly IAssertion Assert = new Assertion();
+        private HasGetOptionsDto dto;
 
         private HasGetOptionsValidator validator;
-        private HasGetOptionsDto dto;
 
         [TestInitialize]
         public void Initialize()

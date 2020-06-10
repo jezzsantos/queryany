@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using QueryAny;
+using QueryAny.Primitives;
 
 namespace Services.Interfaces
 {
-    public static class ISearchOptionExtensions
+    public static class SearchOptionExtensions
     {
-        public static SearchOptions ToSearchOptions(this IHasSearchOptions options, int? defaultLimit = null, int? defaultOffset = null, string defaultSort = null,
-                string defaultFilter = null, string defaultDistinct = null)
+        public static SearchOptions ToSearchOptions(this IHasSearchOptions options, int? defaultLimit = null,
+            int? defaultOffset = null, string defaultSort = null,
+            string defaultFilter = null, string defaultDistinct = null)
         {
             if (options == null)
             {
@@ -71,7 +72,8 @@ namespace Services.Interfaces
 
         private static string ParseSortBy(string sortBy)
         {
-            return sortBy.StartsWith(SearchOptions.SortSigns[0].ToString()) || sortBy.StartsWith(SearchOptions.SortSigns[1].ToString())
+            return sortBy.StartsWith(SearchOptions.SortSigns[0].ToString()) ||
+                   sortBy.StartsWith(SearchOptions.SortSigns[1].ToString())
                 ? sortBy.TrimStart(SearchOptions.SortSigns)
                 : sortBy;
         }
@@ -87,6 +89,5 @@ namespace Services.Interfaces
         {
             return filter.Split(SearchOptions.FilterDelimiters).ToList();
         }
-
     }
 }

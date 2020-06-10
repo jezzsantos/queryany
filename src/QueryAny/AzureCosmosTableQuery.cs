@@ -4,7 +4,7 @@ using System.Globalization;
 namespace QueryAny
 {
     /// <summary>
-    /// Copied from Microsoft.Azure.Cosmos.Table.TableQuery
+    ///     Copied from Microsoft.Azure.Cosmos.Table.TableQuery
     /// </summary>
     public class AzureCosmosTableQuery
     {
@@ -18,16 +18,19 @@ namespace QueryAny
 
         public static string GenerateFilterCondition(string propertyName, string operation, string givenValue)
         {
-            givenValue = (givenValue ?? string.Empty);
+            givenValue = givenValue ?? string.Empty;
             return GenerateFilterCondition(propertyName, operation, givenValue, EdmType.String);
         }
 
-        public static string GenerateFilterConditionForDate(string propertyName, string operation, DateTimeOffset givenValue)
+        public static string GenerateFilterConditionForDate(string propertyName, string operation,
+            DateTimeOffset givenValue)
         {
-            return GenerateFilterCondition(propertyName, operation, givenValue.UtcDateTime.ToString("o", CultureInfo.InvariantCulture), EdmType.DateTime);
+            return GenerateFilterCondition(propertyName, operation,
+                givenValue.UtcDateTime.ToString("o", CultureInfo.InvariantCulture), EdmType.DateTime);
         }
 
-        private static string GenerateFilterCondition(string propertyName, string operation, string givenValue, EdmType edmType)
+        private static string GenerateFilterCondition(string propertyName, string operation, string givenValue,
+            EdmType edmType)
         {
             string text = null;
             switch (edmType)
@@ -37,10 +40,12 @@ namespace QueryAny
                     text = givenValue;
                     break;
                 case EdmType.Double:
-                    {
-                        text = (int.TryParse(givenValue, out var _) ? string.Format(CultureInfo.InvariantCulture, "{0}.0", givenValue) : givenValue);
-                        break;
-                    }
+                {
+                    text = int.TryParse(givenValue, out _)
+                        ? string.Format(CultureInfo.InvariantCulture, "{0}.0", givenValue)
+                        : givenValue;
+                    break;
+                }
                 case EdmType.Int64:
                     text = string.Format(CultureInfo.InvariantCulture, "{0}L", givenValue);
                     break;
@@ -57,6 +62,7 @@ namespace QueryAny
                     text = string.Format(CultureInfo.InvariantCulture, "'{0}'", givenValue.Replace("'", "''"));
                     break;
             }
+
             return string.Format(CultureInfo.InvariantCulture, "{0} {1} {2}", propertyName, operation, text);
         }
     }

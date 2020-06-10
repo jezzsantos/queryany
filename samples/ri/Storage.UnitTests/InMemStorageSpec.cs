@@ -1,5 +1,4 @@
 using System;
-using CarsApi.Storage;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 using Storage.Interfaces;
@@ -22,7 +21,7 @@ namespace Storage.UnitTests
         public void WhenAddAndNoIdentifier_ThenThrows()
         {
             Assert.ThrowsException<EntityNotIdentifiedException>(() =>
-            this.storage.Add(new TestEntity(null)));
+                this.storage.Add(new TestEntity(null)));
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -41,7 +40,7 @@ namespace Storage.UnitTests
             this.storage.Add(new TestEntity("anid"));
 
             Assert.ThrowsException<EntityAlreadyExistsException>(() =>
-            this.storage.Add(new TestEntity("anid")));
+                this.storage.Add(new TestEntity("anid")));
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -66,7 +65,7 @@ namespace Storage.UnitTests
         public void WhenDeleteAndIdIsEmpty_ThenThrows()
         {
             Assert.ThrowsException<ArgumentNullException>(() =>
-            this.storage.Delete(null, false));
+                this.storage.Delete(null, false));
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -92,7 +91,7 @@ namespace Storage.UnitTests
         public void WhenGetAndIdIsEmpty_ThenThrows()
         {
             Assert.ThrowsException<ArgumentNullException>(() =>
-            this.storage.Get(null));
+                this.storage.Get(null));
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -116,7 +115,7 @@ namespace Storage.UnitTests
             };
 
             Assert.ThrowsException<EntityNotExistsException>(() =>
-            this.storage.Update(entity, false));
+                this.storage.Update(entity, false));
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -125,7 +124,7 @@ namespace Storage.UnitTests
             var entity = new TestEntity(null);
 
             Assert.ThrowsException<EntityNotIdentifiedException>(() =>
-            this.storage.Update(entity, false));
+                this.storage.Update(entity, false));
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -151,7 +150,7 @@ namespace Storage.UnitTests
         public void WhenQueryAndQueryIsNull_ThenThrows()
         {
             Assert.ThrowsException<ArgumentNullException>(() =>
-            this.storage.Query(null, null));
+                this.storage.Query(null, null));
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -232,14 +231,12 @@ namespace Storage.UnitTests
 
     public class TestInMemStorage : InMemStorage<TestEntity>
     {
-
     }
 
     public class TestEntity : IKeyedEntity
     {
         public TestEntity()
         {
-
         }
 
         public TestEntity(string id)
@@ -247,7 +244,8 @@ namespace Storage.UnitTests
             Id = id;
         }
 
-        public string Id { get; set; }
         public string AProperty { get; set; }
+
+        public string Id { get; set; }
     }
 }

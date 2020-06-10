@@ -1,6 +1,6 @@
 ﻿using CarsDomain.Entities;
 
-namespace CarsApi.Storage
+namespace Storage
 {
     public class CarStorage : InMemStorage<CarEntity>
     {

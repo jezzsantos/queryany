@@ -1,28 +1,29 @@
 ﻿using System.Reflection;
-using CarsApi.Storage;
 using CarsApi.Validators;
 using CarsDomain;
 using CarsDomain.Entities;
 using Funq;
-using Microsoft.Extensions.DependencyInjection;
 using ServiceStack;
 using ServiceStack.Validation;
+using Storage;
 using Storage.Interfaces;
 
 namespace CarsApi
 {
     public class ServiceHost : AppHostBase
     {
-        private static readonly Assembly[] assembliesContainingServicesAndDependencies = new Assembly[] { typeof(Startup).Assembly };
+        private static readonly Assembly[] AssembliesContainingServicesAndDependencies = {typeof(Startup).Assembly};
 
-        public ServiceHost() : base("MyCarsApi", assembliesContainingServicesAndDependencies) { }
+        public ServiceHost() : base("MyCarsApi", AssembliesContainingServicesAndDependencies)
+        {
+        }
 
         public override void Configure(Container container)
         {
             SetConfig(new HostConfig
             {
                 DefaultRedirectPath = "/metadata",
-                DebugMode = AppSettings.Get(nameof(HostConfig.DebugMode), false),
+                DebugMode = AppSettings.Get(nameof(HostConfig.DebugMode), false)
             });
 
             RegisterValidators(container);
@@ -38,9 +39,9 @@ namespace CarsApi
         private void RegisterValidators(Container container)
         {
             Plugins.Add(new ValidationFeature());
-            container.RegisterValidators(assembliesContainingServicesAndDependencies);
-            container.AddSingleton<IHasSearchOptionsValidator, Validators.HasSearchOptionsValidator>();
-            container.AddSingleton<IHasGetOptionsValidator, Validators.HasGetOptionsValidator>();
+            container.RegisterValidators(AssembliesContainingServicesAndDependencies);
+            container.AddSingleton<IHasSearchOptionsValidator, HasSearchOptionsValidator>();
+            container.AddSingleton<IHasGetOptionsValidator, HasGetOptionsValidator>();
         }
     }
 }

@@ -7,9 +7,12 @@ namespace CarsApi.IntegrationTests
 {
     public class TestAppHost : AppSelfHostBase
     {
-        private static readonly Assembly[] assembliesContainingServicesAndDependencies = new Assembly[] { typeof(Startup).Assembly };
+        private static readonly Assembly[] AssembliesContainingServicesAndDependencies =
+            {typeof(CarsApi.Startup).Assembly};
 
-        public TestAppHost() : base("MyCarsApi Test Service", typeof(CarsApi.Startup).Assembly) { }
+        public TestAppHost() : base("MyCarsApi Test Service", AssembliesContainingServicesAndDependencies)
+        {
+        }
 
         public override void Configure(Container container)
         {

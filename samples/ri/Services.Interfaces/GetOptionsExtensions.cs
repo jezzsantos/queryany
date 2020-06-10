@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using QueryAny;
-using QueryAny.Extensions;
+using QueryAny.Primitives;
 
 namespace Services.Interfaces
 {
     public static class GetOptionsExtensions
     {
-        internal static List<string> ReferencesToNames<TResource>(this Expression<Func<TResource, object>>[] propertyReferences)
+        internal static List<string> ReferencesToNames<TResource>(
+            this Expression<Func<TResource, object>>[] propertyReferences)
         {
             return propertyReferences.Safe()
                 .Select(rp => ToResourceReference(rp))
@@ -22,15 +22,15 @@ namespace Services.Interfaces
 
             return $"{typeof(TResource).Name}.{propertyName}".ToLower();
         }
-
     }
 
-    public static class IHasGetOptionsExtensions
+    public static class HasGetOptionsExtensions
     {
         /// <summary>
-        /// Converts the specified <see cref="IHasGetOptions" /> to a <see cref="GetOptions" />
+        ///     Converts the specified <see cref="IHasGetOptions" /> to a <see cref="GetOptions" />
         /// </summary>
-        public static GetOptions ToGetOptions(this IHasGetOptions options, ExpandOptions? defaultExpand = ExpandOptions.All, List<string> defaultChildResources = null)
+        public static GetOptions ToGetOptions(this IHasGetOptions options,
+            ExpandOptions? defaultExpand = ExpandOptions.All, List<string> defaultChildResources = null)
         {
             if (options == null)
             {
@@ -65,6 +65,7 @@ namespace Services.Interfaces
 
             return GetOptions.Custom(values);
         }
+
         public static HasGetOptions ToHasGetOptions(this GetOptions options)
         {
             if (options == null)
@@ -83,6 +84,5 @@ namespace Services.Interfaces
                     : null
             };
         }
-
     }
 }

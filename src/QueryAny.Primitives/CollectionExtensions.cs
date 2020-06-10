@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace QueryAny.Extensions
+namespace QueryAny.Primitives
 {
     public static class CollectionExtensions
     {
@@ -11,6 +11,7 @@ namespace QueryAny.Extensions
         {
             return enumerable ?? Enumerable.Empty<T>();
         }
+
         public static string Join<T>(this IEnumerable<T> values)
         {
             return values.Join(",");
@@ -25,12 +26,15 @@ namespace QueryAny.Extensions
                 {
                     stringBuilder.Append(seperator);
                 }
+
                 stringBuilder.Append(value);
             }
+
             return stringBuilder.ToString();
         }
 
-        public static string[] SafeSplit(this string value, string[] delimiters, StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries)
+        public static string[] SafeSplit(this string value, string[] delimiters,
+            StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries)
         {
             if (!value.HasValue())
             {
@@ -42,7 +46,8 @@ namespace QueryAny.Extensions
             return value.Split(delimiters, options);
         }
 
-        public static string[] SafeSplit(this string value, string delimiter, StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries)
+        public static string[] SafeSplit(this string value, string delimiter,
+            StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries)
         {
             return value.SafeSplit(new[]
             {

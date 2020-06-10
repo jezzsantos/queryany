@@ -1,9 +1,9 @@
 using System;
-using CarsApi.Storage;
 using CarsDomain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Services.Interfaces.Apis;
 using ServiceStack;
+using Storage;
 using Storage.Interfaces;
 
 namespace CarsApi.IntegrationTests
@@ -11,7 +11,7 @@ namespace CarsApi.IntegrationTests
     [TestClass]
     public class CarsApiSpec
     {
-        private const string serviceUrl = "http://localhost:2000/";
+        private const string ServiceUrl = "http://localhost:2000/";
         private ServiceStackHost appHost;
         private CarInMemStorage store;
 
@@ -24,7 +24,7 @@ namespace CarsApi.IntegrationTests
             this.appHost.Container.AddSingleton<IStorage<CarEntity>>(this.store);
 
             this.appHost.Init()
-            .Start(serviceUrl);
+                .Start(ServiceUrl);
         }
 
         [TestCleanup]
@@ -36,7 +36,7 @@ namespace CarsApi.IntegrationTests
         [TestMethod, TestCategory("Integration")]
         public void WhenGetAvailableAndNoCars_ThenReturnsNone()
         {
-            var client = new JsonServiceClient(serviceUrl);
+            var client = new JsonServiceClient(ServiceUrl);
 
             var cars = client.Get(new SearchAvailableCarsRequest());
 
@@ -46,7 +46,7 @@ namespace CarsApi.IntegrationTests
         [TestMethod, TestCategory("Integration")]
         public void WhenGetAvailableAndCars_ThenReturnsNone()
         {
-            var client = new JsonServiceClient(serviceUrl);
+            var client = new JsonServiceClient(ServiceUrl);
             this.store.Add(new CarEntity
             {
                 Id = "acardid1",

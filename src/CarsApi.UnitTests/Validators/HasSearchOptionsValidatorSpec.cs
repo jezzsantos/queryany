@@ -1,3 +1,4 @@
+using CarsApi.Properties;
 using CarsApi.Validators;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -5,16 +6,15 @@ using Services.Interfaces;
 using ServiceStack.FluentValidation;
 using ServiceStack.FluentValidation.Results;
 
-namespace CarsApi.UnitTests
+namespace CarsApi.UnitTests.Validators
 {
     [TestClass]
     public class HasSearchOptionsValidatorSpec
     {
-        public static IAssertion Assert = new Assertion();
-
-        private HasSearchOptionsValidator validator;
+        private static readonly IAssertion Assert = new Assertion();
         private HasSearchOptionsDto dto;
         private Mock<IHasGetOptionsValidator> getOptionsValidator;
+        private HasSearchOptionsValidator validator;
 
         [TestInitialize]
         public void Initialize()
@@ -68,7 +68,7 @@ namespace CarsApi.UnitTests
         {
             this.dto.Limit = SearchOptions.NoLimit - 1;
 
-            Assert.Throws<ValidationException>(Properties.Resources.HasSearchOptionsValidator_InvalidLimit, () =>
+            Assert.Throws<ValidationException>(Resources.HasSearchOptionsValidator_InvalidLimit, () =>
                 this.validator.ValidateAndThrow(this.dto));
         }
 
@@ -77,7 +77,7 @@ namespace CarsApi.UnitTests
         {
             this.dto.Limit = SearchOptions.MaxLimit + 1;
 
-            Assert.Throws<ValidationException>(Properties.Resources.HasSearchOptionsValidator_InvalidLimit, () =>
+            Assert.Throws<ValidationException>(Resources.HasSearchOptionsValidator_InvalidLimit, () =>
                 this.validator.ValidateAndThrow(this.dto));
         }
 
@@ -110,7 +110,7 @@ namespace CarsApi.UnitTests
         {
             this.dto.Offset = SearchOptions.NoOffset - 1;
 
-            Assert.Throws<ValidationException>(Properties.Resources.HasSearchOptionsValidator_InvalidOffset, () =>
+            Assert.Throws<ValidationException>(Resources.HasSearchOptionsValidator_InvalidOffset, () =>
                 this.validator.ValidateAndThrow(this.dto));
         }
 
@@ -119,7 +119,7 @@ namespace CarsApi.UnitTests
         {
             this.dto.Offset = SearchOptions.MaxLimit + 1;
 
-            Assert.Throws<ValidationException>(Properties.Resources.HasSearchOptionsValidator_InvalidOffset, () =>
+            Assert.Throws<ValidationException>(Resources.HasSearchOptionsValidator_InvalidOffset, () =>
                 this.validator.ValidateAndThrow(this.dto));
         }
 
@@ -136,7 +136,7 @@ namespace CarsApi.UnitTests
         {
             this.dto.Sort = "*";
 
-            Assert.Throws<ValidationException>(Properties.Resources.HasSearchOptionsValidator_InvalidSort, () =>
+            Assert.Throws<ValidationException>(Resources.HasSearchOptionsValidator_InvalidSort, () =>
                 this.validator.ValidateAndThrow(this.dto));
         }
 
@@ -153,7 +153,7 @@ namespace CarsApi.UnitTests
         {
             this.dto.Filter = "*";
 
-            Assert.Throws<ValidationException>(Properties.Resources.HasSearchOptionsValidator_InvalidFilter, () =>
+            Assert.Throws<ValidationException>(Resources.HasSearchOptionsValidator_InvalidFilter, () =>
                 this.validator.ValidateAndThrow(this.dto));
         }
 
@@ -170,7 +170,7 @@ namespace CarsApi.UnitTests
         {
             this.dto.Distinct = "*";
 
-            Assert.Throws<ValidationException>(Properties.Resources.HasSearchOptionsValidator_InvalidDistinct, () =>
+            Assert.Throws<ValidationException>(Resources.HasSearchOptionsValidator_InvalidDistinct, () =>
                 this.validator.ValidateAndThrow(this.dto));
         }
     }

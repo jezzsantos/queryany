@@ -14,8 +14,8 @@ namespace CarsApi
         public static IWebHost BuildWebHost(string[] args)
         {
             return WebHost.CreateDefaultBuilder(args)
-                    .UseModularStartup<Startup>()
-                    .Build();
+                .UseModularStartup<Startup>()
+                .Build();
         }
     }
 }

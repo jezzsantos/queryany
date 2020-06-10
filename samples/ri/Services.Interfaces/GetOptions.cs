@@ -33,7 +33,7 @@ namespace Services.Interfaces
         public IEnumerable<string> ResourceReferences => this.resourceReferences;
 
         /// <summary>
-        /// Creates a custom set of options for the specified resource properties
+        ///     Creates a custom set of options for the specified resource properties
         /// </summary>
         public static GetOptions Custom(List<string> resourceReferences)
         {
@@ -41,7 +41,7 @@ namespace Services.Interfaces
         }
 
         /// <summary>
-        /// Creates a custom set of options for the specified properties of the specific <see cref="TResource" />
+        ///     Creates a custom set of options for the specified properties of the specific <see cref="TResource" />
         /// </summary>
         public static GetOptions Custom<TResource>(params Expression<Func<TResource, object>>[] propertyReferences)
         {

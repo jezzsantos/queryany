@@ -4,24 +4,28 @@ namespace Services.Interfaces
 {
     public class SearchOptions
     {
+        internal const char SortSignAscending = '+';
+        internal const char SortSignDescending = '-';
+
+        public const int DefaultLimit = 100;
+        public const int MaxLimit = 1000;
+        public const int NoLimit = 0;
+        public const int NoOffset = -1;
+
         internal static readonly char[] FilterDelimiters =
-{
+        {
             ',',
             ';'
         };
-        internal const char SortSignAscending = '+';
-        internal const char SortSignDescending = '-';
+
         internal static readonly char[] SortSigns =
         {
             SortSignAscending,
             SortSignDescending
         };
 
-        public const int DefaultLimit = 100;
-        public const int MaxLimit = 1000;
-        public const int NoLimit = 0;
-        public const int NoOffset = -1;
-        public static SearchOptions WithMaxLimit = new SearchOptions { Limit = MaxLimit };
+        public static SearchOptions WithMaxLimit = new SearchOptions {Limit = MaxLimit};
+
         public SearchOptions()
         {
             Offset = NoOffset;
@@ -40,6 +44,7 @@ namespace Services.Interfaces
 
         public string Distinct { get; set; }
     }
+
     public class Sorting
     {
         public Sorting()

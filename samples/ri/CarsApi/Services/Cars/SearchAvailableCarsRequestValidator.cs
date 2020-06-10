@@ -1,11 +1,10 @@
 ﻿using CarsApi.Validators;
-using QueryAny;
+using QueryAny.Primitives;
 using Services.Interfaces.Apis;
 using ServiceStack.FluentValidation;
 
 namespace CarsApi.Services.Cars
 {
-
     public class SearchAvailableCarsRequestValidator : AbstractValidator<SearchAvailableCarsRequest>
     {
         public SearchAvailableCarsRequestValidator(IHasSearchOptionsValidator hasSearchOptionsValidator)

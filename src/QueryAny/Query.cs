@@ -2,16 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using QueryAny.Primitives;
 
 namespace QueryAny
 {
     public class Query
     {
-        public static Query Empty()
-        {
-            return new Query(null);
-        }
-
         private readonly List<QueryExpression> expressions = new List<QueryExpression>();
 
         internal Query(QueryExpression expression)
@@ -23,6 +19,11 @@ namespace QueryAny
         }
 
         public IReadOnlyList<QueryExpression> Expressions => this.expressions;
+
+        public static Query Empty()
+        {
+            return new Query(null);
+        }
 
         public static Query Create(string columnName, QueryOperator @operator, string value)
         {
@@ -39,21 +40,24 @@ namespace QueryAny
             return CreateInternal(columnName, @operator, value);
         }
 
-        public static Query Create<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator, string value)
+        public static Query Create<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator,
+            string value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
 
             return CreateInternal(columnName, @operator, value);
         }
 
-        public static Query Create<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator, DateTime value)
+        public static Query Create<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator,
+            DateTime value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
 
             return CreateInternal(columnName, @operator, value);
         }
 
-        public static Query Create<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator, bool value)
+        public static Query Create<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator,
+            bool value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
 
@@ -89,13 +93,15 @@ namespace QueryAny
             return AddInternal(columnName, @operator, value);
         }
 
-        public Query From<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator, string value)
+        public Query From<TEntity>(Expression<Func<TEntity, string>> propertyName, QueryOperator @operator,
+            string value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return AddInternal(columnName, @operator, value);
         }
 
-        public Query From<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator, DateTime value)
+        public Query From<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator,
+            DateTime value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return AddInternal(columnName, @operator, value);
@@ -128,7 +134,8 @@ namespace QueryAny
             return AndInternal(columnName, @operator, value);
         }
 
-        public Query And<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator, DateTime value)
+        public Query And<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator,
+            DateTime value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return AndInternal(columnName, @operator, value);
@@ -196,7 +203,8 @@ namespace QueryAny
             return OrInternal(columnName, @operator, value);
         }
 
-        public Query Or<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator, DateTime value)
+        public Query Or<TEntity>(Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator,
+            DateTime value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
             return OrInternal(columnName, @operator, value);
@@ -326,7 +334,7 @@ namespace QueryAny
                     Operator = @operator,
                     Value = value
                 },
-                Combiner = (this.expressions.Any()) ? CombineOperator.AND : CombineOperator.None
+                Combiner = this.expressions.Any() ? CombineOperator.AND : CombineOperator.None
             });
 
             return this;
@@ -391,8 +399,8 @@ namespace QueryAny
         {
             if (Condition == null
                 || NestedExpressions != null)
-            {
                 //HACK: Not sure how we are executing nested expressions properly
+            {
                 return NestedExpressions.ToQueryString();
             }
 
@@ -402,7 +410,6 @@ namespace QueryAny
 
     public class QueryCondition
     {
-
         public string Column { get; set; }
 
         public QueryOperator Operator { get; set; }
@@ -413,41 +420,47 @@ namespace QueryAny
         {
             if (Value is DateTime)
             {
-                var givenDate = (DateTime)Value;
+                var givenDate = (DateTime) Value;
                 if (!givenDate.HasValue())
                 {
                     givenDate = AzureCosmosTableQuery.MinAzureDateTime;
                 }
 
                 var dateValue = new DateTimeOffset(givenDate);
-                return AzureCosmosTableQuery.GenerateFilterConditionForDate(Column, Operator.ToString().ToLowerInvariant(), dateValue);
+                return AzureCosmosTableQuery.GenerateFilterConditionForDate(Column,
+                    Operator.ToString().ToLowerInvariant(), dateValue);
             }
 
             if (Value is bool)
             {
-                var givenBool = (bool)Value;
+                var givenBool = (bool) Value;
                 var boolValue = givenBool.ToLower();
-                return AzureCosmosTableQuery.GenerateFilterCondition(Column, Operator.ToString().ToLowerInvariant(), boolValue);
+                return AzureCosmosTableQuery.GenerateFilterCondition(Column, Operator.ToString().ToLowerInvariant(),
+                    boolValue);
             }
 
             var stringValue = Value?.ToString();
-            return AzureCosmosTableQuery.GenerateFilterCondition(Column, Operator.ToString().ToLowerInvariant(), stringValue);
+            return AzureCosmosTableQuery.GenerateFilterCondition(Column, Operator.ToString().ToLowerInvariant(),
+                stringValue);
         }
     }
 
     public static class QueryExpressionExtensions
     {
-        public static bool Is<TEntity>(this QueryExpression expression, Expression<Func<TEntity, string>> propertyName, QueryOperator @operator, string value)
+        public static bool Is<TEntity>(this QueryExpression expression, Expression<Func<TEntity, string>> propertyName,
+            QueryOperator @operator, string value)
         {
             return IsInternal(expression, propertyName, @operator, value);
         }
 
-        public static bool Is<TEntity>(this QueryExpression expression, Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator, DateTime value)
+        public static bool Is<TEntity>(this QueryExpression expression,
+            Expression<Func<TEntity, DateTime>> propertyName, QueryOperator @operator, DateTime value)
         {
             return IsInternal(expression, propertyName, @operator, value);
         }
 
-        private static bool IsInternal<TEntity, TProperty>(this QueryExpression expression, Expression<Func<TEntity, TProperty>> propertyName, QueryOperator @operator,
+        private static bool IsInternal<TEntity, TProperty>(this QueryExpression expression,
+            Expression<Func<TEntity, TProperty>> propertyName, QueryOperator @operator,
             TProperty value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
@@ -458,7 +471,8 @@ namespace QueryAny
                    && expression.Condition.Value.Equals(value);
         }
 
-        public static bool IsEmptyDate<TEntity>(this QueryExpression expression, Expression<Func<TEntity, DateTime>> propertyName)
+        public static bool IsEmptyDate<TEntity>(this QueryExpression expression,
+            Expression<Func<TEntity, DateTime>> propertyName)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
 
@@ -468,7 +482,8 @@ namespace QueryAny
                    && expression.Condition.Value.Equals(DateTime.MinValue);
         }
 
-        public static bool IsNotEmptyDate<TEntity>(this QueryExpression expression, Expression<Func<TEntity, DateTime>> propertyName)
+        public static bool IsNotEmptyDate<TEntity>(this QueryExpression expression,
+            Expression<Func<TEntity, DateTime>> propertyName)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
 
@@ -487,7 +502,8 @@ namespace QueryAny
                 {
                     combinedQuery = !combinedQuery.HasValue()
                         ? expression.ToQueryString()
-                        : AzureCosmosTableQuery.CombineFilters(combinedQuery, expression.Combiner.ToString().ToLowerInvariant(), expression.ToQueryString());
+                        : AzureCosmosTableQuery.CombineFilters(combinedQuery,
+                            expression.Combiner.ToString().ToLowerInvariant(), expression.ToQueryString());
                 });
 
             return combinedQuery;
@@ -497,49 +513,56 @@ namespace QueryAny
     public enum QueryOperator
     {
         /// <summary>
-        /// Equals
+        ///     Equals
         /// </summary>
+        // ReSharper disable once InconsistentNaming
         EQ,
 
         /// <summary>
-        /// Greater than
+        ///     Greater than
         /// </summary>
+        // ReSharper disable once InconsistentNaming
         GT,
 
         /// <summary>
-        /// Greater than or equal to
+        ///     Greater than or equal to
         /// </summary>
+        // ReSharper disable once InconsistentNaming
         GE,
 
         /// <summary>
-        /// Less than
+        ///     Less than
         /// </summary>
+        // ReSharper disable once InconsistentNaming
         LT,
 
         /// <summary>
-        /// Less than or equal to
+        ///     Less than or equal to
         /// </summary>
+        // ReSharper disable once InconsistentNaming
         LE,
 
         /// <summary>
-        /// Not equal
+        ///     Not equal
         /// </summary>
+        // ReSharper disable once InconsistentNaming
         NE
     }
 
     public enum CombineOperator
     {
         None = 0,
+
         /// <summary>
-        /// Logical AND
+        ///     Logical AND
         /// </summary>
+        // ReSharper disable once InconsistentNaming
         AND = 1,
 
         /// <summary>
-        /// Logical OR
+        ///     Logical OR
         /// </summary>
+        // ReSharper disable once InconsistentNaming
         OR = 2
     }
-
-
 }

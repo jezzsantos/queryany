@@ -16,7 +16,7 @@ namespace Services.Interfaces.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenToSearchOptionsAndNullOptions_ThenReturnsNull()
         {
-            var result = ((SearchOptionsDto)null).ToSearchOptions();
+            var result = ((SearchOptionsDto) null).ToSearchOptions();
 
             Assert.IsNull(result);
         }
@@ -162,5 +162,4 @@ namespace Services.Interfaces.UnitTests
 
         public string Embed { get; set; }
     }
-
 }

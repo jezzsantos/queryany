@@ -1,10 +1,11 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using QueryAny;
+using QueryAny.Primitives;
 using Services.Interfaces;
 using Storage.Interfaces;
 
-namespace CarsApi.Storage
+namespace Storage
 {
     public abstract class InMemStorage<TEntity> : IStorage<TEntity> where TEntity : IKeyedEntity, new()
     {
@@ -31,7 +32,7 @@ namespace CarsApi.Storage
         {
             Guard.AgainstNullOrEmpty(() => id, id);
 
-            this.store.TryRemove(id, out var found);
+            this.store.TryRemove(id, out _);
         }
 
         public TEntity Get(string id)
