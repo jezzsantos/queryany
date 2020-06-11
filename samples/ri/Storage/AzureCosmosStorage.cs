@@ -27,7 +27,7 @@ namespace Storage
             throw new NotImplementedException();
         }
 
-        public QueryResults<TEntity> Query(WhereClause<TEntity> query, SearchOptions options)
+        public QueryResults<TEntity> Query(QueryClause<TEntity> query, SearchOptions options)
         {
             //TODO: convert the query to string
 

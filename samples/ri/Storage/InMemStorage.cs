@@ -70,11 +70,11 @@ namespace Storage
             return this.store.Count;
         }
 
-        public QueryResults<TEntity> Query(WhereClause<TEntity> query, SearchOptions options)
+        public QueryResults<TEntity> Query(QueryClause<TEntity> query, SearchOptions options)
         {
             Guard.AgainstNull(() => query, query);
 
-            if (query.Collections[0].Expressions.Count == 0)
+            if (query.EntityCollections[0].Expressions.Count == 0)
             {
                 return new QueryResults<TEntity>(new List<TEntity>());
             }

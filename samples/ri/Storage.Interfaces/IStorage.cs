@@ -13,7 +13,7 @@ namespace Storage.Interfaces
 
         TEntity Get(string id);
 
-        QueryResults<TEntity> Query(WhereClause<TEntity> query, SearchOptions options);
+        QueryResults<TEntity> Query(QueryClause<TEntity> query, SearchOptions options);
 
         long Count();
     }

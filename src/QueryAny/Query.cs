@@ -14,10 +14,10 @@ namespace QueryAny
             return new FromClause<TEntity>(entity);
         }
 
-        public static WhereClause<TEntity> Empty<TEntity>() where TEntity : INamedEntity, new()
+        public static QueryClause<TEntity> Empty<TEntity>() where TEntity : INamedEntity, new()
         {
             var entity = new TEntity();
-            return new WhereClause<TEntity>(new Collection<TEntity>(entity));
+            return new QueryClause<TEntity>(new EntityCollection<TEntity>(entity));
         }
     }
 
@@ -26,93 +26,96 @@ namespace QueryAny
         public FromClause(TEntity entity)
         {
             Guard.AgainstNull(() => entity, entity);
-            Collection = new Collection<TEntity>(entity);
+            EntityCollection = new EntityCollection<TEntity>(entity);
         }
 
-        public Collection<TEntity> Collection { get; }
+        public EntityCollection<TEntity> EntityCollection { get; }
 
-        public WhereClause<TEntity> Where<TValue>(Expression<Func<TEntity, TValue>> propertyName, Condition condition,
+        public QueryClause<TEntity> Where<TValue>(Expression<Func<TEntity, TValue>> propertyName,
+            ConditionOperator condition,
             TValue value)
         {
-            var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
-            Collection.AddExpression(Combine.None, columnName, condition, value);
-            return new WhereClause<TEntity>(Collection);
+            var fieldName = Reflector<TEntity>.GetPropertyName(propertyName);
+            EntityCollection.AddExpression(LogicalOperator.None, fieldName, condition, value);
+            return new QueryClause<TEntity>(EntityCollection);
         }
     }
 
-    public class WhereClause<TEntity> where TEntity : INamedEntity, new()
+    public class QueryClause<TEntity> where TEntity : INamedEntity, new()
     {
-        private readonly Collection<TEntity> collection;
+        private readonly EntityCollection<TEntity> entityCollection;
 
-        public WhereClause(Collection<TEntity> collection)
+        public QueryClause(EntityCollection<TEntity> entityCollection)
         {
-            Guard.AgainstNull(() => collection, collection);
-            this.collection = collection;
-            Collections = new List<Collection<TEntity>> {this.collection}.AsReadOnly();
+            Guard.AgainstNull(() => entityCollection, entityCollection);
+            this.entityCollection = entityCollection;
+            EntityCollections = new List<EntityCollection<TEntity>> {this.entityCollection}.AsReadOnly();
         }
 
-        public IReadOnlyList<Collection<TEntity>> Collections { get; }
+        public IReadOnlyList<EntityCollection<TEntity>> EntityCollections { get; }
 
-        public WhereClause<TEntity> AndWhere<TValue>(Expression<Func<TEntity, TValue>> propertyName,
-            Condition condition,
+        public QueryClause<TEntity> AndWhere<TValue>(Expression<Func<TEntity, TValue>> propertyName,
+            ConditionOperator condition,
             TValue value)
         {
-            if (!this.collection.Expressions.Any())
+            if (!this.entityCollection.Expressions.Any())
             {
                 throw new InvalidOperationException("Must have at least one expression to AND with");
             }
 
-            var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
-            this.collection.AddExpression(Combine.And, columnName, condition, value);
-            return new WhereClause<TEntity>(this.collection);
+            var fieldName = Reflector<TEntity>.GetPropertyName(propertyName);
+            this.entityCollection.AddExpression(LogicalOperator.And, fieldName, condition, value);
+            return new QueryClause<TEntity>(this.entityCollection);
         }
 
-        public WhereClause<TEntity> OrWhere<TValue>(Expression<Func<TEntity, TValue>> propertyName, Condition condition,
+        public QueryClause<TEntity> OrWhere<TValue>(Expression<Func<TEntity, TValue>> propertyName,
+            ConditionOperator condition,
             TValue value)
         {
-            if (!this.collection.Expressions.Any())
+            if (!this.entityCollection.Expressions.Any())
             {
                 throw new InvalidOperationException("Must have at least one expression to OR with");
             }
 
-            var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
-            this.collection.AddExpression(Combine.Or, columnName, condition, value);
-            return new WhereClause<TEntity>(this.collection);
+            var fieldName = Reflector<TEntity>.GetPropertyName(propertyName);
+            this.entityCollection.AddExpression(LogicalOperator.Or, fieldName, condition, value);
+            return new QueryClause<TEntity>(this.entityCollection);
         }
 
-        public WhereClause<TEntity> AndWhere(Func<FromClause<TEntity>, WhereClause<TEntity>> subWhereClause)
+        public QueryClause<TEntity> AndWhere(Func<FromClause<TEntity>, QueryClause<TEntity>> subWhereClause)
         {
-            if (!this.collection.Expressions.Any())
+            if (!this.entityCollection.Expressions.Any())
             {
                 throw new InvalidOperationException("Must have at least one expression to AND with");
             }
 
-            var fromClause = new FromClause<TEntity>(this.collection.UnderlyingEntity);
+            var fromClause = new FromClause<TEntity>(this.entityCollection.UnderlyingEntity);
             subWhereClause(fromClause);
 
-            this.collection.AddExpression(Combine.And, fromClause.Collection.Expressions.ToList());
-            return new WhereClause<TEntity>(this.collection);
+            this.entityCollection.AddExpression(LogicalOperator.And, fromClause.EntityCollection.Expressions.ToList());
+            return new QueryClause<TEntity>(this.entityCollection);
         }
     }
 
-    public class Collection<TEntity> where TEntity : INamedEntity, new()
+    public class EntityCollection<TEntity> where TEntity : INamedEntity, new()
     {
         private const string EntityTypeNameConventionSuffix = @"Entity";
+        private const string UnknownEntityName = @"Unknown";
         private readonly TEntity entity;
-        private readonly List<QueryExpression> expressions;
+        private readonly List<WhereExpression> expressions;
 
-        public Collection(TEntity entity)
+        public EntityCollection(TEntity entity)
         {
             Guard.AgainstNull(() => entity, entity);
             this.entity = entity;
-            this.expressions = new List<QueryExpression>();
+            this.expressions = new List<WhereExpression>();
         }
 
         public string Name => GetEntityName();
 
         internal TEntity UnderlyingEntity => this.entity;
 
-        public IReadOnlyList<QueryExpression> Expressions => this.expressions.AsReadOnly();
+        public IReadOnlyList<WhereExpression> Expressions => this.expressions.AsReadOnly();
 
         private string GetEntityName()
         {
@@ -124,28 +127,29 @@ namespace QueryAny
             var name = this.entity.GetType().Name;
             return name.EndsWith(EntityTypeNameConventionSuffix)
                 ? name.Substring(0, name.LastIndexOf(EntityTypeNameConventionSuffix, StringComparison.Ordinal))
-                : $"Unknown{EntityTypeNameConventionSuffix}";
+                : $"{UnknownEntityName}{EntityTypeNameConventionSuffix}";
         }
 
-        internal void AddExpression<TValue>(Combine combine, string columnName, Condition condition, TValue value)
+        internal void AddExpression<TValue>(LogicalOperator combine, string fieldName, ConditionOperator condition,
+            TValue value)
         {
-            this.expressions.Add(new QueryExpression
+            this.expressions.Add(new WhereExpression
             {
-                Combiner = combine,
-                Condition = new QueryCondition
+                Operator = combine,
+                Condition = new WhereCondition
                 {
-                    Column = columnName,
+                    FieldName = fieldName,
                     Operator = condition,
                     Value = value
                 }
             });
         }
 
-        internal void AddExpression(Combine combine, List<QueryExpression> nestedExpressions)
+        internal void AddExpression(LogicalOperator combine, List<WhereExpression> nestedExpressions)
         {
-            this.expressions.Add(new QueryExpression
+            this.expressions.Add(new WhereExpression
             {
-                Combiner = combine,
+                Operator = combine,
                 NestedExpressions = nestedExpressions
             });
         }
