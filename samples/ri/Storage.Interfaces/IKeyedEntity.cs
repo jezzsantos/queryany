@@ -1,6 +1,8 @@
-﻿namespace Storage.Interfaces
+﻿using QueryAny;
+
+namespace Storage.Interfaces
 {
-    public interface IKeyedEntity
+    public interface IKeyedEntity : INamedEntity
     {
         string Id { get; set; }
     }

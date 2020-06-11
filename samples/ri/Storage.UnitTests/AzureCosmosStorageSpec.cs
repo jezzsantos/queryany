@@ -4,15 +4,15 @@ using Storage.Interfaces;
 namespace Storage.UnitTests
 {
     [TestClass]
-    public class InMemStorageSpec : StorageSpecBase
+    public class AzureCosmosStorageSpec : StorageSpecBase
     {
         protected override IStorage<TestEntity> GetStorage()
         {
-            return new TestInMemStorage();
+            return new TestAzureCosmosStorage();
         }
     }
 
-    public class TestInMemStorage : InMemStorage<TestEntity>
+    public class TestAzureCosmosStorage : AzureCosmosStorage<TestEntity>
     {
     }
 }

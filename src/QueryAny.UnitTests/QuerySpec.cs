@@ -33,6 +33,22 @@ namespace QueryAny.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
+        public void WhenEmpty_ThenCreatesNoExpressions()
+        {
+            var result = Query.Empty<NamedTestEntity>();
+
+            Assert.Equal("aname", result.Collections[0].Name);
+            Assert.Equal(0, result.Collections[0].Expressions.Count);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenAndWhereOnEmpty_ThenThrows()
+        {
+            Assert.Throws<InvalidOperationException>(() =>
+                Query.Empty<NamedTestEntity>().AndWhere(e => e.AStringProperty, Condition.Eq, "1"));
+        }
+
+        [TestMethod, TestCategory("Unit")]
         public void WhenWhereWithStringProperty_ThenCreatesAnExpression()
         {
             var result = Query.From<NamedTestEntity>().Where(e => e.AStringProperty, Condition.Eq, "1");
@@ -132,7 +148,6 @@ namespace QueryAny.UnitTests
             Assert.Equal(datum, result.Collections[0].Expressions[1].Condition.Value);
         }
 
-
         [TestMethod, TestCategory("Unit")]
         public void WhenAndWhereWithSubWhereClause_ThenCreatesAnAndedNestedExpression()
         {
@@ -182,18 +197,18 @@ namespace QueryAny.UnitTests
 
     public class UnnamedTestEntity : INamedEntity
     {
-        public string Name => null;
+        public string EntityName => null;
     }
 
     public class UnnamedTestEntityUnconventionalNamed : INamedEntity
     {
-        public string Name => null;
+        public string EntityName => null;
     }
 
     public class NamedTestEntity : INamedEntity
     {
         public string AStringProperty { get; set; }
         public DateTime ADateTimeProperty { get; set; }
-        public string Name => "aname";
+        public string EntityName => "aname";
     }
 }

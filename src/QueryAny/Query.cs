@@ -10,8 +10,14 @@ namespace QueryAny
     {
         public static FromClause<TEntity> From<TEntity>() where TEntity : INamedEntity, new()
         {
-            var entityType = new TEntity();
-            return new FromClause<TEntity>(entityType);
+            var entity = new TEntity();
+            return new FromClause<TEntity>(entity);
+        }
+
+        public static WhereClause<TEntity> Empty<TEntity>() where TEntity : INamedEntity, new()
+        {
+            var entity = new TEntity();
+            return new WhereClause<TEntity>(new Collection<TEntity>(entity));
         }
     }
 
@@ -110,9 +116,9 @@ namespace QueryAny
 
         private string GetEntityName()
         {
-            if (this.entity.Name.HasValue())
+            if (this.entity.EntityName.HasValue())
             {
-                return this.entity.Name;
+                return this.entity.EntityName;
             }
 
             var name = this.entity.GetType().Name;

@@ -10,6 +10,9 @@ namespace CarsDomain.Entities
         public DateTime CreatedOnUtc { get; set; }
 
         public DateTime OccupiedUntilUtc { get; set; }
+        
         public string Id { get; set; }
+
+        public string EntityName => "Car";
     }
 }
