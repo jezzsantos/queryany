@@ -170,7 +170,7 @@ namespace Storage.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenQueryAndEmpty_ThenReturnsEmptyResults()
         {
-            var query = AzureCosmosQuery.Create<TestEntity>(e => e.AProperty, QueryOperator.EQ, "avalue");
+            var query = AzureCosmosQuery.Create<TestEntity>(e => e.AProperty, Condition.Eq, "avalue");
 
             var results = this.storage.Query(query, null);
 
@@ -180,7 +180,7 @@ namespace Storage.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenQueryAndNoMatch_ThenReturnsEmptyResults()
         {
-            var query = AzureCosmosQuery.Create<TestEntity>(e => e.AProperty, QueryOperator.EQ, "anothervalue");
+            var query = AzureCosmosQuery.Create<TestEntity>(e => e.AProperty, Condition.Eq, "anothervalue");
             this.storage.Add(new TestEntity("anid1")
             {
                 AProperty = "avalue"
@@ -194,7 +194,7 @@ namespace Storage.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenQueryAndMatchOne_ThenReturnsResult()
         {
-            var query = AzureCosmosQuery.Create<TestEntity>(e => e.AProperty, QueryOperator.EQ, "avalue");
+            var query = AzureCosmosQuery.Create<TestEntity>(e => e.AProperty, Condition.Eq, "avalue");
             this.storage.Add(new TestEntity("anid1")
             {
                 AProperty = "avalue"
@@ -209,7 +209,7 @@ namespace Storage.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenQueryAndMatchMany_ThenReturnsResults()
         {
-            var query = AzureCosmosQuery.Create<TestEntity>(e => e.AProperty, QueryOperator.EQ, "avalue");
+            var query = AzureCosmosQuery.Create<TestEntity>(e => e.AProperty, Condition.Eq, "avalue");
             this.storage.Add(new TestEntity("anid1")
             {
                 AProperty = "avalue"

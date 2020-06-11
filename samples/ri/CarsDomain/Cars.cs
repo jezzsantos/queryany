@@ -16,7 +16,7 @@ namespace CarsDomain
         public List<Car> SearchAvailable(SearchOptions searchOptions, GetOptions getOptions)
         {
             var query = AzureCosmosQuery
-                .Create<CarEntity>(e => e.OccupiedUntilUtc, QueryOperator.LT, DateTime.UtcNow);
+                .Create<CarEntity>(e => e.OccupiedUntilUtc, Condition.Lt, DateTime.UtcNow);
             var cars = Storage.Query(query, searchOptions);
 
             // TODO: Do what you have to do any expansions defined in GetOptions

@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\samples\ri\Storage.Interfaces\Storage.Interfaces.csproj" />
     <ProjectReference Include="..\QueryAny\QueryAny.csproj" />
   </ItemGroup>
 
