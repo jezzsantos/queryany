@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using QueryAny.Primitives;
 
@@ -19,90 +20,82 @@ namespace QueryAny
         public FromClause(TEntity entity)
         {
             Guard.AgainstNull(() => entity, entity);
-            Collection = new Collection(entity);
+            Collection = new Collection<TEntity>(entity);
         }
 
-        public Collection Collection { get; }
+        public Collection<TEntity> Collection { get; }
 
-        public WhereClause<TEntity> Where(Expression<Func<TEntity, string>> propertyName, Condition @operator,
-            string value)
+        public WhereClause<TEntity> Where<TValue>(Expression<Func<TEntity, TValue>> propertyName, Condition condition,
+            TValue value)
         {
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
-            return WhereInternal(columnName, @operator, value);
-        }
-
-        public WhereClause<TEntity> Where(Expression<Func<TEntity, DateTime>> propertyName,
-            Condition @operator,
-            DateTime value)
-        {
-            var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
-            return WhereInternal(columnName, @operator, value);
-        }
-
-        private WhereClause<TEntity> WhereInternal(string columnName, Condition @operator,
-            object value)
-        {
-            Collection.AddExpression(Combine.None, columnName, @operator, value);
+            Collection.AddExpression(Combine.None, columnName, condition, value);
             return new WhereClause<TEntity>(Collection);
         }
     }
 
-    public class WhereClause<TEntity>
+    public class WhereClause<TEntity> where TEntity : INamedEntity, new()
     {
-        private readonly Collection collection;
+        private readonly Collection<TEntity> collection;
 
-        public WhereClause(Collection collection)
+        public WhereClause(Collection<TEntity> collection)
         {
             Guard.AgainstNull(() => collection, collection);
             this.collection = collection;
-            Collections = new List<Collection> {this.collection}.AsReadOnly();
+            Collections = new List<Collection<TEntity>> {this.collection}.AsReadOnly();
         }
 
-        public IReadOnlyList<Collection> Collections { get; }
+        public IReadOnlyList<Collection<TEntity>> Collections { get; }
 
-        public WhereClause<TEntity> AndWhere(Expression<Func<TEntity, string>> propertyName, Condition @operator,
-            string value)
+        public WhereClause<TEntity> AndWhere<TValue>(Expression<Func<TEntity, TValue>> propertyName,
+            Condition condition,
+            TValue value)
         {
+            if (!this.collection.Expressions.Any())
+            {
+                throw new InvalidOperationException("Must have at least one expression to AND with");
+            }
+
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
-            return WhereInternal(Combine.And, columnName, @operator, value);
+            this.collection.AddExpression(Combine.And, columnName, condition, value);
+            return new WhereClause<TEntity>(this.collection);
         }
 
-        public WhereClause<TEntity> AndWhere(Expression<Func<TEntity, DateTime>> propertyName, Condition @operator,
-            DateTime value)
+        public WhereClause<TEntity> OrWhere<TValue>(Expression<Func<TEntity, TValue>> propertyName, Condition condition,
+            TValue value)
         {
+            if (!this.collection.Expressions.Any())
+            {
+                throw new InvalidOperationException("Must have at least one expression to OR with");
+            }
+
             var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
-            return WhereInternal(Combine.And, columnName, @operator, value);
+            this.collection.AddExpression(Combine.Or, columnName, condition, value);
+            return new WhereClause<TEntity>(this.collection);
         }
 
-        public WhereClause<TEntity> OrWhere(Expression<Func<TEntity, string>> propertyName, Condition @operator,
-            string value)
+        public WhereClause<TEntity> AndWhere(Func<FromClause<TEntity>, WhereClause<TEntity>> subWhereClause)
         {
-            var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
-            return WhereInternal(Combine.Or, columnName, @operator, value);
-        }
+            if (!this.collection.Expressions.Any())
+            {
+                throw new InvalidOperationException("Must have at least one expression to AND with");
+            }
 
-        public WhereClause<TEntity> OrWhere(Expression<Func<TEntity, DateTime>> propertyName, Condition @operator,
-            DateTime value)
-        {
-            var columnName = Reflector<TEntity>.GetPropertyName(propertyName);
-            return WhereInternal(Combine.Or, columnName, @operator, value);
-        }
+            var fromClause = new FromClause<TEntity>(this.collection.UnderlyingEntity);
+            subWhereClause(fromClause);
 
-        private WhereClause<TEntity> WhereInternal(Combine combine, string columnName, Condition @operator,
-            object value)
-        {
-            this.collection.AddExpression(combine, columnName, @operator, value);
+            this.collection.AddExpression(Combine.And, fromClause.Collection.Expressions.ToList());
             return new WhereClause<TEntity>(this.collection);
         }
     }
 
-    public class Collection
+    public class Collection<TEntity> where TEntity : INamedEntity, new()
     {
         private const string EntityTypeNameConventionSuffix = @"Entity";
-        private readonly INamedEntity entity;
+        private readonly TEntity entity;
         private readonly List<QueryExpression> expressions;
 
-        public Collection(INamedEntity entity)
+        public Collection(TEntity entity)
         {
             Guard.AgainstNull(() => entity, entity);
             this.entity = entity;
@@ -110,6 +103,8 @@ namespace QueryAny
         }
 
         public string Name => GetEntityName();
+
+        internal TEntity UnderlyingEntity => this.entity;
 
         public IReadOnlyList<QueryExpression> Expressions => this.expressions.AsReadOnly();
 
@@ -126,7 +121,7 @@ namespace QueryAny
                 : $"Unknown{EntityTypeNameConventionSuffix}";
         }
 
-        internal void AddExpression(Combine combine, string columnName, Condition @operator, object value)
+        internal void AddExpression<TValue>(Combine combine, string columnName, Condition condition, TValue value)
         {
             this.expressions.Add(new QueryExpression
             {
@@ -134,9 +129,18 @@ namespace QueryAny
                 Condition = new QueryCondition
                 {
                     Column = columnName,
-                    Operator = @operator,
+                    Operator = condition,
                     Value = value
                 }
+            });
+        }
+
+        internal void AddExpression(Combine combine, List<QueryExpression> nestedExpressions)
+        {
+            this.expressions.Add(new QueryExpression
+            {
+                Combiner = combine,
+                NestedExpressions = nestedExpressions
             });
         }
     }

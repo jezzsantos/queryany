@@ -131,6 +131,53 @@ namespace QueryAny.UnitTests
             Assert.Equal("ADateTimeProperty", result.Collections[0].Expressions[1].Condition.Column);
             Assert.Equal(datum, result.Collections[0].Expressions[1].Condition.Value);
         }
+
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenAndWhereWithSubWhereClause_ThenCreatesAnAndedNestedExpression()
+        {
+            var result = Query.From<NamedTestEntity>()
+                .Where(e => e.AStringProperty, Condition.Eq, "1")
+                .AndWhere(sub => sub.Where(e => e.AStringProperty, Condition.Ne, "2"));
+
+            Assert.Equal(2, result.Collections[0].Expressions.Count);
+            Assert.Equal(Combine.None, result.Collections[0].Expressions[0].Combiner);
+            Assert.Equal(Condition.Eq, result.Collections[0].Expressions[0].Condition.Operator);
+            Assert.Equal("AStringProperty", result.Collections[0].Expressions[0].Condition.Column);
+            Assert.Equal("1", result.Collections[0].Expressions[0].Condition.Value);
+            Assert.Equal(Combine.And, result.Collections[0].Expressions[1].Combiner);
+            Assert.Equal(null, result.Collections[0].Expressions[1].Condition);
+            Assert.Equal(1, result.Collections[0].Expressions[1].NestedExpressions.Count);
+            Assert.Equal(Condition.Ne, result.Collections[0].Expressions[1].NestedExpressions[0].Condition.Operator);
+            Assert.Equal("AStringProperty", result.Collections[0].Expressions[1].NestedExpressions[0].Condition.Column);
+            Assert.Equal("2", result.Collections[0].Expressions[1].NestedExpressions[0].Condition.Value);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenAndWhereWithSubWhereClauses_ThenCreatesAnAndedNestedExpressions()
+        {
+            var result = Query.From<NamedTestEntity>()
+                .Where(e => e.AStringProperty, Condition.Eq, "1")
+                .AndWhere(sub =>
+                    sub.Where(e => e.AStringProperty, Condition.Ne, "2")
+                        .AndWhere(e => e.AStringProperty, Condition.Eq, "3"));
+
+            Assert.Equal(2, result.Collections[0].Expressions.Count);
+            Assert.Equal(Combine.None, result.Collections[0].Expressions[0].Combiner);
+            Assert.Equal(Condition.Eq, result.Collections[0].Expressions[0].Condition.Operator);
+            Assert.Equal("AStringProperty", result.Collections[0].Expressions[0].Condition.Column);
+            Assert.Equal("1", result.Collections[0].Expressions[0].Condition.Value);
+            Assert.Equal(Combine.And, result.Collections[0].Expressions[1].Combiner);
+            Assert.Equal(null, result.Collections[0].Expressions[1].Condition);
+            Assert.Equal(2, result.Collections[0].Expressions[1].NestedExpressions.Count);
+            Assert.Equal(Condition.Ne, result.Collections[0].Expressions[1].NestedExpressions[0].Condition.Operator);
+            Assert.Equal("AStringProperty", result.Collections[0].Expressions[1].NestedExpressions[0].Condition.Column);
+            Assert.Equal("2", result.Collections[0].Expressions[1].NestedExpressions[0].Condition.Value);
+            Assert.Equal(Combine.And, result.Collections[0].Expressions[1].NestedExpressions[1].Combiner);
+            Assert.Equal(Condition.Eq, result.Collections[0].Expressions[1].NestedExpressions[1].Condition.Operator);
+            Assert.Equal("AStringProperty", result.Collections[0].Expressions[1].NestedExpressions[1].Condition.Column);
+            Assert.Equal("3", result.Collections[0].Expressions[1].NestedExpressions[1].Condition.Value);
+        }
     }
 
     public class UnnamedTestEntity : INamedEntity
