@@ -35,10 +35,64 @@ namespace QueryAny
             ConditionOperator condition,
             TValue value)
         {
+            Guard.AgainstNull(() => propertyName, propertyName);
+
             var fieldName = Reflector<TEntity>.GetPropertyName(propertyName);
             EntityCollection.AddExpression(LogicalOperator.None, fieldName, condition, value);
             return new QueryClause<TEntity>(EntityCollection);
         }
+
+        public JoinClause<TEntity, TJoiningEntity, TValue> Join<TJoiningEntity, TValue>(
+            Expression<Func<TEntity, TValue>> joinedCollectionFieldName,
+            Expression<Func<TJoiningEntity, TValue>> joiningCollectionFieldName, JoinType type = JoinType.Inner)
+            where TJoiningEntity : INamedEntity, new()
+        {
+            Guard.AgainstNull(() => joinedCollectionFieldName, joinedCollectionFieldName);
+            Guard.AgainstNull(() => joiningCollectionFieldName, joiningCollectionFieldName);
+
+            var entity = new TJoiningEntity();
+            return new JoinClause<TEntity, TJoiningEntity, TValue>(entity, joinedCollectionFieldName,
+                joiningCollectionFieldName, type);
+        }
+    }
+
+    public class JoinClause<TJoinedEntity, TJoiningEntity, TValue>
+        where TJoinedEntity : INamedEntity, new()
+        where TJoiningEntity : INamedEntity, new()
+    {
+        public JoinClause(TJoiningEntity entity, Expression<Func<TJoinedEntity, TValue>> joinedCollectionFieldName,
+            Expression<Func<TJoiningEntity, TValue>> joiningCollectionFieldName, JoinType type)
+        {
+            Guard.AgainstNull(() => entity, entity);
+            Guard.AgainstNull(() => joinedCollectionFieldName, joinedCollectionFieldName);
+            Guard.AgainstNull(() => joiningCollectionFieldName, joiningCollectionFieldName);
+            EntityCollection = new EntityCollection<TJoiningEntity>(entity);
+            Join = new JoinExpression<TJoinedEntity, TJoiningEntity, TValue>(joinedCollectionFieldName,
+                joiningCollectionFieldName, type);
+        }
+
+        public EntityCollection<TJoiningEntity> EntityCollection { get; }
+
+        public JoinExpression<TJoinedEntity, TJoiningEntity, TValue> Join { get; }
+    }
+
+    public class JoinExpression<TJoinedEntity, TJoiningEntity, TValue>
+        where TJoinedEntity : INamedEntity, new()
+        where TJoiningEntity : INamedEntity, new()
+    {
+        public JoinExpression(Expression<Func<TJoinedEntity, TValue>> joinedCollectionFieldName,
+            Expression<Func<TJoiningEntity, TValue>> joiningCollectionFieldName, JoinType type)
+        {
+            Guard.AgainstNull(() => joinedCollectionFieldName, joinedCollectionFieldName);
+            Guard.AgainstNull(() => joiningCollectionFieldName, joiningCollectionFieldName);
+            JoinedFieldName = Reflector<TJoinedEntity>.GetPropertyName(joinedCollectionFieldName);
+            JoiningFieldName = Reflector<TJoiningEntity>.GetPropertyName(joiningCollectionFieldName);
+            Type = type;
+        }
+
+        public string JoinedFieldName { get; }
+        public string JoiningFieldName { get; }
+        public JoinType Type { get; }
     }
 
     public class QueryClause<TEntity> where TEntity : INamedEntity, new()
@@ -58,6 +112,7 @@ namespace QueryAny
             ConditionOperator condition,
             TValue value)
         {
+            Guard.AgainstNull(() => propertyName, propertyName);
             if (!this.entityCollection.Expressions.Any())
             {
                 throw new InvalidOperationException("Must have at least one expression to AND with");
@@ -72,6 +127,7 @@ namespace QueryAny
             ConditionOperator condition,
             TValue value)
         {
+            Guard.AgainstNull(() => propertyName, propertyName);
             if (!this.entityCollection.Expressions.Any())
             {
                 throw new InvalidOperationException("Must have at least one expression to OR with");
@@ -84,6 +140,7 @@ namespace QueryAny
 
         public QueryClause<TEntity> AndWhere(Func<FromClause<TEntity>, QueryClause<TEntity>> subWhereClause)
         {
+            Guard.AgainstNull(() => subWhereClause, subWhereClause);
             if (!this.entityCollection.Expressions.Any())
             {
                 throw new InvalidOperationException("Must have at least one expression to AND with");
@@ -133,6 +190,7 @@ namespace QueryAny
         internal void AddExpression<TValue>(LogicalOperator combine, string fieldName, ConditionOperator condition,
             TValue value)
         {
+            Guard.AgainstNullOrEmpty(() => fieldName, fieldName);
             this.expressions.Add(new WhereExpression
             {
                 Operator = combine,
@@ -147,6 +205,7 @@ namespace QueryAny
 
         internal void AddExpression(LogicalOperator combine, List<WhereExpression> nestedExpressions)
         {
+            Guard.AgainstNull(() => nestedExpressions, nestedExpressions);
             this.expressions.Add(new WhereExpression
             {
                 Operator = combine,

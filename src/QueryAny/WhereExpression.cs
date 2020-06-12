@@ -36,4 +36,12 @@ namespace QueryAny
         And = 1,
         Or = 2
     }
+
+    public enum JoinType
+    {
+        Inner = 0,
+        Left = 1,
+        Right = 2,
+        Outer = 3
+    }
 }

@@ -163,8 +163,10 @@ namespace QueryAny.UnitTests
             Assert.Equal(LogicalOperator.And, result.EntityCollections[0].Expressions[1].Operator);
             Assert.Equal(null, result.EntityCollections[0].Expressions[1].Condition);
             Assert.Equal(1, result.EntityCollections[0].Expressions[1].NestedExpressions.Count);
-            Assert.Equal(ConditionOperator.NotEqualTo, result.EntityCollections[0].Expressions[1].NestedExpressions[0].Condition.Operator);
-            Assert.Equal("AStringProperty", result.EntityCollections[0].Expressions[1].NestedExpressions[0].Condition.FieldName);
+            Assert.Equal(ConditionOperator.NotEqualTo,
+                result.EntityCollections[0].Expressions[1].NestedExpressions[0].Condition.Operator);
+            Assert.Equal("AStringProperty",
+                result.EntityCollections[0].Expressions[1].NestedExpressions[0].Condition.FieldName);
             Assert.Equal("2", result.EntityCollections[0].Expressions[1].NestedExpressions[0].Condition.Value);
         }
 
@@ -185,13 +187,29 @@ namespace QueryAny.UnitTests
             Assert.Equal(LogicalOperator.And, result.EntityCollections[0].Expressions[1].Operator);
             Assert.Equal(null, result.EntityCollections[0].Expressions[1].Condition);
             Assert.Equal(2, result.EntityCollections[0].Expressions[1].NestedExpressions.Count);
-            Assert.Equal(ConditionOperator.NotEqualTo, result.EntityCollections[0].Expressions[1].NestedExpressions[0].Condition.Operator);
-            Assert.Equal("AStringProperty", result.EntityCollections[0].Expressions[1].NestedExpressions[0].Condition.FieldName);
+            Assert.Equal(ConditionOperator.NotEqualTo,
+                result.EntityCollections[0].Expressions[1].NestedExpressions[0].Condition.Operator);
+            Assert.Equal("AStringProperty",
+                result.EntityCollections[0].Expressions[1].NestedExpressions[0].Condition.FieldName);
             Assert.Equal("2", result.EntityCollections[0].Expressions[1].NestedExpressions[0].Condition.Value);
             Assert.Equal(LogicalOperator.And, result.EntityCollections[0].Expressions[1].NestedExpressions[1].Operator);
-            Assert.Equal(ConditionOperator.EqualTo, result.EntityCollections[0].Expressions[1].NestedExpressions[1].Condition.Operator);
-            Assert.Equal("AStringProperty", result.EntityCollections[0].Expressions[1].NestedExpressions[1].Condition.FieldName);
+            Assert.Equal(ConditionOperator.EqualTo,
+                result.EntityCollections[0].Expressions[1].NestedExpressions[1].Condition.Operator);
+            Assert.Equal("AStringProperty",
+                result.EntityCollections[0].Expressions[1].NestedExpressions[1].Condition.FieldName);
             Assert.Equal("3", result.EntityCollections[0].Expressions[1].NestedExpressions[1].Condition.Value);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenJoin_ThenCreatesAnInnerJoin()
+        {
+            var result = Query.From<FirstTestEntity>()
+                .Join<SecondTestEntity, string>(f => f.AStringProperty, s => s.AnOtherStringProperty);
+
+            Assert.Equal("second", result.EntityCollection.Name);
+            Assert.Equal("AStringProperty", result.Join.JoinedFieldName);
+            Assert.Equal("AStringProperty", result.Join.JoiningFieldName);
+            Assert.Equal(JoinType.Inner, result.Join.Type);
         }
     }
 
@@ -212,5 +230,19 @@ namespace QueryAny.UnitTests
         public DateTime ADateTimeProperty => default;
 
         public string EntityName => "aname";
+    }
+
+    public class FirstTestEntity : INamedEntity
+    {
+        public string AStringProperty => null;
+
+        public string EntityName => "first";
+    }
+
+    public class SecondTestEntity : INamedEntity
+    {
+        public string AnOtherStringProperty => null;
+
+        public string EntityName => "second";
     }
 }
