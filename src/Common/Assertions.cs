@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -31,12 +30,12 @@ public class Assertion : IAssertion
     /// </summary>
     public static string FormatMessage(string fixedMessage, string customMessage, params object[] args)
     {
-        if (!string.IsNullOrEmpty(customMessage))
+        if (string.IsNullOrEmpty(customMessage))
         {
             return fixedMessage;
         }
 
-        return string.Format(customMessage, args) + Environment.NewLine + fixedMessage;
+        return string.Format(customMessage!, args) + Environment.NewLine + fixedMessage;
     }
 }
 
@@ -315,7 +314,7 @@ public static class BasicAssertions
 
     #region StackTrace Hacks
 
-    internal static Exception BuildThrowsException(Exception ex, string message)
+    private static Exception BuildThrowsException(Exception ex, string message)
     {
         PreserveStackTrace(ex);
         Exception result = new AssertFailedException("Assert.Throws() failure: " + message + "\r\n" + ex.Message);
@@ -324,9 +323,9 @@ public static class BasicAssertions
             .GetField("_remoteStackTraceString",
                 BindingFlags.Instance | BindingFlags.NonPublic);
 
-        var currentMethod = MethodBase.GetCurrentMethod().Name;
+        var currentMethod = MethodBase.GetCurrentMethod()!.Name;
         var stackTrace = string.Join(Environment.NewLine,
-            ex.StackTrace
+            ex.StackTrace!
                 .Split(new[]
                 {
                     Environment.NewLine
@@ -417,7 +416,7 @@ public static class BasicAssertions
 
             // Skip our own frames to cleanup the trace.
             var stackTrace = string.Join(Environment.NewLine,
-                info.GetString("RemoteStackTraceString")
+                info.GetString("RemoteStackTraceString")!
                     .Split(new[]
                         {
                             Environment.NewLine
@@ -456,53 +455,4 @@ public static class BasicAssertions
     }
 
     #endregion
-}
-
-public static class AssertionExtensions
-{
-    /// <summary>
-    ///     Asserts that a <see cref="WebException" /> was thrown with the specified <see cref="HttpStatusCode" /> and
-    ///     specified
-    ///     <see cref="WebException.Status" />
-    /// </summary>
-    public static void ThrowsWebException(this IAssertion assertion, HttpStatusCode statusCode, Action action)
-    {
-        ThrowsWebException(assertion, statusCode, null, action);
-    }
-
-    /// <summary>
-    ///     Asserts that a <see cref="WebException" /> was thrown with the specified <see cref="HttpStatusCode" /> and
-    ///     specified
-    ///     <see cref="WebException.Status" />
-    /// </summary>
-    public static void ThrowsWebException(this IAssertion assertion, HttpStatusCode statusCode, string errorMessage,
-        Action action)
-    {
-        try
-        {
-            action();
-
-            assertion.Fail($"Expected 'WebException' (with statusCode: '{statusCode}') to be thrown, but it was not.");
-        }
-        catch (WebException ex)
-        {
-            assertion.Equal(statusCode, GetStatus(ex),
-                $"Expected 'WebException' with statusCode: '{statusCode}' to be thrown, but was '{GetStatus(ex)}': {ex.Message}");
-            if (string.IsNullOrEmpty(errorMessage))
-            {
-                assertion.Equal(errorMessage, ex.Message,
-                    $"Expected 'WebException' (with statusCode: '{GetStatus(ex)}') to have message '{errorMessage}', but was '{ex.Message}'");
-            }
-        }
-        catch (Exception ex)
-        {
-            assertion.Fail(
-                $"Expected 'WebException' (with statusCode: '{statusCode}') to be thrown, but exception {ex.GetType()}: {ex.Message} was thrown instead");
-        }
-    }
-
-    private static HttpStatusCode? GetStatus(WebException ex)
-    {
-        return (ex?.Response as HttpWebResponse)?.StatusCode;
-    }
 }

@@ -8,7 +8,7 @@ namespace QueryAny
 
         public LogicalOperator Operator { get; set; }
 
-        public List<WhereExpression> NestedExpressions { get; set; }
+        public List<WhereExpression> NestedWheres { get; set; }
     }
 
     public class WhereCondition

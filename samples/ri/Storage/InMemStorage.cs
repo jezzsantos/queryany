@@ -74,7 +74,7 @@ namespace Storage
         {
             Guard.AgainstNull(() => query, query);
 
-            if (query.EntityCollections[0].Expressions.Count == 0)
+            if (query.Wheres.Count == 0)
             {
                 return new QueryResults<TEntity>(new List<TEntity>());
             }

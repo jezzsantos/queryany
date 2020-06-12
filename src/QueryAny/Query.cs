@@ -17,162 +17,269 @@ namespace QueryAny
         public static QueryClause<TEntity> Empty<TEntity>() where TEntity : INamedEntity, new()
         {
             var entity = new TEntity();
-            return new QueryClause<TEntity>(new EntityCollection<TEntity>(entity));
+            var entities = new QueriedEntities(new List<QueriedEntity<INamedEntity>>
+            {
+                new QueriedEntity<INamedEntity>(entity)
+            });
+            return new QueryClause<TEntity>(entities);
         }
     }
 
     public class FromClause<TEntity> where TEntity : INamedEntity, new()
     {
+        private readonly QueriedEntities entities;
+
         public FromClause(TEntity entity)
         {
             Guard.AgainstNull(() => entity, entity);
-            EntityCollection = new EntityCollection<TEntity>(entity);
+            this.entities = new QueriedEntities(new List<QueriedEntity<INamedEntity>>
+            {
+                new QueriedEntity<INamedEntity>(entity)
+            });
         }
 
-        public EntityCollection<TEntity> EntityCollection { get; }
+        public IReadOnlyList<QueriedEntity<INamedEntity>> Entities => this.entities.Entities;
 
-        public QueryClause<TEntity> Where<TValue>(Expression<Func<TEntity, TValue>> propertyName,
+        public IReadOnlyList<WhereExpression> Wheres => this.entities.Wheres;
+
+        public QueryClause<TEntity> Where<TValue>(Expression<Func<TEntity, TValue>> propertyExpression,
             ConditionOperator condition,
             TValue value)
         {
-            Guard.AgainstNull(() => propertyName, propertyName);
+            Guard.AgainstNull(() => propertyExpression, propertyExpression);
 
-            var fieldName = Reflector<TEntity>.GetPropertyName(propertyName);
-            EntityCollection.AddExpression(LogicalOperator.None, fieldName, condition, value);
-            return new QueryClause<TEntity>(EntityCollection);
+            var fieldName = Reflector<TEntity>.GetPropertyName(propertyExpression);
+            this.entities.AddWhere(LogicalOperator.None, fieldName, condition, value);
+            return new QueryClause<TEntity>(this.entities);
         }
 
-        public JoinClause<TEntity, TJoiningEntity, TValue> Join<TJoiningEntity, TValue>(
-            Expression<Func<TEntity, TValue>> joinedCollectionFieldName,
-            Expression<Func<TJoiningEntity, TValue>> joiningCollectionFieldName, JoinType type = JoinType.Inner)
+        public JoinClause<TEntity> Join<TJoiningEntity, TValue>(
+            Expression<Func<TEntity, TValue>> fromEntityPropertyName,
+            Expression<Func<TJoiningEntity, TValue>> joiningEntityPropertyName, JoinType type = JoinType.Inner)
             where TJoiningEntity : INamedEntity, new()
         {
-            Guard.AgainstNull(() => joinedCollectionFieldName, joinedCollectionFieldName);
-            Guard.AgainstNull(() => joiningCollectionFieldName, joiningCollectionFieldName);
+            Guard.AgainstNull(() => fromEntityPropertyName, fromEntityPropertyName);
+            Guard.AgainstNull(() => joiningEntityPropertyName, joiningEntityPropertyName);
+            var fromEntityFieldName = Reflector<TEntity>.GetPropertyName(fromEntityPropertyName);
+            var joiningEntityFieldName = Reflector<TJoiningEntity>.GetPropertyName(joiningEntityPropertyName);
+            var joiningEntity = new TJoiningEntity();
+            this.entities.AddJoin(joiningEntity, fromEntityFieldName, joiningEntityFieldName, type);
 
-            var entity = new TJoiningEntity();
-            return new JoinClause<TEntity, TJoiningEntity, TValue>(entity, joinedCollectionFieldName,
-                joiningCollectionFieldName, type);
+            return new JoinClause<TEntity>(this.entities);
         }
     }
 
-    public class JoinClause<TJoinedEntity, TJoiningEntity, TValue>
+    public class JoinClause<TJoinedEntity>
         where TJoinedEntity : INamedEntity, new()
-        where TJoiningEntity : INamedEntity, new()
     {
-        public JoinClause(TJoiningEntity entity, Expression<Func<TJoinedEntity, TValue>> joinedCollectionFieldName,
-            Expression<Func<TJoiningEntity, TValue>> joiningCollectionFieldName, JoinType type)
+        private readonly QueriedEntities entities;
+
+        public JoinClause(QueriedEntities entities)
         {
-            Guard.AgainstNull(() => entity, entity);
-            Guard.AgainstNull(() => joinedCollectionFieldName, joinedCollectionFieldName);
-            Guard.AgainstNull(() => joiningCollectionFieldName, joiningCollectionFieldName);
-            EntityCollection = new EntityCollection<TJoiningEntity>(entity);
-            Join = new JoinExpression<TJoinedEntity, TJoiningEntity, TValue>(joinedCollectionFieldName,
-                joiningCollectionFieldName, type);
+            Guard.AgainstNull(() => entities, entities);
+            this.entities = entities;
         }
 
-        public EntityCollection<TJoiningEntity> EntityCollection { get; }
-
-        public JoinExpression<TJoinedEntity, TJoiningEntity, TValue> Join { get; }
-    }
-
-    public class JoinExpression<TJoinedEntity, TJoiningEntity, TValue>
-        where TJoinedEntity : INamedEntity, new()
-        where TJoiningEntity : INamedEntity, new()
-    {
-        public JoinExpression(Expression<Func<TJoinedEntity, TValue>> joinedCollectionFieldName,
-            Expression<Func<TJoiningEntity, TValue>> joiningCollectionFieldName, JoinType type)
+        public QueryClause<TJoinedEntity> Where<TValue>(Expression<Func<TJoinedEntity, TValue>> propertyExpression,
+            ConditionOperator condition,
+            TValue value)
         {
-            Guard.AgainstNull(() => joinedCollectionFieldName, joinedCollectionFieldName);
-            Guard.AgainstNull(() => joiningCollectionFieldName, joiningCollectionFieldName);
-            JoinedFieldName = Reflector<TJoinedEntity>.GetPropertyName(joinedCollectionFieldName);
-            JoiningFieldName = Reflector<TJoiningEntity>.GetPropertyName(joiningCollectionFieldName);
-            Type = type;
+            Guard.AgainstNull(() => propertyExpression, propertyExpression);
+
+            var fieldName = Reflector<TJoinedEntity>.GetPropertyName(propertyExpression);
+            this.entities.AddWhere(LogicalOperator.None, fieldName, condition, value);
+            return new QueryClause<TJoinedEntity>(this.entities);
         }
 
-        public string JoinedFieldName { get; }
-        public string JoiningFieldName { get; }
-        public JoinType Type { get; }
+        public JoinClause<TJoinedEntity> AndJoin<TJoiningEntity, TValue>(
+            Expression<Func<TJoinedEntity, TValue>> fromEntityPropertyName,
+            Expression<Func<TJoiningEntity, TValue>> joiningEntityPropertyName, JoinType type = JoinType.Inner)
+            where TJoiningEntity : INamedEntity, new()
+        {
+            Guard.AgainstNull(() => fromEntityPropertyName, fromEntityPropertyName);
+            Guard.AgainstNull(() => joiningEntityPropertyName, joiningEntityPropertyName);
+            var fromEntityFieldName = Reflector<TJoinedEntity>.GetPropertyName(fromEntityPropertyName);
+            var joiningEntityFieldName = Reflector<TJoiningEntity>.GetPropertyName(joiningEntityPropertyName);
+            var joiningEntity = new TJoiningEntity();
+            this.entities.AddJoin(joiningEntity, fromEntityFieldName, joiningEntityFieldName, type);
+
+            return new JoinClause<TJoinedEntity>(this.entities);
+        }
     }
 
     public class QueryClause<TEntity> where TEntity : INamedEntity, new()
     {
-        private readonly EntityCollection<TEntity> entityCollection;
+        private readonly QueriedEntities entities;
 
-        public QueryClause(EntityCollection<TEntity> entityCollection)
+        public QueryClause(QueriedEntities entities)
         {
-            Guard.AgainstNull(() => entityCollection, entityCollection);
-            this.entityCollection = entityCollection;
-            EntityCollections = new List<EntityCollection<TEntity>> {this.entityCollection}.AsReadOnly();
+            Guard.AgainstNull(() => entities, entities);
+            this.entities = entities;
         }
 
-        public IReadOnlyList<EntityCollection<TEntity>> EntityCollections { get; }
+        public IReadOnlyList<QueriedEntity<INamedEntity>> Entities => this.entities.Entities;
+        public IReadOnlyList<WhereExpression> Wheres => this.entities.Wheres;
 
-        public QueryClause<TEntity> AndWhere<TValue>(Expression<Func<TEntity, TValue>> propertyName,
+        public QueryClause<TEntity> AndWhere<TValue>(Expression<Func<TEntity, TValue>> propertyExpression,
             ConditionOperator condition,
             TValue value)
         {
-            Guard.AgainstNull(() => propertyName, propertyName);
-            if (!this.entityCollection.Expressions.Any())
+            Guard.AgainstNull(() => propertyExpression, propertyExpression);
+            if (!this.entities.Wheres.Any())
             {
-                throw new InvalidOperationException("Must have at least one expression to AND with");
+                throw new InvalidOperationException("You cannot use an 'AndWhere' before a 'Where'");
             }
 
-            var fieldName = Reflector<TEntity>.GetPropertyName(propertyName);
-            this.entityCollection.AddExpression(LogicalOperator.And, fieldName, condition, value);
-            return new QueryClause<TEntity>(this.entityCollection);
+            var fieldName = Reflector<TEntity>.GetPropertyName(propertyExpression);
+            this.entities.AddWhere(LogicalOperator.And, fieldName, condition, value);
+            return new QueryClause<TEntity>(this.entities);
         }
 
-        public QueryClause<TEntity> OrWhere<TValue>(Expression<Func<TEntity, TValue>> propertyName,
+        public QueryClause<TEntity> OrWhere<TValue>(Expression<Func<TEntity, TValue>> propertyExpression,
             ConditionOperator condition,
             TValue value)
         {
-            Guard.AgainstNull(() => propertyName, propertyName);
-            if (!this.entityCollection.Expressions.Any())
+            Guard.AgainstNull(() => propertyExpression, propertyExpression);
+            if (!this.entities.Wheres.Any())
             {
-                throw new InvalidOperationException("Must have at least one expression to OR with");
+                throw new InvalidOperationException("You cannot use an 'OrWhere' before a 'Where'");
             }
 
-            var fieldName = Reflector<TEntity>.GetPropertyName(propertyName);
-            this.entityCollection.AddExpression(LogicalOperator.Or, fieldName, condition, value);
-            return new QueryClause<TEntity>(this.entityCollection);
+            var fieldName = Reflector<TEntity>.GetPropertyName(propertyExpression);
+            this.entities.AddWhere(LogicalOperator.Or, fieldName, condition, value);
+            return new QueryClause<TEntity>(this.entities);
         }
 
-        public QueryClause<TEntity> AndWhere(Func<FromClause<TEntity>, QueryClause<TEntity>> subWhereClause)
+        public QueryClause<TEntity> AndWhere(Func<FromClause<TEntity>, QueryClause<TEntity>> subWhere)
         {
-            Guard.AgainstNull(() => subWhereClause, subWhereClause);
-            if (!this.entityCollection.Expressions.Any())
+            Guard.AgainstNull(() => subWhere, subWhere);
+            if (!this.entities.Wheres.Any())
             {
-                throw new InvalidOperationException("Must have at least one expression to AND with");
+                throw new InvalidOperationException("You cannot use an 'AndWhere' before a 'Where'");
             }
 
-            var fromClause = new FromClause<TEntity>(this.entityCollection.UnderlyingEntity);
-            subWhereClause(fromClause);
+            var rootEntity = Entities[0];
+            var fromClause = new FromClause<TEntity>((TEntity) rootEntity.UnderlyingEntity);
+            subWhere(fromClause);
 
-            this.entityCollection.AddExpression(LogicalOperator.And, fromClause.EntityCollection.Expressions.ToList());
-            return new QueryClause<TEntity>(this.entityCollection);
+            this.entities.AddCondition(LogicalOperator.And,
+                fromClause.Wheres.ToList());
+            return new QueryClause<TEntity>(this.entities);
+        }
+        
+        public QueryClause<TEntity> OrWhere(Func<FromClause<TEntity>, QueryClause<TEntity>> subWhere)
+        {
+            Guard.AgainstNull(() => subWhere, subWhere);
+            if (!this.entities.Wheres.Any())
+            {
+                throw new InvalidOperationException("You cannot use an 'OrWhere' before a 'Where'");
+            }
+
+            var rootEntity = Entities[0];
+            var fromClause = new FromClause<TEntity>((TEntity) rootEntity.UnderlyingEntity);
+            subWhere(fromClause);
+
+            this.entities.AddCondition(LogicalOperator.Or,
+                fromClause.Wheres.ToList());
+            return new QueryClause<TEntity>(this.entities);
+        }
+
+        public QueryClause<TEntity> Select<TValue>(Expression<Func<TEntity, TValue>> propertyExpression)
+        {
+            Guard.AgainstNull(() => propertyExpression, propertyExpression);
+
+            var fieldName = Reflector<TEntity>.GetPropertyName(propertyExpression);
+            Entities[0].AddSelected(fieldName);
+            return new QueryClause<TEntity>(this.entities);
         }
     }
 
-    public class EntityCollection<TEntity> where TEntity : INamedEntity, new()
+    public class QueriedEntities
+    {
+        private readonly List<QueriedEntity<INamedEntity>> entities;
+        private readonly List<WhereExpression> wheres;
+
+        public QueriedEntities(List<QueriedEntity<INamedEntity>> entities)
+        {
+            Guard.AgainstNull(() => entities, entities);
+            this.entities = entities;
+            this.wheres = new List<WhereExpression>();
+        }
+
+        public IReadOnlyList<QueriedEntity<INamedEntity>> Entities => this.entities.AsReadOnly();
+
+        public IReadOnlyList<WhereExpression> Wheres => this.wheres.AsReadOnly();
+
+        internal void AddWhere<TValue>(LogicalOperator combine, string fieldName, ConditionOperator condition,
+            TValue value)
+        {
+            Guard.AgainstNullOrEmpty(() => fieldName, fieldName);
+            this.wheres.Add(new WhereExpression
+            {
+                Operator = combine,
+                Condition = new WhereCondition
+                {
+                    FieldName = fieldName,
+                    Operator = condition,
+                    Value = value
+                }
+            });
+        }
+
+        internal void AddCondition(LogicalOperator combine, List<WhereExpression> nestedWheres)
+        {
+            Guard.AgainstNull(() => nestedWheres, nestedWheres);
+            this.wheres.Add(new WhereExpression
+            {
+                Operator = combine,
+                NestedWheres = nestedWheres
+            });
+        }
+
+        public void AddJoin<TJoiningEntity>(TJoiningEntity joiningEntity, string fromEntityFieldName,
+            string joiningEntityFieldName, JoinType type) where TJoiningEntity : INamedEntity, new()
+        {
+            bool IsEntityAlreadyJoinedAtLeastOnce()
+            {
+                return this.entities
+                    .Any(e => e.UnderlyingEntity.EntityName.EqualsIgnoreCase(joiningEntity.EntityName));
+            }
+
+            if (IsEntityAlreadyJoinedAtLeastOnce())
+            {
+                throw new InvalidOperationException(
+                    $"You cannot 'Join' on the same Entity ('{joiningEntity.EntityName}') twice");
+            }
+
+            var joinedEntityCollection = new QueriedEntity<INamedEntity>(joiningEntity);
+            joinedEntityCollection.AddJoin(
+                new JoinSide(Entities[0].Name, fromEntityFieldName),
+                new JoinSide(joinedEntityCollection.Name, joiningEntityFieldName), type);
+            this.entities.Add(joinedEntityCollection);
+        }
+    }
+
+    public class QueriedEntity<TEntity> where TEntity : INamedEntity
     {
         private const string EntityTypeNameConventionSuffix = @"Entity";
         private const string UnknownEntityName = @"Unknown";
         private readonly TEntity entity;
-        private readonly List<WhereExpression> expressions;
+        private readonly List<SelectedField> selects;
 
-        public EntityCollection(TEntity entity)
+        public QueriedEntity(TEntity entity)
         {
             Guard.AgainstNull(() => entity, entity);
             this.entity = entity;
-            this.expressions = new List<WhereExpression>();
+            this.selects = new List<SelectedField>();
+            Join = null;
         }
 
         public string Name => GetEntityName();
 
         internal TEntity UnderlyingEntity => this.entity;
 
-        public IReadOnlyList<WhereExpression> Expressions => this.expressions.AsReadOnly();
+        public IReadOnlyList<SelectedField> Selects => this.selects.AsReadOnly();
+        public JoinDefinition Join { get; private set; }
 
         private string GetEntityName()
         {
@@ -187,30 +294,55 @@ namespace QueryAny
                 : $"{UnknownEntityName}{EntityTypeNameConventionSuffix}";
         }
 
-        internal void AddExpression<TValue>(LogicalOperator combine, string fieldName, ConditionOperator condition,
-            TValue value)
+        internal void AddJoin(JoinSide left, JoinSide right, JoinType type)
         {
-            Guard.AgainstNullOrEmpty(() => fieldName, fieldName);
-            this.expressions.Add(new WhereExpression
-            {
-                Operator = combine,
-                Condition = new WhereCondition
-                {
-                    FieldName = fieldName,
-                    Operator = condition,
-                    Value = value
-                }
-            });
+            Join = new JoinDefinition(left, right, type);
         }
 
-        internal void AddExpression(LogicalOperator combine, List<WhereExpression> nestedExpressions)
+        public void AddSelected(string fieldName)
         {
-            Guard.AgainstNull(() => nestedExpressions, nestedExpressions);
-            this.expressions.Add(new WhereExpression
-            {
-                Operator = combine,
-                NestedExpressions = nestedExpressions
-            });
+            this.selects.Add(new SelectedField(fieldName));
         }
+    }
+
+    public class JoinDefinition
+    {
+        public JoinDefinition(JoinSide left, JoinSide right, JoinType type)
+        {
+            Guard.AgainstNull(() => left, left);
+            Guard.AgainstNull(() => right, right);
+            Left = left;
+            Right = right;
+            Type = type;
+        }
+
+        public JoinSide Left { get; }
+        public JoinSide Right { get; }
+        public JoinType Type { get; }
+    }
+
+    public class JoinSide
+    {
+        public JoinSide(string entityName, string joinedFieldName)
+        {
+            Guard.AgainstNullOrEmpty(() => entityName, entityName);
+            Guard.AgainstNullOrEmpty(() => joinedFieldName, joinedFieldName);
+            EntityName = entityName;
+            JoinedFieldName = joinedFieldName;
+        }
+
+        public string EntityName { get; }
+        public string JoinedFieldName { get; }
+    }
+
+    public class SelectedField
+    {
+        public SelectedField(string name)
+        {
+            Guard.AgainstNullOrEmpty(() => name, name);
+            Name = name;
+        }
+
+        public string Name { get; }
     }
 }
