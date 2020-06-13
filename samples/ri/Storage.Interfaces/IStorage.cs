@@ -5,7 +5,7 @@ namespace Storage.Interfaces
 {
     public interface IStorage<TEntity> where TEntity : IKeyedEntity, new()
     {
-        void Add(TEntity entity);
+        string Add(TEntity entity);
 
         TEntity Update(TEntity entity, bool ignoreConcurrency);
 

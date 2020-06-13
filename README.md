@@ -68,12 +68,10 @@ Can fetch this data from a SQL database, or from a Non-SQL database, or from JSO
 
 > Note: This is NOT a new version of LINQ or intended to be like LINQ at all. Its simply a language for defining queries that can work across any datastore.
 
-## Example Usage
+## Documentation
 
-See our samples, as guidance for your data store of choice.
+See our [reference architecture](https://github.com/jezzsantos/queryany/wiki/Reference-Architecture), and [our design notes](https://github.com/jezzsantos/queryany/wiki/Language-Plus-Model) to learn more about how **QueryAny** works.
 
-## Credits
+### Credits
 
-QueryAny was inspired by the work done on the http://funql.org/ project. But is not yet an implementation of the [FUNQL specification](http://funql.org/index.php/language-specification.html).
-
-Follow us as we build this out for the community.
+QueryAny was inspired by the work done on the http://funql.org/ project. But is not an implementation of the [FUNQL specification](http://funql.org/index.php/language-specification.html).

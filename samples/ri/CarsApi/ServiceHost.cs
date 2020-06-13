@@ -32,7 +32,9 @@ namespace CarsApi
 
         private static void RegisterDependencies(Container container)
         {
-            container.AddSingleton<IStorage<CarEntity>, CarInMemStorage>();
+            container.AddSingleton<IIdentifierFactory, GuidIdentifierFactory>();
+            container.AddSingleton(c => new InMemEntityRepository(c.Resolve<IIdentifierFactory>()));
+            container.AddSingleton<IStorage<CarEntity>>(c => new CarInMemStorage(c.Resolve<InMemEntityRepository>()));
             container.AddSingleton<Cars>();
         }
 

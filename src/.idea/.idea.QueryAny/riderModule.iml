@@ -2,6 +2,7 @@
 <module type="RIDER_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$/../../../LICENSE" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/CarsApi.UnitTests" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/CarsApi" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/CarsApi.IntegrationTests" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/CarsDomain" />

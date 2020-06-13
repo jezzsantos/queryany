@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Common\Assertions.cs" Link="Assertions.cs" />
+    <Compile Include="..\..\..\src\Common\Assertions.cs" Link="Assertions.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\samples\ri\CarsApi\CarsApi.csproj" />
+    <ProjectReference Include="..\CarsApi\CarsApi.csproj" />
   </ItemGroup>
 
 </Project>

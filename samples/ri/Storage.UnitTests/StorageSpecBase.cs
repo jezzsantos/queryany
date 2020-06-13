@@ -18,13 +18,6 @@ namespace Storage.UnitTests
         protected abstract IStorage<TestEntity> GetStorage();
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenAddAndNoIdentifier_ThenThrows()
-        {
-            Assert.ThrowsException<EntityNotIdentifiedException>(() =>
-                this.storage.Add(new TestEntity(null)));
-        }
-
-        [TestMethod, TestCategory("Unit")]
         public void WhenAddAndEntityNotExists_ThenAddsNew()
         {
             Assert.AreEqual(0, this.storage.Count());
@@ -35,20 +28,11 @@ namespace Storage.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenAddAndEntityExists_ThenThrows()
-        {
-            this.storage.Add(new TestEntity("anid"));
-
-            Assert.ThrowsException<EntityAlreadyExistsException>(() =>
-                this.storage.Add(new TestEntity("anid")));
-        }
-
-        [TestMethod, TestCategory("Unit")]
         public void WhenDeleteAndEntityExists_ThenDeletesEntity()
         {
-            this.storage.Add(new TestEntity("anid"));
+            var id = this.storage.Add(new TestEntity());
 
-            this.storage.Delete("anid", false);
+            this.storage.Delete(id, false);
 
             Assert.AreEqual(0, this.storage.Count());
         }
@@ -79,10 +63,10 @@ namespace Storage.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenGetAndExists_ThenReturnsEntity()
         {
-            var entity = new TestEntity("anid");
-            this.storage.Add(entity);
+            var entity = new TestEntity();
+            var id = this.storage.Add(entity);
 
-            var get = this.storage.Get("anid");
+            var get = this.storage.Get(id);
 
             Assert.AreEqual(entity, get);
         }
@@ -97,7 +81,7 @@ namespace Storage.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenUpdateAndExists_ThenReturnsUpdated()
         {
-            var entity = new TestEntity("anid");
+            var entity = new TestEntity();
             this.storage.Add(entity);
 
             entity.AProperty = "updated";
@@ -121,7 +105,7 @@ namespace Storage.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenUpdateAndEmptyId_ThenThrows()
         {
-            var entity = new TestEntity(null);
+            var entity = new TestEntity();
 
             Assert.ThrowsException<EntityNotIdentifiedException>(() =>
                 this.storage.Update(entity, false));
@@ -138,8 +122,8 @@ namespace Storage.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenCountAndNotEmpty_ThenReturnsCount()
         {
-            this.storage.Add(new TestEntity("anid1"));
-            this.storage.Add(new TestEntity("anid2"));
+            this.storage.Add(new TestEntity());
+            this.storage.Add(new TestEntity());
 
             var count = this.storage.Count();
 
@@ -154,10 +138,10 @@ namespace Storage.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenQueryAndNoExpressions_ThenReturnsEmptyResults()
+        public void WhenQueryAndEmpty_ThenReturnsEmptyResults()
         {
             var query = Query.Empty<TestEntity>();
-            this.storage.Add(new TestEntity("anid1")
+            this.storage.Add(new TestEntity
             {
                 AProperty = "avalue"
             });
@@ -168,7 +152,23 @@ namespace Storage.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenQueryAndEmpty_ThenReturnsEmptyResults()
+        public void WhenQueryAndWhereAll_ThenReturnsAllResults()
+        {
+            var query = Query.From<TestEntity>()
+                .WhereAll();
+            var id = this.storage.Add(new TestEntity
+            {
+                AProperty = "avalue"
+            });
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(1, results.Results.Count);
+            Assert.AreEqual(id, results.Results[0].Id);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenQueryAndNoEntities_ThenReturnsEmptyResults()
         {
             var query = Query.From<TestEntity>().Where(e => e.AProperty, ConditionOperator.EqualTo, "avalue");
 
@@ -181,7 +181,7 @@ namespace Storage.UnitTests
         public void WhenQueryAndNoMatch_ThenReturnsEmptyResults()
         {
             var query = Query.From<TestEntity>().Where(e => e.AProperty, ConditionOperator.EqualTo, "anothervalue");
-            this.storage.Add(new TestEntity("anid1")
+            this.storage.Add(new TestEntity
             {
                 AProperty = "avalue"
             });
@@ -195,7 +195,7 @@ namespace Storage.UnitTests
         public void WhenQueryAndMatchOne_ThenReturnsResult()
         {
             var query = Query.From<TestEntity>().Where(e => e.AProperty, ConditionOperator.EqualTo, "avalue");
-            this.storage.Add(new TestEntity("anid1")
+            var id = this.storage.Add(new TestEntity
             {
                 AProperty = "avalue"
             });
@@ -203,18 +203,18 @@ namespace Storage.UnitTests
             var results = this.storage.Query(query, null);
 
             Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual("anid1", results.Results[0].Id);
+            Assert.AreEqual(id, results.Results[0].Id);
         }
 
         [TestMethod, TestCategory("Unit")]
         public void WhenQueryAndMatchMany_ThenReturnsResults()
         {
             var query = Query.From<TestEntity>().Where(e => e.AProperty, ConditionOperator.EqualTo, "avalue");
-            this.storage.Add(new TestEntity("anid1")
+            var id1 = this.storage.Add(new TestEntity
             {
                 AProperty = "avalue"
             });
-            this.storage.Add(new TestEntity("anid2")
+            var id2 = this.storage.Add(new TestEntity
             {
                 AProperty = "avalue"
             });
@@ -222,8 +222,8 @@ namespace Storage.UnitTests
             var results = this.storage.Query(query, null);
 
             Assert.AreEqual(2, results.Results.Count);
-            Assert.AreEqual("anid1", results.Results[0].Id);
-            Assert.AreEqual("anid2", results.Results[1].Id);
+            Assert.AreEqual(id1, results.Results[0].Id);
+            Assert.AreEqual(id2, results.Results[1].Id);
         }
 
         //TODO: for limits, sort, etc

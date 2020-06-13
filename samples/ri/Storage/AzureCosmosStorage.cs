@@ -7,7 +7,7 @@ namespace Storage
 {
     public class AzureCosmosStorage<TEntity> : IStorage<TEntity> where TEntity : IKeyedEntity, new()
     {
-        public void Add(TEntity entity)
+        public string Add(TEntity entity)
         {
             throw new NotImplementedException();
         }

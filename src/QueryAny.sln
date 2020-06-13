@@ -29,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QueryAny.Primitives", "Quer
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Services.Interfaces.UnitTests", "Services.Interfaces.UnitTests\Services.Interfaces.UnitTests.csproj", "{11F7A98D-31B4-45BC-9149-2AA630624871}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarsApi.UnitTests", "CarsApi.UnitTests\CarsApi.UnitTests.csproj", "{FF2C1DD8-2EFD-4B9A-8E99-AB8CCA2C9231}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarsApi.UnitTests", "..\samples\ri\CarsApi.UnitTests\CarsApi.UnitTests.csproj", "{FF2C1DD8-2EFD-4B9A-8E99-AB8CCA2C9231}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{99D91965-EF25-4B2C-B176-133B8D47B399}"
 EndProject

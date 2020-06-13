@@ -18,7 +18,7 @@ namespace CarsApi.IntegrationTests
         [TestInitialize]
         public void Initialize()
         {
-            this.store = new CarInMemStorage();
+            this.store = new CarInMemStorage(new InMemEntityRepository(new GuidIdentifierFactory()));
 
             this.appHost = new TestAppHost();
             this.appHost.Container.AddSingleton<IStorage<CarEntity>>(this.store);
@@ -47,16 +47,15 @@ namespace CarsApi.IntegrationTests
         public void WhenGetAvailableAndCars_ThenReturnsNone()
         {
             var client = new JsonServiceClient(ServiceUrl);
-            this.store.Add(new CarEntity
+            var carId = this.store.Add(new CarEntity
             {
-                Id = "acardid1",
                 OccupiedUntilUtc = DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(1))
             });
 
             var cars = client.Get(new SearchAvailableCarsRequest());
 
             Assert.AreEqual(1, cars.Cars.Count);
-            Assert.AreEqual("acaridid1", cars.Cars[0].Id);
+            Assert.AreEqual(carId, cars.Cars[0].Id);
         }
     }
 }

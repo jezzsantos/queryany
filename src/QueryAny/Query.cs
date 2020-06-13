@@ -21,6 +21,7 @@ namespace QueryAny
             {
                 new QueriedEntity<INamedEntity>(entity)
             });
+            entities.UpdateOptions(true);
             return new QueryClause<TEntity>(entities);
         }
     }
@@ -124,6 +125,7 @@ namespace QueryAny
 
         public IReadOnlyList<QueriedEntity<INamedEntity>> Entities => this.entities.Entities;
         public IReadOnlyList<WhereExpression> Wheres => this.entities.Wheres;
+        public QueryOptions Options => this.entities.Options;
 
         public QueryClause<TEntity> AndWhere<TValue>(Expression<Func<TEntity, TValue>> propertyExpression,
             ConditionOperator condition,
@@ -203,11 +205,14 @@ namespace QueryAny
             Guard.AgainstNull(() => entities, entities);
             this.entities = entities;
             this.wheres = new List<WhereExpression>();
+            Options = new QueryOptions();
         }
 
         public IReadOnlyList<QueriedEntity<INamedEntity>> Entities => this.entities.AsReadOnly();
 
         public IReadOnlyList<WhereExpression> Wheres => this.wheres.AsReadOnly();
+
+        public QueryOptions Options { get; }
 
         internal void AddWhere<TValue>(LogicalOperator combine, string fieldName, ConditionOperator condition,
             TValue value)
@@ -260,6 +265,26 @@ namespace QueryAny
                 new JoinSide(Entities[0].Name, fromEntityFieldName),
                 new JoinSide(joinedEntityCollection.Name, joiningEntityFieldName), type);
             this.entities.Add(joinedEntityCollection);
+        }
+
+        public void UpdateOptions(bool isEmpty)
+        {
+            Options.SetEmpty();
+        }
+    }
+
+    public class QueryOptions
+    {
+        public QueryOptions()
+        {
+            IsEmpty = false;
+        }
+
+        public bool IsEmpty { get; private set; }
+
+        public void SetEmpty()
+        {
+            IsEmpty = true;
         }
     }
 

@@ -15,7 +15,8 @@ namespace CarsDomain
 
         public List<Car> SearchAvailable(SearchOptions searchOptions, GetOptions getOptions)
         {
-            var query = Query.From<CarEntity>().Where(e => e.OccupiedUntilUtc, ConditionOperator.LessThan, DateTime.UtcNow);
+            var query = Query.From<CarEntity>()
+                .Where(e => e.OccupiedUntilUtc, ConditionOperator.LessThan, DateTime.UtcNow);
             var cars = Storage.Query(query, searchOptions);
 
             // TODO: Do what you have to do any expansions defined in GetOptions

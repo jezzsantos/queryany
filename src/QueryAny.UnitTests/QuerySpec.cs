@@ -65,7 +65,7 @@ namespace QueryAny.UnitTests
                     .WhereAll()
                     .AndWhere(e => e.AStringProperty, ConditionOperator.EqualTo, "1"));
         }
-        
+
         [TestMethod, TestCategory("Unit")]
         public void WhenWhereWithStringProperty_ThenCreatesAWhere()
         {
