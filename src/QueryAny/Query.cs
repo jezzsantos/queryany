@@ -67,6 +67,11 @@ namespace QueryAny
 
             return new JoinClause<TEntity>(this.entities);
         }
+
+        public QueryClause<TEntity> WhereAll()
+        {
+            return new QueryClause<TEntity>(this.entities);
+        }
     }
 
     public class JoinClause<TJoinedEntity>
@@ -127,7 +132,8 @@ namespace QueryAny
             Guard.AgainstNull(() => propertyExpression, propertyExpression);
             if (!this.entities.Wheres.Any())
             {
-                throw new InvalidOperationException("You cannot use an 'AndWhere' before a 'Where'");
+                throw new InvalidOperationException(
+                    "You cannot use an 'AndWhere' before a 'Where', or after a 'WhereAll'");
             }
 
             var fieldName = Reflector<TEntity>.GetPropertyName(propertyExpression);
@@ -142,7 +148,8 @@ namespace QueryAny
             Guard.AgainstNull(() => propertyExpression, propertyExpression);
             if (!this.entities.Wheres.Any())
             {
-                throw new InvalidOperationException("You cannot use an 'OrWhere' before a 'Where'");
+                throw new InvalidOperationException(
+                    "You cannot use an 'OrWhere' before a 'Where', or after a 'WhereAll'");
             }
 
             var fieldName = Reflector<TEntity>.GetPropertyName(propertyExpression);
@@ -155,32 +162,24 @@ namespace QueryAny
             Guard.AgainstNull(() => subWhere, subWhere);
             if (!this.entities.Wheres.Any())
             {
-                throw new InvalidOperationException("You cannot use an 'AndWhere' before a 'Where'");
+                throw new InvalidOperationException(
+                    "You cannot use an 'AndWhere' before a 'Where', or after a 'WhereAll'");
             }
 
-            var rootEntity = Entities[0];
-            var fromClause = new FromClause<TEntity>((TEntity) rootEntity.UnderlyingEntity);
-            subWhere(fromClause);
-
-            this.entities.AddCondition(LogicalOperator.And,
-                fromClause.Wheres.ToList());
+            this.entities.AddCondition(LogicalOperator.And, subWhere);
             return new QueryClause<TEntity>(this.entities);
         }
-        
+
         public QueryClause<TEntity> OrWhere(Func<FromClause<TEntity>, QueryClause<TEntity>> subWhere)
         {
             Guard.AgainstNull(() => subWhere, subWhere);
             if (!this.entities.Wheres.Any())
             {
-                throw new InvalidOperationException("You cannot use an 'OrWhere' before a 'Where'");
+                throw new InvalidOperationException(
+                    "You cannot use an 'OrWhere' before a 'Where', or after a 'WhereAll'");
             }
 
-            var rootEntity = Entities[0];
-            var fromClause = new FromClause<TEntity>((TEntity) rootEntity.UnderlyingEntity);
-            subWhere(fromClause);
-
-            this.entities.AddCondition(LogicalOperator.Or,
-                fromClause.Wheres.ToList());
+            this.entities.AddCondition(LogicalOperator.Or, subWhere);
             return new QueryClause<TEntity>(this.entities);
         }
 
@@ -226,13 +225,18 @@ namespace QueryAny
             });
         }
 
-        internal void AddCondition(LogicalOperator combine, List<WhereExpression> nestedWheres)
+        internal void AddCondition<TEntity>(LogicalOperator combine,
+            Func<FromClause<TEntity>, QueryClause<TEntity>> subWhere) where TEntity : INamedEntity, new()
         {
-            Guard.AgainstNull(() => nestedWheres, nestedWheres);
+            var rootEntity = Entities[0];
+            var fromClause = new FromClause<TEntity>((TEntity) rootEntity.UnderlyingEntity);
+            subWhere(fromClause);
+            var subWheres = fromClause.Wheres.ToList();
+
             this.wheres.Add(new WhereExpression
             {
                 Operator = combine,
-                NestedWheres = nestedWheres
+                NestedWheres = subWheres
             });
         }
 

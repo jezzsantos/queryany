@@ -48,8 +48,26 @@ namespace QueryAny.UnitTests
                 Query.Empty<NamedTestEntity>().AndWhere(e => e.AStringProperty, ConditionOperator.EqualTo, "1"));
         }
 
+
         [TestMethod, TestCategory("Unit")]
-        public void WhenWhereWithStringProperty_ThenCreatesAnWhere()
+        public void WhenWhereAll_ThenCreatesAWhere()
+        {
+            var result = Query.From<NamedTestEntity>().WhereAll();
+
+            Assert.Equal(0, result.Wheres.Count);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenAndWhereAfterWhereAll_ThenThrows()
+        {
+            Assert.Throws<InvalidOperationException>(() =>
+                Query.From<NamedTestEntity>()
+                    .WhereAll()
+                    .AndWhere(e => e.AStringProperty, ConditionOperator.EqualTo, "1"));
+        }
+        
+        [TestMethod, TestCategory("Unit")]
+        public void WhenWhereWithStringProperty_ThenCreatesAWhere()
         {
             var result = Query.From<NamedTestEntity>().Where(e => e.AStringProperty, ConditionOperator.EqualTo, "1");
 
@@ -61,7 +79,7 @@ namespace QueryAny.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenWhereWithDateTimeProperty_ThenCreatesAnWhere()
+        public void WhenWhereWithDateTimeProperty_ThenCreatesAWhere()
         {
             var datum = DateTime.UtcNow;
             var result = Query.From<NamedTestEntity>()
