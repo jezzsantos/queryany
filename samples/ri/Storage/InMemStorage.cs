@@ -107,7 +107,7 @@ namespace Storage
 
     public static class WhereExpressionExtensions
     {
-        public static string ToDynamicLinq(this IReadOnlyList<WhereExpression> wheres)
+        public static string ToDynamicLinq(this IEnumerable<WhereExpression> wheres)
         {
             var builder = new StringBuilder();
             foreach (var where in wheres)

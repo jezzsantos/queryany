@@ -70,7 +70,7 @@ Can fetch this data from a SQL database, or from a Non-SQL database, or from JSO
 
 ## Documentation
 
-See our [reference architecture](https://github.com/jezzsantos/queryany/wiki/Reference-Architecture), and [our design notes](https://github.com/jezzsantos/queryany/wiki/Language-Plus-Model) to learn more about how **QueryAny** works.
+See our [reference architecture](https://github.com/jezzsantos/queryany/wiki/Reference-Architecture), and [our design notes](https://github.com/jezzsantos/queryany/wiki/Design) to learn more about how **QueryAny** works.
 
 ### Credits
 
