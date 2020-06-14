@@ -4,10 +4,10 @@ namespace Storage
 {
     public class CarInMemStorage : InMemStorage<CarEntity>
     {
-        public CarInMemStorage(InMemEntityRepository repository) : base(repository)
+        public CarInMemStorage(InMemRepository repository) : base(repository)
         {
         }
 
-        protected override string EntityName => "Car";
+        protected override string ContainerName => "Car";
     }
 }

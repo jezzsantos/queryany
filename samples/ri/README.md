@@ -45,3 +45,12 @@ Concrete implementations of `IStorage<TEntity>` for the various storage technolo
 This is where all QueryAny implementations will exist for this sample.
 
 > Generally speaking there would probably be a separate project for each implementation of the `IStorage<TEntity>` interface. eg. one for SqlServer, one for Redis, one for JSON file. 
+
+## Local Development and Testing
+
+You will need to: 
+
+1. install the `Azure Cosmos DB Emulator` locally to run some of the tests. Available for [download here](https://aka.ms/cosmosdb-emulator)
+1. In the project `Storage.UnitTests`, in the file `appsettings.json`, change the value of the `AzureCosmosDbConnectionString` setting to match your local emulator (only if you have changed the defaults).
+
+> Note: When running the tests on `Storage.UnitTests` you will need to give your IDE elevated privileges to run the Azure Cosmos DB Emulator during a test run.

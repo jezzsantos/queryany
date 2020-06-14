@@ -16,5 +16,7 @@ namespace Storage.Interfaces
         QueryResults<TEntity> Query(QueryClause<TEntity> query, SearchOptions options);
 
         long Count();
+
+        void DestroyAll();
     }
 }

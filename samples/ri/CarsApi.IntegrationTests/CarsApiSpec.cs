@@ -18,7 +18,7 @@ namespace CarsApi.IntegrationTests
         [TestInitialize]
         public void Initialize()
         {
-            this.store = new CarInMemStorage(new InMemEntityRepository(new GuidIdentifierFactory()));
+            this.store = new CarInMemStorage(new InMemRepository(new GuidIdentifierFactory()));
 
             this.appHost = new TestAppHost();
             this.appHost.Container.AddSingleton<IStorage<CarEntity>>(this.store);

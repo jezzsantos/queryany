@@ -5,12 +5,12 @@ using QueryAny;
 namespace Storage.UnitTests
 {
     [TestClass]
-    public class WhereExpressionExtensionsSpec
+    public class DynamicLinqWhereExtensionsSpec
     {
         private static readonly IAssertion Assert = new Assertion();
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenToDynamicLinqAndSingleCondition_ThenReturnsLinq()
+        public void WhenToDynamicLinqWhereClauseAndSingleCondition_ThenReturnsLinq()
         {
             var wheres = new List<WhereExpression>
             {
@@ -25,13 +25,13 @@ namespace Storage.UnitTests
                 }
             };
 
-            var result = wheres.ToDynamicLinq();
+            var result = wheres.ToDynamicLinqWhereClause();
 
             Assert.Equal("afield1 == \"astringvalue\"", result);
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenToDynamicLinqAndMultipleConditions_ThenReturnsLinq()
+        public void WhenToDynamicLinqWhereClauseAndMultipleConditions_ThenReturnsLinq()
         {
             var wheres = new List<WhereExpression>
             {
@@ -56,13 +56,13 @@ namespace Storage.UnitTests
                 }
             };
 
-            var result = wheres.ToDynamicLinq();
+            var result = wheres.ToDynamicLinqWhereClause();
 
             Assert.Equal("afield1 == \"astringvalue\" and afield2 >= \"astringvalue\"", result);
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenToDynamicLinqAndNestedConditions_ThenReturnsLinq()
+        public void WhenToDynamicLinqWhereClauseAndNestedConditions_ThenReturnsLinq()
         {
             var wheres = new List<WhereExpression>
             {
@@ -103,7 +103,7 @@ namespace Storage.UnitTests
                 }
             };
 
-            var result = wheres.ToDynamicLinq();
+            var result = wheres.ToDynamicLinqWhereClause();
 
             Assert.Equal(
                 "afield1 == \"astringvalue\" and (afield2 == \"astringvalue2\" or afield3 == \"astringvalue3\")",

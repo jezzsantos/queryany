@@ -1,6 +1,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
+using ServiceStack;
 using Storage.Interfaces;
 
 namespace Storage.UnitTests
@@ -13,6 +14,7 @@ namespace Storage.UnitTests
         public void Initialize()
         {
             this.storage = GetStorage();
+            this.storage.DestroyAll();
         }
 
         protected abstract IStorage<TestEntity> GetStorage();
@@ -22,7 +24,7 @@ namespace Storage.UnitTests
         {
             Assert.AreEqual(0, this.storage.Count());
 
-            this.storage.Add(new TestEntity("anid"));
+            this.storage.Add(new TestEntity());
 
             Assert.AreEqual(1, this.storage.Count());
         }
@@ -68,7 +70,7 @@ namespace Storage.UnitTests
 
             var get = this.storage.Get(id);
 
-            Assert.AreEqual(entity, get);
+            Assert.AreEqual(entity.ToJson(), get.ToJson());
         }
 
         [TestMethod, TestCategory("Unit")]
