@@ -1,7 +1,7 @@
 # QueryAny
 [![Build status](https://ci.appveyor.com/api/projects/status/qwg1wen94kfe52jp/branch/master?svg=true)](https://ci.appveyor.com/project/JezzSantos/queryany/branch/master)
 
-**QueryAny** is a query language for use with any database or data store technology. Now you can store your entities in any store and never have to change your domain logic!
+**QueryAny** is a query language for use with any database or data store technology. Store your entities in any store, and change your mind where, and never have to change your domain logic again!
 
 ## Why?
 
