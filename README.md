@@ -1,6 +1,7 @@
 # QueryAny
 [![Build status](https://ci.appveyor.com/api/projects/status/qwg1wen94kfe52jp/branch/master?svg=true)](https://ci.appveyor.com/project/JezzSantos/queryany/branch/master)
 
+**QueryAny** is a query language for use with any database or data store technology. Now you can store your entities in any store and never have to change your domain logic!
 
 ## Why?
 
@@ -10,7 +11,7 @@ Want to discover how to use other data repositories than the only one you know n
 
 Want to run your unit/integration tests faster than your database can run them? (**Then stop using databases in your testing!**)
 
-Have considered the possibility that an In-mem persistence store (like Redis) is a better performing alternative to using a clumsy database server? 
+Have you considered the possibility that an In-mem persistence store (like Redis) is a better performing alternative to using a clumsy database server? 
 
 OK, then you are going to need help to abstract your persistence layer from your domain objects.
 
