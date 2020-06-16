@@ -9,11 +9,11 @@ using Storage.Interfaces;
 
 namespace Storage
 {
-    public abstract class InMemStorage<TEntity> : IStorage<TEntity> where TEntity : IKeyedEntity, new()
+    public abstract class InProcessInMemStorage<TEntity> : IStorage<TEntity> where TEntity : IKeyedEntity, new()
     {
-        private readonly InMemRepository store;
+        private readonly InProcessInMemRepository store;
 
-        protected InMemStorage(InMemRepository store)
+        protected InProcessInMemStorage(InProcessInMemRepository store)
         {
             Guard.AgainstNull(() => store, store);
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.Cosmos.Table.Protocol;
+using Newtonsoft.Json;
 using QueryAny;
 using QueryAny.Primitives;
 using ServiceStack;
@@ -25,6 +26,7 @@ namespace Storage
     public class AzureCosmosRepository : IAzureCosmosRepository
     {
         internal const string DefaultPartitionKey = "default";
+        internal static readonly DateTimeOffset MinAllowedDateTimeOffset = TableConstants.MinDateTime;
         private readonly string connectionString;
         private readonly IIdentifierFactory idFactory;
         private CloudTableClient client;
@@ -175,58 +177,141 @@ namespace Storage
         }
     }
 
-    internal static class EntityExtensions
+    internal static class AzureCosmosEntityExtensions
     {
-        public static TEntity FromTableEntity<TEntity>(this DynamicTableEntity tableEntity) where TEntity : IKeyedEntity
+        public static TEntity FromTableEntity<TEntity>(this DynamicTableEntity tableEntity)
+            where TEntity : IKeyedEntity, new()
         {
-            var properties = tableEntity.Properties
-                .ToDictionary(pair => pair.Key, pair => pair.Value.PropertyAsObject);
+            var entityPropertyTypes = new TEntity().GetType().GetProperties();
+            var propertyValues = tableEntity.Properties
+                .Where(te =>
+                    entityPropertyTypes.Any(prop => prop.Name.EqualsOrdinal(te.Key)) &&
+                    te.Value.PropertyAsObject != null)
+                .ToDictionary(pair => pair.Key,
+                    pair => pair.Value.FromTableEntityProperty(entityPropertyTypes
+                        .First(prop => prop.Name.EqualsOrdinal(pair.Key)).GetType()));
 
-            var entity = properties.FromObjectDictionary<TEntity>();
+            var entity = propertyValues.FromObjectDictionary<TEntity>();
             entity.Id = tableEntity.RowKey;
             return entity;
         }
 
         public static DynamicTableEntity ToTableEntity<TEntity>(this TEntity entity) where TEntity : IKeyedEntity
         {
+            bool IsNotExcluded(string propertyName)
+            {
+                var excludedPropertyNames = new[] {nameof(IKeyedEntity.Id), nameof(INamedEntity.EntityName)};
+                return !excludedPropertyNames.Contains(propertyName);
+            }
+
+            var entityProperties = entity.ToObjectDictionary()
+                .Where(pair => IsNotExcluded(pair.Key));
             var tableEntity = new DynamicTableEntity(AzureCosmosRepository.DefaultPartitionKey, entity.Id)
             {
-                Properties = entity.ToEntityProperties()
+                Properties = entityProperties.ToTableEntityProperties()
             };
 
             return tableEntity;
         }
 
-        private static Dictionary<string, EntityProperty> ToEntityProperties<TEntity>(this TEntity entity)
-            where TEntity : IKeyedEntity
+        private static Dictionary<string, EntityProperty> ToTableEntityProperties(
+            this IEnumerable<KeyValuePair<string, object>> entityProperties)
         {
-            EntityProperty CreateEntityPropertyFromObject(KeyValuePair<string, object> property)
+            EntityProperty ToEntityProperty(object property)
             {
-                return property.Value is DateTime
-                    ? EntityProperty.CreateEntityPropertyFromObject(RebaseDateTimeForStorage(property.Value))
-                    : EntityProperty.CreateEntityPropertyFromObject(property.Value);
+                switch (property)
+                {
+                    case string text:
+                        return EntityProperty.GeneratePropertyForString(text);
+                    case DateTime dateTime:
+                        return EntityProperty.GeneratePropertyForDateTimeOffset(
+                            ToTableEntityDateTimeOffsetProperty(dateTime));
+                    case DateTimeOffset dateTimeOffset:
+                        return EntityProperty.GeneratePropertyForDateTimeOffset(
+                            ToTableEntityDateTimeOffsetProperty(dateTimeOffset));
+                    case bool boolean:
+                        return EntityProperty.GeneratePropertyForBool(boolean);
+                    case int int32:
+                        return EntityProperty.GeneratePropertyForInt(int32);
+                    case long int64:
+                        return EntityProperty.GeneratePropertyForLong(int64);
+                    case double @double:
+                        return EntityProperty.GeneratePropertyForDouble(@double);
+                    case Guid guid:
+                        return EntityProperty.GeneratePropertyForGuid(guid);
+                    case byte[] bytes:
+                        return EntityProperty.GeneratePropertyForByteArray(bytes);
+                    case null:
+                        return EntityProperty.CreateEntityPropertyFromObject(null);
+                    default:
+                        var value = property.ToJson();
+                        return EntityProperty.GeneratePropertyForString(value);
+                }
             }
 
-            var excludedPropertyNames = new[] {nameof(IKeyedEntity.Id), nameof(INamedEntity.EntityName)};
-
-            return entity.ToObjectDictionary()
-                .Where(pair => !excludedPropertyNames.Contains(pair.Key))
+            return entityProperties
                 .ToDictionary(pair => pair.Key,
-                    CreateEntityPropertyFromObject);
+                    pair => ToEntityProperty(pair.Value));
         }
 
-        private static object RebaseDateTimeForStorage(object value)
+        private static object FromTableEntityProperty(this EntityProperty property, Type targetEntityType)
         {
-            var minAzureDateTime = TableConstants.MinDateTime.DateTime;
-
-            if (!(value is DateTime dateTime))
+            var value = property.PropertyAsObject;
+            switch (value)
             {
-                return value;
+                case string _:
+                    return value;
+                case DateTime dateTime:
+                {
+                    if (dateTime <= AzureCosmosRepository.MinAllowedDateTimeOffset.UtcDateTime)
+                    {
+                        return DateTime.MinValue;
+                    }
+
+                    return dateTime;
+                }
+                case DateTimeOffset dateTimeOffset:
+                {
+                    if (dateTimeOffset <= AzureCosmosRepository.MinAllowedDateTimeOffset)
+                    {
+                        return DateTimeOffset.MinValue;
+                    }
+
+                    return dateTimeOffset;
+                }
+                case bool _:
+                case int _:
+                case long _:
+                case double _:
+                case Guid _:
+                case byte[] _:
+                case null:
+                    return null;
+
+                default:
+                    return value.ToString().HasValue()
+                        ? JsonConvert.DeserializeObject(value.ToString(), targetEntityType)
+                        : value;
+            }
+        }
+
+        private static DateTimeOffset? ToTableEntityDateTimeOffsetProperty(object value)
+        {
+            if (value is DateTime dateTime)
+            {
+                return dateTime < AzureCosmosRepository.MinAllowedDateTimeOffset.UtcDateTime
+                    ? AzureCosmosRepository.MinAllowedDateTimeOffset
+                    : new DateTimeOffset(dateTime, TimeSpan.Zero);
             }
 
-            return dateTime < minAzureDateTime
-                ? minAzureDateTime
-                : value;
+            if (value is DateTimeOffset dateTimeOffset)
+            {
+                return dateTimeOffset < AzureCosmosRepository.MinAllowedDateTimeOffset
+                    ? AzureCosmosRepository.MinAllowedDateTimeOffset
+                    : dateTimeOffset;
+            }
+
+            return null;
         }
     }
 
@@ -307,29 +392,48 @@ namespace Storage
 
         private static string ToAzureCosmosWhereClause(this WhereCondition condition)
         {
-            if (condition.Value is DateTime dateTime)
+            var fieldName = condition.FieldName.EqualsOrdinal(nameof(IKeyedEntity.Id))
+                ? TableConstants.RowKey
+                : condition.FieldName;
+            var conditionOperator = condition.Operator.ToAzureCosmosWhereClause();
+
+            var value = condition.Value;
+            switch (value)
             {
-                if (!dateTime.HasValue())
-                {
-                    dateTime = TableConstants.MinDateTime.DateTime;
-                }
-
-                var dateValue = new DateTimeOffset(dateTime);
-                return TableQuery.GenerateFilterConditionForDate(condition.FieldName,
-                    condition.Operator.ToAzureCosmosWhereClause(), dateValue);
+                case string text:
+                    return TableQuery.GenerateFilterCondition(fieldName, conditionOperator, text);
+                case DateTime dateTime:
+                    return TableQuery.GenerateFilterConditionForDate(fieldName, conditionOperator,
+                        dateTime.HasValue()
+                            ? dateTime > AzureCosmosRepository.MinAllowedDateTimeOffset
+                                ? dateTime
+                                : AzureCosmosRepository.MinAllowedDateTimeOffset
+                            : AzureCosmosRepository.MinAllowedDateTimeOffset);
+                case DateTimeOffset dateTimeOffset:
+                    return TableQuery.GenerateFilterConditionForDate(fieldName, conditionOperator,
+                        dateTimeOffset.UtcDateTime.HasValue()
+                            ? dateTimeOffset > AzureCosmosRepository.MinAllowedDateTimeOffset
+                                ? dateTimeOffset
+                                : AzureCosmosRepository.MinAllowedDateTimeOffset
+                            : AzureCosmosRepository.MinAllowedDateTimeOffset);
+                case bool boolean:
+                    return TableQuery.GenerateFilterConditionForBool(fieldName, conditionOperator, boolean);
+                case double @double:
+                    return TableQuery.GenerateFilterConditionForDouble(fieldName, conditionOperator, @double);
+                case int int32:
+                    return TableQuery.GenerateFilterConditionForInt(fieldName, conditionOperator, int32);
+                case long int64:
+                    return TableQuery.GenerateFilterConditionForLong(fieldName, conditionOperator, int64);
+                case byte[] bytes:
+                    return TableQuery.GenerateFilterConditionForBinary(fieldName, conditionOperator, bytes);
+                case Guid guid:
+                    return TableQuery.GenerateFilterConditionForGuid(fieldName, conditionOperator, guid);
+                case null:
+                    return TableQuery.GenerateFilterCondition(fieldName, conditionOperator, null);
+                default:
+                    //Complex type?
+                    return TableQuery.GenerateFilterCondition(fieldName, conditionOperator, value.ToJson());
             }
-
-            if (condition.Value is bool givenBool)
-            {
-                // Because boolean values have been converted to strings in storage
-                var boolValue = givenBool.ToLower();
-                return TableQuery.GenerateFilterCondition(condition.FieldName,
-                    condition.Operator.ToAzureCosmosWhereClause(), boolValue);
-            }
-
-            var stringValue = condition.Value.ToString();
-            return TableQuery.GenerateFilterCondition(condition.FieldName,
-                condition.Operator.ToAzureCosmosWhereClause(), stringValue);
         }
     }
 }

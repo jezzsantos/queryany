@@ -2,9 +2,9 @@
 
 namespace Storage
 {
-    public class CarInMemStorage : InMemStorage<CarEntity>
+    public class CarInMemStorage : InProcessInMemStorage<CarEntity>
     {
-        public CarInMemStorage(InMemRepository repository) : base(repository)
+        public CarInMemStorage(InProcessInMemRepository repository) : base(repository)
         {
         }
 

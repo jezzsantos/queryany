@@ -4,17 +4,17 @@ using Storage.Interfaces;
 namespace Storage.UnitTests
 {
     [TestClass]
-    public class InMemStorageSpec : StorageSpecBase
+    public class InProcessInMemStorageSpec : AnyStorageBaseSpec
     {
         protected override IStorage<TestEntity> GetStorage()
         {
-            return new TestInMemStorage(new InMemRepository(new GuidIdentifierFactory()));
+            return new TestInMemStorage(new InProcessInMemRepository(new GuidIdentifierFactory()));
         }
     }
 
-    public class TestInMemStorage : InMemStorage<TestEntity>
+    public class TestInMemStorage : InProcessInMemStorage<TestEntity>
     {
-        public TestInMemStorage(InMemRepository store) : base(store)
+        public TestInMemStorage(InProcessInMemRepository store) : base(store)
         {
         }
 

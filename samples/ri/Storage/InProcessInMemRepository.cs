@@ -8,14 +8,14 @@ using Storage.Interfaces;
 
 namespace Storage
 {
-    public class InMemRepository
+    public class InProcessInMemRepository
     {
         private readonly Dictionary<string, Dictionary<string, IKeyedEntity>> containers =
             new Dictionary<string, Dictionary<string, IKeyedEntity>>();
 
         private readonly IIdentifierFactory idFactory;
 
-        public InMemRepository(IIdentifierFactory idFactory)
+        public InProcessInMemRepository(IIdentifierFactory idFactory)
         {
             Guard.AgainstNull(() => idFactory, idFactory);
             this.idFactory = idFactory;
@@ -30,7 +30,7 @@ namespace Storage
 
             var id = this.idFactory.Create(entity);
             entity.Id = id;
-            this.containers[containerName].Add(entity.Id, entity);
+            this.containers[containerName].Add(entity.Id, entity.ToRepositoryType());
             return id;
         }
 
@@ -51,7 +51,7 @@ namespace Storage
             {
                 if (this.containers[containerName].ContainsKey(id))
                 {
-                    this.containers[containerName][id] = entity;
+                    this.containers[containerName][id] = entity.ToRepositoryType();
                 }
             }
         }
@@ -62,7 +62,7 @@ namespace Storage
             {
                 if (this.containers[containerName].ContainsKey(id))
                 {
-                    return this.containers[containerName][id];
+                    return this.containers[containerName][id].FromRepositoryType();
                 }
             }
 
@@ -83,7 +83,7 @@ namespace Storage
         {
             if (this.containers.ContainsKey(containerName))
             {
-                return this.containers[containerName].Values;
+                return this.containers[containerName].Values.ToList().ConvertAll(e => e.FromRepositoryType());
             }
 
             return Enumerable.Empty<IKeyedEntity>();
@@ -95,6 +95,19 @@ namespace Storage
             {
                 this.containers.Remove(containerName);
             }
+        }
+    }
+
+    public static class InMemEntityExtensions
+    {
+        public static IKeyedEntity ToRepositoryType(this IKeyedEntity entity)
+        {
+            return entity;
+        }
+
+        public static IKeyedEntity FromRepositoryType(this IKeyedEntity entity)
+        {
+            return entity;
         }
     }
 
@@ -117,7 +130,7 @@ namespace Storage
             {
                 var condition = where.Condition;
                 return
-                    $"{where.Operator.ToDynamicLinqWhereClause()}{condition.FieldName} {condition.Operator.ToDynamicLinqWhereClause()} {condition.Value.ToDynamicLinqWhereClause()}";
+                    $"{where.Operator.ToDynamicLinqWhereClause()}{condition.ToDynamicLinqWhereClause()}";
             }
 
             if (where.NestedWheres != null && where.NestedWheres.Any())
@@ -173,14 +186,43 @@ namespace Storage
             }
         }
 
-        private static string ToDynamicLinqWhereClause(this object value)
+        private static string ToDynamicLinqWhereClause(this WhereCondition condition)
         {
+            var fieldName = condition.FieldName;
+            var @operator = condition.Operator.ToDynamicLinqWhereClause();
+            var value = condition.Value;
+
             if (value is DateTime dateTime)
             {
-                return $"\"{dateTime:O}\"";
+                return
+                    $"{fieldName} {@operator} DateTime({dateTime.Ticks}, DateTimeKind.Utc)";
             }
 
-            return $"\"{value}\"";
+            if (value is DateTimeOffset dateTimeOffset)
+            {
+                return
+                    $"{fieldName} {@operator} DateTimeOffset({dateTimeOffset.Ticks}, TimeSpan.Zero)";
+            }
+
+            if (value is byte[] bytes)
+            {
+                return $"Convert.ToBase64String({fieldName}) {@operator} \"{Convert.ToBase64String(bytes)}\"";
+            }
+
+            if (value is string || value is Guid)
+            {
+                return $"{fieldName} {@operator} \"{value}\"";
+            }
+
+            return $"{fieldName} {@operator} {value}";
+        }
+    }
+
+    public static class DumExtensions
+    {
+        public static string ToDum(this byte[] bytes)
+        {
+            return Convert.ToBase64String(bytes);
         }
     }
 }

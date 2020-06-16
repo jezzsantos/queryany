@@ -8,10 +8,13 @@ using Storage.Interfaces;
 namespace Storage.UnitTests
 {
     [TestClass]
-    public class AzureCosmosStorageSpec : StorageSpecBase
+    public class AzureCosmosStorageSpec : AnyStorageBaseSpec
     {
         private const string AzureCosmosDbEmulatorProcessName = @"Microsoft.Azure.Cosmos.Emulator";
-        private const string AzureCosmosDbEmulatorStartupArgs = @"/EnableTableEndpoint /NoExplorer";
+
+        private const string AzureCosmosDbEmulatorStartupArgs =
+            @"/EnableTableEndpoint /NoExplorer /DisableRateLimiting";
+
         private const string AzureCosmosDbEmulatorShutdownArgs = @"/Shutdown";
 
         [ClassInitialize]
