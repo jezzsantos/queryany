@@ -497,9 +497,9 @@ namespace Storage.UnitTests
     {
         public string APropertyValue { get; set; }
 
-        public override bool Equals(object? obj)
+        public override string ToString()
         {
-            return base.Equals(obj);
+            return this.ToJson();
         }
     }
 }

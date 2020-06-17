@@ -214,15 +214,21 @@ namespace Storage
                 return $"{fieldName} {@operator} \"{value}\"";
             }
 
-            return $"{fieldName} {@operator} {value}";
+            if (value is int || value is long || value is double)
+            {
+                return $"{fieldName} {@operator} {value}";
+            }
+
+            // Other Types (ComplexTypes must be equatable to their ToString() forms)
+            return $"{fieldName}.ToString() {@operator} \"{value.ToEscapedString()}\"";
         }
     }
 
-    public static class DumExtensions
+    public static class ComplexTypeExtensions
     {
-        public static string ToDum(this byte[] bytes)
+        public static string ToEscapedString(this object value)
         {
-            return Convert.ToBase64String(bytes);
+            return value.ToString().Replace("\"", "\\\"");
         }
     }
 }
