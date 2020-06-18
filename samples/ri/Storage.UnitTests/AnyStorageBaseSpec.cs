@@ -256,6 +256,32 @@ namespace Storage.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
+        public void WhenQueryForNullStringValue_ThenReturnsResult()
+        {
+            this.storage.Add(new TestEntity {AStringValue = "avalue1"});
+            var id2 = this.storage.Add(new TestEntity {AStringValue = null});
+            var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, null);
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(1, results.Results.Count);
+            Assert.AreEqual(id2, results.Results[0].Id);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenQueryForNotNullStringValue_ThenReturnsResult()
+        {
+            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
+            this.storage.Add(new TestEntity {AStringValue = null});
+            var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.NotEqualTo, null);
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(1, results.Results.Count);
+            Assert.AreEqual(id1, results.Results[0].Id);
+        }
+
+        [TestMethod, TestCategory("Unit")]
         public void WhenQueryForDateTimeValue_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -463,6 +489,34 @@ namespace Storage.UnitTests
 
             Assert.AreEqual(1, results.Results.Count);
             Assert.AreEqual(id2, results.Results[0].Id);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenQueryForNullComplexTypeValue_ThenReturnsResult()
+        {
+            var complex1 = new ComplexType {APropertyValue = "avalue1"};
+            this.storage.Add(new TestEntity {AComplexTypeValue = complex1});
+            var id2 = this.storage.Add(new TestEntity {AComplexTypeValue = null});
+            var query = Query.From<TestEntity>().Where(e => e.AComplexTypeValue, ConditionOperator.EqualTo, null);
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(1, results.Results.Count);
+            Assert.AreEqual(id2, results.Results[0].Id);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenQueryForNotEqualNullComplexTypeValue_ThenReturnsResult()
+        {
+            var complex1 = new ComplexType {APropertyValue = "avalue1"};
+            var id1 = this.storage.Add(new TestEntity {AComplexTypeValue = complex1});
+            this.storage.Add(new TestEntity {AComplexTypeValue = null});
+            var query = Query.From<TestEntity>().Where(e => e.AComplexTypeValue, ConditionOperator.NotEqualTo, null);
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(1, results.Results.Count);
+            Assert.AreEqual(id1, results.Results[0].Id);
         }
     }
 
