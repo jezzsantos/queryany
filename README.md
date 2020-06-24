@@ -1,19 +1,18 @@
 # QueryAny
 [![Build status](https://ci.appveyor.com/api/projects/status/qwg1wen94kfe52jp/branch/master?svg=true)](https://ci.appveyor.com/project/JezzSantos/queryany/branch/master)
 
-**QueryAny** is a query language for use with any database or data store technology. Store your entities in any store, and change your mind where, and never have to change your domain logic again!
+**QueryAny** is a query language for use with any database or data store technology. Use it as a generic repository pattern, and never leak database details into your domain logic again. Never take a dependency from your domain logic on any database or ORM technology again.
 
 ## Why?
 
-Want to learn how to abstract away your persistence layer? (**Get rid of those ugly SQL statements in your business logic?**)
+Becuase things change, and you should protect your domain from those changes.
 
-Want to discover how to use other data repositories than the only one you know now? (**Ever wanted to explore what a NoSQL database or InMemory database was good for?**)
-
-Want to run your unit/integration tests faster than your database can run them? (**Then stop using databases in your testing!**)
-
+Don't you want to learn how to abstract away your persistence layers? (**Get rid of those ugly SQL statements in your business logic?**)
+Don't you want to discover how to use other data repositories than the only one you know now? (**Ever wanted to explore what a NoSQL database or InMemory database was good for?**)
+Don't you want to run your unit/integration tests faster than your database can run them? (**Then stop using databases in your testing!**)
 Have you considered the possibility that an In-mem persistence store (like Redis) is a better performing alternative to using a clumsy database server? 
 
-OK, then you are going to need help to abstract your persistence layer from your domain objects.
+OK, then you are going to need help to abstract your persistence layer from your domain objects properly.
 
 **QueryAny** was developed to provide developers an easy path to mature from being bound to their favorite database technology to venture out and consider other persistence technologies. Especially for those developers who have gotten stuck at designing every piece of software they build from a database model upwards. And don't yet know how to de-couple their domains from their persistence layers.
 
