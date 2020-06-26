@@ -1,0 +1,39 @@
+version: 1.0.{build}
+image: Visual Studio 2019
+configuration: Release
+environment:
+  SERVICESTACK_LICENSE:
+    secure: QUgdetn+7cvsZbtOjv/Dahtu/ESBL6O2WPLSeoBL8kDAVFY8mPFEE1rdI2+mSol5Kk2LRWJTfxqV776ok7sh6s86B4CbDVBcqSs29yeYcOxwIEJKEwfzOa2yTiR1ww/eB/vHPHgl0C9XSJsRx3C+StOR21kX9vl3aURRrZV3W4EHT1E7zDJyM6/hcj46TTMwC9fmXNJQLtNawQBuRKN+bsgMxj+MH6XYez7+7nV4qoraUeNH8xmuHuqa0hooD+TktYyHOWaX6ZYGtJ6CMQeMQuKKh4lNj6X8x8UiVJz5I0We4g9D0CAeTS38N4vVj91L+UXpKcacT8rK22cwZDnguFcasbRDX0WeT6p3OIKSgv6YHk7aQnAQLzN3QxkVQItMB9nONZvPBNwXje2h7R4cSqHCSgLlKKeb2UNOKbkkksBj6l7NghiMlhn89GmJpU5pF3Rwese3JLtxbCVsrU9X/w==
+  matrix:
+  - test_type: Unit.Testing
+    test_assemblies: src\QueryAny.UnitTests\bin\$env:CONFIGURATION\netcoreapp3.1\QueryAny.UnitTests.dll;samples\ri\CarsApi.UnitTests\bin\$env:CONFIGURATION\netcoreapp3.1\CarsApi.UnitTests.dll;samples\ri\Storage.UnitTests\bin\$env:CONFIGURATION\netcoreapp3.1\Storage.UnitTests.dll
+    test_category: Unit
+    test_settings:
+  - test_type: Integration.Testing
+    test_assemblies: samples\ri\CarsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\CarsApi.IntegrationTests.dll
+    test_category: Integration
+    test_settings: 
+matrix:
+    fast_finish: false
+before_build:
+- cmd: nuget restore src\QueryAny.sln
+build:
+  project: src\QueryAny.sln
+  verbosity: minimal
+test_script:
+- ps: >-
+    $env:test_assemblies.Split(';') | % {
+      $assemblyName = $ExecutionContext.InvokeCommand.ExpandString($_)
+
+      if ($env:test_settings){
+        &vstest.console $assemblyName /InIsolation /logger:AppVeyor /settings:$env:test_settings /testcasefilter:`"TestCategory=$env:test_category`"
+        } else {
+        &vstest.console $assemblyName /InIsolation /logger:AppVeyor /testcasefilter:`"TestCategory=$env:test_category`"
+        }
+
+      if ($global:LASTEXITCODE -ne 0){
+        $host.SetShouldExit($global:LASTEXITCODE)
+        break
+      }
+    }
+deploy: off
