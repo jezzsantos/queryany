@@ -34,7 +34,7 @@ namespace Storage
 
             using (var store = this.connection.Open())
             {
-                store.Remove(ContainerName, id);
+                store.Remove<TEntity>(ContainerName, id);
             }
         }
 
@@ -98,10 +98,9 @@ namespace Storage
             }
 
             List<TEntity> resultEntities;
-            var azureQuery = query.Wheres.ToAzureCosmosWhereClause();
             using (var store = this.connection.Open())
             {
-                resultEntities = store.Query<TEntity>(ContainerName, azureQuery);
+                resultEntities = store.Query(ContainerName, query);
             }
 
             // TODO: Joins

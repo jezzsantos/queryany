@@ -25,7 +25,7 @@ namespace Storage.UnitTests
                 }
             };
 
-            var result = wheres.ToAzureCosmosWhereClause();
+            var result = wheres.ToAzureCosmosTableApiWhereClause();
 
             Assert.Equal("afield1 eq 'astringvalue'", result);
         }
@@ -56,7 +56,7 @@ namespace Storage.UnitTests
                 }
             };
 
-            var result = wheres.ToAzureCosmosWhereClause();
+            var result = wheres.ToAzureCosmosTableApiWhereClause();
 
             Assert.Equal("afield1 eq 'astringvalue' and afield2 ge 'astringvalue'", result);
         }
@@ -103,7 +103,7 @@ namespace Storage.UnitTests
                 }
             };
 
-            var result = wheres.ToAzureCosmosWhereClause();
+            var result = wheres.ToAzureCosmosTableApiWhereClause();
 
             Assert.Equal(
                 "afield1 eq 'astringvalue' and (afield2 eq 'astringvalue2' or afield3 eq 'astringvalue3')",

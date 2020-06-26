@@ -12,19 +12,9 @@ using Storage.Interfaces;
 
 namespace Storage
 {
-    public interface IAzureCosmosRepository : IDisposable
+    public class AzureCosmosTableApiRepository : IAzureCosmosRepository
     {
-        string Add<TEntity>(string containerName, TEntity entity) where TEntity : IKeyedEntity, new();
-        void Remove(string containerName, string id);
-        TEntity Get<TEntity>(string containerName, string id) where TEntity : IKeyedEntity, new();
-        void Update<TEntity>(string containerName, string entityId, TEntity entity) where TEntity : IKeyedEntity, new();
-        long Count(string containerName);
-        List<TEntity> Query<TEntity>(string containerName, string query) where TEntity : IKeyedEntity, new();
-        void DestroyAll(string containerName);
-    }
-
-    public class AzureCosmosRepository : IAzureCosmosRepository
-    {
+        internal const string NullValue = "null";
         internal const string DefaultPartitionKey = "default";
         internal static readonly DateTimeOffset MinAllowedDateTimeOffset = TableConstants.MinDateTime;
         private readonly string connectionString;
@@ -32,7 +22,7 @@ namespace Storage
         private CloudTableClient client;
         private bool tableExistCheckPerformed;
 
-        public AzureCosmosRepository(string connectionString, IIdentifierFactory idFactory)
+        public AzureCosmosTableApiRepository(string connectionString, IIdentifierFactory idFactory)
         {
             Guard.AgainstNullOrEmpty(() => connectionString, connectionString);
             Guard.AgainstNull(() => idFactory, idFactory);
@@ -52,7 +42,7 @@ namespace Storage
             return id;
         }
 
-        public void Remove(string containerName, string id)
+        public void Remove<TEntity>(string containerName, string id) where TEntity : IKeyedEntity, new()
         {
             var table = EnsureTable(containerName);
 
@@ -102,11 +92,13 @@ namespace Storage
             return results.LongCount();
         }
 
-        public List<TEntity> Query<TEntity>(string containerName, string query) where TEntity : IKeyedEntity, new()
+        public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query)
+            where TEntity : IKeyedEntity, new()
         {
             var table = EnsureTable(containerName);
+            var tableQuery = query.Wheres.ToAzureCosmosTableApiWhereClause();
 
-            var results = table.ExecuteQuery(new TableQuery<DynamicTableEntity>().Where(query));
+            var results = table.ExecuteQuery(new TableQuery<DynamicTableEntity>().Where(tableQuery));
 
             return results.ToList().ConvertAll(r => r.FromTableEntity<TEntity>());
         }
@@ -177,7 +169,7 @@ namespace Storage
         }
     }
 
-    internal static class AzureCosmosEntityExtensions
+    internal static class AzureCosmosTableApiEntityExtensions
     {
         public static TEntity FromTableEntity<TEntity>(this DynamicTableEntity tableEntity)
             where TEntity : IKeyedEntity, new()
@@ -189,7 +181,7 @@ namespace Storage
                     te.Value.PropertyAsObject != null)
                 .ToDictionary(pair => pair.Key,
                     pair => pair.Value.FromTableEntityProperty(entityPropertyTypes
-                        .First(prop => prop.Name.EqualsOrdinal(pair.Key)).GetType()));
+                        .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType));
 
             var entity = propertyValues.FromObjectDictionary<TEntity>();
             entity.Id = tableEntity.RowKey;
@@ -206,7 +198,7 @@ namespace Storage
 
             var entityProperties = entity.ToObjectDictionary()
                 .Where(pair => IsNotExcluded(pair.Key));
-            var tableEntity = new DynamicTableEntity(AzureCosmosRepository.DefaultPartitionKey, entity.Id)
+            var tableEntity = new DynamicTableEntity(AzureCosmosTableApiRepository.DefaultPartitionKey, entity.Id)
             {
                 Properties = entityProperties.ToTableEntityProperties()
             };
@@ -242,7 +234,7 @@ namespace Storage
                     case byte[] bytes:
                         return EntityProperty.GeneratePropertyForByteArray(bytes);
                     case null:
-                        return EntityProperty.CreateEntityPropertyFromObject(null);
+                        return EntityProperty.CreateEntityPropertyFromObject(AzureCosmosTableApiRepository.NullValue);
                     default:
                         var value = property.ToJson();
                         return EntityProperty.GeneratePropertyForString(value);
@@ -259,39 +251,39 @@ namespace Storage
             var value = property.PropertyAsObject;
             switch (value)
             {
-                case string _:
-                    return value;
-                case DateTime dateTime:
-                {
-                    if (dateTime <= AzureCosmosRepository.MinAllowedDateTimeOffset.UtcDateTime)
+                case string text:
+                    if (text.EqualsOrdinal(AzureCosmosTableApiRepository.NullValue))
                     {
-                        return DateTime.MinValue;
+                        return null;
                     }
 
-                    return dateTime;
-                }
-                case DateTimeOffset dateTimeOffset:
-                {
-                    if (dateTimeOffset <= AzureCosmosRepository.MinAllowedDateTimeOffset)
+                    if (targetEntityType.IsComplexStorageType())
                     {
-                        return DateTimeOffset.MinValue;
+                        if (text.StartsWith("{") && text.EndsWith("}"))
+                        {
+                            return JsonConvert.DeserializeObject(text, targetEntityType);
+                        }
+
+                        return null;
                     }
 
-                    return dateTimeOffset;
-                }
+                    return text;
+
+                case DateTime _:
+                case DateTimeOffset _:
                 case bool _:
                 case int _:
                 case long _:
                 case double _:
                 case Guid _:
                 case byte[] _:
+                    return value;
+
                 case null:
                     return null;
 
                 default:
-                    return value.ToString().HasValue()
-                        ? JsonConvert.DeserializeObject(value.ToString(), targetEntityType)
-                        : value;
+                    throw new ArgumentOutOfRangeException(nameof(property));
             }
         }
 
@@ -299,52 +291,52 @@ namespace Storage
         {
             if (value is DateTime dateTime)
             {
-                return dateTime < AzureCosmosRepository.MinAllowedDateTimeOffset.UtcDateTime
-                    ? AzureCosmosRepository.MinAllowedDateTimeOffset
-                    : new DateTimeOffset(dateTime, TimeSpan.Zero);
+                return dateTime.HasValue()
+                    ? new DateTimeOffset(dateTime.ToUniversalTime(), TimeSpan.Zero)
+                    : DateTimeOffset.MinValue;
             }
 
             if (value is DateTimeOffset dateTimeOffset)
             {
-                return dateTimeOffset < AzureCosmosRepository.MinAllowedDateTimeOffset
-                    ? AzureCosmosRepository.MinAllowedDateTimeOffset
-                    : dateTimeOffset;
+                return dateTimeOffset.DateTime.HasValue()
+                    ? dateTimeOffset
+                    : DateTimeOffset.MinValue;
             }
 
             return null;
         }
     }
 
-    public static class AzureCosmosWhereExtensions
+    public static class AzureCosmosTableApiWhereExtensions
     {
-        public static string ToAzureCosmosWhereClause(this IEnumerable<WhereExpression> wheres)
+        public static string ToAzureCosmosTableApiWhereClause(this IEnumerable<WhereExpression> wheres)
         {
             var builder = new StringBuilder();
             foreach (var where in wheres)
             {
-                builder.Append(where.ToAzureCosmosWhereClause());
+                builder.Append(where.ToAzureCosmosTableApiWhereClause());
             }
 
             return builder.ToString();
         }
 
-        private static string ToAzureCosmosWhereClause(this WhereExpression where)
+        private static string ToAzureCosmosTableApiWhereClause(this WhereExpression where)
         {
             if (where.Condition != null)
             {
                 var condition = where.Condition;
                 return
-                    $"{where.Operator.ToAzureCosmosWhereClause()}{condition.ToAzureCosmosWhereClause()}";
+                    $"{where.Operator.ToAzureCosmosTableApiWhereClause()}{condition.ToAzureCosmosTableApiWhereClause()}";
             }
 
             if (where.NestedWheres != null && where.NestedWheres.Any())
             {
                 var builder = new StringBuilder();
-                builder.Append($"{where.Operator.ToAzureCosmosWhereClause()}");
+                builder.Append($"{where.Operator.ToAzureCosmosTableApiWhereClause()}");
                 builder.Append("(");
                 foreach (var nestedWhere in where.NestedWheres)
                 {
-                    builder.Append($"{nestedWhere.ToAzureCosmosWhereClause()}");
+                    builder.Append($"{nestedWhere.ToAzureCosmosTableApiWhereClause()}");
                 }
 
                 builder.Append(")");
@@ -354,7 +346,7 @@ namespace Storage
             return string.Empty;
         }
 
-        private static string ToAzureCosmosWhereClause(this LogicalOperator op)
+        private static string ToAzureCosmosTableApiWhereClause(this LogicalOperator op)
         {
             switch (op)
             {
@@ -369,7 +361,7 @@ namespace Storage
             }
         }
 
-        private static string ToAzureCosmosWhereClause(this ConditionOperator op)
+        private static string ToAzureCosmosTableApiWhereClause(this ConditionOperator op)
         {
             switch (op)
             {
@@ -390,12 +382,12 @@ namespace Storage
             }
         }
 
-        private static string ToAzureCosmosWhereClause(this WhereCondition condition)
+        private static string ToAzureCosmosTableApiWhereClause(this WhereCondition condition)
         {
             var fieldName = condition.FieldName.EqualsOrdinal(nameof(IKeyedEntity.Id))
                 ? TableConstants.RowKey
                 : condition.FieldName;
-            var conditionOperator = condition.Operator.ToAzureCosmosWhereClause();
+            var conditionOperator = condition.Operator.ToAzureCosmosTableApiWhereClause();
 
             var value = condition.Value;
             switch (value)
@@ -404,18 +396,9 @@ namespace Storage
                     return TableQuery.GenerateFilterCondition(fieldName, conditionOperator, text);
                 case DateTime dateTime:
                     return TableQuery.GenerateFilterConditionForDate(fieldName, conditionOperator,
-                        dateTime.HasValue()
-                            ? dateTime > AzureCosmosRepository.MinAllowedDateTimeOffset
-                                ? dateTime
-                                : AzureCosmosRepository.MinAllowedDateTimeOffset
-                            : AzureCosmosRepository.MinAllowedDateTimeOffset);
+                        new DateTimeOffset(dateTime.ToUniversalTime(), TimeSpan.Zero));
                 case DateTimeOffset dateTimeOffset:
-                    return TableQuery.GenerateFilterConditionForDate(fieldName, conditionOperator,
-                        dateTimeOffset.UtcDateTime.HasValue()
-                            ? dateTimeOffset > AzureCosmosRepository.MinAllowedDateTimeOffset
-                                ? dateTimeOffset
-                                : AzureCosmosRepository.MinAllowedDateTimeOffset
-                            : AzureCosmosRepository.MinAllowedDateTimeOffset);
+                    return TableQuery.GenerateFilterConditionForDate(fieldName, conditionOperator, dateTimeOffset);
                 case bool boolean:
                     return TableQuery.GenerateFilterConditionForBool(fieldName, conditionOperator, boolean);
                 case double @double:
@@ -429,7 +412,8 @@ namespace Storage
                 case Guid guid:
                     return TableQuery.GenerateFilterConditionForGuid(fieldName, conditionOperator, guid);
                 case null:
-                    return TableQuery.GenerateFilterCondition(fieldName, conditionOperator, null);
+                    return TableQuery.GenerateFilterCondition(fieldName, conditionOperator,
+                        AzureCosmosTableApiRepository.NullValue);
                 default:
                     //Complex type?
                     return TableQuery.GenerateFilterCondition(fieldName, conditionOperator, value.ToJson());

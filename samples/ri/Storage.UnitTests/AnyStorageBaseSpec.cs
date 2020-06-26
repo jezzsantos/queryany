@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 using ServiceStack;
@@ -66,12 +67,37 @@ namespace Storage.UnitTests
         [TestMethod, TestCategory("Unit")]
         public void WhenGetAndExists_ThenReturnsEntity()
         {
-            var entity = new TestEntity();
+            var entity = new TestEntity
+            {
+                ABinaryValue = new byte[] {0x01},
+                ABooleanValue = true,
+                ADoubleValue = 0.1,
+                AGuidValue = new Guid("00000000-0000-0000-0000-000000000000"),
+                AIntValue = 1,
+                ALongValue = 2,
+                AStringValue = "astringvalue",
+                ADateTimeValue = DateTime.Today,
+                ADateTimeOffsetValue = DateTimeOffset.UnixEpoch,
+                AComplexTypeValue = new ComplexType
+                {
+                    APropertyValue = "avalue"
+                }
+            };
+
             var id = this.storage.Add(entity);
 
             var get = this.storage.Get(id);
 
-            Assert.AreEqual(entity.ToJson(), get.ToJson());
+            Assert.IsTrue(get.ABinaryValue.SequenceEqual(new byte[] {0x01}));
+            Assert.AreEqual(true, get.ABooleanValue);
+            Assert.AreEqual(new Guid("00000000-0000-0000-0000-000000000000"), get.AGuidValue);
+            Assert.AreEqual(1, get.AIntValue);
+            Assert.AreEqual(2, get.ALongValue);
+            Assert.AreEqual("astringvalue", get.AStringValue);
+            Assert.AreEqual(DateTime.Today, get.ADateTimeValue.ToLocalTime());
+            Assert.AreEqual(DateTimeOffset.UnixEpoch, get.ADateTimeOffsetValue.ToLocalTime());
+            Assert.AreEqual(new ComplexType {APropertyValue = "avalue"}.ToJson(), get.AComplexTypeValue.ToJson());
+            Assert.AreEqual(0.1, get.ADoubleValue);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -328,6 +354,85 @@ namespace Storage.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
+        public void WhenQueryForDateTimeValueGreaterThan_ThenReturnsResult()
+        {
+            var dateTime1 = DateTime.UtcNow;
+            var dateTime2 = DateTime.UtcNow.AddDays(1);
+            this.storage.Add(new TestEntity {ADateTimeValue = dateTime1});
+            var id2 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime2});
+            var query = Query.From<TestEntity>().Where(e => e.ADateTimeValue, ConditionOperator.GreaterThan, dateTime1);
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(1, results.Results.Count);
+            Assert.AreEqual(id2, results.Results[0].Id);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenQueryForDateTimeValueGreaterThanOrEqualTo_ThenReturnsResult()
+        {
+            var dateTime1 = DateTime.UtcNow;
+            var dateTime2 = DateTime.UtcNow.AddDays(1);
+            var id1 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime1});
+            var id2 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ADateTimeValue, ConditionOperator.GreaterThanEqualTo, dateTime1);
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(2, results.Results.Count);
+            Assert.AreEqual(id1, results.Results[0].Id);
+            Assert.AreEqual(id2, results.Results[1].Id);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenQueryForDateTimeValueLessThan_ThenReturnsResult()
+        {
+            var dateTime1 = DateTime.UtcNow;
+            var dateTime2 = DateTime.UtcNow.AddDays(1);
+            var id1 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime1});
+            this.storage.Add(new TestEntity {ADateTimeValue = dateTime2});
+            var query = Query.From<TestEntity>().Where(e => e.ADateTimeValue, ConditionOperator.LessThan, dateTime2);
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(1, results.Results.Count);
+            Assert.AreEqual(id1, results.Results[0].Id);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenQueryForDateTimeValueLessThanOrEqual_ThenReturnsResult()
+        {
+            var dateTime1 = DateTime.UtcNow;
+            var dateTime2 = DateTime.UtcNow.AddDays(1);
+            var id1 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime1});
+            var id2 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ADateTimeValue, ConditionOperator.LessThanEqualTo, dateTime2);
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(2, results.Results.Count);
+            Assert.AreEqual(id1, results.Results[0].Id);
+            Assert.AreEqual(id2, results.Results[1].Id);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenQueryForDateTimeValueNotEqual_ThenReturnsResult()
+        {
+            var dateTime1 = DateTime.UtcNow;
+            var dateTime2 = DateTime.UtcNow.AddDays(1);
+            var id1 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime1});
+            this.storage.Add(new TestEntity {ADateTimeValue = dateTime2});
+            var query = Query.From<TestEntity>().Where(e => e.ADateTimeValue, ConditionOperator.NotEqualTo, dateTime2);
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(1, results.Results.Count);
+            Assert.AreEqual(id1, results.Results[0].Id);
+        }
+
+        [TestMethod, TestCategory("Unit")]
         public void WhenQueryForBoolValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {ABooleanValue = false});
@@ -549,6 +654,7 @@ namespace Storage.UnitTests
 
     public class ComplexType
     {
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public string APropertyValue { get; set; }
 
         public override string ToString()

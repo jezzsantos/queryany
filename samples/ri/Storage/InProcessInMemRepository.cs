@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using QueryAny;
 using QueryAny.Primitives;
-using ServiceStack;
 using Storage.Interfaces;
 
 namespace Storage
@@ -223,20 +222,19 @@ namespace Storage
             // Other Types (ComplexTypes must be equatable to their ToString() forms)
             return $"iif ({fieldName} != null, {fieldName}.ToString(), null) {@operator} {value.ToEscapedString()}";
         }
-    }
 
-    public static class ComplexTypeExtensions
-    {
-        public static string ToEscapedString(this object value)
+        private static string ToEscapedString(this object value)
         {
             if (value == null)
             {
                 return "null";
             }
-            return value
+
+            var escapedJson = value
                 .ToString()
-                .Replace("\"", "\\\"")
-                .Quoted();
+                .Replace("\"", "\\\"");
+
+            return $"\"{escapedJson}\"";
         }
     }
 }
