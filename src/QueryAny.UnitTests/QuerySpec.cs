@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny.Properties;
 
@@ -26,11 +26,11 @@ namespace QueryAny.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenFromWithUnnamedUnconventionallyNamedType_ThenCreatesAFallbackNamedCollection()
+        public void WhenFromWithUnnamedUnconventionallyNamedType_ThenCreatesDefaultNamedCollection()
         {
             var result = Query.From<UnnamedTestEntityUnconventionalNamed>();
 
-            Assert.Equal("UnknownEntity", result.PrimaryEntity.Name);
+            Assert.Equal("unnamedtestentityunconventionalnamed", result.PrimaryEntity.Name);
         }
 
         [TestMethod, TestCategory("Unit")]

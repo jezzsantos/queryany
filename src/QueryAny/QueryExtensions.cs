@@ -6,7 +6,6 @@ namespace QueryAny
     public static class QueryExtensions
     {
         private const string EntityTypeNameConventionSuffix = @"Entity";
-        private const string UnknownEntityName = @"Unknown";
 
         public static string GetEntityNameSafe(this INamedEntity entity)
         {
@@ -18,7 +17,7 @@ namespace QueryAny
             var name = entity.GetType().Name;
             return name.EndsWith(EntityTypeNameConventionSuffix)
                 ? name.Substring(0, name.LastIndexOf(EntityTypeNameConventionSuffix, StringComparison.Ordinal))
-                : $"{UnknownEntityName}{EntityTypeNameConventionSuffix}";
+                : $"{name.ToLowerInvariant()}";
         }
     }
 }
