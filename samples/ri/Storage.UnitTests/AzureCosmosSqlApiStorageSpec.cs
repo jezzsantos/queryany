@@ -1,4 +1,4 @@
-using System.ComponentModel;
+using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Storage.Interfaces;
@@ -8,11 +8,17 @@ namespace Storage.UnitTests
     [TestClass, TestCategory("Unit.NOCI")]
     public class AzureCosmosSqlApiStorageSpec : AzureCosmosStorageBaseSpec
     {
-        private IStorage<TestEntity> storage;
+        private static AzureCosmosSqlApiRepository repository;
+        private readonly Dictionary<string, object> stores = new Dictionary<string, object>();
 
         [ClassInitialize]
         public static void InitializeAllTests(TestContext context)
         {
+            var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
+            var accountKey = config["AzureCosmosDbAccountKey"];
+            var localEmulatorConnectionString = $"AccountEndpoint=https://localhost:8081/;AccountKey={accountKey}";
+            repository = new AzureCosmosSqlApiRepository(localEmulatorConnectionString, "TestDatabase",
+                new GuidIdentifierFactory());
             InitializeAllTests(context, null);
         }
 
@@ -22,20 +28,15 @@ namespace Storage.UnitTests
             AzureCosmosStorageBaseSpec.CleanupAllTests();
         }
 
-        protected override IStorage<TestEntity> GetStorage()
+        protected override IStorage<TEntity> GetStore<TEntity>(string containerName)
         {
-            if (this.storage == null)
+            if (!this.stores.ContainsKey(containerName))
             {
-                var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
-                var accountKey = config["AzureCosmosDbAccountKey"];
-                var localEmulatorConnectionString = $"AccountEndpoint=https://localhost:8081/;AccountKey={accountKey}";
-                this.storage = new TestAzureCosmosStorage(
-                    new AzureCosmosConnection(
-                        new AzureCosmosSqlApiRepository(localEmulatorConnectionString, "TestDatabase",
-                            new GuidIdentifierFactory())));
+                this.stores.Add(containerName, new TestAzureCosmosStorage<TEntity>(
+                    new AzureCosmosConnection(repository), containerName));
             }
 
-            return this.storage;
+            return (IStorage<TEntity>) this.stores[containerName];
         }
     }
 }

@@ -16,11 +16,10 @@ namespace Storage
     {
         internal const string NullValue = "null";
         internal const string DefaultPartitionKey = "default";
-        internal static readonly DateTimeOffset MinAllowedDateTimeOffset = TableConstants.MinDateTime;
         private readonly string connectionString;
         private readonly IIdentifierFactory idFactory;
+        private readonly Dictionary<string, bool> tableExistenceChecks = new Dictionary<string, bool>();
         private CloudTableClient client;
-        private bool tableExistCheckPerformed;
 
         public AzureCosmosTableApiRepository(string connectionString, IIdentifierFactory idFactory)
         {
@@ -106,11 +105,37 @@ namespace Storage
                     .ToList();
             }
 
-            var results = table.ExecuteQuery(tableQuery);
+            var primaryResults = table.ExecuteQuery(tableQuery)
+                .ToList();
 
-            // TODO: Joins, and SelectWithJoin
+            var joinedTables = query.JoinedEntities
+                .Where(je => je.Join != null)
+                .ToDictionary(je => je.Name, je => new
+                {
+                    Collection = QueryJoiningTable(je.Name, je.Join,
+                        primaryResults.Select(e => e.Properties[je.Join.Left.JoinedFieldName])),
+                    je.Join
+                });
 
-            return results.ToList().ConvertAll(r => r.FromTableEntity<TEntity>());
+            var primaryEntities = primaryResults
+                .ConvertAll(r => r.FromTableEntity<TEntity>());
+
+            if (joinedTables.Any())
+            {
+                foreach (var joinedTable in joinedTables)
+                {
+                    var join = joinedTable.Value.Join;
+                    var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.ToObjectDictionary());
+                    var rightEntities = joinedTable.Value.Collection.ToDictionary(e => e.RowKey,
+                        e => e.FromTableEntity(join.Right.EntityType).ToObjectDictionary());
+
+                    primaryEntities = join.GetJoinedResults<TEntity>(leftEntities, rightEntities);
+                }
+            }
+
+            // TODO: SelectFromJoin (overwrite field values in primary entity with field values from SelectWithJoins (if any))
+
+            return primaryEntities;
         }
 
         public void DestroyAll(string containerName)
@@ -135,6 +160,33 @@ namespace Storage
             // No need to do anything here. IDisposable is used as a marker interface
         }
 
+        private List<DynamicTableEntity> QueryJoiningTable(string tableName, JoinDefinition join,
+            IEnumerable<EntityProperty> propertyValues)
+        {
+            var table = EnsureTable(tableName);
+
+            var counter = 0;
+            var query = propertyValues.Select(propertyValue => new WhereExpression
+            {
+                Condition = new WhereCondition
+                {
+                    FieldName = join.Right.JoinedFieldName,
+                    Operator = ConditionOperator.EqualTo,
+                    Value = propertyValue.PropertyAsObject
+                },
+                Operator = counter++ == 0
+                    ? LogicalOperator.None
+                    : LogicalOperator.Or
+            }).ToAzureCosmosTableApiWhereClause();
+
+            var filter = $"({TableConstants.PartitionKey} eq '{DefaultPartitionKey}') and ({query})";
+            //TODO: SelectFromJoin: only bring back the SelectWithJoin fields (if any)
+            var tableQuery = new TableQuery<DynamicTableEntity>().Where(filter);
+
+            return table.ExecuteQuery(tableQuery)
+                .ToList();
+        }
+
         private void EnsureConnected()
         {
             if (this.client != null)
@@ -151,18 +203,33 @@ namespace Storage
             EnsureConnected();
             var table = this.client.GetTableReference(containerName);
 
-            if (this.tableExistCheckPerformed)
+            if (IsTableExistenceCheckPerformed(containerName))
             {
                 return table;
             }
 
-            this.tableExistCheckPerformed = true;
             if (!table.Exists())
             {
                 table.Create();
             }
 
             return table;
+        }
+
+        private bool IsTableExistenceCheckPerformed(string containerName)
+        {
+            if (!this.tableExistenceChecks.ContainsKey(containerName))
+            {
+                this.tableExistenceChecks.Add(containerName, false);
+            }
+
+            if (this.tableExistenceChecks[containerName])
+            {
+                return true;
+            }
+
+            this.tableExistenceChecks[containerName] = true;
+            return false;
         }
 
         private static DynamicTableEntity RetrieveTableEntitySafe(CloudTable table, string id)
@@ -184,7 +251,12 @@ namespace Storage
         public static TEntity FromTableEntity<TEntity>(this DynamicTableEntity tableEntity)
             where TEntity : IKeyedEntity, new()
         {
-            var entityPropertyTypes = new TEntity().GetType().GetProperties();
+            return (TEntity) tableEntity.FromTableEntity(new TEntity().GetType());
+        }
+
+        public static object FromTableEntity(this DynamicTableEntity tableEntity, Type entityType)
+        {
+            var entityPropertyTypes = entityType.GetProperties();
             var propertyValues = tableEntity.Properties
                 .Where(te =>
                     entityPropertyTypes.Any(prop => prop.Name.EqualsOrdinal(te.Key)) &&
@@ -193,8 +265,8 @@ namespace Storage
                     pair => pair.Value.FromTableEntityProperty(entityPropertyTypes
                         .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType));
 
-            var entity = propertyValues.FromObjectDictionary<TEntity>();
-            entity.Id = tableEntity.RowKey;
+            var entity = propertyValues.FromObjectDictionary(entityType);
+            ((IKeyedEntity) entity).Id = tableEntity.RowKey;
             return entity;
         }
 
@@ -394,7 +466,7 @@ namespace Storage
             }
         }
 
-        private static string ToAzureCosmosTableApiWhereClause(this WhereCondition condition)
+        internal static string ToAzureCosmosTableApiWhereClause(this WhereCondition condition)
         {
             var fieldName = condition.FieldName.EqualsOrdinal(nameof(IKeyedEntity.Id))
                 ? TableConstants.RowKey

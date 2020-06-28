@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using QueryAny.Primitives;
 using Storage.Interfaces;
 
 namespace Storage.UnitTests
@@ -6,18 +7,28 @@ namespace Storage.UnitTests
     [TestClass, TestCategory("Unit")]
     public class InProcessInMemStorageSpec : AnyStorageBaseSpec
     {
-        protected override IStorage<TestEntity> GetStorage()
+        private readonly InProcessInMemRepository repository;
+
+        public InProcessInMemStorageSpec()
         {
-            return new TestInMemStorage(new InProcessInMemRepository(new GuidIdentifierFactory()));
+            this.repository = new InProcessInMemRepository(new GuidIdentifierFactory());
+        }
+
+        protected override IStorage<TEntity> GetStore<TEntity>(string containerName)
+        {
+            return new TestInMemStorage<TEntity>(
+                this.repository, containerName);
         }
     }
 
-    public class TestInMemStorage : InProcessInMemStorage<TestEntity>
+    public class TestInMemStorage<TEntity> : InProcessInMemStorage<TEntity> where TEntity : IKeyedEntity, new()
     {
-        public TestInMemStorage(InProcessInMemRepository store) : base(store)
+        public TestInMemStorage(InProcessInMemRepository store, string containerName) : base(store)
         {
+            Guard.AgainstNullOrEmpty(() => containerName, containerName);
+            ContainerName = containerName;
         }
 
-        protected override string ContainerName => "test";
+        protected override string ContainerName { get; }
     }
 }

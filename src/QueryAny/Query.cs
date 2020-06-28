@@ -74,6 +74,12 @@ namespace QueryAny
 
         public QueryClause<TEntity> WhereAll()
         {
+            if (this.entities.Wheres.Any())
+            {
+                throw new InvalidOperationException(
+                    "You cannot use an 'WhereAll' after a 'Where'");
+            }
+
             return new QueryClause<TEntity>(this.entities);
         }
     }
@@ -113,6 +119,17 @@ namespace QueryAny
             this.entities.AddJoin(joiningEntity, fromEntityFieldName, joiningEntityFieldName, type);
 
             return new JoinClause<TJoinedEntity>(this.entities);
+        }
+
+        public QueryClause<TJoinedEntity> WhereAll()
+        {
+            if (this.entities.Wheres.Any())
+            {
+                throw new InvalidOperationException(
+                    "You cannot use an 'WhereAll' after a 'Where'");
+            }
+
+            return new QueryClause<TJoinedEntity>(this.entities);
         }
     }
 
@@ -319,8 +336,8 @@ namespace QueryAny
 
             var joinedEntityCollection = new QueriedEntity<INamedEntity>(joiningEntity);
             joinedEntityCollection.AddJoin(
-                new JoinSide(PrimaryEntity.Name, fromEntityFieldName),
-                new JoinSide(joinedEntityCollection.Name, joiningEntityFieldName), type);
+                new JoinSide(PrimaryEntity.UnderlyingEntity.GetType(), PrimaryEntity.Name, fromEntityFieldName),
+                new JoinSide(typeof(TJoiningEntity), joinedEntityCollection.Name, joiningEntityFieldName), type);
             this.entities.Add(joinedEntityCollection);
         }
 
@@ -410,21 +427,21 @@ namespace QueryAny
 
     public class JoinSide
     {
-        public JoinSide(string entityName, string joinedFieldName)
+        public JoinSide(Type entityType, string entityName, string joinedFieldName)
         {
+            Guard.AgainstNull(() => entityType, entityType);
             Guard.AgainstNullOrEmpty(() => entityName, entityName);
             Guard.AgainstNullOrEmpty(() => joinedFieldName, joinedFieldName);
+            EntityType = entityType;
             EntityName = entityName;
             JoinedFieldName = joinedFieldName;
         }
 
-        // ReSharper disable once MemberCanBePrivate.Global
-        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public string EntityName { get; }
 
-        // ReSharper disable once MemberCanBePrivate.Global
-        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public string JoinedFieldName { get; }
+
+        public Type EntityType { get; }
     }
 
     public class SelectDefinition

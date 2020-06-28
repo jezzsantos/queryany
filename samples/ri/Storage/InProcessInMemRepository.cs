@@ -90,26 +90,39 @@ namespace Storage
                 return new List<TEntity>();
             }
 
-            var resultEntities = this.containers[containerName].Values
-                .ToList()
-                .ConvertAll(e => (TEntity) e.FromRepositoryType());
+            var primaryEntities = QueryPrimaryEntities(containerName, query);
 
-            if (query.Wheres.Any())
+            var joinedContainers = query.JoinedEntities
+                .Where(je => je.Join != null)
+                .ToDictionary(je => je.Name, je => new
+                {
+                    Collection = this.containers.ContainsKey(je.Name)
+                        ? this.containers[je.Name]
+                        : new Dictionary<string, IKeyedEntity>(),
+                    je.Join
+                });
+
+            if (joinedContainers.Any())
             {
-                var queryExpression = query.Wheres.ToDynamicLinqWhereClause();
-                resultEntities = resultEntities.AsQueryable()
-                    .Where(queryExpression)
-                    .ToList();
-            }
+                foreach (var joinedContainer in joinedContainers)
+                {
+                    var join = joinedContainer.Value.Join;
+                    var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.ToObjectDictionary());
+                    var rightEntities =
+                        joinedContainer.Value.Collection.ToDictionary(e => e.Key, e => e.Value.ToObjectDictionary());
 
-            // TODO: Join + SelectFromJoin
+                    primaryEntities = join.GetJoinedResults<TEntity>(leftEntities, rightEntities);
+                }
+
+                // TODO: SelectFromJoin (overwrite field values in primary entity with field values from SelectWithJoins (if any))
+            }
 
             if (query.PrimaryEntity.Selects.Any())
             {
-                return PruneSelectedProperties(query.PrimaryEntity.Selects, resultEntities);
+                return PruneSelectedProperties(query.PrimaryEntity.Selects, primaryEntities);
             }
 
-            return resultEntities;
+            return primaryEntities;
         }
 
         public void DestroyAll(string containerName)
@@ -135,6 +148,25 @@ namespace Storage
             }
 
             return selectedResultEntities;
+        }
+
+        private List<TEntity> QueryPrimaryEntities<TEntity>(string containerName, QueryClause<TEntity> query) where TEntity : IKeyedEntity, new()
+        {
+            var primaryEntities = this.containers[containerName].Values
+                .ToList()
+                .ConvertAll(e => (TEntity) e.FromRepositoryType());
+
+            if (!query.Wheres.Any())
+            {
+                return primaryEntities;
+            }
+
+            var queryExpression = query.Wheres.ToDynamicLinqWhereClause();
+            primaryEntities = primaryEntities.AsQueryable()
+                .Where(queryExpression)
+                .ToList();
+
+            return primaryEntities;
         }
     }
 

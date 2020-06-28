@@ -10,16 +10,20 @@ namespace Storage.UnitTests
     public abstract class AnyStorageBaseSpec
 
     {
+        private IStorage<FirstJoiningTestEntity> firstJoiningStorage;
         private IStorage<TestEntity> storage;
 
         [TestInitialize]
         public void Initialize()
         {
-            this.storage = GetStorage();
+            this.storage = GetStore<TestEntity>(new TestEntity().EntityName);
             this.storage.DestroyAll();
+            this.firstJoiningStorage = GetStore<FirstJoiningTestEntity>(new FirstJoiningTestEntity().EntityName);
+            this.firstJoiningStorage.DestroyAll();
         }
 
-        protected abstract IStorage<TestEntity> GetStorage();
+        protected abstract IStorage<TEntity> GetStore<TEntity>(string containerName)
+            where TEntity : IKeyedEntity, new();
 
         [TestMethod]
         public void WhenAddAndEntityNotExists_ThenAddsNew()
@@ -706,6 +710,135 @@ namespace Storage.UnitTests
             Assert.AreEqual(DateTimeOffset.MinValue, result.ADateTimeOffsetUtcValue);
             Assert.AreEqual(null, result.AComplexTypeValue);
         }
+
+        [TestMethod]
+        public void WhenQueryWithInnerJoinAndOtherCollectionNotExists_ThenReturnsNoResults()
+        {
+            this.storage.Add(new TestEntity {AStringValue = "avalue1"});
+            var query = Query.From<TestEntity>()
+                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue)
+                .WhereAll();
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(0, results.Results.Count);
+        }
+
+        [TestMethod]
+        public void WhenQueryWithInnerJoinOnOtherCollection_ThenReturnsOnlyJoinedResults()
+        {
+            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
+            this.storage.Add(new TestEntity {AStringValue = "avalue2"});
+            this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue1"});
+            this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue3"});
+            var query = Query.From<TestEntity>()
+                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue)
+                .WhereAll();
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(1, results.Results.Count);
+            Assert.AreEqual(id1, results.Results[0].Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryWithLeftJoinAndOtherCollectionNotExists_ThenReturnsAllPrimaryResults()
+        {
+            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
+            var query = Query.From<TestEntity>()
+                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
+                .WhereAll();
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(1, results.Results.Count);
+            Assert.AreEqual(id1, results.Results[0].Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryWithLeftJoinOnOtherCollection_ThenReturnsAllPrimaryResults()
+        {
+            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
+            var id2 = this.storage.Add(new TestEntity {AStringValue = "avalue2"});
+            var id3 = this.storage.Add(new TestEntity {AStringValue = "avalue3"});
+            this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue1"});
+            this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue5"});
+            var query = Query.From<TestEntity>()
+                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
+                .WhereAll();
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(3, results.Results.Count);
+            Assert.AreEqual(id1, results.Results[0].Id);
+            Assert.AreEqual(id2, results.Results[1].Id);
+            Assert.AreEqual(id3, results.Results[2].Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryWithRightJoinAndOtherCollectionNotExists_ThenReturnsNoResults()
+        {
+            this.storage.Add(new TestEntity {AStringValue = "avalue1"});
+            var query = Query.From<TestEntity>()
+                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Right)
+                .WhereAll();
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(0, results.Results.Count);
+        }
+
+        [TestMethod]
+        public void WhenQueryWithRightJoinOnOtherCollection_ThenReturnsOnlyJoinedResults()
+        {
+            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
+            this.storage.Add(new TestEntity {AStringValue = "avalue2"});
+            this.storage.Add(new TestEntity {AStringValue = "avalue3"});
+            this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue1"});
+            this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue5"});
+            var query = Query.From<TestEntity>()
+                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Right)
+                .WhereAll();
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(1, results.Results.Count);
+            Assert.AreEqual(id1, results.Results[0].Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryWithOuterJoinAndOtherCollectionNotExists_ThenReturnsAllPrimaryResults()
+        {
+            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
+            var query = Query.From<TestEntity>()
+                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Outer)
+                .WhereAll();
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(1, results.Results.Count);
+            Assert.AreEqual(id1, results.Results[0].Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryWithOuterJoinOnOtherCollection_ThenReturnsAllPrimaryResults()
+        {
+            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
+            var id2 = this.storage.Add(new TestEntity {AStringValue = "avalue2"});
+            var id3 = this.storage.Add(new TestEntity {AStringValue = "avalue3"});
+            this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue1"});
+            this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue5"});
+            var query = Query.From<TestEntity>()
+                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Outer)
+                .WhereAll();
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(3, results.Results.Count);
+            Assert.AreEqual(id1, results.Results[0].Id);
+            Assert.AreEqual(id2, results.Results[1].Id);
+            Assert.AreEqual(id3, results.Results[2].Id);
+        }
     }
 
     public class TestEntity : IKeyedEntity
@@ -732,7 +865,16 @@ namespace Storage.UnitTests
 
         public string Id { get; set; }
 
-        public string EntityName => null;
+        public string EntityName => "testentities";
+    }
+
+    public class FirstJoiningTestEntity : IKeyedEntity
+    {
+        public string AStringValue { get; set; }
+
+        public string EntityName => "firstjoiningtestentities";
+
+        public string Id { get; set; }
     }
 
     public class ComplexType
