@@ -99,9 +99,9 @@ namespace Storage
             var filter = query.Wheres.ToAzureCosmosTableApiWhereClause();
             var tableQuery = new TableQuery<DynamicTableEntity>().Where(filter);
 
-            if (query.Entities[0].Selects.Any())
+            if (query.PrimaryEntity.Selects.Any())
             {
-                tableQuery.SelectColumns = query.Entities[0].Selects
+                tableQuery.SelectColumns = query.PrimaryEntity.Selects
                     .Select(sel => sel.FieldName)
                     .ToList();
             }

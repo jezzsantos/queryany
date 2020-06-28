@@ -300,10 +300,10 @@ namespace Storage
             var builder = new StringBuilder();
             builder.Append(@"SELECT ");
 
-            if (query.Entities[0].Selects.Any())
+            if (query.PrimaryEntity.Selects.Any())
             {
                 builder.Append($"{tableAlias}.{nameof(IKeyedEntity.Id)}");
-                foreach (var select in query.Entities[0].Selects)
+                foreach (var select in query.PrimaryEntity.Selects)
                 {
                     builder.Append($", {tableAlias}.{select.FieldName}");
                 }

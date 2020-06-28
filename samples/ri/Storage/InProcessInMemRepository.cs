@@ -104,9 +104,9 @@ namespace Storage
 
             // TODO: Join + SelectFromJoin
 
-            if (query.Entities[0].Selects.Any())
+            if (query.PrimaryEntity.Selects.Any())
             {
-                return PruneSelectedProperties(query.Entities[0].Selects, resultEntities);
+                return PruneSelectedProperties(query.PrimaryEntity.Selects, resultEntities);
             }
 
             return resultEntities;

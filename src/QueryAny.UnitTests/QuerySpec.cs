@@ -14,7 +14,7 @@ namespace QueryAny.UnitTests
         {
             var result = Query.From<UnnamedTestEntity>();
 
-            Assert.Equal("UnnamedTest", result.Entities[0].Name);
+            Assert.Equal("UnnamedTest", result.PrimaryEntity.Name);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -22,7 +22,7 @@ namespace QueryAny.UnitTests
         {
             var result = Query.From<NamedTestEntity>();
 
-            Assert.Equal("aname", result.Entities[0].Name);
+            Assert.Equal("aname", result.PrimaryEntity.Name);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -30,7 +30,7 @@ namespace QueryAny.UnitTests
         {
             var result = Query.From<UnnamedTestEntityUnconventionalNamed>();
 
-            Assert.Equal("UnknownEntity", result.Entities[0].Name);
+            Assert.Equal("UnknownEntity", result.PrimaryEntity.Name);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -38,7 +38,7 @@ namespace QueryAny.UnitTests
         {
             var result = Query.Empty<NamedTestEntity>();
 
-            Assert.Equal("aname", result.Entities[0].Name);
+            Assert.Equal("aname", result.PrimaryEntity.Name);
             Assert.Equal(0, result.Wheres.Count);
         }
 
@@ -231,13 +231,13 @@ namespace QueryAny.UnitTests
                 .Join<SecondTestEntity, string>(f => f.AFirstStringProperty, s => s.ASecondStringProperty)
                 .Where(e => e.AFirstStringProperty, ConditionOperator.EqualTo, "avalue");
 
-            Assert.Equal(2, result.Entities.Count);
-            Assert.Null(result.Entities[0].Join);
-            Assert.Equal("first", result.Entities[1].Join.Left.EntityName);
-            Assert.Equal("AFirstStringProperty", result.Entities[1].Join.Left.JoinedFieldName);
-            Assert.Equal("second", result.Entities[1].Join.Right.EntityName);
-            Assert.Equal("ASecondStringProperty", result.Entities[1].Join.Right.JoinedFieldName);
-            Assert.Equal(JoinType.Inner, result.Entities[1].Join.Type);
+            Assert.Equal(2, result.AllEntities.Count);
+            Assert.Null(result.PrimaryEntity.Join);
+            Assert.Equal("first", result.AllEntities[1].Join.Left.EntityName);
+            Assert.Equal("AFirstStringProperty", result.AllEntities[1].Join.Left.JoinedFieldName);
+            Assert.Equal("second", result.AllEntities[1].Join.Right.EntityName);
+            Assert.Equal("ASecondStringProperty", result.AllEntities[1].Join.Right.JoinedFieldName);
+            Assert.Equal(JoinType.Inner, result.AllEntities[1].Join.Type);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -249,19 +249,19 @@ namespace QueryAny.UnitTests
                 .AndJoin<ThirdTestEntity, DateTime>(f => f.AFirstDateTimeProperty, t => t.AThirdDateTimeProperty)
                 .Where(e => e.AFirstStringProperty, ConditionOperator.EqualTo, "avalue");
 
-            Assert.Equal(3, result.Entities.Count);
-            Assert.Null(result.Entities[0].Join);
-            Assert.Equal("first", result.Entities[1].Join.Left.EntityName);
-            Assert.Equal("AFirstStringProperty", result.Entities[1].Join.Left.JoinedFieldName);
-            Assert.Equal("second", result.Entities[1].Join.Right.EntityName);
-            Assert.Equal("ASecondStringProperty", result.Entities[1].Join.Right.JoinedFieldName);
-            Assert.Equal(JoinType.Outer, result.Entities[1].Join.Type);
+            Assert.Equal(3, result.AllEntities.Count);
+            Assert.Null(result.PrimaryEntity.Join);
+            Assert.Equal("first", result.AllEntities[1].Join.Left.EntityName);
+            Assert.Equal("AFirstStringProperty", result.AllEntities[1].Join.Left.JoinedFieldName);
+            Assert.Equal("second", result.AllEntities[1].Join.Right.EntityName);
+            Assert.Equal("ASecondStringProperty", result.AllEntities[1].Join.Right.JoinedFieldName);
+            Assert.Equal(JoinType.Outer, result.AllEntities[1].Join.Type);
 
-            Assert.Equal("first", result.Entities[2].Join.Left.EntityName);
-            Assert.Equal("AFirstDateTimeProperty", result.Entities[2].Join.Left.JoinedFieldName);
-            Assert.Equal("third", result.Entities[2].Join.Right.EntityName);
-            Assert.Equal("AThirdDateTimeProperty", result.Entities[2].Join.Right.JoinedFieldName);
-            Assert.Equal(JoinType.Inner, result.Entities[2].Join.Type);
+            Assert.Equal("first", result.AllEntities[2].Join.Left.EntityName);
+            Assert.Equal("AFirstDateTimeProperty", result.AllEntities[2].Join.Left.JoinedFieldName);
+            Assert.Equal("third", result.AllEntities[2].Join.Right.EntityName);
+            Assert.Equal("AThirdDateTimeProperty", result.AllEntities[2].Join.Right.JoinedFieldName);
+            Assert.Equal(JoinType.Inner, result.AllEntities[2].Join.Type);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -281,19 +281,19 @@ namespace QueryAny.UnitTests
                 .AndJoin<ThirdTestEntity, string>(f => f.AFirstStringProperty, t => t.AThirdStringProperty)
                 .Where(e => e.AFirstStringProperty, ConditionOperator.EqualTo, "avalue");
 
-            Assert.Equal(3, result.Entities.Count);
-            Assert.Null(result.Entities[0].Join);
-            Assert.Equal("first", result.Entities[1].Join.Left.EntityName);
-            Assert.Equal("AFirstStringProperty", result.Entities[1].Join.Left.JoinedFieldName);
-            Assert.Equal("second", result.Entities[1].Join.Right.EntityName);
-            Assert.Equal("ASecondStringProperty", result.Entities[1].Join.Right.JoinedFieldName);
-            Assert.Equal(JoinType.Outer, result.Entities[1].Join.Type);
+            Assert.Equal(3, result.AllEntities.Count);
+            Assert.Null(result.PrimaryEntity.Join);
+            Assert.Equal("first", result.AllEntities[1].Join.Left.EntityName);
+            Assert.Equal("AFirstStringProperty", result.AllEntities[1].Join.Left.JoinedFieldName);
+            Assert.Equal("second", result.AllEntities[1].Join.Right.EntityName);
+            Assert.Equal("ASecondStringProperty", result.AllEntities[1].Join.Right.JoinedFieldName);
+            Assert.Equal(JoinType.Outer, result.AllEntities[1].Join.Type);
 
-            Assert.Equal("first", result.Entities[2].Join.Left.EntityName);
-            Assert.Equal("AFirstStringProperty", result.Entities[2].Join.Left.JoinedFieldName);
-            Assert.Equal("third", result.Entities[2].Join.Right.EntityName);
-            Assert.Equal("AThirdStringProperty", result.Entities[2].Join.Right.JoinedFieldName);
-            Assert.Equal(JoinType.Inner, result.Entities[2].Join.Type);
+            Assert.Equal("first", result.AllEntities[2].Join.Left.EntityName);
+            Assert.Equal("AFirstStringProperty", result.AllEntities[2].Join.Left.JoinedFieldName);
+            Assert.Equal("third", result.AllEntities[2].Join.Right.EntityName);
+            Assert.Equal("AThirdStringProperty", result.AllEntities[2].Join.Right.JoinedFieldName);
+            Assert.Equal(JoinType.Inner, result.AllEntities[2].Join.Type);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -302,7 +302,7 @@ namespace QueryAny.UnitTests
             var result = Query.From<NamedTestEntity>()
                 .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue");
 
-            Assert.Equal(0, result.Entities[0].Selects.Count);
+            Assert.Equal(0, result.PrimaryEntity.Selects.Count);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -312,11 +312,11 @@ namespace QueryAny.UnitTests
                 .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue")
                 .Select(e => e.ADateTimeProperty);
 
-            Assert.Equal(1, result.Entities[0].Selects.Count);
-            Assert.Equal("aname", result.Entities[0].Selects[0].EntityName);
-            Assert.Equal("ADateTimeProperty", result.Entities[0].Selects[0].FieldName);
-            Assert.Null(result.Entities[0].Selects[0].JoinedEntityName);
-            Assert.Null(result.Entities[0].Selects[0].JoinedFieldName);
+            Assert.Equal(1, result.PrimaryEntity.Selects.Count);
+            Assert.Equal("aname", result.PrimaryEntity.Selects[0].EntityName);
+            Assert.Equal("ADateTimeProperty", result.PrimaryEntity.Selects[0].FieldName);
+            Assert.Null(result.PrimaryEntity.Selects[0].JoinedEntityName);
+            Assert.Null(result.PrimaryEntity.Selects[0].JoinedFieldName);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -326,15 +326,15 @@ namespace QueryAny.UnitTests
                 .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue")
                 .Select(e => e.AStringProperty).Select(e => e.ADateTimeProperty);
 
-            Assert.Equal(2, result.Entities[0].Selects.Count);
-            Assert.Equal("aname", result.Entities[0].Selects[0].EntityName);
-            Assert.Equal("AStringProperty", result.Entities[0].Selects[0].FieldName);
-            Assert.Null(result.Entities[0].Selects[0].JoinedEntityName);
-            Assert.Null(result.Entities[0].Selects[0].JoinedFieldName);
-            Assert.Equal("aname", result.Entities[0].Selects[1].EntityName);
-            Assert.Equal("ADateTimeProperty", result.Entities[0].Selects[1].FieldName);
-            Assert.Null(result.Entities[0].Selects[1].JoinedEntityName);
-            Assert.Null(result.Entities[0].Selects[1].JoinedFieldName);
+            Assert.Equal(2, result.PrimaryEntity.Selects.Count);
+            Assert.Equal("aname", result.PrimaryEntity.Selects[0].EntityName);
+            Assert.Equal("AStringProperty", result.PrimaryEntity.Selects[0].FieldName);
+            Assert.Null(result.PrimaryEntity.Selects[0].JoinedEntityName);
+            Assert.Null(result.PrimaryEntity.Selects[0].JoinedFieldName);
+            Assert.Equal("aname", result.PrimaryEntity.Selects[1].EntityName);
+            Assert.Equal("ADateTimeProperty", result.PrimaryEntity.Selects[1].FieldName);
+            Assert.Null(result.PrimaryEntity.Selects[1].JoinedEntityName);
+            Assert.Null(result.PrimaryEntity.Selects[1].JoinedFieldName);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -364,12 +364,12 @@ namespace QueryAny.UnitTests
                 .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue")
                 .SelectFromJoin<FirstTestEntity, string>(e => e.AStringProperty, s => s.AFirstStringProperty);
 
-            Assert.Equal(0, result.Entities[0].Selects.Count);
-            Assert.Equal(1, result.Entities[1].Selects.Count);
-            Assert.Equal("first", result.Entities[1].Selects[0].EntityName);
-            Assert.Equal("AFirstStringProperty", result.Entities[1].Selects[0].FieldName);
-            Assert.Equal("aname", result.Entities[1].Selects[0].JoinedEntityName);
-            Assert.Equal("AStringProperty", result.Entities[1].Selects[0].JoinedFieldName);
+            Assert.Equal(0, result.PrimaryEntity.Selects.Count);
+            Assert.Equal(1, result.AllEntities[1].Selects.Count);
+            Assert.Equal("first", result.AllEntities[1].Selects[0].EntityName);
+            Assert.Equal("AFirstStringProperty", result.AllEntities[1].Selects[0].FieldName);
+            Assert.Equal("aname", result.AllEntities[1].Selects[0].JoinedEntityName);
+            Assert.Equal("AStringProperty", result.AllEntities[1].Selects[0].JoinedFieldName);
         }
     }
 

@@ -40,7 +40,9 @@ namespace QueryAny
             });
         }
 
-        public IReadOnlyList<QueriedEntity<INamedEntity>> Entities => this.entities.Entities;
+        public QueriedEntity<INamedEntity> PrimaryEntity => this.entities.PrimaryEntity;
+
+        public IReadOnlyList<QueriedEntity<INamedEntity>> JoinedEntities => this.entities.JoinedEntities;
 
         public IReadOnlyList<WhereExpression> Wheres => this.entities.Wheres;
 
@@ -124,8 +126,14 @@ namespace QueryAny
             this.entities = entities;
         }
 
-        public IReadOnlyList<QueriedEntity<INamedEntity>> Entities => this.entities.Entities;
+        public IReadOnlyList<QueriedEntity<INamedEntity>> AllEntities => this.entities.AllEntities;
+
+        public QueriedEntity<INamedEntity> PrimaryEntity => this.entities.PrimaryEntity;
+
+        public IReadOnlyList<QueriedEntity<INamedEntity>> JoinedEntities => this.entities.JoinedEntities;
+
         public IReadOnlyList<WhereExpression> Wheres => this.entities.Wheres;
+
         public QueryOptions Options => this.entities.Options;
 
         public QueryClause<TEntity> AndWhere<TValue>(Expression<Func<TEntity, TValue>> propertyName,
@@ -197,7 +205,7 @@ namespace QueryAny
             Guard.AgainstNull(() => propertyName, propertyName);
 
             var fieldName = Reflector<TEntity>.GetPropertyName(propertyName);
-            Entities[0].AddSelected(fieldName);
+            PrimaryEntity.AddSelected(fieldName);
             return new QueryClause<TEntity>(this.entities);
         }
 
@@ -214,12 +222,12 @@ namespace QueryAny
 
             bool IsAnyJoinsDefined()
             {
-                return this.entities.Entities.Any(e => e.Join != null);
+                return this.entities.JoinedEntities.Any(e => e.Join != null);
             }
 
             bool IsJoinDefined(string entityName)
             {
-                return this.entities.Entities.Any(e => e.Name.EqualsOrdinal(entityName) && e.Join != null);
+                return this.entities.JoinedEntities.Any(e => e.Name.EqualsOrdinal(entityName) && e.Join != null);
             }
 
             if (!IsAnyJoinsDefined())
@@ -234,8 +242,8 @@ namespace QueryAny
                     Resources.QueryClause_SelectFromJoin_UnknownJoin.Format(joiningEntityName));
             }
 
-            var joiningEntity = Entities.First(e => e.Name.EqualsOrdinal(joiningEntityName));
-            var joinedEntity = Entities[0].Name;
+            var joiningEntity = JoinedEntities.First(e => e.Name.EqualsOrdinal(joiningEntityName));
+            var joinedEntity = PrimaryEntity.Name;
             joiningEntity.AddSelected(joiningFieldName, joinedEntity, joinedFieldName);
             return new QueryClause<TEntity>(this.entities);
         }
@@ -254,7 +262,11 @@ namespace QueryAny
             Options = new QueryOptions();
         }
 
-        public IReadOnlyList<QueriedEntity<INamedEntity>> Entities => this.entities.AsReadOnly();
+        public IReadOnlyList<QueriedEntity<INamedEntity>> AllEntities => this.entities;
+
+        public QueriedEntity<INamedEntity> PrimaryEntity => this.entities[0];
+
+        public IReadOnlyList<QueriedEntity<INamedEntity>> JoinedEntities => this.entities.Skip(1).ToList();
 
         public IReadOnlyList<WhereExpression> Wheres => this.wheres.AsReadOnly();
 
@@ -279,8 +291,7 @@ namespace QueryAny
         internal void AddCondition<TEntity>(LogicalOperator combine,
             Func<FromClause<TEntity>, QueryClause<TEntity>> subWhere) where TEntity : INamedEntity, new()
         {
-            var rootEntity = Entities[0];
-            var fromClause = new FromClause<TEntity>((TEntity) rootEntity.UnderlyingEntity);
+            var fromClause = new FromClause<TEntity>((TEntity) PrimaryEntity.UnderlyingEntity);
             subWhere(fromClause);
             var subWheres = fromClause.Wheres.ToList();
 
@@ -308,14 +319,17 @@ namespace QueryAny
 
             var joinedEntityCollection = new QueriedEntity<INamedEntity>(joiningEntity);
             joinedEntityCollection.AddJoin(
-                new JoinSide(Entities[0].Name, fromEntityFieldName),
+                new JoinSide(PrimaryEntity.Name, fromEntityFieldName),
                 new JoinSide(joinedEntityCollection.Name, joiningEntityFieldName), type);
             this.entities.Add(joinedEntityCollection);
         }
 
         public void UpdateOptions(bool isEmpty)
         {
-            Options.SetEmpty();
+            if (isEmpty)
+            {
+                Options.SetEmpty();
+            }
         }
     }
 
@@ -381,8 +395,16 @@ namespace QueryAny
             Type = type;
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public JoinSide Left { get; }
+
+        // ReSharper disable once MemberCanBePrivate.Global
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public JoinSide Right { get; }
+
+        // ReSharper disable once MemberCanBePrivate.Global
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public JoinType Type { get; }
     }
 
@@ -396,7 +418,12 @@ namespace QueryAny
             JoinedFieldName = joinedFieldName;
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public string EntityName { get; }
+
+        // ReSharper disable once MemberCanBePrivate.Global
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public string JoinedFieldName { get; }
     }
 
