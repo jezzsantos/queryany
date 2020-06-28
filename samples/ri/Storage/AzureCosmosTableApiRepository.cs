@@ -96,9 +96,19 @@ namespace Storage
             where TEntity : IKeyedEntity, new()
         {
             var table = EnsureTable(containerName);
-            var tableQuery = query.Wheres.ToAzureCosmosTableApiWhereClause();
+            var filter = query.Wheres.ToAzureCosmosTableApiWhereClause();
+            var tableQuery = new TableQuery<DynamicTableEntity>().Where(filter);
 
-            var results = table.ExecuteQuery(new TableQuery<DynamicTableEntity>().Where(tableQuery));
+            if (query.Entities[0].Selects.Any())
+            {
+                tableQuery.SelectColumns = query.Entities[0].Selects
+                    .Select(sel => sel.FieldName)
+                    .ToList();
+            }
+
+            var results = table.ExecuteQuery(tableQuery);
+
+            // TODO: Joins, and SelectWithJoin
 
             return results.ToList().ConvertAll(r => r.FromTableEntity<TEntity>());
         }
@@ -292,7 +302,9 @@ namespace Storage
             if (value is DateTime dateTime)
             {
                 return dateTime.HasValue()
-                    ? new DateTimeOffset(dateTime.ToUniversalTime(), TimeSpan.Zero)
+                    ? dateTime.Kind == DateTimeKind.Utc
+                        ? new DateTimeOffset(dateTime.ToUniversalTime(), TimeSpan.Zero)
+                        : new DateTimeOffset(dateTime.ToLocalTime())
                     : DateTimeOffset.MinValue;
             }
 

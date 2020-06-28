@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Text;
 using QueryAny;
 using QueryAny.Primitives;
+using ServiceStack;
 using Storage.Interfaces;
+using StringExtensions = ServiceStack.StringExtensions;
 
 namespace Storage
 {
@@ -79,14 +82,34 @@ namespace Storage
             return 0;
         }
 
-        public IEnumerable<IKeyedEntity> GetAll(string containerName)
+        public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query)
+            where TEntity : IKeyedEntity, new()
         {
-            if (this.containers.ContainsKey(containerName))
+            if (!this.containers.ContainsKey(containerName))
             {
-                return this.containers[containerName].Values.ToList().ConvertAll(e => e.FromRepositoryType());
+                return new List<TEntity>();
             }
 
-            return Enumerable.Empty<IKeyedEntity>();
+            var resultEntities = this.containers[containerName].Values
+                .ToList()
+                .ConvertAll(e => (TEntity) e.FromRepositoryType());
+
+            if (query.Wheres.Any())
+            {
+                var queryExpression = query.Wheres.ToDynamicLinqWhereClause();
+                resultEntities = resultEntities.AsQueryable()
+                    .Where(queryExpression)
+                    .ToList();
+            }
+
+            // TODO: Join + SelectFromJoin
+
+            if (query.Entities[0].Selects.Any())
+            {
+                return PruneSelectedProperties(query.Entities[0].Selects, resultEntities);
+            }
+
+            return resultEntities;
         }
 
         public void DestroyAll(string containerName)
@@ -95,6 +118,23 @@ namespace Storage
             {
                 this.containers.Remove(containerName);
             }
+        }
+
+        private static List<TEntity> PruneSelectedProperties<TEntity>(IReadOnlyList<SelectDefinition> selects,
+            IEnumerable<TEntity> resultEntities) where TEntity : IKeyedEntity, new()
+        {
+            var selectedResultEntities = new List<TEntity>();
+            var selectedPropNames = selects.Select(select => select.FieldName);
+            foreach (var resultEntity in resultEntities)
+            {
+                var properties = resultEntity.ToObjectDictionary()
+                    .Where(prop =>
+                        selectedPropNames.Contains(prop.Key) ||
+                        StringExtensions.EqualsIgnoreCase(prop.Key, nameof(IKeyedEntity.Id)));
+                selectedResultEntities.Add(properties.FromObjectDictionary<TEntity>());
+            }
+
+            return selectedResultEntities;
         }
     }
 

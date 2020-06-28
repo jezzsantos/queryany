@@ -1,10 +1,11 @@
+using System.ComponentModel;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Storage.Interfaces;
 
 namespace Storage.UnitTests
 {
-    [TestClass, Ignore] //Not working in CI
+    [TestClass, TestCategory("Unit.NOCI")]
     public class AzureCosmosSqlApiStorageSpec : AzureCosmosStorageBaseSpec
     {
         private IStorage<TestEntity> storage;

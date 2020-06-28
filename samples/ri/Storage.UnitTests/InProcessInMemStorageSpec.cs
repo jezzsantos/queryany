@@ -3,7 +3,7 @@ using Storage.Interfaces;
 
 namespace Storage.UnitTests
 {
-    [TestClass]
+    [TestClass, TestCategory("Unit")]
     public class InProcessInMemStorageSpec : AnyStorageBaseSpec
     {
         protected override IStorage<TestEntity> GetStorage()

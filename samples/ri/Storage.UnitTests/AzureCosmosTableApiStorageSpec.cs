@@ -1,10 +1,11 @@
+using System.ComponentModel;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Storage.Interfaces;
 
 namespace Storage.UnitTests
 {
-    [TestClass]
+    [TestClass, TestCategory("Unit")]
     public class AzureCosmosTableApiStorageSpec : AzureCosmosStorageBaseSpec
     {
         private IStorage<TestEntity> storage;

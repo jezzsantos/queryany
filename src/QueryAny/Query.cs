@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using QueryAny.Primitives;
+using QueryAny.Properties;
 
 namespace QueryAny
 {
@@ -43,13 +44,13 @@ namespace QueryAny
 
         public IReadOnlyList<WhereExpression> Wheres => this.entities.Wheres;
 
-        public QueryClause<TEntity> Where<TValue>(Expression<Func<TEntity, TValue>> propertyExpression,
+        public QueryClause<TEntity> Where<TValue>(Expression<Func<TEntity, TValue>> propertyName,
             ConditionOperator condition,
             TValue value)
         {
-            Guard.AgainstNull(() => propertyExpression, propertyExpression);
+            Guard.AgainstNull(() => propertyName, propertyName);
 
-            var fieldName = Reflector<TEntity>.GetPropertyName(propertyExpression);
+            var fieldName = Reflector<TEntity>.GetPropertyName(propertyName);
             this.entities.AddWhere(LogicalOperator.None, fieldName, condition, value);
             return new QueryClause<TEntity>(this.entities);
         }
@@ -86,13 +87,13 @@ namespace QueryAny
             this.entities = entities;
         }
 
-        public QueryClause<TJoinedEntity> Where<TValue>(Expression<Func<TJoinedEntity, TValue>> propertyExpression,
+        public QueryClause<TJoinedEntity> Where<TValue>(Expression<Func<TJoinedEntity, TValue>> propertyName,
             ConditionOperator condition,
             TValue value)
         {
-            Guard.AgainstNull(() => propertyExpression, propertyExpression);
+            Guard.AgainstNull(() => propertyName, propertyName);
 
-            var fieldName = Reflector<TJoinedEntity>.GetPropertyName(propertyExpression);
+            var fieldName = Reflector<TJoinedEntity>.GetPropertyName(propertyName);
             this.entities.AddWhere(LogicalOperator.None, fieldName, condition, value);
             return new QueryClause<TJoinedEntity>(this.entities);
         }
@@ -127,34 +128,34 @@ namespace QueryAny
         public IReadOnlyList<WhereExpression> Wheres => this.entities.Wheres;
         public QueryOptions Options => this.entities.Options;
 
-        public QueryClause<TEntity> AndWhere<TValue>(Expression<Func<TEntity, TValue>> propertyExpression,
+        public QueryClause<TEntity> AndWhere<TValue>(Expression<Func<TEntity, TValue>> propertyName,
             ConditionOperator condition,
             TValue value)
         {
-            Guard.AgainstNull(() => propertyExpression, propertyExpression);
+            Guard.AgainstNull(() => propertyName, propertyName);
             if (!this.entities.Wheres.Any())
             {
                 throw new InvalidOperationException(
                     "You cannot use an 'AndWhere' before a 'Where', or after a 'WhereAll'");
             }
 
-            var fieldName = Reflector<TEntity>.GetPropertyName(propertyExpression);
+            var fieldName = Reflector<TEntity>.GetPropertyName(propertyName);
             this.entities.AddWhere(LogicalOperator.And, fieldName, condition, value);
             return new QueryClause<TEntity>(this.entities);
         }
 
-        public QueryClause<TEntity> OrWhere<TValue>(Expression<Func<TEntity, TValue>> propertyExpression,
+        public QueryClause<TEntity> OrWhere<TValue>(Expression<Func<TEntity, TValue>> propertyName,
             ConditionOperator condition,
             TValue value)
         {
-            Guard.AgainstNull(() => propertyExpression, propertyExpression);
+            Guard.AgainstNull(() => propertyName, propertyName);
             if (!this.entities.Wheres.Any())
             {
                 throw new InvalidOperationException(
                     "You cannot use an 'OrWhere' before a 'Where', or after a 'WhereAll'");
             }
 
-            var fieldName = Reflector<TEntity>.GetPropertyName(propertyExpression);
+            var fieldName = Reflector<TEntity>.GetPropertyName(propertyName);
             this.entities.AddWhere(LogicalOperator.Or, fieldName, condition, value);
             return new QueryClause<TEntity>(this.entities);
         }
@@ -175,7 +176,13 @@ namespace QueryAny
         public QueryClause<TEntity> OrWhere(Func<FromClause<TEntity>, QueryClause<TEntity>> subWhere)
         {
             Guard.AgainstNull(() => subWhere, subWhere);
-            if (!this.entities.Wheres.Any())
+
+            bool AnyWhereDefined()
+            {
+                return this.entities.Wheres.Any();
+            }
+
+            if (!AnyWhereDefined())
             {
                 throw new InvalidOperationException(
                     "You cannot use an 'OrWhere' before a 'Where', or after a 'WhereAll'");
@@ -185,12 +192,51 @@ namespace QueryAny
             return new QueryClause<TEntity>(this.entities);
         }
 
-        public QueryClause<TEntity> Select<TValue>(Expression<Func<TEntity, TValue>> propertyExpression)
+        public QueryClause<TEntity> Select<TValue>(Expression<Func<TEntity, TValue>> propertyName)
         {
-            Guard.AgainstNull(() => propertyExpression, propertyExpression);
+            Guard.AgainstNull(() => propertyName, propertyName);
 
-            var fieldName = Reflector<TEntity>.GetPropertyName(propertyExpression);
+            var fieldName = Reflector<TEntity>.GetPropertyName(propertyName);
             Entities[0].AddSelected(fieldName);
+            return new QueryClause<TEntity>(this.entities);
+        }
+
+        public QueryClause<TEntity> SelectFromJoin<TJoiningEntity, TValue>(
+            Expression<Func<TEntity, TValue>> fromEntityPropertyName,
+            Expression<Func<TJoiningEntity, TValue>> joiningEntityPropertyName)
+            where TJoiningEntity : INamedEntity, new()
+        {
+            Guard.AgainstNull(() => fromEntityPropertyName, fromEntityPropertyName);
+            Guard.AgainstNull(() => joiningEntityPropertyName, joiningEntityPropertyName);
+            var joinedFieldName = Reflector<TEntity>.GetPropertyName(fromEntityPropertyName);
+            var joiningEntityName = new TJoiningEntity().GetEntityNameSafe();
+            var joiningFieldName = Reflector<TJoiningEntity>.GetPropertyName(joiningEntityPropertyName);
+
+            bool IsAnyJoinsDefined()
+            {
+                return this.entities.Entities.Any(e => e.Join != null);
+            }
+
+            bool IsJoinDefined(string entityName)
+            {
+                return this.entities.Entities.Any(e => e.Name.EqualsOrdinal(entityName) && e.Join != null);
+            }
+
+            if (!IsAnyJoinsDefined())
+            {
+                throw new InvalidOperationException(
+                    Resources.QueryClause_SelectFromJoin_NoJoins.Format(joiningEntityName));
+            }
+
+            if (!IsJoinDefined(joiningEntityName))
+            {
+                throw new InvalidOperationException(
+                    Resources.QueryClause_SelectFromJoin_UnknownJoin.Format(joiningEntityName));
+            }
+
+            var joiningEntity = Entities.First(e => e.Name.EqualsOrdinal(joiningEntityName));
+            var joinedEntity = Entities[0].Name;
+            joiningEntity.AddSelected(joiningFieldName, joinedEntity, joinedFieldName);
             return new QueryClause<TEntity>(this.entities);
         }
     }
@@ -251,13 +297,13 @@ namespace QueryAny
             bool IsEntityAlreadyJoinedAtLeastOnce()
             {
                 return this.entities
-                    .Any(e => e.UnderlyingEntity.EntityName.EqualsIgnoreCase(joiningEntity.EntityName));
+                    .Any(e => e.Name.EqualsIgnoreCase(joiningEntity.GetEntityNameSafe()));
             }
 
             if (IsEntityAlreadyJoinedAtLeastOnce())
             {
                 throw new InvalidOperationException(
-                    $"You cannot 'Join' on the same Entity ('{joiningEntity.EntityName}') twice");
+                    $"You cannot 'Join' on the same Entity ('{joiningEntity.GetEntityNameSafe()}') twice");
             }
 
             var joinedEntityCollection = new QueriedEntity<INamedEntity>(joiningEntity);
@@ -290,38 +336,22 @@ namespace QueryAny
 
     public class QueriedEntity<TEntity> where TEntity : INamedEntity
     {
-        private const string EntityTypeNameConventionSuffix = @"Entity";
-        private const string UnknownEntityName = @"Unknown";
-        private readonly TEntity entity;
-        private readonly List<SelectedField> selects;
+        private readonly List<SelectDefinition> selects;
 
         public QueriedEntity(TEntity entity)
         {
             Guard.AgainstNull(() => entity, entity);
-            this.entity = entity;
-            this.selects = new List<SelectedField>();
+            UnderlyingEntity = entity;
+            this.selects = new List<SelectDefinition>();
             Join = null;
         }
 
-        public string Name => GetEntityName();
+        public string Name => UnderlyingEntity.GetEntityNameSafe();
 
-        internal TEntity UnderlyingEntity => this.entity;
+        internal TEntity UnderlyingEntity { get; }
 
-        public IReadOnlyList<SelectedField> Selects => this.selects.AsReadOnly();
+        public IReadOnlyList<SelectDefinition> Selects => this.selects.AsReadOnly();
         public JoinDefinition Join { get; private set; }
-
-        private string GetEntityName()
-        {
-            if (this.entity.EntityName.HasValue())
-            {
-                return this.entity.EntityName;
-            }
-
-            var name = this.entity.GetType().Name;
-            return name.EndsWith(EntityTypeNameConventionSuffix)
-                ? name.Substring(0, name.LastIndexOf(EntityTypeNameConventionSuffix, StringComparison.Ordinal))
-                : $"{UnknownEntityName}{EntityTypeNameConventionSuffix}";
-        }
 
         internal void AddJoin(JoinSide left, JoinSide right, JoinType type)
         {
@@ -330,7 +360,13 @@ namespace QueryAny
 
         public void AddSelected(string fieldName)
         {
-            this.selects.Add(new SelectedField(fieldName));
+            this.selects.Add(new SelectDefinition(Name, fieldName, null, null));
+        }
+
+        public void AddSelected(string fieldName, string joinedEntityName, string joinedFieldName)
+        {
+            this.selects.Add(new SelectDefinition(Name, fieldName, joinedEntityName,
+                joinedFieldName));
         }
     }
 
@@ -364,14 +400,21 @@ namespace QueryAny
         public string JoinedFieldName { get; }
     }
 
-    public class SelectedField
+    public class SelectDefinition
     {
-        public SelectedField(string name)
+        public SelectDefinition(string entityName, string fieldName, string joinedEntityName, string joinedFieldName)
         {
-            Guard.AgainstNullOrEmpty(() => name, name);
-            Name = name;
+            Guard.AgainstNullOrEmpty(() => entityName, entityName);
+            Guard.AgainstNullOrEmpty(() => fieldName, fieldName);
+            EntityName = entityName;
+            FieldName = fieldName;
+            JoinedEntityName = joinedEntityName;
+            JoinedFieldName = joinedFieldName;
         }
 
-        public string Name { get; }
+        public string EntityName { get; }
+        public string FieldName { get; }
+        public string JoinedEntityName { get; }
+        public string JoinedFieldName { get; }
     }
 }

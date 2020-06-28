@@ -21,7 +21,7 @@ namespace Storage.UnitTests
 
         protected abstract IStorage<TestEntity> GetStorage();
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenAddAndEntityNotExists_ThenAddsNew()
         {
             Assert.AreEqual(0, this.storage.Count());
@@ -31,7 +31,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(1, this.storage.Count());
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenDeleteAndEntityExists_ThenDeletesEntity()
         {
             var id = this.storage.Add(new TestEntity());
@@ -41,7 +41,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(0, this.storage.Count());
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenDeleteAndEntityNotExists_ThenReturns()
         {
             this.storage.Delete("anid", false);
@@ -49,14 +49,14 @@ namespace Storage.UnitTests
             Assert.AreEqual(0, this.storage.Count());
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenDeleteAndIdIsEmpty_ThenThrows()
         {
             Assert.ThrowsException<ArgumentNullException>(() =>
                 this.storage.Delete(null, false));
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenGetAndNotExists_ThenReturnsNull()
         {
             var entity = this.storage.Get("anid");
@@ -64,7 +64,7 @@ namespace Storage.UnitTests
             Assert.IsNull(entity);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenGetAndExists_ThenReturnsEntity()
         {
             var entity = new TestEntity
@@ -72,12 +72,12 @@ namespace Storage.UnitTests
                 ABinaryValue = new byte[] {0x01},
                 ABooleanValue = true,
                 ADoubleValue = 0.1,
-                AGuidValue = new Guid("00000000-0000-0000-0000-000000000000"),
+                AGuidValue = Guid.Empty,
                 AIntValue = 1,
                 ALongValue = 2,
                 AStringValue = "astringvalue",
-                ADateTimeValue = DateTime.Today,
-                ADateTimeOffsetValue = DateTimeOffset.UnixEpoch,
+                ADateTimeUtcValue = DateTime.Today.ToUniversalTime(),
+                ADateTimeOffsetUtcValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
                 AComplexTypeValue = new ComplexType
                 {
                     APropertyValue = "avalue"
@@ -86,28 +86,28 @@ namespace Storage.UnitTests
 
             var id = this.storage.Add(entity);
 
-            var get = this.storage.Get(id);
+            var result = this.storage.Get(id);
 
-            Assert.IsTrue(get.ABinaryValue.SequenceEqual(new byte[] {0x01}));
-            Assert.AreEqual(true, get.ABooleanValue);
-            Assert.AreEqual(new Guid("00000000-0000-0000-0000-000000000000"), get.AGuidValue);
-            Assert.AreEqual(1, get.AIntValue);
-            Assert.AreEqual(2, get.ALongValue);
-            Assert.AreEqual("astringvalue", get.AStringValue);
-            Assert.AreEqual(DateTime.Today, get.ADateTimeValue.ToLocalTime());
-            Assert.AreEqual(DateTimeOffset.UnixEpoch, get.ADateTimeOffsetValue.ToLocalTime());
-            Assert.AreEqual(new ComplexType {APropertyValue = "avalue"}.ToJson(), get.AComplexTypeValue.ToJson());
-            Assert.AreEqual(0.1, get.ADoubleValue);
+            Assert.IsTrue(result.ABinaryValue.SequenceEqual(new byte[] {0x01}));
+            Assert.AreEqual(true, result.ABooleanValue);
+            Assert.AreEqual(Guid.Empty, result.AGuidValue);
+            Assert.AreEqual(1, result.AIntValue);
+            Assert.AreEqual(2, result.ALongValue);
+            Assert.AreEqual(0.1, result.ADoubleValue);
+            Assert.AreEqual("astringvalue", result.AStringValue);
+            Assert.AreEqual(DateTime.Today.ToUniversalTime(), result.ADateTimeUtcValue);
+            Assert.AreEqual(DateTimeOffset.UnixEpoch.ToUniversalTime(), result.ADateTimeOffsetUtcValue);
+            Assert.AreEqual(new ComplexType {APropertyValue = "avalue"}.ToJson(), result.AComplexTypeValue.ToJson());
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenGetAndIdIsEmpty_ThenThrows()
         {
             Assert.ThrowsException<ArgumentNullException>(() =>
                 this.storage.Get(null));
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenUpdateAndExists_ThenReturnsUpdated()
         {
             var entity = new TestEntity();
@@ -119,7 +119,7 @@ namespace Storage.UnitTests
             Assert.AreEqual("updated", updated.AStringValue);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenUpdateAndNotExists_ThenThrows()
         {
             var entity = new TestEntity("anid")
@@ -131,7 +131,7 @@ namespace Storage.UnitTests
                 this.storage.Update(entity, false));
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenUpdateAndEmptyId_ThenThrows()
         {
             var entity = new TestEntity();
@@ -140,7 +140,7 @@ namespace Storage.UnitTests
                 this.storage.Update(entity, false));
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenCountAndEmpty_ThenReturnsZero()
         {
             var count = this.storage.Count();
@@ -148,7 +148,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(0, count);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenCountAndNotEmpty_ThenReturnsCount()
         {
             this.storage.Add(new TestEntity());
@@ -159,14 +159,14 @@ namespace Storage.UnitTests
             Assert.AreEqual(2, count);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryAndQueryIsNull_ThenThrows()
         {
             Assert.ThrowsException<ArgumentNullException>(() =>
                 this.storage.Query(null, null));
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryAndEmpty_ThenReturnsEmptyResults()
         {
             var query = Query.Empty<TestEntity>();
@@ -180,7 +180,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(0, results.Results.Count);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryAndWhereAll_ThenReturnsAllResults()
         {
             var query = Query.From<TestEntity>()
@@ -196,7 +196,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryAndNoEntities_ThenReturnsEmptyResults()
         {
             var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue");
@@ -206,7 +206,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(0, results.Results.Count);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryAndNoMatch_ThenReturnsEmptyResults()
         {
             var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, "anothervalue");
@@ -220,7 +220,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(0, results.Results.Count);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryAndMatchOne_ThenReturnsResult()
         {
             var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue");
@@ -235,7 +235,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryAndMatchMany_ThenReturnsResults()
         {
             var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue");
@@ -255,7 +255,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[1].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryWithId_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {AStringValue = "avalue1"});
@@ -268,7 +268,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForStringValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {AStringValue = "avalue1"});
@@ -281,7 +281,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForNullStringValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {AStringValue = "avalue1"});
@@ -294,7 +294,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForNotNullStringValue_ThenReturnsResult()
         {
             var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
@@ -307,14 +307,14 @@ namespace Storage.UnitTests
             Assert.AreEqual(id1, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForDateTimeValue_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
-            this.storage.Add(new TestEntity {ADateTimeValue = dateTime1});
-            var id2 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime2});
-            var query = Query.From<TestEntity>().Where(e => e.ADateTimeValue, ConditionOperator.EqualTo, dateTime2);
+            this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
+            var id2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
+            var query = Query.From<TestEntity>().Where(e => e.ADateTimeUtcValue, ConditionOperator.EqualTo, dateTime2);
 
             var results = this.storage.Query(query, null);
 
@@ -322,15 +322,15 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForDateTimeOffsetValue_ThenReturnsResult()
         {
             var dateTime1 = DateTimeOffset.UtcNow;
             var dateTime2 = DateTimeOffset.UtcNow.AddDays(1);
-            this.storage.Add(new TestEntity {ADateTimeOffsetValue = dateTime1});
-            var id2 = this.storage.Add(new TestEntity {ADateTimeOffsetValue = dateTime2});
+            this.storage.Add(new TestEntity {ADateTimeOffsetUtcValue = dateTime1});
+            var id2 = this.storage.Add(new TestEntity {ADateTimeOffsetUtcValue = dateTime2});
             var query = Query.From<TestEntity>()
-                .Where(e => e.ADateTimeOffsetValue, ConditionOperator.EqualTo, dateTime2);
+                .Where(e => e.ADateTimeOffsetUtcValue, ConditionOperator.EqualTo, dateTime2);
 
             var results = this.storage.Query(query, null);
 
@@ -338,14 +338,14 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForMinDateTimeValue_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.MinValue;
-            this.storage.Add(new TestEntity {ADateTimeValue = dateTime1});
-            var id2 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime2});
-            var query = Query.From<TestEntity>().Where(e => e.ADateTimeValue, ConditionOperator.EqualTo, dateTime2);
+            this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
+            var id2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
+            var query = Query.From<TestEntity>().Where(e => e.ADateTimeUtcValue, ConditionOperator.EqualTo, dateTime2);
 
             var results = this.storage.Query(query, null);
 
@@ -353,14 +353,15 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForDateTimeValueGreaterThan_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
-            this.storage.Add(new TestEntity {ADateTimeValue = dateTime1});
-            var id2 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime2});
-            var query = Query.From<TestEntity>().Where(e => e.ADateTimeValue, ConditionOperator.GreaterThan, dateTime1);
+            this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
+            var id2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ADateTimeUtcValue, ConditionOperator.GreaterThan, dateTime1);
 
             var results = this.storage.Query(query, null);
 
@@ -368,15 +369,15 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForDateTimeValueGreaterThanOrEqualTo_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
-            var id1 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime1});
-            var id2 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime2});
+            var id1 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
+            var id2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
             var query = Query.From<TestEntity>()
-                .Where(e => e.ADateTimeValue, ConditionOperator.GreaterThanEqualTo, dateTime1);
+                .Where(e => e.ADateTimeUtcValue, ConditionOperator.GreaterThanEqualTo, dateTime1);
 
             var results = this.storage.Query(query, null);
 
@@ -385,14 +386,14 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[1].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForDateTimeValueLessThan_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
-            var id1 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime1});
-            this.storage.Add(new TestEntity {ADateTimeValue = dateTime2});
-            var query = Query.From<TestEntity>().Where(e => e.ADateTimeValue, ConditionOperator.LessThan, dateTime2);
+            var id1 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
+            this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
+            var query = Query.From<TestEntity>().Where(e => e.ADateTimeUtcValue, ConditionOperator.LessThan, dateTime2);
 
             var results = this.storage.Query(query, null);
 
@@ -400,15 +401,15 @@ namespace Storage.UnitTests
             Assert.AreEqual(id1, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForDateTimeValueLessThanOrEqual_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
-            var id1 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime1});
-            var id2 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime2});
+            var id1 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
+            var id2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
             var query = Query.From<TestEntity>()
-                .Where(e => e.ADateTimeValue, ConditionOperator.LessThanEqualTo, dateTime2);
+                .Where(e => e.ADateTimeUtcValue, ConditionOperator.LessThanEqualTo, dateTime2);
 
             var results = this.storage.Query(query, null);
 
@@ -417,14 +418,15 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[1].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForDateTimeValueNotEqual_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
-            var id1 = this.storage.Add(new TestEntity {ADateTimeValue = dateTime1});
-            this.storage.Add(new TestEntity {ADateTimeValue = dateTime2});
-            var query = Query.From<TestEntity>().Where(e => e.ADateTimeValue, ConditionOperator.NotEqualTo, dateTime2);
+            var id1 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
+            this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ADateTimeUtcValue, ConditionOperator.NotEqualTo, dateTime2);
 
             var results = this.storage.Query(query, null);
 
@@ -432,7 +434,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id1, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForBoolValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {ABooleanValue = false});
@@ -445,7 +447,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForIntValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {AIntValue = 1});
@@ -458,7 +460,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForIntValueGreaterThan_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {AIntValue = 1});
@@ -471,7 +473,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForIntValueGreaterThanOrEqualTo_ThenReturnsResult()
         {
             var id1 = this.storage.Add(new TestEntity {AIntValue = 1});
@@ -485,7 +487,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[1].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForIntValueLessThan_ThenReturnsResult()
         {
             var id1 = this.storage.Add(new TestEntity {AIntValue = 1});
@@ -498,7 +500,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id1, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForIntValueLessThanOrEqual_ThenReturnsResult()
         {
             var id1 = this.storage.Add(new TestEntity {AIntValue = 1});
@@ -512,7 +514,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[1].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForIntValueNotEqual_ThenReturnsResult()
         {
             var id1 = this.storage.Add(new TestEntity {AIntValue = 1});
@@ -525,7 +527,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id1, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForLongValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {ALongValue = 1});
@@ -538,7 +540,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForDoubleValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {ADoubleValue = 1.0});
@@ -551,7 +553,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForGuidValue_ThenReturnsResult()
         {
             var guid1 = Guid.NewGuid();
@@ -566,7 +568,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForBinaryValue_ThenReturnsResult()
         {
             var binary1 = new byte[] {0x01};
@@ -581,7 +583,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForComplexTypeValue_ThenReturnsResult()
         {
             var complex1 = new ComplexType {APropertyValue = "avalue1"};
@@ -596,7 +598,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForNullComplexTypeValue_ThenReturnsResult()
         {
             var complex1 = new ComplexType {APropertyValue = "avalue1"};
@@ -610,7 +612,7 @@ namespace Storage.UnitTests
             Assert.AreEqual(id2, results.Results[0].Id);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenQueryForNotEqualNullComplexTypeValue_ThenReturnsResult()
         {
             var complex1 = new ComplexType {APropertyValue = "avalue1"};
@@ -622,6 +624,87 @@ namespace Storage.UnitTests
 
             Assert.AreEqual(1, results.Results.Count);
             Assert.AreEqual(id1, results.Results[0].Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndNoSelects_ThenReturnsResultWithAllPropertiesPopulated()
+        {
+            var entity = new TestEntity
+            {
+                ABinaryValue = new byte[] {0x01},
+                ABooleanValue = true,
+                ADoubleValue = 0.1,
+                AGuidValue = Guid.Empty,
+                AIntValue = 1,
+                ALongValue = 2,
+                AStringValue = "astringvalue",
+                ADateTimeUtcValue = DateTime.Today.ToUniversalTime(),
+                ADateTimeOffsetUtcValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
+                AComplexTypeValue = new ComplexType
+                {
+                    APropertyValue = "avalue"
+                }
+            };
+
+            var id = this.storage.Add(entity);
+            var query = Query.From<TestEntity>().WhereAll();
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(1, results.Results.Count);
+            var result = results.Results[0];
+            Assert.AreEqual(id, result.Id);
+            Assert.IsTrue(result.ABinaryValue.SequenceEqual(new byte[] {0x01}));
+            Assert.AreEqual(true, result.ABooleanValue);
+            Assert.AreEqual(Guid.Empty, result.AGuidValue);
+            Assert.AreEqual(1, result.AIntValue);
+            Assert.AreEqual(2, result.ALongValue);
+            Assert.AreEqual(0.1, result.ADoubleValue);
+            Assert.AreEqual("astringvalue", result.AStringValue);
+            Assert.AreEqual(DateTime.Today.ToUniversalTime(), result.ADateTimeUtcValue);
+            Assert.AreEqual(DateTimeOffset.UnixEpoch.ToUniversalTime(), result.ADateTimeOffsetUtcValue);
+            Assert.AreEqual(new ComplexType {APropertyValue = "avalue"}.ToJson(), result.AComplexTypeValue.ToJson());
+        }
+
+        [TestMethod]
+        public void WhenQueryAndSelect_ThenReturnsResultWithOnlySelectedPropertiesPopulated()
+        {
+            var entity = new TestEntity
+            {
+                ABinaryValue = new byte[] {0x01},
+                ABooleanValue = true,
+                ADoubleValue = 0.1,
+                AGuidValue = Guid.Empty,
+                AIntValue = 1,
+                ALongValue = 2,
+                AStringValue = "astringvalue",
+                ADateTimeUtcValue = DateTime.Today.ToUniversalTime(),
+                ADateTimeOffsetUtcValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
+                AComplexTypeValue = new ComplexType
+                {
+                    APropertyValue = "avalue"
+                }
+            };
+
+            var id = this.storage.Add(entity);
+            var query = Query.From<TestEntity>().WhereAll()
+                .Select(e => e.ABinaryValue);
+
+            var results = this.storage.Query(query, null);
+
+            Assert.AreEqual(1, results.Results.Count);
+            var result = results.Results[0];
+            Assert.AreEqual(id, result.Id);
+            Assert.IsTrue(result.ABinaryValue.SequenceEqual(new byte[] {0x01}));
+            Assert.AreEqual(false, result.ABooleanValue);
+            Assert.AreEqual(Guid.Empty, result.AGuidValue);
+            Assert.AreEqual(0, result.AIntValue);
+            Assert.AreEqual(0, result.ALongValue);
+            Assert.AreEqual(0, result.ADoubleValue);
+            Assert.AreEqual(null, result.AStringValue);
+            Assert.AreEqual(DateTime.MinValue, result.ADateTimeUtcValue);
+            Assert.AreEqual(DateTimeOffset.MinValue, result.ADateTimeOffsetUtcValue);
+            Assert.AreEqual(null, result.AComplexTypeValue);
         }
     }
 
@@ -638,8 +721,8 @@ namespace Storage.UnitTests
 
         public string AStringValue { get; set; }
         public bool ABooleanValue { get; set; }
-        public DateTime ADateTimeValue { get; set; }
-        public DateTimeOffset ADateTimeOffsetValue { get; set; } = DateTimeOffset.UtcNow;
+        public DateTime ADateTimeUtcValue { get; set; }
+        public DateTimeOffset ADateTimeOffsetUtcValue { get; set; }
         public double ADoubleValue { get; set; }
         public Guid AGuidValue { get; set; }
         public int AIntValue { get; set; }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces;
@@ -102,17 +101,6 @@ namespace Storage
             {
                 resultEntities = store.Query(ContainerName, query);
             }
-
-            // TODO: Joins
-            foreach (var queriedEntity in query.Entities.Where(e => e.Join != null))
-            {
-                foreach (var resultEntity in resultEntities)
-                {
-                    //TODO: Fetch the first entity that matches the join 
-                }
-            }
-
-            //TODO: selects, resolve any joins, select only selected fields
 
             return new QueryResults<TEntity>(resultEntities.ConvertAll(e => e));
         }

@@ -5,12 +5,12 @@ using QueryAny;
 namespace Storage.UnitTests
 {
     [TestClass]
-    public class AzureCosmosWhereExtensionsSpec
+    public class AzureCosmosTableApiWhereExtensionsSpec
     {
         private static readonly IAssertion Assert = new Assertion();
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenToAzureCosmosWhereClauseAndSingleCondition_ThenReturnsLinq()
+        public void WhenToAzureCosmosTableApiWhereClauseAndSingleCondition_ThenReturnsSqlExpression()
         {
             var wheres = new List<WhereExpression>
             {
@@ -31,7 +31,7 @@ namespace Storage.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenToAzureCosmosWhereClauseAndMultipleConditions_ThenReturnsLinq()
+        public void WhenToAzureCosmosTableApiWhereClauseAndMultipleConditions_ThenReturnsSqlExpression()
         {
             var wheres = new List<WhereExpression>
             {
@@ -62,7 +62,7 @@ namespace Storage.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenToAzureCosmosWhereClauseAndNestedConditions_ThenReturnsLinq()
+        public void WhenToAzureCosmosTableApiWhereClauseAndNestedConditions_ThenReturnsSqlExpression()
         {
             var wheres = new List<WhereExpression>
             {

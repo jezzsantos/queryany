@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Dynamic.Core;
 using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces;
@@ -81,28 +79,7 @@ namespace Storage
                 return new QueryResults<TEntity>(new List<TEntity>());
             }
 
-            var resultEntities = this.store.GetAll(ContainerName)
-                .Cast<TEntity>()
-                .ToList();
-
-            if (query.Wheres.Any())
-            {
-                var queryExpression = query.Wheres.ToDynamicLinqWhereClause();
-                resultEntities = resultEntities.AsQueryable()
-                    .Where(queryExpression)
-                    .ToList();
-            }
-
-            // TODO: Joins
-            foreach (var queriedEntity in query.Entities.Where(e => e.Join != null))
-            {
-                foreach (var resultEntity in resultEntities)
-                {
-                    //TODO: Fetch the first entity that matches the join 
-                }
-            }
-
-            //TODO: selects, resolve any joins, select only selected fields
+            var resultEntities = this.store.Query(ContainerName, query);
 
             return new QueryResults<TEntity>(resultEntities.ConvertAll(e => e));
         }

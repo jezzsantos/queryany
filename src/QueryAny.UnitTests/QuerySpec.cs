@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using QueryAny.Properties;
 
 namespace QueryAny.UnitTests
 {
@@ -312,7 +313,10 @@ namespace QueryAny.UnitTests
                 .Select(e => e.ADateTimeProperty);
 
             Assert.Equal(1, result.Entities[0].Selects.Count);
-            Assert.Equal("ADateTimeProperty", result.Entities[0].Selects[0].Name);
+            Assert.Equal("aname", result.Entities[0].Selects[0].EntityName);
+            Assert.Equal("ADateTimeProperty", result.Entities[0].Selects[0].FieldName);
+            Assert.Null(result.Entities[0].Selects[0].JoinedEntityName);
+            Assert.Null(result.Entities[0].Selects[0].JoinedFieldName);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -323,8 +327,49 @@ namespace QueryAny.UnitTests
                 .Select(e => e.AStringProperty).Select(e => e.ADateTimeProperty);
 
             Assert.Equal(2, result.Entities[0].Selects.Count);
-            Assert.Equal("AStringProperty", result.Entities[0].Selects[0].Name);
-            Assert.Equal("ADateTimeProperty", result.Entities[0].Selects[1].Name);
+            Assert.Equal("aname", result.Entities[0].Selects[0].EntityName);
+            Assert.Equal("AStringProperty", result.Entities[0].Selects[0].FieldName);
+            Assert.Null(result.Entities[0].Selects[0].JoinedEntityName);
+            Assert.Null(result.Entities[0].Selects[0].JoinedFieldName);
+            Assert.Equal("aname", result.Entities[0].Selects[1].EntityName);
+            Assert.Equal("ADateTimeProperty", result.Entities[0].Selects[1].FieldName);
+            Assert.Null(result.Entities[0].Selects[1].JoinedEntityName);
+            Assert.Null(result.Entities[0].Selects[1].JoinedFieldName);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenSelectFromJoinAndNoJoins_ThenThrows()
+        {
+            Assert.Throws<InvalidOperationException>(Resources.QueryClause_SelectFromJoin_NoJoins, () =>
+                Query.From<NamedTestEntity>()
+                    .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue")
+                    .SelectFromJoin<SecondTestEntity, string>(e => e.AStringProperty, s => s.ASecondStringProperty));
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenSelectFromJoinAndUnknownJoins_ThenThrows()
+        {
+            Assert.Throws<InvalidOperationException>(Resources.QueryClause_SelectFromJoin_UnknownJoin, () =>
+                Query.From<NamedTestEntity>()
+                    .Join<FirstTestEntity, string>(e => e.AStringProperty, f => f.AFirstStringProperty)
+                    .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue")
+                    .SelectFromJoin<SecondTestEntity, string>(e => e.AStringProperty, s => s.ASecondStringProperty));
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenSelectFromJoinAndExistingJoin_TheFieldSelected()
+        {
+            var result = Query.From<NamedTestEntity>()
+                .Join<FirstTestEntity, string>(e => e.AStringProperty, f => f.AFirstStringProperty)
+                .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue")
+                .SelectFromJoin<FirstTestEntity, string>(e => e.AStringProperty, s => s.AFirstStringProperty);
+
+            Assert.Equal(0, result.Entities[0].Selects.Count);
+            Assert.Equal(1, result.Entities[1].Selects.Count);
+            Assert.Equal("first", result.Entities[1].Selects[0].EntityName);
+            Assert.Equal("AFirstStringProperty", result.Entities[1].Selects[0].FieldName);
+            Assert.Equal("aname", result.Entities[1].Selects[0].JoinedEntityName);
+            Assert.Equal("AStringProperty", result.Entities[1].Selects[0].JoinedFieldName);
         }
     }
 

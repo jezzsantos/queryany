@@ -107,11 +107,15 @@ namespace Storage
             where TEntity : IKeyedEntity, new()
         {
             EnsureContainer(containerName);
-            var containerQuery = new QueryDefinition(query.Wheres.ToAzureCosmosSqlApiWhereClause(containerName));
+
+            // TODO: Joins and SelectWithJoin
+
+            var containerQuery = new QueryDefinition(query.ToAzureCosmosSqlApiWhereClause(containerName));
             try
             {
                 var results = this.container.GetItemQueryIterator<object>(containerQuery)
                     .ToList();
+
                 return results.ConvertAll(r => r.FromContainerEntity<TEntity>());
             }
             catch (CosmosException ex)
@@ -286,20 +290,51 @@ namespace Storage
         }
     }
 
-    internal static class AzureCosmosSqlApiWhereExtensions
+    public static class AzureCosmosSqlApiWhereExtensions
     {
-        public static string ToAzureCosmosSqlApiWhereClause(this IReadOnlyList<WhereExpression> wheres,
-            string containerName)
+        public static string ToAzureCosmosSqlApiWhereClause<TEntity>(this QueryClause<TEntity> query,
+            string containerName) where TEntity : INamedEntity, new()
         {
+            const string tableAlias = @"t";
+
             var builder = new StringBuilder();
-            builder.Append($"SELECT * FROM {containerName} t");
-            if (wheres.Any())
+            builder.Append(@"SELECT ");
+
+            if (query.Entities[0].Selects.Any())
             {
-                builder.Append(" WHERE ");
-                foreach (var where in wheres)
+                builder.Append($"{tableAlias}.{nameof(IKeyedEntity.Id)}");
+                foreach (var select in query.Entities[0].Selects)
                 {
-                    builder.Append(where.ToAzureCosmosSqlApiWhereClause());
+                    builder.Append($", {tableAlias}.{select.FieldName}");
                 }
+            }
+            else
+            {
+                builder.Append(@"*");
+            }
+
+            builder.Append($" FROM {containerName} {tableAlias}");
+
+            var wheres = query.Wheres.ToAzureCosmosSqlApiWhereClause();
+            if (wheres.HasValue())
+            {
+                builder.Append($" WHERE {wheres}");
+            }
+
+            return builder.ToString();
+        }
+
+        private static string ToAzureCosmosSqlApiWhereClause(this IReadOnlyList<WhereExpression> wheres)
+        {
+            if (!wheres.Any())
+            {
+                return null;
+            }
+
+            var builder = new StringBuilder();
+            foreach (var where in wheres)
+            {
+                builder.Append(where.ToAzureCosmosSqlApiWhereClause());
             }
 
             return builder.ToString();
