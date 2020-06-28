@@ -15,7 +15,6 @@ namespace Storage
             switch (joinDefinition.Type)
             {
                 case JoinType.Inner:
-                case JoinType.Right:
                     var innerJoin = from lefts in leftEntities
                         join rights in rightEntities on lefts.Value[joinDefinition.Left.JoinedFieldName] equals
                             rights.Value[joinDefinition.Right.JoinedFieldName]
@@ -24,7 +23,6 @@ namespace Storage
                         .Select(e => e.Value.FromObjectDictionary<TEntity>())
                         .ToList();
 
-                case JoinType.Outer:
                 case JoinType.Left:
                     var leftJoin = from lefts in leftEntities
                         join rights in rightEntities on lefts.Value[joinDefinition.Left.JoinedFieldName] equals

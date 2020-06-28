@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny.Properties;
 
@@ -245,7 +245,7 @@ namespace QueryAny.UnitTests
         {
             var result = Query.From<FirstTestEntity>()
                 .Join<SecondTestEntity, string>(f => f.AFirstStringProperty, s => s.ASecondStringProperty,
-                    JoinType.Outer)
+                    JoinType.Left)
                 .AndJoin<ThirdTestEntity, DateTime>(f => f.AFirstDateTimeProperty, t => t.AThirdDateTimeProperty)
                 .Where(e => e.AFirstStringProperty, ConditionOperator.EqualTo, "avalue");
 
@@ -255,7 +255,7 @@ namespace QueryAny.UnitTests
             Assert.Equal("AFirstStringProperty", result.AllEntities[1].Join.Left.JoinedFieldName);
             Assert.Equal("second", result.AllEntities[1].Join.Right.EntityName);
             Assert.Equal("ASecondStringProperty", result.AllEntities[1].Join.Right.JoinedFieldName);
-            Assert.Equal(JoinType.Outer, result.AllEntities[1].Join.Type);
+            Assert.Equal(JoinType.Left, result.AllEntities[1].Join.Type);
 
             Assert.Equal("first", result.AllEntities[2].Join.Left.EntityName);
             Assert.Equal("AFirstDateTimeProperty", result.AllEntities[2].Join.Left.JoinedFieldName);
@@ -277,7 +277,7 @@ namespace QueryAny.UnitTests
         {
             var result = Query.From<FirstTestEntity>()
                 .Join<SecondTestEntity, string>(f => f.AFirstStringProperty, s => s.ASecondStringProperty,
-                    JoinType.Outer)
+                    JoinType.Left)
                 .AndJoin<ThirdTestEntity, string>(f => f.AFirstStringProperty, t => t.AThirdStringProperty)
                 .Where(e => e.AFirstStringProperty, ConditionOperator.EqualTo, "avalue");
 
@@ -287,7 +287,7 @@ namespace QueryAny.UnitTests
             Assert.Equal("AFirstStringProperty", result.AllEntities[1].Join.Left.JoinedFieldName);
             Assert.Equal("second", result.AllEntities[1].Join.Right.EntityName);
             Assert.Equal("ASecondStringProperty", result.AllEntities[1].Join.Right.JoinedFieldName);
-            Assert.Equal(JoinType.Outer, result.AllEntities[1].Join.Type);
+            Assert.Equal(JoinType.Left, result.AllEntities[1].Join.Type);
 
             Assert.Equal("first", result.AllEntities[2].Join.Left.EntityName);
             Assert.Equal("AFirstStringProperty", result.AllEntities[2].Join.Left.JoinedFieldName);

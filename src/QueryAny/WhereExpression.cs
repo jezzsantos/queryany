@@ -41,7 +41,5 @@ namespace QueryAny
     {
         Inner = 0,
         Left = 1,
-        Right = 2,
-        Outer = 3
     }
 }
