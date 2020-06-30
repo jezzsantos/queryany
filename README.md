@@ -1,5 +1,5 @@
 # QueryAny
-[![Build status](https://ci.appveyor.com/api/projects/status/qwg1wen94kfe52jp/branch/master?svg=true)](https://ci.appveyor.com/project/JezzSantos/queryany/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/qwg1wen94kfe52jp/branch/master?svg=true)](https://ci.appveyor.com/project/JezzSantos/queryany/branch/master) [![NuGet](https://img.shields.io/nuget/v/QueryAny.svg?label=QueryAny)](https://www.nuget.org/packages/QueryAny) [![Release Notes](https://img.shields.io/nuget/v/QueryAny.svg?label=Release%20Notes&colorB=green)](https://github.com/jezzsantos/QueryAny/wiki/Release-Notes)
 
 **QueryAny** is a query language for use with any database or data store technology. Use it as a generic repository pattern, and never leak database details into your domain logic again. Never take a dependency from your domain logic on any database or ORM technology again.
 
@@ -72,6 +72,10 @@ Can fetch this data from a SQL database, or from a Non-SQL database, or from JSO
 
 See our [reference architecture](https://github.com/jezzsantos/queryany/wiki/Reference-Architecture), and [our design notes](https://github.com/jezzsantos/queryany/wiki/Design) to learn more about how **QueryAny** works.
 
-### Credits
+## Contributing
+
+If you wish to contribute, please do, please first see our [Contributing Guidelines](CONTRIBUTING.md)
+
+## Credits
 
 QueryAny was inspired by the work done on the http://funql.org/ project. But is not an implementation of the [FUNQL specification](http://funql.org/index.php/language-specification.html).
