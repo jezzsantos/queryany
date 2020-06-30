@@ -12,7 +12,7 @@ namespace Services.Interfaces
             this Expression<Func<TResource, object>>[] propertyReferences)
         {
             return propertyReferences.Safe()
-                .Select(rp => ToResourceReference(rp))
+                .Select(ToResourceReference)
                 .ToList();
         }
 

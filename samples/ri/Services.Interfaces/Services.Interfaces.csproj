@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,6 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\QueryAny.Primitives\QueryAny.Primitives.csproj" />
     <ProjectReference Include="..\..\..\src\QueryAny\QueryAny.csproj" />
   </ItemGroup>
 
