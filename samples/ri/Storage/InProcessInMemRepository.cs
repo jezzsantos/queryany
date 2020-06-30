@@ -7,7 +7,6 @@ using QueryAny;
 using QueryAny.Primitives;
 using ServiceStack;
 using Storage.Interfaces;
-using StringExtensions = ServiceStack.StringExtensions;
 
 namespace Storage
 {
@@ -99,30 +98,27 @@ namespace Storage
                     Collection = this.containers.ContainsKey(je.Name)
                         ? this.containers[je.Name]
                         : new Dictionary<string, IKeyedEntity>(),
-                    je.Join
+                    JoinedEntity = je
                 });
 
             if (joinedContainers.Any())
             {
                 foreach (var joinedContainer in joinedContainers)
                 {
-                    var join = joinedContainer.Value.Join;
-                    var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.ToObjectDictionary());
-                    var rightEntities =
-                        joinedContainer.Value.Collection.ToDictionary(e => e.Key, e => e.Value.ToObjectDictionary());
+                    var joinedEntity = joinedContainer.Value.JoinedEntity;
+                    var join = joinedEntity.Join;
+                    var leftEntities = primaryEntities
+                        .ToDictionary(e => e.Id, e => e.ToObjectDictionary());
+                    var rightEntities = joinedContainer.Value.Collection
+                        .ToDictionary(e => e.Key, e => e.Value.ToObjectDictionary());
 
-                    primaryEntities = join.GetJoinedResults<TEntity>(leftEntities, rightEntities);
+                    primaryEntities = join
+                        .JoinResults<TEntity>(leftEntities, rightEntities,
+                            joinedEntity.Selects.ProjectSelectedJoinedProperties());
                 }
-
-                // TODO: SelectFromJoin (overwrite field values in primary entity with field values from SelectWithJoins (if any))
             }
 
-            if (query.PrimaryEntity.Selects.Any())
-            {
-                return PruneSelectedProperties(query.PrimaryEntity.Selects, primaryEntities);
-            }
-
-            return primaryEntities;
+            return primaryEntities.CherryPickSelectedProperties(query);
         }
 
         public void DestroyAll(string containerName)
@@ -133,24 +129,8 @@ namespace Storage
             }
         }
 
-        private static List<TEntity> PruneSelectedProperties<TEntity>(IReadOnlyList<SelectDefinition> selects,
-            IEnumerable<TEntity> resultEntities) where TEntity : IKeyedEntity, new()
-        {
-            var selectedResultEntities = new List<TEntity>();
-            var selectedPropNames = selects.Select(select => select.FieldName);
-            foreach (var resultEntity in resultEntities)
-            {
-                var properties = resultEntity.ToObjectDictionary()
-                    .Where(prop =>
-                        selectedPropNames.Contains(prop.Key) ||
-                        StringExtensions.EqualsIgnoreCase(prop.Key, nameof(IKeyedEntity.Id)));
-                selectedResultEntities.Add(properties.FromObjectDictionary<TEntity>());
-            }
-
-            return selectedResultEntities;
-        }
-
-        private List<TEntity> QueryPrimaryEntities<TEntity>(string containerName, QueryClause<TEntity> query) where TEntity : IKeyedEntity, new()
+        private List<TEntity> QueryPrimaryEntities<TEntity>(string containerName, QueryClause<TEntity> query)
+            where TEntity : IKeyedEntity, new()
         {
             var primaryEntities = this.containers[containerName].Values
                 .ToList()

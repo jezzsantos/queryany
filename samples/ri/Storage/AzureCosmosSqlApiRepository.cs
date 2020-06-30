@@ -118,9 +118,9 @@ namespace Storage
                     .Where(je => je.Join != null)
                     .ToDictionary(je => je.Name, je => new
                     {
-                        Collection = QueryJoiningContainer(je.Name, je.Join,
+                        Collection = QueryJoiningContainer(je,
                             primaryResults.Select(e => e[je.Join.Left.JoinedFieldName])),
-                        je.Join
+                        JoinedEntity = je
                     });
 
                 var primaryEntities = primaryResults
@@ -130,19 +130,20 @@ namespace Storage
                 {
                     foreach (var joinedTable in joinedTables)
                     {
-                        var join = joinedTable.Value.Join;
+                        var joinedEntity = joinedTable.Value.JoinedEntity;
+                        var join = joinedEntity.Join;
                         var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.ToObjectDictionary());
                         var rightEntities = joinedTable.Value.Collection.ToDictionary(
                             e => e[nameof(IKeyedEntity.Id)].Value<string>(),
                             e => e.FromContainerEntity(join.Right.EntityType).ToObjectDictionary());
 
-                        primaryEntities = join.GetJoinedResults<TEntity>(leftEntities, rightEntities);
+                        primaryEntities = join
+                            .JoinResults<TEntity>(leftEntities, rightEntities,
+                                joinedEntity.Selects.ProjectSelectedJoinedProperties());
                     }
                 }
 
-                // TODO: SelectFromJoin (overwrite field values in primary entity with field values from SelectWithJoins (if any))
-
-                return primaryEntities;
+                return primaryEntities.CherryPickSelectedProperties(query);
             }
             catch (CosmosException ex)
             {
@@ -167,17 +168,19 @@ namespace Storage
             // No need to do anything here. IDisposable is used as a marker interface
         }
 
-        private List<JObject> QueryJoiningContainer(string containerName, JoinDefinition join,
+        private List<JObject> QueryJoiningContainer(QueriedEntity<INamedEntity> joinedEntity,
             IEnumerable<JToken> propertyValues)
         {
+            var containerName = joinedEntity.Name;
             var container = EnsureContainer(containerName);
 
+            //HACK: pretty limited way to query lots of entities by individual Id
             var counter = 0;
             var query = propertyValues.Select(propertyValue => new WhereExpression
             {
                 Condition = new WhereCondition
                 {
-                    FieldName = join.Right.JoinedFieldName,
+                    FieldName = joinedEntity.Join.Right.JoinedFieldName,
                     Operator = ConditionOperator.EqualTo,
                     Value = propertyValue.ToObject<object>()
                 },
@@ -186,8 +189,15 @@ namespace Storage
                     : LogicalOperator.Or
             }).ToList().ToAzureCosmosSqlApiWhereClause();
 
-            //TODO: SelectFromJoin: only bring back the SelectWithJoin fields (if any)
-            var filter = $"SELECT * FROM {containerName} {ContainerAlias} WHERE ({query})";
+            var selectedPropertyNames = joinedEntity.Selects
+                .Where(sel => sel.JoinedFieldName.HasValue())
+                .Select(j => j.JoinedFieldName)
+                .Concat(new[] {joinedEntity.Join.Right.JoinedFieldName, nameof(IKeyedEntity.Id)});
+            var selectedFields = string.Join(", ",
+                selectedPropertyNames
+                    .Select(name => $"{ContainerAlias}.{name}"));
+
+            var filter = $"SELECT {selectedFields} FROM {containerName} {ContainerAlias} WHERE ({query})";
             var containerQuery = new QueryDefinition(filter);
 
             return container.GetItemQueryIterator<object>(containerQuery)
