@@ -78,7 +78,7 @@ namespace Storage
         }
 
         public static List<TEntity> CherryPickSelectedProperties<TEntity>(this IEnumerable<TEntity> entities,
-            QueryClause<TEntity> query) where TEntity : IKeyedEntity, new()
+            QueryClause<TEntity> query) where TEntity : IPersistableEntity, new()
         {
             var primarySelects = query.PrimaryEntity.Selects;
             var joinedSelects = query.JoinedEntities.SelectMany(je => je.Selects);
@@ -97,7 +97,7 @@ namespace Storage
                 .Select(resultEntity => resultEntity.ToObjectDictionary()
                     .Where(resultEntityProperty =>
                         selectedPropertyNames.Contains(resultEntityProperty.Key) ||
-                        StringExtensions.EqualsIgnoreCase(resultEntityProperty.Key, nameof(IKeyedEntity.Id))))
+                        StringExtensions.EqualsIgnoreCase(resultEntityProperty.Key, nameof(IPersistableEntity.Id))))
                 .Select(selectedProperties => selectedProperties.FromObjectDictionary<TEntity>())
                 .ToList();
         }

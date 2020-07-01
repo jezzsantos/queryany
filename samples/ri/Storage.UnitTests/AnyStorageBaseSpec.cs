@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
@@ -26,7 +27,7 @@ namespace Storage.UnitTests
         }
 
         protected abstract IStorage<TEntity> GetStore<TEntity>(string containerName)
-            where TEntity : IKeyedEntity, new();
+            where TEntity : IPersistableEntity, new();
 
         [TestMethod]
         public void WhenAddAndEntityNotExists_ThenAddsNew()
@@ -877,7 +878,7 @@ namespace Storage.UnitTests
         }
     }
 
-    public class TestEntity : IKeyedEntity
+    public class TestEntity : IPersistableEntity
     {
         public TestEntity()
         {
@@ -902,9 +903,19 @@ namespace Storage.UnitTests
         public string Id { get; set; }
 
         public string EntityName => "testentities";
+
+        public Dictionary<string, object> Dehydrate()
+        {
+            return this.ToObjectDictionary();
+        }
+
+        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
+        {
+            this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
+        }
     }
 
-    public class FirstJoiningTestEntity : IKeyedEntity
+    public class FirstJoiningTestEntity : IPersistableEntity
     {
         public string AStringValue { get; set; }
         public int AIntValue { get; set; }
@@ -912,17 +923,38 @@ namespace Storage.UnitTests
         public string EntityName => "firstjoiningtestentities";
 
         public string Id { get; set; }
+
+        public Dictionary<string, object> Dehydrate()
+        {
+            return this.ToObjectDictionary();
+        }
+
+        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
+        {
+            this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
+        }
     }
 
-    public class SecondJoiningTestEntity : IKeyedEntity
+    public class SecondJoiningTestEntity : IPersistableEntity
     {
         public string AStringValue { get; set; }
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public int AIntValue { get; set; }
         public long ALongValue { get; set; }
 
         public string EntityName => "secondjoiningtestentities";
 
         public string Id { get; set; }
+
+        public Dictionary<string, object> Dehydrate()
+        {
+            return this.ToObjectDictionary();
+        }
+
+        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
+        {
+            this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
+        }
     }
 
     public class ComplexType

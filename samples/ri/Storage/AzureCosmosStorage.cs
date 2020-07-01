@@ -7,7 +7,7 @@ using Storage.Interfaces;
 
 namespace Storage
 {
-    public abstract class AzureCosmosStorage<TEntity> : IStorage<TEntity> where TEntity : IKeyedEntity, new()
+    public abstract class AzureCosmosStorage<TEntity> : IStorage<TEntity> where TEntity : IPersistableEntity, new()
     {
         private readonly IAzureCosmosConnection connection;
 

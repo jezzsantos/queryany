@@ -29,7 +29,7 @@ namespace Storage
             this.idFactory = idFactory;
         }
 
-        public string Add<TEntity>(string containerName, TEntity entity) where TEntity : IKeyedEntity, new()
+        public string Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
         {
             var table = EnsureTable(containerName);
 
@@ -41,7 +41,7 @@ namespace Storage
             return id;
         }
 
-        public void Remove<TEntity>(string containerName, string id) where TEntity : IKeyedEntity, new()
+        public void Remove<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
         {
             var table = EnsureTable(containerName);
 
@@ -52,7 +52,7 @@ namespace Storage
             }
         }
 
-        public TEntity Get<TEntity>(string containerName, string id) where TEntity : IKeyedEntity, new()
+        public TEntity Get<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
         {
             var table = EnsureTable(containerName);
 
@@ -66,7 +66,7 @@ namespace Storage
         }
 
         public void Update<TEntity>(string containerName, string entityId, TEntity entity)
-            where TEntity : IKeyedEntity, new()
+            where TEntity : IPersistableEntity, new()
         {
             var table = EnsureTable(containerName);
 
@@ -92,7 +92,7 @@ namespace Storage
         }
 
         public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query)
-            where TEntity : IKeyedEntity, new()
+            where TEntity : IPersistableEntity, new()
         {
             var table = EnsureTable(containerName);
             var filter = query.Wheres.ToAzureCosmosTableApiWhereClause();
@@ -126,9 +126,9 @@ namespace Storage
                 {
                     var joinedEntity = joinedTable.Value.JoinedEntity;
                     var join = joinedEntity.Join;
-                    var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.ToObjectDictionary());
+                    var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.Dehydrate());
                     var rightEntities = joinedTable.Value.Collection.ToDictionary(e => e.RowKey,
-                        e => e.FromTableEntity(join.Right.EntityType).ToObjectDictionary());
+                        e => e.FromTableEntity(join.Right.EntityType).Dehydrate());
 
                     primaryEntities = join
                         .JoinResults<TEntity>(leftEntities, rightEntities,
@@ -185,7 +185,7 @@ namespace Storage
             var selectedPropertyNames = joinedEntity.Selects
                 .Where(sel => sel.JoinedFieldName.HasValue())
                 .Select(j => j.JoinedFieldName)
-                .Concat(new[] {joinedEntity.Join.Right.JoinedFieldName, nameof(IKeyedEntity.Id)})
+                .Concat(new[] {joinedEntity.Join.Right.JoinedFieldName, nameof(IPersistableEntity.Id)})
                 .ToList();
 
             var filter = $"({TableConstants.PartitionKey} eq '{DefaultPartitionKey}') and ({query})";
@@ -258,12 +258,12 @@ namespace Storage
     internal static class AzureCosmosTableApiEntityExtensions
     {
         public static TEntity FromTableEntity<TEntity>(this DynamicTableEntity tableEntity)
-            where TEntity : IKeyedEntity, new()
+            where TEntity : IPersistableEntity, new()
         {
             return (TEntity) tableEntity.FromTableEntity(new TEntity().GetType());
         }
 
-        public static object FromTableEntity(this DynamicTableEntity tableEntity, Type entityType)
+        public static IPersistableEntity FromTableEntity(this DynamicTableEntity tableEntity, Type entityType)
         {
             var entityPropertyTypes = entityType.GetProperties();
             var propertyValues = tableEntity.Properties
@@ -274,20 +274,21 @@ namespace Storage
                     pair => pair.Value.FromTableEntityProperty(entityPropertyTypes
                         .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType));
 
-            var entity = propertyValues.FromObjectDictionary(entityType);
-            ((IKeyedEntity) entity).Id = tableEntity.RowKey;
+            var entity = entityType.CreateInstance<IPersistableEntity>();
+            entity.Rehydrate(propertyValues);
+            entity.Id = tableEntity.RowKey;
             return entity;
         }
 
-        public static DynamicTableEntity ToTableEntity<TEntity>(this TEntity entity) where TEntity : IKeyedEntity
+        public static DynamicTableEntity ToTableEntity<TEntity>(this TEntity entity) where TEntity : IPersistableEntity
         {
             bool IsNotExcluded(string propertyName)
             {
-                var excludedPropertyNames = new[] {nameof(IKeyedEntity.Id), nameof(INamedEntity.EntityName)};
+                var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id), nameof(INamedEntity.EntityName)};
                 return !excludedPropertyNames.Contains(propertyName);
             }
 
-            var entityProperties = entity.ToObjectDictionary()
+            var entityProperties = entity.Dehydrate()
                 .Where(pair => IsNotExcluded(pair.Key));
             var tableEntity = new DynamicTableEntity(AzureCosmosTableApiRepository.DefaultPartitionKey, entity.Id)
             {
@@ -477,7 +478,7 @@ namespace Storage
 
         internal static string ToAzureCosmosTableApiWhereClause(this WhereCondition condition)
         {
-            var fieldName = condition.FieldName.EqualsOrdinal(nameof(IKeyedEntity.Id))
+            var fieldName = condition.FieldName.EqualsOrdinal(nameof(IPersistableEntity.Id))
                 ? TableConstants.RowKey
                 : condition.FieldName;
             var conditionOperator = condition.Operator.ToAzureCosmosTableApiWhereClause();

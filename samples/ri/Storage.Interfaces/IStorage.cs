@@ -3,7 +3,7 @@ using Services.Interfaces;
 
 namespace Storage.Interfaces
 {
-    public interface IStorage<TEntity> where TEntity : IKeyedEntity, new()
+    public interface IStorage<TEntity> where TEntity : IPersistableEntity, new()
     {
         string Add(TEntity entity);
 

@@ -21,7 +21,7 @@ namespace Storage.UnitTests
         }
     }
 
-    public class TestInMemStorage<TEntity> : InProcessInMemStorage<TEntity> where TEntity : IKeyedEntity, new()
+    public class TestInMemStorage<TEntity> : InProcessInMemStorage<TEntity> where TEntity : IPersistableEntity, new()
     {
         public TestInMemStorage(InProcessInMemRepository store, string containerName) : base(store)
         {

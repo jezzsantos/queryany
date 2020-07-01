@@ -2,6 +2,6 @@
 {
     public interface IIdentifierFactory
     {
-        string Create(IKeyedEntity entity);
+        string Create(IIdentifyableEntity entity);
     }
 }

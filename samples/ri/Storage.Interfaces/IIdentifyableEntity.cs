@@ -2,7 +2,7 @@
 
 namespace Storage.Interfaces
 {
-    public interface IKeyedEntity : INamedEntity
+    public interface IIdentifyableEntity
     {
         string Id { get; set; }
     }

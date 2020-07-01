@@ -47,10 +47,9 @@ namespace CarsApi.IntegrationTests
         public void WhenGetAvailableAndCars_ThenReturnsNone()
         {
             var client = new JsonServiceClient(ServiceUrl);
-            var carId = this.store.Add(new CarEntity
-            {
-                OccupiedUntilUtc = DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(1))
-            });
+            var car = new CarEntity();
+            car.Occupy(DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(1)));
+            var carId = this.store.Add(car);
 
             var cars = client.Get(new SearchAvailableCarsRequest());
 

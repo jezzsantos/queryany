@@ -5,7 +5,7 @@ namespace Storage
 {
     public class GuidIdentifierFactory : IIdentifierFactory
     {
-        public string Create(IKeyedEntity entity)
+        public string Create(IIdentifyableEntity entity)
         {
             return Guid.NewGuid().ToString("D");
         }

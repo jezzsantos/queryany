@@ -5,15 +5,14 @@ using System.Linq.Dynamic.Core;
 using System.Text;
 using QueryAny;
 using QueryAny.Primitives;
-using ServiceStack;
 using Storage.Interfaces;
 
 namespace Storage
 {
     public class InProcessInMemRepository
     {
-        private readonly Dictionary<string, Dictionary<string, IKeyedEntity>> containers =
-            new Dictionary<string, Dictionary<string, IKeyedEntity>>();
+        private readonly Dictionary<string, Dictionary<string, IPersistableEntity>> containers =
+            new Dictionary<string, Dictionary<string, IPersistableEntity>>();
 
         private readonly IIdentifierFactory idFactory;
 
@@ -23,11 +22,11 @@ namespace Storage
             this.idFactory = idFactory;
         }
 
-        public string Add(string containerName, IKeyedEntity entity)
+        public string Add(string containerName, IPersistableEntity entity)
         {
             if (!this.containers.ContainsKey(containerName))
             {
-                this.containers.Add(containerName, new Dictionary<string, IKeyedEntity>());
+                this.containers.Add(containerName, new Dictionary<string, IPersistableEntity>());
             }
 
             var id = this.idFactory.Create(entity);
@@ -47,7 +46,7 @@ namespace Storage
             }
         }
 
-        public void Update(string containerName, string id, IKeyedEntity entity)
+        public void Update(string containerName, string id, IPersistableEntity entity)
         {
             if (this.containers.ContainsKey(containerName))
             {
@@ -58,7 +57,7 @@ namespace Storage
             }
         }
 
-        public IKeyedEntity Get(string containerName, string id)
+        public IPersistableEntity Get(string containerName, string id)
         {
             if (this.containers.ContainsKey(containerName))
             {
@@ -82,7 +81,7 @@ namespace Storage
         }
 
         public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query)
-            where TEntity : IKeyedEntity, new()
+            where TEntity : IPersistableEntity, new()
         {
             if (!this.containers.ContainsKey(containerName))
             {
@@ -97,7 +96,7 @@ namespace Storage
                 {
                     Collection = this.containers.ContainsKey(je.Name)
                         ? this.containers[je.Name]
-                        : new Dictionary<string, IKeyedEntity>(),
+                        : new Dictionary<string, IPersistableEntity>(),
                     JoinedEntity = je
                 });
 
@@ -108,9 +107,9 @@ namespace Storage
                     var joinedEntity = joinedContainer.Value.JoinedEntity;
                     var join = joinedEntity.Join;
                     var leftEntities = primaryEntities
-                        .ToDictionary(e => e.Id, e => e.ToObjectDictionary());
+                        .ToDictionary(e => e.Id, e => e.Dehydrate());
                     var rightEntities = joinedContainer.Value.Collection
-                        .ToDictionary(e => e.Key, e => e.Value.ToObjectDictionary());
+                        .ToDictionary(e => e.Key, e => e.Value.Dehydrate());
 
                     primaryEntities = join
                         .JoinResults<TEntity>(leftEntities, rightEntities,
@@ -130,7 +129,7 @@ namespace Storage
         }
 
         private List<TEntity> QueryPrimaryEntities<TEntity>(string containerName, QueryClause<TEntity> query)
-            where TEntity : IKeyedEntity, new()
+            where TEntity : IPersistableEntity, new()
         {
             var primaryEntities = this.containers[containerName].Values
                 .ToList()
@@ -152,12 +151,12 @@ namespace Storage
 
     public static class InMemEntityExtensions
     {
-        public static IKeyedEntity ToRepositoryType(this IKeyedEntity entity)
+        public static IPersistableEntity ToRepositoryType(this IPersistableEntity entity)
         {
             return entity;
         }
 
-        public static IKeyedEntity FromRepositoryType(this IKeyedEntity entity)
+        public static IPersistableEntity FromRepositoryType(this IPersistableEntity entity)
         {
             return entity;
         }

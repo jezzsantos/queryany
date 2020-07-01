@@ -2,7 +2,7 @@
 
 namespace Storage.Interfaces
 {
-    public class QueryResults<TEntity> where TEntity : IKeyedEntity, new()
+    public class QueryResults<TEntity> where TEntity : IIdentifyableEntity, new()
     {
         public QueryResults(List<TEntity> results)
         {

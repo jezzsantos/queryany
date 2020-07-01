@@ -1,4 +1,5 @@
-﻿using Services.Interfaces;
+﻿using QueryAny.Primitives;
+using Services.Interfaces;
 using Services.Interfaces.Apis;
 using ServiceStack;
 
@@ -6,13 +7,20 @@ namespace CarsApi.Services.Cars
 {
     public class CarsService : Service
     {
-        public CarsDomain.Cars Cars { get; set; }
+        private readonly CarsDomain.Cars cars;
+
+        public CarsService(CarsDomain.Cars cars)
+        {
+            Guard.AgainstNull(() => cars, cars);
+
+            this.cars = cars;
+        }
 
         public SearchAvailableCarsResponse Get(SearchAvailableCarsRequest request)
         {
             return new SearchAvailableCarsResponse
             {
-                Cars = Cars.SearchAvailable(request.ToSearchOptions(), request.ToGetOptions())
+                Cars = this.cars.SearchAvailable(request.ToSearchOptions(), request.ToGetOptions())
             };
         }
     }

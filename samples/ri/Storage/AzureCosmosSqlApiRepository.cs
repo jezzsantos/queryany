@@ -38,7 +38,7 @@ namespace Storage
             this.idFactory = idFactory;
         }
 
-        public string Add<TEntity>(string containerName, TEntity entity) where TEntity : IKeyedEntity, new()
+        public string Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
         {
             var container = EnsureContainer(containerName);
 
@@ -50,7 +50,7 @@ namespace Storage
             return id;
         }
 
-        public void Remove<TEntity>(string containerName, string id) where TEntity : IKeyedEntity, new()
+        public void Remove<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
         {
             var container = EnsureContainer(containerName);
 
@@ -61,7 +61,7 @@ namespace Storage
             }
         }
 
-        public TEntity Get<TEntity>(string containerName, string id) where TEntity : IKeyedEntity, new()
+        public TEntity Get<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
         {
             var container = EnsureContainer(containerName);
 
@@ -71,7 +71,7 @@ namespace Storage
         }
 
         public void Update<TEntity>(string containerName, string entityId, TEntity entity)
-            where TEntity : IKeyedEntity, new()
+            where TEntity : IPersistableEntity, new()
         {
             var container = EnsureContainer(containerName);
 
@@ -104,7 +104,7 @@ namespace Storage
         }
 
         public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query)
-            where TEntity : IKeyedEntity, new()
+            where TEntity : IPersistableEntity, new()
         {
             var container = EnsureContainer(containerName);
 
@@ -132,10 +132,10 @@ namespace Storage
                     {
                         var joinedEntity = joinedTable.Value.JoinedEntity;
                         var join = joinedEntity.Join;
-                        var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.ToObjectDictionary());
+                        var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.Dehydrate());
                         var rightEntities = joinedTable.Value.Collection.ToDictionary(
-                            e => e[nameof(IKeyedEntity.Id)].Value<string>(),
-                            e => e.FromContainerEntity(join.Right.EntityType).ToObjectDictionary());
+                            e => e[nameof(IPersistableEntity.Id)].Value<string>(),
+                            e => e.FromContainerEntity(join.Right.EntityType).Dehydrate());
 
                         primaryEntities = join
                             .JoinResults<TEntity>(leftEntities, rightEntities,
@@ -192,7 +192,7 @@ namespace Storage
             var selectedPropertyNames = joinedEntity.Selects
                 .Where(sel => sel.JoinedFieldName.HasValue())
                 .Select(j => j.JoinedFieldName)
-                .Concat(new[] {joinedEntity.Join.Right.JoinedFieldName, nameof(IKeyedEntity.Id)});
+                .Concat(new[] {joinedEntity.Join.Right.JoinedFieldName, nameof(IPersistableEntity.Id)});
             var selectedFields = string.Join(", ",
                 selectedPropertyNames
                     .Select(name => $"{ContainerAlias}.{name}"));
@@ -237,7 +237,7 @@ namespace Storage
         }
 
         private static TEntity RetrieveContainerEntitySafe<TEntity>(Container container, string id)
-            where TEntity : IKeyedEntity, new()
+            where TEntity : IPersistableEntity, new()
         {
             try
             {
@@ -259,12 +259,12 @@ namespace Storage
     internal static class AzureCosmosSqlApiExtensions
     {
         public static TEntity FromContainerEntity<TEntity>(this JObject containerEntity)
-            where TEntity : IKeyedEntity, new()
+            where TEntity : IPersistableEntity, new()
         {
             return (TEntity) containerEntity.FromContainerEntity(new TEntity().GetType());
         }
 
-        public static object FromContainerEntity(this JObject containerEntity, Type entityType)
+        public static IPersistableEntity FromContainerEntity(this JObject containerEntity, Type entityType)
         {
             var entityPropertyTypeInfo = entityType.GetProperties();
             var containerEntityProperties = containerEntity.ToObject<Dictionary<string, object>>();
@@ -273,7 +273,9 @@ namespace Storage
             ComplexTypesFromContainerEntity(containerEntityProperties, entityPropertyTypeInfo,
                 convertedEntityProperties);
 
-            return containerEntityProperties.FromObjectDictionary(entityType);
+            var entity = entityType.CreateInstance<IPersistableEntity>();
+            entity.Rehydrate(containerEntityProperties);
+            return entity;
         }
 
         private static void ComplexTypesFromContainerEntity(
@@ -305,11 +307,11 @@ namespace Storage
             }
         }
 
-        public static dynamic ToContainerEntity<TEntity>(this TEntity entity) where TEntity : IKeyedEntity
+        public static dynamic ToContainerEntity<TEntity>(this TEntity entity) where TEntity : IPersistableEntity
         {
             var containerEntity = new ExpandoObject();
             var containerEntityProperties = (IDictionary<string, object>) containerEntity;
-            var entityProperties = entity.ToObjectDictionary();
+            var entityProperties = entity.Dehydrate();
             foreach (var pair in entityProperties)
             {
                 var value = pair.Value;
@@ -330,8 +332,8 @@ namespace Storage
                 containerEntityProperties.Add(pair.Key, value);
             }
 
-            containerEntityProperties.Remove(nameof(IKeyedEntity.EntityName));
-            containerEntityProperties.Add("id", entityProperties[nameof(IKeyedEntity.Id)]);
+            containerEntityProperties.Remove(nameof(IPersistableEntity.EntityName));
+            containerEntityProperties.Add("id", entityProperties[nameof(IPersistableEntity.Id)]);
 
             return containerEntity;
         }
@@ -371,7 +373,7 @@ namespace Storage
 
             if (query.PrimaryEntity.Selects.Any())
             {
-                builder.Append($"{AzureCosmosSqlApiRepository.ContainerAlias}.{nameof(IKeyedEntity.Id)}");
+                builder.Append($"{AzureCosmosSqlApiRepository.ContainerAlias}.{nameof(IPersistableEntity.Id)}");
                 foreach (var select in query.PrimaryEntity.Selects)
                 {
                     builder.Append($", {AzureCosmosSqlApiRepository.ContainerAlias}.{select.FieldName}");
