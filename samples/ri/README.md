@@ -27,7 +27,11 @@ Essentially the domain logic layer.
 
 It defines the domain logic classes, all domains specific rules, etc.
 
+It contains a thin 'service layer' used to coordinate the various domain functions on the domain entities.  
+
 > In this case we have included the domain entities in this assembly for simplicity, but you may want to have a separate assembly for the entities of this domain to make your domain more portable.
+
+> The domain entities in this implementation are relatively simple in terms of functionality and rules (almost anemic - due to limited scope of the sample). They are also persistent aware for simplicity. There are many ways to hanlde/decouple persistence from your entities, this is one pattern, you may desire another.
  
 > We anticipate that there will be one of these assemblies for every major domain in the product.
 
