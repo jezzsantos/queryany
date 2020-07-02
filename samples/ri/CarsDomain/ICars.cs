@@ -6,8 +6,8 @@ namespace CarsDomain
 {
     public interface ICars
     {
-        Car Create(int year, string make, string model);
+        Car Create(ICurrentCaller caller, int year, string make, string model);
 
-        List<Car> SearchAvailable(SearchOptions searchOptions, GetOptions getOptions);
+        List<Car> SearchAvailable(ICurrentCaller caller, SearchOptions searchOptions, GetOptions getOptions);
     }
 }
