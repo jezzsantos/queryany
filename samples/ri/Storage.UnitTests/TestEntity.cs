@@ -9,7 +9,12 @@ namespace Storage.UnitTests
         public bool ABooleanValue { get; set; }
         public double ADoubleValue { get; set; }
 
-        public string Id { get; set; }
+        public string Id { get; private set; }
+
+        public void Identify(string id)
+        {
+            Id = id;
+        }
 
         public string EntityName => "testentities";
 

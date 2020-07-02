@@ -1,8 +1,9 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyDescription("A fluent data store query language for abstracting your data persistence layer from your domain.")]
+[assembly:
+    AssemblyDescription(
+        "A fluent data store query language for abstracting your data persistence layer from your domain.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("jezzsantos")]
 [assembly: AssemblyProduct("QueryAny")]

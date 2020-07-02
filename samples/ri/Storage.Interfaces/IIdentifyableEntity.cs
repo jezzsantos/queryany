@@ -2,6 +2,8 @@
 {
     public interface IIdentifyableEntity
     {
-        string Id { get; set; }
+        string Id { get; }
+
+        void Identify(string id);
     }
 }

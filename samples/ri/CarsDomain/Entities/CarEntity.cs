@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using QueryAny.Primitives;
 using Storage.Interfaces;
 
 namespace CarsDomain.Entities
@@ -17,9 +18,15 @@ namespace CarsDomain.Entities
 
         public DateTime OccupiedUntilUtc { get; private set; }
 
-        public string Id { get; set; }
+        public string Id { get; private set; }
 
         public string EntityName => "Car";
+
+        public void Identify(string id)
+        {
+            Guard.AgainstNullOrEmpty(() => id, id);
+            Id = id;
+        }
 
         public Dictionary<string, object> Dehydrate()
         {
