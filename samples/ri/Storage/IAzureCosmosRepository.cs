@@ -10,7 +10,10 @@ namespace Storage
         string Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new();
         void Remove<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new();
         TEntity Get<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new();
-        void Update<TEntity>(string containerName, string entityId, TEntity entity) where TEntity : IPersistableEntity, new();
+
+        void Update<TEntity>(string containerName, string entityId, TEntity entity)
+            where TEntity : IPersistableEntity, new();
+
         long Count(string containerName);
 
         List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query)

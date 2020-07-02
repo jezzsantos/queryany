@@ -41,7 +41,10 @@ ProjectSection(SolutionItems) = preProject
 	..\README.md = ..\README.md
 	GlobalAssemblyInfo.cs = GlobalAssemblyInfo.cs
 	Directory.Build.props = Directory.Build.props
+	..\appveyor.yml = ..\appveyor.yml
 EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage.IntegrationTests", "..\samples\ri\Storage.IntegrationTests\Storage.IntegrationTests.csproj", "{E5C8214A-52F1-4F1C-BFEB-FCAF03113FA1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -97,6 +100,10 @@ Global
 		{FF2C1DD8-2EFD-4B9A-8E99-AB8CCA2C9231}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF2C1DD8-2EFD-4B9A-8E99-AB8CCA2C9231}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF2C1DD8-2EFD-4B9A-8E99-AB8CCA2C9231}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5C8214A-52F1-4F1C-BFEB-FCAF03113FA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5C8214A-52F1-4F1C-BFEB-FCAF03113FA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5C8214A-52F1-4F1C-BFEB-FCAF03113FA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5C8214A-52F1-4F1C-BFEB-FCAF03113FA1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -113,6 +120,7 @@ Global
 		{D3EDC65E-B76F-40B0-9EEC-CCA172D0B165} = {5D6906B8-B50B-4E20-8677-5D364F9840F6}
 		{11F7A98D-31B4-45BC-9149-2AA630624871} = {D3EDC65E-B76F-40B0-9EEC-CCA172D0B165}
 		{FF2C1DD8-2EFD-4B9A-8E99-AB8CCA2C9231} = {D3EDC65E-B76F-40B0-9EEC-CCA172D0B165}
+		{E5C8214A-52F1-4F1C-BFEB-FCAF03113FA1} = {D3EDC65E-B76F-40B0-9EEC-CCA172D0B165}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B441AF2E-2F75-434D-8F61-6DFE23D2935C}

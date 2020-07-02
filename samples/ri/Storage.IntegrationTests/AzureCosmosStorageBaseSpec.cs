@@ -5,7 +5,7 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny.Primitives;
 
-namespace Storage.UnitTests
+namespace Storage.IntegrationTests
 {
     public abstract class AzureCosmosStorageBaseSpec : AnyStorageBaseSpec
     {

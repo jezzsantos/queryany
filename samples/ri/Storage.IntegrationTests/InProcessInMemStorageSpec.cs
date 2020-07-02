@@ -2,9 +2,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny.Primitives;
 using Storage.Interfaces;
 
-namespace Storage.UnitTests
+namespace Storage.IntegrationTests
 {
-    [TestClass, TestCategory("Unit")]
+    [TestClass, TestCategory("Integration")]
     public class InProcessInMemStorageSpec : AnyStorageBaseSpec
     {
         private readonly InProcessInMemRepository repository;

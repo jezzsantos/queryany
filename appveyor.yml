@@ -10,7 +10,7 @@ environment:
     test_category: Unit
     test_settings:
   - test_type: Integration.Testing
-    test_assemblies: samples\ri\CarsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\CarsApi.IntegrationTests.dll
+    test_assemblies: samples\ri\CarsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\CarsApi.IntegrationTests.dll;samples\ri\Storage.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\Storage.IntegrationTests.dll
     test_category: Integration
     test_settings: 
 matrix:

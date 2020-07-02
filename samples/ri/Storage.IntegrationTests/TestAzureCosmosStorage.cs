@@ -1,7 +1,7 @@
 ﻿using QueryAny.Primitives;
 using Storage.Interfaces;
 
-namespace Storage.UnitTests
+namespace Storage.IntegrationTests
 {
     public class TestAzureCosmosStorage<TEntity> : AzureCosmosStorage<TEntity> where TEntity : IPersistableEntity, new()
     {

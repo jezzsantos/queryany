@@ -57,6 +57,24 @@ This is where all QueryAny implementations will exist for this sample.
 
 > We anticipate that there would probably be a separate project (and nuget package) for each implementation of the `IStorage<TEntity>` interface in your architecture. eg. one for SqlServer, one for Redis, one for CosmosDB, etc.. 
 
+## CarsApi.IntegrationTests
+
+Contains all integration tests for testing the API (and other layers).
+
+> Here we demonstrate testing API's by pre-populating data directly in the repository, as only an example of how to plug in different repository for testing. 
+
+> Normally, however, we would populate the state of the API through the API itself, and erase all data through the repository layer. This removes the dependency to know how application data is actually persisted in a ny repository, since it could be spread across repositories.
+
+## Storage.IntegrationTests
+
+Contains integration tests for verifying various repository implementations 
+
+## Unit test projects
+
+Contains all unit level tests for all components in the architecture, separated by component.
+
+> We anticipate that there would probably be a separate test project per assembly to test.
+
 ## Local Development and Testing
 
 You will need to: 

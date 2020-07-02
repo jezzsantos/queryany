@@ -3,9 +3,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Storage.Interfaces;
 
-namespace Storage.UnitTests
+namespace Storage.IntegrationTests
 {
-    [TestClass, TestCategory("Unit.NOCI")]
+    [TestClass, TestCategory("Integration.NOCI")]
     public class AzureCosmosSqlApiStorageSpec : AzureCosmosStorageBaseSpec
     {
         private static AzureCosmosSqlApiRepository repository;

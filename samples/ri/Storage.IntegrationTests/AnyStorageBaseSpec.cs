@@ -6,7 +6,7 @@ using QueryAny;
 using ServiceStack;
 using Storage.Interfaces;
 
-namespace Storage.UnitTests
+namespace Storage.IntegrationTests
 {
     public abstract class AnyStorageBaseSpec
 
@@ -938,6 +938,7 @@ namespace Storage.UnitTests
     public class SecondJoiningTestEntity : IPersistableEntity
     {
         public string AStringValue { get; set; }
+
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public int AIntValue { get; set; }
         public long ALongValue { get; set; }

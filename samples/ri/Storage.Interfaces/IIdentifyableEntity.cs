@@ -1,6 +1,4 @@
-﻿using QueryAny;
-
-namespace Storage.Interfaces
+﻿namespace Storage.Interfaces
 {
     public interface IIdentifyableEntity
     {
