@@ -141,4 +141,13 @@
   <data name="HasSearchOptionsValidator_InvalidSort" xml:space="preserve">
     <value>The format of the Sort expression is invalid</value>
   </data>
+  <data name="CreateCarRequestValidator_InvalidYear" xml:space="preserve">
+    <value>The Year for the car must be between {0} and {1}</value>
+  </data>
+  <data name="CreateCarRequestValidator_InvalidMake" xml:space="preserve">
+    <value>The Make of the car can only be {0}</value>
+  </data>
+  <data name="CreateCarRequestValidator_InvalidModel" xml:space="preserve">
+    <value>The Model of the car must be {0}</value>
+  </data>
 </root>

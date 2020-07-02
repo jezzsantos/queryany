@@ -19,7 +19,7 @@ namespace CarsApi.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -57,6 +57,33 @@ namespace CarsApi.Properties {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Make of the car can only be {0}.
+        /// </summary>
+        public static string CreateCarRequestValidator_InvalidMake {
+            get {
+                return ResourceManager.GetString("CreateCarRequestValidator_InvalidMake", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Model of the car must be {0}.
+        /// </summary>
+        public static string CreateCarRequestValidator_InvalidModel {
+            get {
+                return ResourceManager.GetString("CreateCarRequestValidator_InvalidModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Year for the car must be between {0} and {1}.
+        /// </summary>
+        public static string CreateCarRequestValidator_InvalidYear {
+            get {
+                return ResourceManager.GetString("CreateCarRequestValidator_InvalidYear", resourceCulture);
             }
         }
         

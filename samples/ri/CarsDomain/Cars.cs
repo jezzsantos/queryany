@@ -10,7 +10,7 @@ using Storage.Interfaces;
 
 namespace CarsDomain
 {
-    public class Cars : DomainObject
+    public class Cars : DomainObject, ICars
     {
         private readonly IStorage<CarEntity> storage;
 

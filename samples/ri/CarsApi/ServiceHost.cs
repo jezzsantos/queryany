@@ -36,7 +36,7 @@ namespace CarsApi
             container.AddSingleton(c => new InProcessInMemRepository(c.Resolve<IIdentifierFactory>()));
             container.AddSingleton<IStorage<CarEntity>>(c =>
                 new CarInMemStorage(c.Resolve<InProcessInMemRepository>()));
-            container.AddSingleton<Cars>();
+            container.AddSingleton<ICars, Cars>();
         }
 
         private void RegisterValidators(Container container)

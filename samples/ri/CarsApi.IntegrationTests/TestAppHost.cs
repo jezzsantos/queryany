@@ -10,13 +10,13 @@ namespace CarsApi.IntegrationTests
         private static readonly Assembly[] AssembliesContainingServicesAndDependencies =
             {typeof(CarsApi.Startup).Assembly};
 
-        public TestAppHost() : base("MyCarsApi Test Service", AssembliesContainingServicesAndDependencies)
+        public TestAppHost() : base("MyCarsApi Testing Service", AssembliesContainingServicesAndDependencies)
         {
         }
 
         public override void Configure(Container container)
         {
-            container.AddSingleton<Cars>();
+            container.AddSingleton<ICars, Cars>();
         }
     }
 }
