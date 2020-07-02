@@ -43,7 +43,7 @@ namespace Storage
             var container = EnsureContainer(containerName);
 
             var id = this.idFactory.Create(entity);
-            entity.Id = id;
+            entity.Identify(id);
 
             container.CreateItemAsync<dynamic>(entity.ToContainerEntity()).GetAwaiter().GetResult();
 

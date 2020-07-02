@@ -900,7 +900,12 @@ namespace Storage.IntegrationTests
         public byte[] ABinaryValue { get; set; }
         public ComplexType AComplexTypeValue { get; set; }
 
-        public string Id { get; set; }
+        public string Id { get; private set; }
+
+        public void Identify(string id)
+        {
+            Id = id;
+        }
 
         public string EntityName => "testentities";
 
@@ -922,7 +927,12 @@ namespace Storage.IntegrationTests
 
         public string EntityName => "firstjoiningtestentities";
 
-        public string Id { get; set; }
+        public string Id { get; private set; }
+
+        public void Identify(string id)
+        {
+            Id = id;
+        }
 
         public Dictionary<string, object> Dehydrate()
         {
@@ -941,11 +951,17 @@ namespace Storage.IntegrationTests
 
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public int AIntValue { get; set; }
+
         public long ALongValue { get; set; }
 
         public string EntityName => "secondjoiningtestentities";
 
-        public string Id { get; set; }
+        public string Id { get; private set; }
+
+        public void Identify(string id)
+        {
+            Id = id;
+        }
 
         public Dictionary<string, object> Dehydrate()
         {

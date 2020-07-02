@@ -21,7 +21,7 @@ namespace CarsApi.Services.Cars
         {
             return new SearchAvailableCarsResponse
             {
-                Cars = this.cars.SearchAvailable(request.ToSearchOptions(), request.ToGetOptions())
+                Cars = this.cars.SearchAvailable(Request.ToCaller(), request.ToSearchOptions(), request.ToGetOptions())
             };
         }
 
@@ -29,7 +29,7 @@ namespace CarsApi.Services.Cars
         {
             return new CreateCarResponse
             {
-                Car = this.cars.Create(request.Year, request.Make, request.Model)
+                Car = this.cars.Create(Request.ToCaller(), request.Year, request.Make, request.Model)
             };
         }
     }

@@ -30,7 +30,7 @@ namespace Storage
             }
 
             var id = this.idFactory.Create(entity);
-            entity.Id = id;
+            entity.Identify(id);
             this.containers[containerName].Add(entity.Id, entity.ToRepositoryType());
             return id;
         }

@@ -34,7 +34,7 @@ namespace Storage
             var table = EnsureTable(containerName);
 
             var id = this.idFactory.Create(entity);
-            entity.Id = id;
+            entity.Identify(id);
 
             table.Execute(TableOperation.Insert(entity.ToTableEntity()));
 
@@ -276,7 +276,7 @@ namespace Storage
 
             var entity = entityType.CreateInstance<IPersistableEntity>();
             entity.Rehydrate(propertyValues);
-            entity.Id = tableEntity.RowKey;
+            entity.Identify(tableEntity.RowKey);
             return entity;
         }
 
