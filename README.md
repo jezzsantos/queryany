@@ -1,16 +1,16 @@
 # QueryAny
 [![Build status](https://ci.appveyor.com/api/projects/status/qwg1wen94kfe52jp/branch/master?svg=true)](https://ci.appveyor.com/project/JezzSantos/queryany/branch/master) [![NuGet](https://img.shields.io/nuget/v/QueryAny.svg?label=QueryAny)](https://www.nuget.org/packages/QueryAny) [![Release Notes](https://img.shields.io/nuget/v/QueryAny.svg?label=Release%20Notes&colorB=green)](https://github.com/jezzsantos/QueryAny/wiki/Release-Notes)
 
-**QueryAny** is a query language for use with any database or data store technology. Use it as a generic repository pattern, and never leak database details into your domain logic again. Never take a dependency from your domain logic on any database or ORM technology again.
+**QueryAny** is a query language for use with any database or data store technology. Use it as a `<generic>` repository pattern, and never leak database details into your domain logic again. Never take a dependency from your domain logic on any database or ORM technology again.
 
 ## Why?
 
-Becuase things change, and you should protect your domain from those changes.
+Becuase things change, and you should protect your core domain from those external changes and implementation details.
 
-Don't you want to learn how to abstract away your persistence layers? (**Get rid of those ugly SQL statements in your business logic?**)
-Don't you want to discover how to use other data repositories than the only one you know now? (**Ever wanted to explore what a NoSQL database or InMemory database was good for?**)
-Don't you want to run your unit/integration tests faster than your database can run them? (**Then stop using databases in your testing!**)
-Have you considered the possibility that an In-mem persistence store (like Redis) is a better performing alternative to using a clumsy database server? 
+* Don't you want to learn how to abstract away your persistence layers? (**Get rid of those ugly SQL statements in your business logic?**)
+* Don't you want to discover how to use other data repositories than the only one you know now? (**Ever wanted to explore what a NoSQL database or InMemory database was good for?**)
+* Don't you want to run your unit/integration tests faster than your database can run them? (**Then stop using databases in your testing!**)
+* Have you considered the possibility that an In-mem persistence store (like Redis) is a better performing alternative to using a clumsy database server? 
 
 OK, then you are going to need help to abstract your persistence layer from your domain objects properly.
 
@@ -23,7 +23,7 @@ We wanted developers to be able to define their own simple repository interface 
 For example, they may define a generic repository interface like this in their code:
 
 ```
-    public interface IStorage<TEntity> where TEntity : IKeyedEntity, new()
+    public interface IStorage<TEntity> where TEntity : IIdentifyableEntity, new()
     {
         void Add(TEntity entity);
 
@@ -59,12 +59,12 @@ For example, define a query in code like this:
 Query.From<OrderEntity>()
     .Join<CustomerEntity, OrderEntity>(c => c.Id, o => o.CustomerId)
     .Where<OrderEntity>(o => o.Id, Operator.EQ, "25")
-    .Select<OrderEntity>(o => o.Id, o=> o.Description).Select<CustomerEntity>(c => c.Name)
+    .Select(c => c.Id).Select(c => c.Name)
 ```
 
 Can fetch this data from a SQL database, or from a Non-SQL database, or from JSON files just as easily. Why should your domain logic need to care where the data comes from?
 
-> Note: that this example query joins two different entities together to create a final result-set, but that does not require the database to implement joins natively at all, just like No-SQL databases do not.
+> Note: that this example query uses joins to two different entities together to create a final result-set, but that does not require the database to implement joins natively at all, just like No-SQL databases do not.
 
 > Note: This is NOT a new version of LINQ or intended to be like LINQ at all. Its simply a language for defining queries that can work across any datastore.
 
