@@ -30,14 +30,14 @@ namespace Storage
         {
             Guard.AgainstNullOrEmpty(() => id, id);
 
-            this.store.Remove(ContainerName, id);
+            this.store.Remove<TEntity>(ContainerName, id);
         }
 
         public TEntity Get(string id)
         {
             Guard.AgainstNullOrEmpty(() => id, id);
 
-            return (TEntity) this.store.Get(ContainerName, id);
+            return this.store.Get<TEntity>(ContainerName, id);
         }
 
         public TEntity Update(TEntity entity, bool ignoreConcurrency)

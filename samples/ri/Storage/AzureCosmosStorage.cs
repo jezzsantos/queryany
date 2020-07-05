@@ -9,9 +9,9 @@ namespace Storage
 {
     public abstract class AzureCosmosStorage<TEntity> : IStorage<TEntity> where TEntity : IPersistableEntity, new()
     {
-        private readonly IAzureCosmosConnection connection;
+        private readonly IAzureStorageConnection connection;
 
-        protected AzureCosmosStorage(IAzureCosmosConnection connection)
+        protected AzureCosmosStorage(IAzureStorageConnection connection)
         {
             Guard.AgainstNull(() => connection, connection);
             this.connection = connection;

@@ -5,12 +5,12 @@ using QueryAny;
 namespace Storage.UnitTests
 {
     [TestClass]
-    public class AzureCosmosTableApiWhereExtensionsSpec
+    public class AzureStorageTableWhereExtensionsSpec
     {
         private static readonly IAssertion Assert = new Assertion();
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenToAzureCosmosTableApiWhereClauseAndSingleCondition_ThenReturnsSqlExpression()
+        public void WhenToAzureTableStorageWhereClauseAndSingleCondition_ThenReturnsSqlExpression()
         {
             var wheres = new List<WhereExpression>
             {
@@ -25,13 +25,13 @@ namespace Storage.UnitTests
                 }
             };
 
-            var result = wheres.ToAzureCosmosTableApiWhereClause();
+            var result = wheres.ToAzureTableStorageWhereClause();
 
             Assert.Equal("afield1 eq 'astringvalue'", result);
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenToAzureCosmosTableApiWhereClauseAndMultipleConditions_ThenReturnsSqlExpression()
+        public void WhenToAzureTableStorageWhereClauseAndMultipleConditions_ThenReturnsSqlExpression()
         {
             var wheres = new List<WhereExpression>
             {
@@ -56,13 +56,13 @@ namespace Storage.UnitTests
                 }
             };
 
-            var result = wheres.ToAzureCosmosTableApiWhereClause();
+            var result = wheres.ToAzureTableStorageWhereClause();
 
             Assert.Equal("afield1 eq 'astringvalue' and afield2 ge 'astringvalue'", result);
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenToAzureCosmosTableApiWhereClauseAndNestedConditions_ThenReturnsSqlExpression()
+        public void WhenToAzureTableStorageWhereClauseAndNestedConditions_ThenReturnsSqlExpression()
         {
             var wheres = new List<WhereExpression>
             {
@@ -103,7 +103,7 @@ namespace Storage.UnitTests
                 }
             };
 
-            var result = wheres.ToAzureCosmosTableApiWhereClause();
+            var result = wheres.ToAzureTableStorageWhereClause();
 
             Assert.Equal(
                 "afield1 eq 'astringvalue' and (afield2 eq 'astringvalue2' or afield3 eq 'astringvalue3')",

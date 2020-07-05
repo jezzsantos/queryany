@@ -77,11 +77,4 @@ Contains all unit level tests for all components in the architecture, separated 
 
 ## Local Development and Testing
 
-You will need to: 
-
-1. Install the `Azure Storage Emulator` locally to run the tests. Available for [download here](https://go.microsoft.com/fwlink/?linkid=717179&clcid=0x409).
-1. Install the `Azure Cosmos DB Emulator` locally to run the tests. Available for [download here](https://aka.ms/cosmosdb-emulator)
-
-> Configuration for local storage servers is in the project `Storage.UnitTests`, in the file `appsettings.json`. Change these values to match your local installations, if you have changed the defaults.
-
-> Note: When running the tests on `Storage.UnitTests` you will need to give your IDE elevated privileges to run the Azure Cosmos DB Emulator during a test run.
+See: [Getting Started](https://github.com/jezzsantos/queryany/wiki/Getting-Started)

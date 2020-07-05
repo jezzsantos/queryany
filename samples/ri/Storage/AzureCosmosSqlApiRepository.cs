@@ -16,7 +16,7 @@ using StringExtensions = ServiceStack.StringExtensions;
 
 namespace Storage
 {
-    public class AzureCosmosSqlApiRepository : IAzureCosmosRepository
+    public class AzureCosmosSqlApiRepository : IRepository
     {
         private const string DefaultPartitionKeyPath = @"/id";
         internal const string ContainerAlias = @"t";

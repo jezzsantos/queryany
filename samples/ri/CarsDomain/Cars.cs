@@ -41,6 +41,7 @@ namespace CarsDomain
                 .ConvertAll(c => WithGetOptions(c.ConvertTo<Car>(), getOptions));
         }
 
+        // ReSharper disable once UnusedParameter.Local
         private static Car WithGetOptions(Car car, GetOptions options)
         {
             // TODO: expand embedded resources, etc

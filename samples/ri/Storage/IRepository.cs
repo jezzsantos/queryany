@@ -5,10 +5,12 @@ using Storage.Interfaces;
 
 namespace Storage
 {
-    public interface IAzureCosmosRepository : IDisposable
+    public interface IRepository : IDisposable
     {
         string Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new();
+        
         void Remove<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new();
+        
         TEntity Get<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new();
 
         void Update<TEntity>(string containerName, string entityId, TEntity entity)

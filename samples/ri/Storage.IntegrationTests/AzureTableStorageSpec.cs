@@ -1,32 +1,34 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using QueryAny.Primitives;
 using Storage.Interfaces;
 
 namespace Storage.IntegrationTests
 {
     [TestClass, TestCategory("Integration")]
-    public class AzureCosmosTableApiStorageSpec : AzureCosmosStorageBaseSpec
+    public class AzureTableStorageSpec : AzureStorageAccountBaseSpec
     {
-        private static AzureCosmosTableApiRepository repository;
+        private static AzureTableStorageRepository repository;
         private readonly Dictionary<string, object> stores = new Dictionary<string, object>();
 
         [ClassInitialize]
-        public static void InitializeAllTests(TestContext context)
+        public new static void InitializeAllTests(TestContext context)
         {
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
-            var accountKey = config["AzureCosmosDbAccountKey"];
-            var hostName = config["AzureCosmosDbHostName"];
-            var localEmulatorConnectionString =
-                $"DefaultEndpointsProtocol=http;AccountName={hostName};AccountKey={accountKey};TableEndpoint=http://localhost:8902/;";
-            repository = new AzureCosmosTableApiRepository(localEmulatorConnectionString, new GuidIdentifierFactory());
-            InitializeAllTests(context, "/EnableTableEndpoint");
+            var accountKey = config["AzureTableStorageAccountKey"];
+            var hostName = config["AzureTableStorageHostName"];
+            var localEmulatorConnectionString = accountKey.HasValue()
+                ? $"DefaultEndpointsProtocol=https;AccountName={hostName};AccountKey={accountKey};EndpointSuffix=core.windows.net"
+                : "UseDevelopmentStorage=true";
+            repository = new AzureTableStorageRepository(localEmulatorConnectionString, new GuidIdentifierFactory());
+            AzureStorageAccountBaseSpec.InitializeAllTests(context);
         }
 
         [ClassCleanup]
         public new static void CleanupAllTests()
         {
-            AzureCosmosStorageBaseSpec.CleanupAllTests();
+            AzureStorageAccountBaseSpec.CleanupAllTests();
         }
 
         protected override IStorage<TEntity> GetStore<TEntity>(string containerName)

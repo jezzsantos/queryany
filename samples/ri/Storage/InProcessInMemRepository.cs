@@ -9,7 +9,7 @@ using Storage.Interfaces;
 
 namespace Storage
 {
-    public class InProcessInMemRepository
+    public class InProcessInMemRepository : IRepository
     {
         private readonly Dictionary<string, Dictionary<string, IPersistableEntity>> containers =
             new Dictionary<string, Dictionary<string, IPersistableEntity>>();
@@ -22,7 +22,7 @@ namespace Storage
             this.idFactory = idFactory;
         }
 
-        public string Add(string containerName, IPersistableEntity entity)
+        public string Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
         {
             if (!this.containers.ContainsKey(containerName))
             {
@@ -35,7 +35,7 @@ namespace Storage
             return id;
         }
 
-        public void Remove(string containerName, string id)
+        public void Remove<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
         {
             if (this.containers.ContainsKey(containerName))
             {
@@ -46,7 +46,8 @@ namespace Storage
             }
         }
 
-        public void Update(string containerName, string id, IPersistableEntity entity)
+        public void Update<TEntity>(string containerName, string id, TEntity entity)
+            where TEntity : IPersistableEntity, new()
         {
             if (this.containers.ContainsKey(containerName))
             {
@@ -57,17 +58,17 @@ namespace Storage
             }
         }
 
-        public IPersistableEntity Get(string containerName, string id)
+        public TEntity Get<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
         {
             if (this.containers.ContainsKey(containerName))
             {
                 if (this.containers[containerName].ContainsKey(id))
                 {
-                    return this.containers[containerName][id].FromRepositoryType();
+                    return this.containers[containerName][id].FromRepositoryType<TEntity>();
                 }
             }
 
-            return null;
+            return default;
         }
 
         public long Count(string containerName)
@@ -128,12 +129,17 @@ namespace Storage
             }
         }
 
+        public void Dispose()
+        {
+            // No need to do anything here. IDisposable is used as a marker interface
+        }
+
         private List<TEntity> QueryPrimaryEntities<TEntity>(string containerName, QueryClause<TEntity> query)
             where TEntity : IPersistableEntity, new()
         {
             var primaryEntities = this.containers[containerName].Values
                 .ToList()
-                .ConvertAll(e => (TEntity) e.FromRepositoryType());
+                .ConvertAll(e => e.FromRepositoryType<TEntity>());
 
             if (!query.Wheres.Any())
             {
@@ -156,9 +162,9 @@ namespace Storage
             return entity;
         }
 
-        public static IPersistableEntity FromRepositoryType(this IPersistableEntity entity)
+        public static TEntity FromRepositoryType<TEntity>(this IPersistableEntity entity)
         {
-            return entity;
+            return (TEntity) entity;
         }
     }
 

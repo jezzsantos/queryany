@@ -3,9 +3,9 @@ using Storage.Interfaces;
 
 namespace Storage.IntegrationTests
 {
-    public class TestAzureCosmosStorage<TEntity> : AzureCosmosStorage<TEntity> where TEntity : IPersistableEntity, new()
+    public class TestAzureStorage<TEntity> : AzureCosmosStorage<TEntity> where TEntity : IPersistableEntity, new()
     {
-        public TestAzureCosmosStorage(IAzureCosmosConnection connection, string containerName) : base(connection)
+        public TestAzureStorage(IAzureStorageConnection connection, string containerName) : base(connection)
         {
             Guard.AgainstNullOrEmpty(() => containerName, containerName);
             ContainerName = containerName;
