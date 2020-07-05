@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
+using Services.Interfaces;
 using ServiceStack;
 using Storage.Interfaces;
 
@@ -135,7 +136,7 @@ namespace Storage.IntegrationTests
                 AStringValue = "updated"
             };
 
-            Assert.ThrowsException<EntityNotExistsException>(() =>
+            Assert.ThrowsException<ResourceNotFoundException>(() =>
                 this.storage.Update(entity, false));
         }
 
@@ -144,7 +145,7 @@ namespace Storage.IntegrationTests
         {
             var entity = new TestEntity();
 
-            Assert.ThrowsException<EntityNotIdentifiedException>(() =>
+            Assert.ThrowsException<ResourceNotFoundException>(() =>
                 this.storage.Update(entity, false));
         }
 

@@ -58,7 +58,7 @@ Contains the shared definitions of the consumers of the storage layer (i.e. the 
 
 Intended to define the interface for implementers of specific storage databases, and repositories.
 
-## Storage
+## Storage and Storage.???
 
 Concrete implementations of `IStorage<TEntity>` for various storage technologies.
 

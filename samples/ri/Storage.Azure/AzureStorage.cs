@@ -5,13 +5,13 @@ using Services.Interfaces;
 using ServiceStack;
 using Storage.Interfaces;
 
-namespace Storage
+namespace Storage.Azure
 {
-    public abstract class AzureCosmosStorage<TEntity> : IStorage<TEntity> where TEntity : IPersistableEntity, new()
+    public abstract class AzureStorage<TEntity> : IStorage<TEntity> where TEntity : IPersistableEntity, new()
     {
         private readonly IAzureStorageConnection connection;
 
-        protected AzureCosmosStorage(IAzureStorageConnection connection)
+        protected AzureStorage(IAzureStorageConnection connection)
         {
             Guard.AgainstNull(() => connection, connection);
             this.connection = connection;
@@ -52,13 +52,13 @@ namespace Storage
             Guard.AgainstNull(() => entity, entity);
             if (!entity.Id.HasValue())
             {
-                throw new EntityNotIdentifiedException("Entity has empty identifier");
+                throw new ResourceNotFoundException("Entity has empty identifier");
             }
 
             var latest = Get(entity.Id);
             if (latest == null)
             {
-                throw new EntityNotExistsException("Entity not found");
+                throw new ResourceNotFoundException();
             }
 
             latest.PopulateWith(entity);

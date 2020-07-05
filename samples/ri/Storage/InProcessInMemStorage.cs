@@ -45,13 +45,13 @@ namespace Storage
             Guard.AgainstNull(() => entity, entity);
             if (!entity.Id.HasValue())
             {
-                throw new EntityNotIdentifiedException("Entity has empty identifier");
+                throw new ResourceNotFoundException("Entity has empty identifier");
             }
 
             var latest = Get(entity.Id);
             if (latest == null)
             {
-                throw new EntityNotExistsException("Entity not found");
+                throw new ResourceNotFoundException();
             }
 
             latest.PopulateWith(entity);

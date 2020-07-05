@@ -13,12 +13,12 @@ namespace CarsApi.IntegrationTests
     {
         private const string ServiceUrl = "http://localhost:2000/";
         private ServiceStackHost appHost;
-        private CarInMemStorage store;
+        private CarEntityInMemStorage store;
 
         [TestInitialize]
         public void Initialize()
         {
-            this.store = new CarInMemStorage(new InProcessInMemRepository(new GuidIdentifierFactory()));
+            this.store = new CarEntityInMemStorage(new InProcessInMemRepository(new GuidIdentifierFactory()));
 
             this.appHost = new TestAppHost();
             this.appHost.Container.AddSingleton<IStorage<CarEntity>>(this.store);

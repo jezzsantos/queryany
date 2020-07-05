@@ -1,6 +1,6 @@
 ﻿using Storage.Interfaces;
 
-namespace Storage
+namespace Storage.Azure
 {
     public class AzureCosmosTableApiRepository : AzureTableStorageRepository
     {

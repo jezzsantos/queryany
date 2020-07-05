@@ -1,6 +1,6 @@
 ﻿using QueryAny.Primitives;
 
-namespace Storage
+namespace Storage.Azure
 {
     public interface IAzureStorageConnection
     {

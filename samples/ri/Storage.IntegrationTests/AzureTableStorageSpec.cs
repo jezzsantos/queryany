@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny.Primitives;
+using Storage.Azure;
 using Storage.Interfaces;
 
 namespace Storage.IntegrationTests

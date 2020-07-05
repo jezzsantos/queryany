@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Storage.Azure;
 using Storage.Interfaces;
 
 namespace Storage.IntegrationTests

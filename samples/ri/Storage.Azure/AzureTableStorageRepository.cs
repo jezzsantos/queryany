@@ -12,7 +12,7 @@ using Services.Interfaces;
 using ServiceStack;
 using Storage.Interfaces;
 
-namespace Storage
+namespace Storage.Azure
 {
     public class AzureTableStorageRepository : IRepository
     {

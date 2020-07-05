@@ -35,7 +35,7 @@ namespace CarsApi
             container.AddSingleton<IIdentifierFactory, GuidIdentifierFactory>();
             container.AddSingleton(c => new InProcessInMemRepository(c.Resolve<IIdentifierFactory>()));
             container.AddSingleton<IStorage<CarEntity>>(c =>
-                new CarInMemStorage(c.Resolve<InProcessInMemRepository>()));
+                new CarEntityInMemStorage(c.Resolve<InProcessInMemRepository>()));
             container.AddSingleton<ICars, Cars>();
         }
 

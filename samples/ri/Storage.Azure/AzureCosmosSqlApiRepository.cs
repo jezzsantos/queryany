@@ -14,7 +14,7 @@ using ServiceStack;
 using Storage.Interfaces;
 using StringExtensions = ServiceStack.StringExtensions;
 
-namespace Storage
+namespace Storage.Azure
 {
     public class AzureCosmosSqlApiRepository : IRepository
     {

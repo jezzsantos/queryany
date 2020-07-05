@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
+using Storage.Azure;
 
 namespace Storage.UnitTests
 {
