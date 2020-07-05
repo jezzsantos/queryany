@@ -40,8 +40,9 @@ namespace CarsDomain.Entities
 
         public void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
+            Id = properties.GetValueOrDefault<string>(nameof(Id));
             CreatedOnUtc = properties.GetValueOrDefault<DateTime>(nameof(CreatedOnUtc));
-            Model = properties.GetValueOrDefault<CarModel>(nameof(CarModel));
+            Model = properties.GetValueOrDefault<CarModel>(nameof(Model));
             OccupiedUntilUtc = properties.GetValueOrDefault<DateTime>(nameof(OccupiedUntilUtc));
         }
 

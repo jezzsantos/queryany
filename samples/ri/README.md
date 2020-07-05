@@ -84,4 +84,13 @@ Contains all unit level tests for all components in the architecture, separated 
 
 ## Local Development and Testing
 
-See: [Getting Started](https://github.com/jezzsantos/queryany/wiki/Getting-Started) for details on how to build, and execute tests in this sample.
+1. First: [Getting Started](https://github.com/jezzsantos/queryany/wiki/Getting-Started) for details on what you need installed on your machine.
+2. Hit F5 to run the `CarsApi` project locally. (A browser should open to API documentation site).
+3. You need to start the Azure CosmosDB emulator on your machine (from Start Menu), and ensure that you have created a new cosmos database called: "Production"
+
+### Test the API
+
+To test everything is working:
+
+1. Navigate to: [GET https://localhost:5001/cars/available](https://localhost:5001/cars/available) (you should get an empty array of cars in response)
+2. Create a new car by calling (using a tool like PostMan): `POST /cars` with a JSON body like this: `{"Year": 2020,"Make": "Honda","Model": "Civic"}` 

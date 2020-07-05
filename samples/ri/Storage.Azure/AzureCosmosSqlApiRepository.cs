@@ -18,9 +18,14 @@ namespace Storage.Azure
 {
     public class AzureCosmosSqlApiRepository : IRepository
     {
-        private const string DefaultPartitionKeyPath = @"/id";
+        internal const string IdentifierPropertyName = @"id";
         internal const string ContainerAlias = @"t";
         private const int DefaultThroughput = 400;
+
+        internal static readonly string[] CosmosReservedPropertyNames =
+            {"_rid", "_self", "_etag", "_attachments", "_ts"};
+
+        private static readonly string DefaultPartitionKeyPath = $"/{IdentifierPropertyName}";
         private readonly string connectionString;
         private readonly Dictionary<string, Container> containers = new Dictionary<string, Container>();
         private readonly string databaseName;
@@ -273,6 +278,14 @@ namespace Storage.Azure
             ComplexTypesFromContainerEntity(containerEntityProperties, entityPropertyTypeInfo,
                 convertedEntityProperties);
 
+            var entityId = containerEntityProperties[AzureCosmosSqlApiRepository.IdentifierPropertyName];
+            containerEntityProperties.Add(nameof(IPersistableEntity.Id), entityId);
+            containerEntityProperties.Remove(AzureCosmosSqlApiRepository.IdentifierPropertyName);
+            foreach (var reservedPropertyName in AzureCosmosSqlApiRepository.CosmosReservedPropertyNames)
+            {
+                containerEntityProperties.Remove(reservedPropertyName);
+            }
+
             var entity = entityType.CreateInstance<IPersistableEntity>();
             entity.Rehydrate(containerEntityProperties);
             return entity;
@@ -333,7 +346,7 @@ namespace Storage.Azure
             }
 
             containerEntityProperties.Remove(nameof(IPersistableEntity.EntityName));
-            containerEntityProperties.Add("id", entityProperties[nameof(IPersistableEntity.Id)]);
+            containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id);
 
             return containerEntity;
         }

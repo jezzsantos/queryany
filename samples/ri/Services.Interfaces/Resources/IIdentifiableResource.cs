@@ -1,6 +1,6 @@
 ﻿namespace Services.Interfaces.Resources
 {
-    public interface IKeyedResource
+    public interface IIdentifiableResource
     {
         string Id { get; set; }
     }

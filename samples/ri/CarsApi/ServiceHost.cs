@@ -3,9 +3,11 @@ using CarsApi.Validators;
 using CarsDomain;
 using CarsDomain.Entities;
 using Funq;
+using Microsoft.Extensions.Configuration;
 using ServiceStack;
 using ServiceStack.Validation;
 using Storage;
+using Storage.Azure;
 using Storage.Interfaces;
 
 namespace CarsApi
@@ -32,10 +34,7 @@ namespace CarsApi
 
         private static void RegisterDependencies(Container container)
         {
-            container.AddSingleton<IIdentifierFactory, GuidIdentifierFactory>();
-            container.AddSingleton(c => new InProcessInMemRepository(c.Resolve<IIdentifierFactory>()));
-            container.AddSingleton<IStorage<CarEntity>>(c =>
-                new CarEntityInMemStorage(c.Resolve<InProcessInMemRepository>()));
+            RegisterCarsStorage(container);
             container.AddSingleton<ICars, Cars>();
         }
 
@@ -45,6 +44,18 @@ namespace CarsApi
             container.RegisterValidators(AssembliesContainingServicesAndDependencies);
             container.AddSingleton<IHasSearchOptionsValidator, HasSearchOptionsValidator>();
             container.AddSingleton<IHasGetOptionsValidator, HasGetOptionsValidator>();
+        }
+
+        private static void RegisterCarsStorage(Container container)
+        {
+            var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
+            var accountKey = config["AzureCosmosDbAccountKey"];
+            var hostName = config["AzureCosmosDbHostName"];
+            var localEmulatorConnectionString = $"AccountEndpoint=https://{hostName}:8081/;AccountKey={accountKey}";
+            container.AddSingleton<IStorage<CarEntity>>(c =>
+                new CarEntityAzureStorage(new AzureStorageConnection(
+                    new AzureCosmosSqlApiRepository(localEmulatorConnectionString, "Production",
+                        new GuidIdentifierFactory()))));
         }
     }
 }
