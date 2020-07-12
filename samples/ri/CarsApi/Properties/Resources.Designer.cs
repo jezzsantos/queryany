@@ -61,6 +61,15 @@ namespace CarsApi.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Id of the resource is not a valid identifier.
+        /// </summary>
+        public static string AnyValidator_InvalidId {
+            get {
+                return ResourceManager.GetString("AnyValidator_InvalidId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Make of the car can only be {0}.
         /// </summary>
         public static string CreateCarRequestValidator_InvalidMake {
@@ -156,6 +165,15 @@ namespace CarsApi.Properties {
         public static string HasSearchOptionsValidator_InvalidSort {
             get {
                 return ResourceManager.GetString("HasSearchOptionsValidator_InvalidSort", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The UntilUtc must be a valid date adn time.
+        /// </summary>
+        public static string OccupyCarRequestValidator_InvalidUntilUtc {
+            get {
+                return ResourceManager.GetString("OccupyCarRequestValidator_InvalidUntilUtc", resourceCulture);
             }
         }
     }

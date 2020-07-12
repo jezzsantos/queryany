@@ -150,4 +150,10 @@
   <data name="CreateCarRequestValidator_InvalidModel" xml:space="preserve">
     <value>The Model of the car must be {0}</value>
   </data>
+  <data name="AnyValidator_InvalidId" xml:space="preserve">
+    <value>The Id of the resource is not a valid identifier</value>
+  </data>
+  <data name="OccupyCarRequestValidator_InvalidUntilUtc" xml:space="preserve">
+    <value>The UntilUtc must be a valid date adn time</value>
+  </data>
 </root>

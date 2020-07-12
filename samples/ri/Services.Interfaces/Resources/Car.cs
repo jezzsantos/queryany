@@ -6,8 +6,6 @@ namespace Services.Interfaces.Resources
     {
         public CarModel Model { get; set; }
 
-        public DateTime CreatedOnUtc { get; set; }
-
         public DateTime OccupiedUntilUtc { get; set; }
         public string Id { get; set; }
     }

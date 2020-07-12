@@ -31,6 +31,22 @@ namespace CarsDomain
             return carEntity.ConvertTo<Car>();
         }
 
+        public Car Occupy(ICurrentCaller caller, string id, in DateTime untilUtc)
+        {
+            Guard.AgainstNullOrEmpty(() => id, id);
+
+            var car = this.storage.Get(id);
+            if (id == null)
+            {
+                throw new ResourceNotFoundException();
+            }
+
+            car.Occupy(untilUtc);
+            this.storage.Update(car, false);
+
+            return car.ConvertTo<Car>();
+        }
+
         public List<Car> SearchAvailable(ICurrentCaller caller, SearchOptions searchOptions, GetOptions getOptions)
         {
             var query = Query.From<CarEntity>()

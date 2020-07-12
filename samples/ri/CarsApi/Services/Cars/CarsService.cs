@@ -32,5 +32,13 @@ namespace CarsApi.Services.Cars
                 Car = this.cars.Create(Request.ToCaller(), request.Year, request.Make, request.Model)
             };
         }
+        
+        public OccupyCarResponse Put(OccupyCarRequest request)
+        {
+            return new OccupyCarResponse
+            {
+                Car = this.cars.Occupy(Request.ToCaller(), request.Id, request.UntilUtc)
+            };
+        }
     }
 }
