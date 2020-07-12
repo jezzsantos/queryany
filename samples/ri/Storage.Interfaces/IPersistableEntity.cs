@@ -3,7 +3,7 @@ using QueryAny;
 
 namespace Storage.Interfaces
 {
-    public interface IPersistableEntity : IIdentifyableEntity, INamedEntity
+    public interface IPersistableEntity : IIdentifiableEntity, INamedEntity
     {
         Dictionary<string, object> Dehydrate();
 

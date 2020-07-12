@@ -1,6 +1,6 @@
 ﻿namespace Storage.Interfaces
 {
-    public interface IIdentifyableEntity
+    public interface IIdentifiableEntity
     {
         string Id { get; }
 
