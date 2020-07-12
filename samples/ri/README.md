@@ -1,26 +1,28 @@
 # QueryAny Reference Implementation
 
-This folder contains a very close to real world example of a REST based API for managing Cars for a Car Sharing software product.
+This folder contains a very close to real world example of a REST based API for managing Cars for a Car Sharing software product, that follows many of the principles of Domain Drive Design (DDD) and Clean Architecture/Onion Architecture/Hexagonal Architecture.
 
-The example is split into several layers to mimic a real world implementation. 
+The example is split into several layers to mimic the real world implementation it was based from.
 
-It has tried not to be too opinionated about those layers, other than to assume that you would split your projects into logical layers for maintainability, testability, reuse and future scalability as your product grows.
+It has tried not to be too opinionated about the layout of files/folders/assemblies on disk, other than to assume that you would split your projects/components into logical, testable layers for maintainability, reuse and future scalability (scale out), as your product grows.
 
-The RI solution demonstrates strict discipline around decoupling and separation of concerns, both of which manage change well as a product scales.
+The RI solution demonstrates strict discipline around decoupling and separation of concerns, both of which manage accidental complexity as things change, and as the codebase scales.
 
- 
+> There are some interesting implementation patterns demonstrated within this RI. Remmeber that this RI is just *one* way of doing things. There are many ways of doing the same kind of thing, with various design tradeoffs. If you are looking for the *best* way to do things, then you haven't programmed long enough to learn that there is no such thing. Our advice to you is start with something small, and adapt it as you learn more, avoid over-engineering it at all costs. If in doubt, favor what you definately know you have to work with, rather than attempting to future proof it. KISS, DRY and YAGNI my friend.
 
-The RI solution is structured as follows:
+# Architecture
+
+The RI solution is structured on disk as follows:
 
 ## CarsApi
 
-This is the web host. In this case its ASP.NET Core running the [ServiceStack](http://www.servicestack.net) framework on Windows. 
+This is the web host. In this case its ASP.NET Core running the [ServiceStack](http://www.servicestack.net) framework on Windows. It could be whever web host you like.
 
-> We chose ServiceStack for two main reasons. (1) it makes defining and configuring services so much easier than Microsoft's WebApi, (2) it includes an `auto-mapper` essential for easily maintaining abstractions between service operations, domain logic and storage layers.
+> We chose ServiceStack for two main reasons. (1) it makes defining and configuring services so much easier than Microsoft's WebApi (in many dimensions), (2) it includes an `auto-mapper` essential for easily maintaining abstractions between service operations, domain entities and infrastructure layers.
 
 It defines the HTTP REST endpoints (service operations) and their contracts. 
 
-It handles the conversion between HTTP requests <-> Domain Logic. Including: formats, exception mapping, routes, request validation etc.
+It handles the conversion between HTTP requests <-> Domain Logic. Including: wire-formats, exception mapping, routes, request validation etc.
 
 It contains the `ServiceHost` class (specific to ServiceStack) which loads all service endpoints, and uses dependency injection for all runtime dependencies.
 
@@ -30,17 +32,17 @@ It contains the `ServiceHost` class (specific to ServiceStack) which loads all s
 
 Essentially the core domain logic layer.
 
-> In a real architecture, would never actually name this layer or types using the suffix "Domain"
+> In a real architecture, would never actually name this layer or types within it using the suffix "Domain"
 
 It defines the domain logic classes, all domains specific rules, etc.
 
-It contains a thin 'application layer' (in DDD parlance) used to coordinate the various domain functions on the domain entities.  
+It contains a thin 'application layer' (in DDD parlance) or 'Interactor' (in Clean Architecture parlance) used to coordinate the various domain functions on the various domain entities. This layer orchectrates the domain entities, and manges persistence of them, and all interactions with infrastructure layers (ie. The Web, Persitence, External Services).
 
 > In this case we have included the domain entities in this assembly for simplicity, but you may want to have a separate assembly for the entities of this domain to make your domain more portable.
 
-> The domain entities in this implementation are relatively simple in terms of functionality and rules (almost anemic - due to limited scope of the sample). 
+> The domain entities in this implementation are relatively simple in terms of functionality and rules (close to anemic - due to limited scope of the sample).
 
-> They are also persistent aware for simplicity. There are many ways to handle/decouple persistence from your entities, this is one pattern, you may desire another. You definitely don't want you entities to do their own persistence (like ActiveRecord), but having the knowledge of what data they need to be serialized and deserialized is something in practice they could know.
+> They are also persistent "aware" for simplicity. There are many ways to handle/decouple persistence from your entities, this is one pattern, you may desire another. You definitely don't want you entities to do their own persistence (like ActiveRecord does), but having the knowledge of what internal data they need to be serialized and deserialized is something in practice they could legitimately know. YMMV, this pattern is absolutely scalable and simple to maintain.
 
 > We anticipate that there will be one of these assemblies for every major domain in the product.
 
