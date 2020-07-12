@@ -2,7 +2,7 @@
 <module type="RIDER_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$/../../../README.md" />
-    <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.Azure" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.Redis" />
     <content url="file://$MODULE_DIR$/../../../appveyor.yml" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/CarsApi" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/CarsApi.IntegrationTests" />
@@ -11,6 +11,7 @@
     <content url="file://$MODULE_DIR$/../../../samples/ri/README.md" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Services.Interfaces" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.Azure" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.IntegrationTests" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.Interfaces" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.UnitTests" />

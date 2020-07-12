@@ -37,7 +37,7 @@ namespace Storage
         {
             Guard.AgainstNullOrEmpty(() => id, id);
 
-            return this.store.Get<TEntity>(ContainerName, id);
+            return this.store.Retrieve<TEntity>(ContainerName, id);
         }
 
         public TEntity Update(TEntity entity, bool ignoreConcurrency)
@@ -56,7 +56,7 @@ namespace Storage
 
             latest.PopulateWith(entity);
 
-            this.store.Update(ContainerName, entity.Id, entity);
+            this.store.Replace(ContainerName, entity.Id, entity);
             return entity;
         }
 

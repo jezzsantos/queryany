@@ -85,7 +85,7 @@ Contains all unit level tests for all components in the architecture, separated 
 ## Local Development and Testing
 
 1. First: [Getting Started](https://github.com/jezzsantos/queryany/wiki/Getting-Started) for details on what you need installed on your machine.
-2. Hit F5 to run the `CarsApi` project locally. (A browser should open to API documentation site).
+2. Start the `CarsApi` project locally. (A browser should open to API documentation site).
 3. You need to start the Azure CosmosDB emulator on your machine (from Start Menu), and ensure that you have created a new cosmos database called: "Production"
 
 ### Test the API

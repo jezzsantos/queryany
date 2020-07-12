@@ -43,6 +43,11 @@ namespace Storage.Azure
             this.idFactory = idFactory;
         }
 
+        public void Dispose()
+        {
+            // No need to do anything here. IDisposable is used as a marker interface
+        }
+
         public string Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
         {
             var container = EnsureContainer(containerName);
@@ -66,7 +71,7 @@ namespace Storage.Azure
             }
         }
 
-        public TEntity Get<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
+        public TEntity Retrieve<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
         {
             var container = EnsureContainer(containerName);
 
@@ -75,12 +80,12 @@ namespace Storage.Azure
             return containerEntity;
         }
 
-        public void Update<TEntity>(string containerName, string entityId, TEntity entity)
+        public void Replace<TEntity>(string containerName, string id, TEntity entity)
             where TEntity : IPersistableEntity, new()
         {
             var container = EnsureContainer(containerName);
 
-            var containerEntity = RetrieveContainerEntitySafe<TEntity>(container, entityId);
+            var containerEntity = RetrieveContainerEntitySafe<TEntity>(container, id);
             if (containerEntity != null)
             {
                 container.UpsertItemAsync(entity.ToContainerEntity());
@@ -166,11 +171,6 @@ namespace Storage.Azure
             var container = EnsureContainer(containerName);
             container.DeleteContainerAsync().GetAwaiter().GetResult();
             this.containers.Remove(containerName);
-        }
-
-        public void Dispose()
-        {
-            // No need to do anything here. IDisposable is used as a marker interface
         }
 
         private List<JObject> QueryJoiningContainer(QueriedEntity<INamedEntity> joinedEntity,
@@ -272,15 +272,20 @@ namespace Storage.Azure
         public static IPersistableEntity FromContainerEntity(this JObject containerEntity, Type entityType)
         {
             var entityPropertyTypeInfo = entityType.GetProperties();
-            var containerEntityProperties = containerEntity.ToObject<Dictionary<string, object>>();
+            var containerEntityProperties = containerEntity
+                .ToObject<Dictionary<string, object>>();
 
-            var convertedEntityProperties = new Dictionary<string, object>();
-            ComplexTypesFromContainerEntity(containerEntityProperties, entityPropertyTypeInfo,
-                convertedEntityProperties);
+            ComplexTypesFromContainerEntity(containerEntityProperties, entityPropertyTypeInfo);
 
-            var entityId = containerEntityProperties[AzureCosmosSqlApiRepository.IdentifierPropertyName];
-            containerEntityProperties.Add(nameof(IPersistableEntity.Id), entityId);
-            containerEntityProperties.Remove(AzureCosmosSqlApiRepository.IdentifierPropertyName);
+            if (!containerEntityProperties.ContainsKey(nameof(IPersistableEntity.Id)))
+            {
+                var entityId = containerEntityProperties[AzureCosmosSqlApiRepository.IdentifierPropertyName];
+                containerEntityProperties.Add(nameof(IPersistableEntity.Id), entityId);
+            }
+            if (containerEntityProperties.ContainsKey(AzureCosmosSqlApiRepository.IdentifierPropertyName))
+            {
+                containerEntityProperties.Remove(AzureCosmosSqlApiRepository.IdentifierPropertyName);
+            }
             foreach (var reservedPropertyName in AzureCosmosSqlApiRepository.CosmosReservedPropertyNames)
             {
                 containerEntityProperties.Remove(reservedPropertyName);
@@ -292,9 +297,9 @@ namespace Storage.Azure
         }
 
         private static void ComplexTypesFromContainerEntity(
-            Dictionary<string, object> containerEntityProperties, PropertyInfo[] entityPropertyTypeInfo,
-            Dictionary<string, object> convertedEntityProperties)
+            Dictionary<string, object> containerEntityProperties, PropertyInfo[] entityPropertyTypeInfo)
         {
+            var convertedEntityProperties = new Dictionary<string, object>();
             foreach (var containerEntityProperty in containerEntityProperties)
             {
                 var entityPropertyType = entityPropertyTypeInfo.FirstOrDefault(ep =>

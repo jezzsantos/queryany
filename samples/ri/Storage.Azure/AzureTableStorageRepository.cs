@@ -67,7 +67,7 @@ namespace Storage.Azure
             }
         }
 
-        public TEntity Get<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
+        public TEntity Retrieve<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
         {
             var table = EnsureTable(containerName);
 
@@ -77,12 +77,12 @@ namespace Storage.Azure
                 : default;
         }
 
-        public void Update<TEntity>(string containerName, string entityId, TEntity entity)
+        public void Replace<TEntity>(string containerName, string id, TEntity entity)
             where TEntity : IPersistableEntity, new()
         {
             var table = EnsureTable(containerName);
 
-            var tableEntity = RetrieveTableEntitySafe(table, entityId);
+            var tableEntity = RetrieveTableEntitySafe(table, id);
             if (tableEntity != null)
             {
                 SafeExecute(table,
@@ -390,13 +390,13 @@ namespace Storage.Azure
         public static IPersistableEntity FromTableEntity(this DynamicTableEntity tableEntity, Type entityType,
             AzureTableStorageRepository.TableStorageApiOptions options)
         {
-            var entityPropertyTypes = entityType.GetProperties();
+            var entityPropertyTypeInfo = entityType.GetProperties();
             var propertyValues = tableEntity.Properties
-                .Where(te =>
-                    entityPropertyTypes.Any(prop => prop.Name.EqualsOrdinal(te.Key)) &&
-                    te.Value.PropertyAsObject != null)
+                .Where(pair =>
+                    entityPropertyTypeInfo.Any(prop => prop.Name.EqualsOrdinal(pair.Key)) &&
+                    pair.Value.PropertyAsObject != null)
                 .ToDictionary(pair => pair.Key,
-                    pair => pair.Value.FromTableEntityProperty(entityPropertyTypes
+                    pair => pair.Value.FromTableEntityProperty(entityPropertyTypeInfo
                         .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType, options));
 
             var entity = entityType.CreateInstance<IPersistableEntity>();

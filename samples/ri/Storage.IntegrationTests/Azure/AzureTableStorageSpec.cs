@@ -5,7 +5,7 @@ using QueryAny.Primitives;
 using Storage.Azure;
 using Storage.Interfaces;
 
-namespace Storage.IntegrationTests
+namespace Storage.IntegrationTests.Azure
 {
     [TestClass, TestCategory("Integration")]
     public class AzureTableStorageSpec : AzureStorageAccountBaseSpec
@@ -36,7 +36,7 @@ namespace Storage.IntegrationTests
         {
             if (!this.stores.ContainsKey(containerName))
             {
-                this.stores.Add(containerName, new TestAzureStorage<TEntity>(
+                this.stores.Add(containerName, new TestEntityAzureStorage<TEntity>(
                     new AzureStorageConnection(repository), containerName));
             }
 

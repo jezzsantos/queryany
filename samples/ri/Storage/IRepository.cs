@@ -11,9 +11,9 @@ namespace Storage
         
         void Remove<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new();
         
-        TEntity Get<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new();
+        TEntity Retrieve<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new();
 
-        void Update<TEntity>(string containerName, string entityId, TEntity entity)
+        void Replace<TEntity>(string containerName, string id, TEntity entity)
             where TEntity : IPersistableEntity, new();
 
         long Count(string containerName);

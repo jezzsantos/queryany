@@ -5,46 +5,37 @@ using Services.Interfaces;
 using ServiceStack;
 using Storage.Interfaces;
 
-namespace Storage.Azure
+namespace Storage.Redis
 {
-    public abstract class AzureStorage<TEntity> : IStorage<TEntity> where TEntity : IPersistableEntity, new()
+    public abstract class RedisInMemStorage<TEntity> : IStorage<TEntity> where TEntity : IPersistableEntity, new()
     {
-        private readonly IAzureStorageConnection connection;
+        private readonly IRepository repository;
 
-        protected AzureStorage(IAzureStorageConnection connection)
+        protected RedisInMemStorage(RedisInMemRepository repository)
         {
-            Guard.AgainstNull(() => connection, connection);
-            this.connection = connection;
+            Guard.AgainstNull(() => repository, repository);
+            this.repository = repository;
         }
 
         protected abstract string ContainerName { get; }
 
         public string Add(TEntity entity)
         {
-            using (var store = this.connection.Open())
-            {
-                return store.Add(ContainerName, entity);
-            }
+            return this.repository.Add(ContainerName, entity);
         }
 
         public void Delete(string id, bool ignoreConcurrency)
         {
             Guard.AgainstNullOrEmpty(() => id, id);
 
-            using (var store = this.connection.Open())
-            {
-                store.Remove<TEntity>(ContainerName, id);
-            }
+            this.repository.Remove<TEntity>(ContainerName, id);
         }
 
         public TEntity Get(string id)
         {
             Guard.AgainstNullOrEmpty(() => id, id);
 
-            using (var store = this.connection.Open())
-            {
-                return store.Retrieve<TEntity>(ContainerName, id);
-            }
+            return this.repository.Retrieve<TEntity>(ContainerName, id);
         }
 
         public TEntity Update(TEntity entity, bool ignoreConcurrency)
@@ -63,28 +54,19 @@ namespace Storage.Azure
 
             latest.PopulateWith(entity);
 
-            using (var store = this.connection.Open())
-            {
-                store.Replace(ContainerName, entity.Id, entity);
-            }
+            this.repository.Replace(ContainerName, entity.Id, entity);
 
             return entity;
         }
 
         public long Count()
         {
-            using (var store = this.connection.Open())
-            {
-                return store.Count(ContainerName);
-            }
+            return this.repository.Count(ContainerName);
         }
 
         public void DestroyAll()
         {
-            using (var store = this.connection.Open())
-            {
-                store.DestroyAll(ContainerName);
-            }
+            this.repository.DestroyAll(ContainerName);
         }
 
         public QueryResults<TEntity> Query(QueryClause<TEntity> query, SearchOptions options)
@@ -96,11 +78,7 @@ namespace Storage.Azure
                 return new QueryResults<TEntity>(new List<TEntity>());
             }
 
-            List<TEntity> resultEntities;
-            using (var store = this.connection.Open())
-            {
-                resultEntities = store.Query(ContainerName, query);
-            }
+            var resultEntities = this.repository.Query(ContainerName, query);
 
             return new QueryResults<TEntity>(resultEntities.ConvertAll(e => e));
         }

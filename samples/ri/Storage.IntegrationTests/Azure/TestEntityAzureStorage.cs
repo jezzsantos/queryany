@@ -2,11 +2,11 @@
 using Storage.Azure;
 using Storage.Interfaces;
 
-namespace Storage.IntegrationTests
+namespace Storage.IntegrationTests.Azure
 {
-    public class TestAzureStorage<TEntity> : AzureStorage<TEntity> where TEntity : IPersistableEntity, new()
+    public class TestEntityAzureStorage<TEntity> : AzureStorage<TEntity> where TEntity : IPersistableEntity, new()
     {
-        public TestAzureStorage(IAzureStorageConnection connection, string containerName) : base(connection)
+        public TestEntityAzureStorage(IAzureStorageConnection connection, string containerName) : base(connection)
         {
             Guard.AgainstNullOrEmpty(() => containerName, containerName);
             ContainerName = containerName;

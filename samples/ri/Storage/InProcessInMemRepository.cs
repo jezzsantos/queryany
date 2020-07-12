@@ -46,7 +46,7 @@ namespace Storage
             }
         }
 
-        public void Update<TEntity>(string containerName, string id, TEntity entity)
+        public void Replace<TEntity>(string containerName, string id, TEntity entity)
             where TEntity : IPersistableEntity, new()
         {
             if (this.containers.ContainsKey(containerName))
@@ -58,7 +58,7 @@ namespace Storage
             }
         }
 
-        public TEntity Get<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
+        public TEntity Retrieve<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
         {
             if (this.containers.ContainsKey(containerName))
             {

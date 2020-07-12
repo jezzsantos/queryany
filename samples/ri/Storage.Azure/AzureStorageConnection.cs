@@ -2,11 +2,6 @@
 
 namespace Storage.Azure
 {
-    public interface IAzureStorageConnection
-    {
-        IRepository Open();
-    }
-
     public class AzureStorageConnection : IAzureStorageConnection
     {
         private readonly IRepository repository;

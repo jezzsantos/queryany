@@ -4,12 +4,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Storage.Azure;
 using Storage.Interfaces;
 
-namespace Storage.IntegrationTests
+namespace Storage.IntegrationTests.Azure
 {
-    [TestClass, TestCategory("Integration")]
-    public class AzureCosmosTableApiStorageSpec : AzureCosmosStorageBaseSpec
+    [TestClass, TestCategory("Integration.NOCI")]
+    public class AzureCosmosSqlApiStorageSpec : AzureCosmosStorageBaseSpec
     {
-        private static AzureCosmosTableApiRepository repository;
+        private static AzureCosmosSqlApiRepository repository;
         private readonly Dictionary<string, object> stores = new Dictionary<string, object>();
 
         [ClassInitialize]
@@ -18,10 +18,10 @@ namespace Storage.IntegrationTests
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var accountKey = config["AzureCosmosDbAccountKey"];
             var hostName = config["AzureCosmosDbHostName"];
-            var localEmulatorConnectionString =
-                $"DefaultEndpointsProtocol=http;AccountName={hostName};AccountKey={accountKey};TableEndpoint=http://localhost:8902/;";
-            repository = new AzureCosmosTableApiRepository(localEmulatorConnectionString, new GuidIdentifierFactory());
-            InitializeAllTests(context, "/EnableTableEndpoint");
+            var localEmulatorConnectionString = $"AccountEndpoint=https://{hostName}:8081/;AccountKey={accountKey}";
+            repository = new AzureCosmosSqlApiRepository(localEmulatorConnectionString, "TestDatabase",
+                new GuidIdentifierFactory());
+            InitializeAllTests(context, null);
         }
 
         [ClassCleanup]
@@ -34,7 +34,7 @@ namespace Storage.IntegrationTests
         {
             if (!this.stores.ContainsKey(containerName))
             {
-                this.stores.Add(containerName, new TestAzureStorage<TEntity>(
+                this.stores.Add(containerName, new TestEntityAzureStorage<TEntity>(
                     new AzureStorageConnection(repository), containerName));
             }
 
