@@ -17,6 +17,9 @@ matrix:
     fast_finish: false
 install:
 - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/jezzsantos/queryany/master/ci/set-version-from-globalassemblyinfo-assemblyinformationalversion.ps1'))
+- ps: nuget install redis-64 -excludeversion
+- ps: redis-64\tools\redis-server.exe --service-install
+- ps: redis-64\tools\redis-server.exe --service-start
 before_build:
 - cmd: nuget restore src\QueryAny.sln
 build:
