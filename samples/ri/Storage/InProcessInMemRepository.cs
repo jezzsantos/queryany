@@ -11,8 +11,8 @@ namespace Storage
 {
     public class InProcessInMemRepository : IRepository
     {
-        private readonly Dictionary<string, Dictionary<string, IPersistableEntity>> containers =
-            new Dictionary<string, Dictionary<string, IPersistableEntity>>();
+        private readonly Dictionary<string, Dictionary<string, Dictionary<string, object>>> containers =
+            new Dictionary<string, Dictionary<string, Dictionary<string, object>>>();
 
         private readonly IIdentifierFactory idFactory;
 
@@ -26,12 +26,12 @@ namespace Storage
         {
             if (!this.containers.ContainsKey(containerName))
             {
-                this.containers.Add(containerName, new Dictionary<string, IPersistableEntity>());
+                this.containers.Add(containerName, new Dictionary<string, Dictionary<string, object>>());
             }
 
             var id = this.idFactory.Create(entity);
             entity.Identify(id);
-            this.containers[containerName].Add(entity.Id, entity.ToRepositoryType());
+            this.containers[containerName].Add(entity.Id, entity.ToContainerProperties());
             return id;
         }
 
@@ -46,16 +46,20 @@ namespace Storage
             }
         }
 
-        public void Replace<TEntity>(string containerName, string id, TEntity entity)
+        public TEntity Replace<TEntity>(string containerName, string id, TEntity entity)
             where TEntity : IPersistableEntity, new()
         {
             if (this.containers.ContainsKey(containerName))
             {
                 if (this.containers[containerName].ContainsKey(id))
                 {
-                    this.containers[containerName][id] = entity.ToRepositoryType();
+                    var entityProperties = entity.ToContainerProperties();
+                    this.containers[containerName][id] = entityProperties;
+                    return entityProperties.FromContainerProperties<TEntity>();
                 }
             }
+
+            return default;
         }
 
         public TEntity Retrieve<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
@@ -64,7 +68,7 @@ namespace Storage
             {
                 if (this.containers[containerName].ContainsKey(id))
                 {
-                    return this.containers[containerName][id].FromRepositoryType<TEntity>();
+                    return this.containers[containerName][id].FromContainerProperties<TEntity>();
                 }
             }
 
@@ -97,7 +101,7 @@ namespace Storage
                 {
                     Collection = this.containers.ContainsKey(je.EntityName)
                         ? this.containers[je.EntityName]
-                        : new Dictionary<string, IPersistableEntity>(),
+                        : new Dictionary<string, Dictionary<string, object>>(),
                     JoinedEntity = je
                 });
 
@@ -110,7 +114,7 @@ namespace Storage
                     var leftEntities = primaryEntities
                         .ToDictionary(e => e.Id, e => e.Dehydrate());
                     var rightEntities = joinedContainer.Value.Collection
-                        .ToDictionary(e => e.Key, e => e.Value.Dehydrate());
+                        .ToDictionary(e => e.Key, e => e.Value);
 
                     primaryEntities = join
                         .JoinResults<TEntity>(leftEntities, rightEntities,
@@ -139,7 +143,7 @@ namespace Storage
         {
             var primaryEntities = this.containers[containerName].Values
                 .ToList()
-                .ConvertAll(e => e.FromRepositoryType<TEntity>());
+                .ConvertAll(e => e.FromContainerProperties<TEntity>());
 
             if (!query.Wheres.Any())
             {
@@ -157,14 +161,26 @@ namespace Storage
 
     public static class InMemEntityExtensions
     {
-        public static IPersistableEntity ToRepositoryType(this IPersistableEntity entity)
+        public static Dictionary<string, object> ToContainerProperties(this IPersistableEntity entity)
         {
-            return entity;
+            var nowUtc = DateTime.UtcNow;
+            var entityProperties = entity.Dehydrate();
+            if (!entity.CreatedAtUtc.HasValue())
+            {
+                entityProperties[nameof(IModifiableEntity.CreatedAtUtc)] = nowUtc;
+            }
+
+            entityProperties[nameof(IModifiableEntity.LastModifiedAtUtc)] = nowUtc;
+
+            return entityProperties;
         }
 
-        public static TEntity FromRepositoryType<TEntity>(this IPersistableEntity entity)
+        public static TEntity FromContainerProperties<TEntity>(this Dictionary<string, object> entityProperties)
+            where TEntity : IPersistableEntity, new()
         {
-            return (TEntity) entity;
+            var entity = new TEntity();
+            entity.Rehydrate(entityProperties);
+            return entity;
         }
     }
 

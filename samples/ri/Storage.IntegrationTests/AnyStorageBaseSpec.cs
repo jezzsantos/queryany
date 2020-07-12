@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
@@ -12,6 +11,7 @@ namespace Storage.IntegrationTests
     public abstract class AnyStorageBaseSpec
 
     {
+        private static readonly IAssertion Assert = new Assertion();
         private IStorage<FirstJoiningTestEntity> firstJoiningStorage;
         private IStorage<SecondJoiningTestEntity> secondJoiningStorage;
         private IStorage<TestEntity> storage;
@@ -33,11 +33,17 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenAddAndEntityNotExists_ThenAddsNew()
         {
-            Assert.AreEqual(0, this.storage.Count());
+            Assert.Equal(0, this.storage.Count());
 
-            this.storage.Add(new TestEntity());
+            var id = this.storage.Add(new TestEntity());
 
-            Assert.AreEqual(1, this.storage.Count());
+            Assert.Equal(1, this.storage.Count());
+
+            var added = this.storage.Get(id);
+            Assert.Equal(id, added.Id);
+            Assert.Near(DateTime.UtcNow, added.CreatedAtUtc);
+            Assert.Near(DateTime.UtcNow, added.LastModifiedAtUtc);
+            Assert.True(added.LastModifiedAtUtc == added.CreatedAtUtc);
         }
 
         [TestMethod]
@@ -47,7 +53,7 @@ namespace Storage.IntegrationTests
 
             this.storage.Delete(id, false);
 
-            Assert.AreEqual(0, this.storage.Count());
+            Assert.Equal(0, this.storage.Count());
         }
 
         [TestMethod]
@@ -55,13 +61,13 @@ namespace Storage.IntegrationTests
         {
             this.storage.Delete("anid", false);
 
-            Assert.AreEqual(0, this.storage.Count());
+            Assert.Equal(0, this.storage.Count());
         }
 
         [TestMethod]
         public void WhenDeleteAndIdIsEmpty_ThenThrows()
         {
-            Assert.ThrowsException<ArgumentNullException>(() =>
+            Assert.Throws<ArgumentNullException>(() =>
                 this.storage.Delete(null, false));
         }
 
@@ -70,7 +76,7 @@ namespace Storage.IntegrationTests
         {
             var entity = this.storage.Get("anid");
 
-            Assert.IsNull(entity);
+            Assert.Null(entity);
         }
 
         [TestMethod]
@@ -97,22 +103,25 @@ namespace Storage.IntegrationTests
 
             var result = this.storage.Get(id);
 
-            Assert.IsTrue(result.ABinaryValue.SequenceEqual(new byte[] {0x01}));
-            Assert.AreEqual(true, result.ABooleanValue);
-            Assert.AreEqual(Guid.Empty, result.AGuidValue);
-            Assert.AreEqual(1, result.AIntValue);
-            Assert.AreEqual(2, result.ALongValue);
-            Assert.AreEqual(0.1, result.ADoubleValue);
-            Assert.AreEqual("astringvalue", result.AStringValue);
-            Assert.AreEqual(DateTime.Today.ToUniversalTime(), result.ADateTimeUtcValue);
-            Assert.AreEqual(DateTimeOffset.UnixEpoch.ToUniversalTime(), result.ADateTimeOffsetUtcValue);
-            Assert.AreEqual(new ComplexType {APropertyValue = "avalue"}.ToJson(), result.AComplexTypeValue.ToJson());
+            Assert.Equal(id, result.Id);
+            Assert.Near(DateTime.UtcNow, result.CreatedAtUtc);
+            Assert.Near(DateTime.UtcNow, result.LastModifiedAtUtc);
+            Assert.True(result.ABinaryValue.SequenceEqual(new byte[] {0x01}));
+            Assert.Equal(true, result.ABooleanValue);
+            Assert.Equal(Guid.Empty, result.AGuidValue);
+            Assert.Equal(1, result.AIntValue);
+            Assert.Equal(2, result.ALongValue);
+            Assert.Equal(0.1, result.ADoubleValue);
+            Assert.Equal("astringvalue", result.AStringValue);
+            Assert.Equal(DateTime.Today.ToUniversalTime(), result.ADateTimeUtcValue);
+            Assert.Equal(DateTimeOffset.UnixEpoch.ToUniversalTime(), result.ADateTimeOffsetUtcValue);
+            Assert.Equal(new ComplexType {APropertyValue = "avalue"}.ToJson(), result.AComplexTypeValue.ToJson());
         }
 
         [TestMethod]
         public void WhenGetAndIdIsEmpty_ThenThrows()
         {
-            Assert.ThrowsException<ArgumentNullException>(() =>
+            Assert.Throws<ArgumentNullException>(() =>
                 this.storage.Get(null));
         }
 
@@ -120,12 +129,16 @@ namespace Storage.IntegrationTests
         public void WhenUpdateAndExists_ThenReturnsUpdated()
         {
             var entity = new TestEntity();
-            this.storage.Add(entity);
+            var id = this.storage.Add(entity);
 
             entity.AStringValue = "updated";
             var updated = this.storage.Update(entity, false);
 
-            Assert.AreEqual("updated", updated.AStringValue);
+            Assert.Equal(id, updated.Id);
+            Assert.Equal("updated", updated.AStringValue);
+            Assert.Near(DateTime.UtcNow, updated.LastModifiedAtUtc);
+            Assert.True(updated.LastModifiedAtUtc > updated.CreatedAtUtc,
+                $"{nameof(IModifiableEntity.LastModifiedAtUtc)} ({updated.LastModifiedAtUtc:O}) is not after {nameof(IModifiableEntity.CreatedAtUtc)} ({updated.CreatedAtUtc:O})");
         }
 
         [TestMethod]
@@ -136,7 +149,7 @@ namespace Storage.IntegrationTests
                 AStringValue = "updated"
             };
 
-            Assert.ThrowsException<ResourceNotFoundException>(() =>
+            Assert.Throws<ResourceNotFoundException>(() =>
                 this.storage.Update(entity, false));
         }
 
@@ -145,7 +158,7 @@ namespace Storage.IntegrationTests
         {
             var entity = new TestEntity();
 
-            Assert.ThrowsException<ResourceNotFoundException>(() =>
+            Assert.Throws<ResourceNotFoundException>(() =>
                 this.storage.Update(entity, false));
         }
 
@@ -154,7 +167,7 @@ namespace Storage.IntegrationTests
         {
             var count = this.storage.Count();
 
-            Assert.AreEqual(0, count);
+            Assert.Equal(0, count);
         }
 
         [TestMethod]
@@ -165,13 +178,13 @@ namespace Storage.IntegrationTests
 
             var count = this.storage.Count();
 
-            Assert.AreEqual(2, count);
+            Assert.Equal(2, count);
         }
 
         [TestMethod]
         public void WhenQueryAndQueryIsNull_ThenThrows()
         {
-            Assert.ThrowsException<ArgumentNullException>(() =>
+            Assert.Throws<ArgumentNullException>(() =>
                 this.storage.Query(null, null));
         }
 
@@ -186,7 +199,7 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(0, results.Results.Count);
+            Assert.Equal(0, results.Results.Count);
         }
 
         [TestMethod]
@@ -201,8 +214,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -212,7 +225,7 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(0, results.Results.Count);
+            Assert.Equal(0, results.Results.Count);
         }
 
         [TestMethod]
@@ -226,7 +239,7 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(0, results.Results.Count);
+            Assert.Equal(0, results.Results.Count);
         }
 
         [TestMethod]
@@ -240,8 +253,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -259,9 +272,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(2, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
-            Assert.AreEqual(id2, results.Results[1].Id);
+            Assert.Equal(2, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
+            Assert.Equal(id2, results.Results[1].Id);
         }
 
         [TestMethod]
@@ -273,8 +286,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -286,8 +299,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -299,8 +312,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -312,8 +325,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -327,8 +340,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -343,8 +356,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -358,8 +371,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -374,8 +387,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -390,9 +403,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(2, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
-            Assert.AreEqual(id2, results.Results[1].Id);
+            Assert.Equal(2, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
+            Assert.Equal(id2, results.Results[1].Id);
         }
 
         [TestMethod]
@@ -406,8 +419,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -422,9 +435,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(2, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
-            Assert.AreEqual(id2, results.Results[1].Id);
+            Assert.Equal(2, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
+            Assert.Equal(id2, results.Results[1].Id);
         }
 
         [TestMethod]
@@ -439,8 +452,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -452,8 +465,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -465,8 +478,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -478,8 +491,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -491,9 +504,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(2, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
-            Assert.AreEqual(id2, results.Results[1].Id);
+            Assert.Equal(2, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
+            Assert.Equal(id2, results.Results[1].Id);
         }
 
         [TestMethod]
@@ -505,8 +518,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -518,9 +531,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(2, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
-            Assert.AreEqual(id2, results.Results[1].Id);
+            Assert.Equal(2, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
+            Assert.Equal(id2, results.Results[1].Id);
         }
 
         [TestMethod]
@@ -532,8 +545,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -545,8 +558,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -558,8 +571,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -573,8 +586,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -588,8 +601,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -603,8 +616,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -617,8 +630,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id2, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id2, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -631,8 +644,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -660,19 +673,19 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
+            Assert.Equal(1, results.Results.Count);
             var result = results.Results[0];
-            Assert.AreEqual(id, result.Id);
-            Assert.IsTrue(result.ABinaryValue.SequenceEqual(new byte[] {0x01}));
-            Assert.AreEqual(true, result.ABooleanValue);
-            Assert.AreEqual(Guid.Empty, result.AGuidValue);
-            Assert.AreEqual(1, result.AIntValue);
-            Assert.AreEqual(2, result.ALongValue);
-            Assert.AreEqual(0.1, result.ADoubleValue);
-            Assert.AreEqual("astringvalue", result.AStringValue);
-            Assert.AreEqual(DateTime.Today.ToUniversalTime(), result.ADateTimeUtcValue);
-            Assert.AreEqual(DateTimeOffset.UnixEpoch.ToUniversalTime(), result.ADateTimeOffsetUtcValue);
-            Assert.AreEqual(new ComplexType {APropertyValue = "avalue"}.ToJson(), result.AComplexTypeValue.ToJson());
+            Assert.Equal(id, result.Id);
+            Assert.True(result.ABinaryValue.SequenceEqual(new byte[] {0x01}));
+            Assert.Equal(true, result.ABooleanValue);
+            Assert.Equal(Guid.Empty, result.AGuidValue);
+            Assert.Equal(1, result.AIntValue);
+            Assert.Equal(2, result.ALongValue);
+            Assert.Equal(0.1, result.ADoubleValue);
+            Assert.Equal("astringvalue", result.AStringValue);
+            Assert.Equal(DateTime.Today.ToUniversalTime(), result.ADateTimeUtcValue);
+            Assert.Equal(DateTimeOffset.UnixEpoch.ToUniversalTime(), result.ADateTimeOffsetUtcValue);
+            Assert.Equal(new ComplexType {APropertyValue = "avalue"}.ToJson(), result.AComplexTypeValue.ToJson());
         }
 
         [TestMethod]
@@ -701,19 +714,19 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
+            Assert.Equal(1, results.Results.Count);
             var result = results.Results[0];
-            Assert.AreEqual(id, result.Id);
-            Assert.IsTrue(result.ABinaryValue.SequenceEqual(new byte[] {0x01}));
-            Assert.AreEqual(false, result.ABooleanValue);
-            Assert.AreEqual(Guid.Empty, result.AGuidValue);
-            Assert.AreEqual(0, result.AIntValue);
-            Assert.AreEqual(0, result.ALongValue);
-            Assert.AreEqual(0, result.ADoubleValue);
-            Assert.AreEqual(null, result.AStringValue);
-            Assert.AreEqual(DateTime.MinValue, result.ADateTimeUtcValue);
-            Assert.AreEqual(DateTimeOffset.MinValue, result.ADateTimeOffsetUtcValue);
-            Assert.AreEqual(null, result.AComplexTypeValue);
+            Assert.Equal(id, result.Id);
+            Assert.True(result.ABinaryValue.SequenceEqual(new byte[] {0x01}));
+            Assert.Equal(false, result.ABooleanValue);
+            Assert.Equal(Guid.Empty, result.AGuidValue);
+            Assert.Equal(0, result.AIntValue);
+            Assert.Equal(0, result.ALongValue);
+            Assert.Equal(0, result.ADoubleValue);
+            Assert.Equal(null, result.AStringValue);
+            Assert.Equal(DateTime.MinValue, result.ADateTimeUtcValue);
+            Assert.Equal(DateTimeOffset.MinValue, result.ADateTimeOffsetUtcValue);
+            Assert.Equal(null, result.AComplexTypeValue);
         }
 
         [TestMethod]
@@ -726,7 +739,7 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(0, results.Results.Count);
+            Assert.Equal(0, results.Results.Count);
         }
 
         [TestMethod]
@@ -742,8 +755,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -756,8 +769,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
         }
 
         [TestMethod]
@@ -774,10 +787,10 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(3, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
-            Assert.AreEqual(id2, results.Results[1].Id);
-            Assert.AreEqual(id3, results.Results[2].Id);
+            Assert.Equal(3, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
+            Assert.Equal(id2, results.Results[1].Id);
+            Assert.Equal(id3, results.Results[2].Id);
         }
 
         [TestMethod]
@@ -791,7 +804,7 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(0, results.Results.Count);
+            Assert.Equal(0, results.Results.Count);
         }
 
         [TestMethod]
@@ -808,9 +821,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
-            Assert.AreEqual(9, results.Results[0].AIntValue);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
+            Assert.Equal(9, results.Results[0].AIntValue);
         }
 
         [TestMethod]
@@ -824,9 +837,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
-            Assert.AreEqual(7, results.Results[0].AIntValue);
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
+            Assert.Equal(7, results.Results[0].AIntValue);
         }
 
         [TestMethod]
@@ -844,13 +857,13 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(3, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
-            Assert.AreEqual(9, results.Results[0].AIntValue);
-            Assert.AreEqual(id2, results.Results[1].Id);
-            Assert.AreEqual(7, results.Results[1].AIntValue);
-            Assert.AreEqual(id3, results.Results[2].Id);
-            Assert.AreEqual(7, results.Results[2].AIntValue);
+            Assert.Equal(3, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
+            Assert.Equal(9, results.Results[0].AIntValue);
+            Assert.Equal(id2, results.Results[1].Id);
+            Assert.Equal(7, results.Results[1].AIntValue);
+            Assert.Equal(id3, results.Results[2].Id);
+            Assert.Equal(7, results.Results[2].AIntValue);
         }
 
         [TestMethod]
@@ -872,117 +885,10 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.AreEqual(1, results.Results.Count);
-            Assert.AreEqual(id1, results.Results[0].Id);
-            Assert.AreEqual(9, results.Results[0].AIntValue);
-            Assert.AreEqual(8, results.Results[0].ALongValue);
-        }
-    }
-
-    public class TestEntity : IPersistableEntity
-    {
-        public TestEntity()
-        {
-        }
-
-        public TestEntity(string id)
-        {
-            Id = id;
-        }
-
-        public string AStringValue { get; set; }
-        public bool ABooleanValue { get; set; }
-        public DateTime ADateTimeUtcValue { get; set; }
-        public DateTimeOffset ADateTimeOffsetUtcValue { get; set; }
-        public double ADoubleValue { get; set; }
-        public Guid AGuidValue { get; set; }
-        public int AIntValue { get; set; }
-        public long ALongValue { get; set; }
-        public byte[] ABinaryValue { get; set; }
-        public ComplexType AComplexTypeValue { get; set; }
-
-        public string Id { get; private set; }
-
-        public void Identify(string id)
-        {
-            Id = id;
-        }
-
-        public string EntityName => "testentities";
-
-        public Dictionary<string, object> Dehydrate()
-        {
-            return this.ToObjectDictionary();
-        }
-
-        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
-        }
-    }
-
-    public class FirstJoiningTestEntity : IPersistableEntity
-    {
-        public string AStringValue { get; set; }
-        public int AIntValue { get; set; }
-
-        public string EntityName => "firstjoiningtestentities";
-
-        public string Id { get; private set; }
-
-        public void Identify(string id)
-        {
-            Id = id;
-        }
-
-        public Dictionary<string, object> Dehydrate()
-        {
-            return this.ToObjectDictionary();
-        }
-
-        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
-        }
-    }
-
-    public class SecondJoiningTestEntity : IPersistableEntity
-    {
-        public string AStringValue { get; set; }
-
-        // ReSharper disable once UnusedAutoPropertyAccessor.Global
-        public int AIntValue { get; set; }
-
-        public long ALongValue { get; set; }
-
-        public string EntityName => "secondjoiningtestentities";
-
-        public string Id { get; private set; }
-
-        public void Identify(string id)
-        {
-            Id = id;
-        }
-
-        public Dictionary<string, object> Dehydrate()
-        {
-            return this.ToObjectDictionary();
-        }
-
-        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
-        }
-    }
-
-    public class ComplexType
-    {
-        // ReSharper disable once UnusedAutoPropertyAccessor.Global
-        public string APropertyValue { get; set; }
-
-        public override string ToString()
-        {
-            return this.ToJson();
+            Assert.Equal(1, results.Results.Count);
+            Assert.Equal(id1, results.Results[0].Id);
+            Assert.Equal(9, results.Results[0].AIntValue);
+            Assert.Equal(8, results.Results[0].ALongValue);
         }
     }
 }

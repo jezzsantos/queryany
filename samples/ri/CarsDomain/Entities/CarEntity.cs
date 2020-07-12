@@ -5,43 +5,26 @@ using Storage.Interfaces;
 
 namespace CarsDomain.Entities
 {
-    public class CarEntity : IPersistableEntity
+    public class CarEntity : EntityBase
     {
-        public CarEntity()
-        {
-            CreatedOnUtc = DateTime.UtcNow;
-        }
-
         public CarModel Model { get; private set; }
-
-        public DateTime CreatedOnUtc { get; private set; }
 
         public DateTime OccupiedUntilUtc { get; private set; }
 
-        public string Id { get; private set; }
+        public override string EntityName => "Car";
 
-        public string EntityName => "Car";
-
-        public void Identify(string id)
+        public override Dictionary<string, object> Dehydrate()
         {
-            Guard.AgainstNullOrEmpty(() => id, id);
-            Id = id;
+            var properties = base.Dehydrate();
+            properties.Add(nameof(Model), Model);
+            properties.Add(nameof(OccupiedUntilUtc), OccupiedUntilUtc);
+
+            return properties;
         }
 
-        public Dictionary<string, object> Dehydrate()
+        public override void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
-            return new Dictionary<string, object>
-            {
-                {nameof(CreatedOnUtc), CreatedOnUtc},
-                {nameof(Model), Model},
-                {nameof(OccupiedUntilUtc), OccupiedUntilUtc}
-            };
-        }
-
-        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            Id = properties.GetValueOrDefault<string>(nameof(Id));
-            CreatedOnUtc = properties.GetValueOrDefault<DateTime>(nameof(CreatedOnUtc));
+            base.Rehydrate(properties);
             Model = properties.GetValueOrDefault<CarModel>(nameof(Model));
             OccupiedUntilUtc = properties.GetValueOrDefault<DateTime>(nameof(OccupiedUntilUtc));
         }
@@ -53,6 +36,11 @@ namespace CarsDomain.Entities
 
         public void Occupy(DateTime untilUtc)
         {
+            if (!untilUtc.HasValue())
+            {
+                throw new ArgumentOutOfRangeException(nameof(untilUtc));
+            }
+
             OccupiedUntilUtc = untilUtc;
         }
     }

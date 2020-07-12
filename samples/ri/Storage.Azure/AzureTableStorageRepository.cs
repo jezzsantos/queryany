@@ -77,7 +77,7 @@ namespace Storage.Azure
                 : default;
         }
 
-        public void Replace<TEntity>(string containerName, string id, TEntity entity)
+        public TEntity Replace<TEntity>(string containerName, string id, TEntity entity)
             where TEntity : IPersistableEntity, new()
         {
             var table = EnsureTable(containerName);
@@ -85,9 +85,14 @@ namespace Storage.Azure
             var tableEntity = RetrieveTableEntitySafe(table, id);
             if (tableEntity != null)
             {
-                SafeExecute(table,
-                    () => table.Execute(TableOperation.InsertOrReplace(entity.ToTableEntity(this.options))));
+                var result = SafeExecute(table,
+                        () => table.Execute(TableOperation.InsertOrReplace(entity.ToTableEntity(this.options))))
+                    .Result as DynamicTableEntity;
+
+                return result.FromTableEntity<TEntity>(this.options);
             }
+
+            return default;
         }
 
         public long Count(string containerName)
@@ -422,6 +427,15 @@ namespace Storage.Azure
                 Properties = entityProperties.ToTableEntityProperties(options)
             };
 
+            var utcNow = DateTime.UtcNow;
+            if (tableEntity.Properties[nameof(IModifiableEntity.CreatedAtUtc)].DateTime
+                .GetValueOrDefault(DateTime.MinValue).IsMinimumAllowableDate(options))
+            {
+                tableEntity.Properties[nameof(IModifiableEntity.CreatedAtUtc)].DateTime = utcNow;
+            }
+
+            tableEntity.Properties[nameof(IModifiableEntity.LastModifiedAtUtc)].DateTime = utcNow;
+
             return tableEntity;
         }
 
@@ -429,41 +443,42 @@ namespace Storage.Azure
             this IEnumerable<KeyValuePair<string, object>> entityProperties,
             AzureTableStorageRepository.TableStorageApiOptions options)
         {
-            EntityProperty ToEntityProperty(object property)
-            {
-                switch (property)
-                {
-                    case string text:
-                        return EntityProperty.GeneratePropertyForString(text);
-                    case DateTime dateTime:
-                        return EntityProperty.GeneratePropertyForDateTimeOffset(
-                            ToTableEntityDateTimeOffsetProperty(dateTime, options));
-                    case DateTimeOffset dateTimeOffset:
-                        return EntityProperty.GeneratePropertyForDateTimeOffset(
-                            ToTableEntityDateTimeOffsetProperty(dateTimeOffset, options));
-                    case bool boolean:
-                        return EntityProperty.GeneratePropertyForBool(boolean);
-                    case int int32:
-                        return EntityProperty.GeneratePropertyForInt(int32);
-                    case long int64:
-                        return EntityProperty.GeneratePropertyForLong(int64);
-                    case double @double:
-                        return EntityProperty.GeneratePropertyForDouble(@double);
-                    case Guid guid:
-                        return EntityProperty.GeneratePropertyForGuid(guid);
-                    case byte[] bytes:
-                        return EntityProperty.GeneratePropertyForByteArray(bytes);
-                    case null:
-                        return EntityProperty.CreateEntityPropertyFromObject(AzureTableStorageRepository.NullValue);
-                    default:
-                        var value = property.ToJson();
-                        return EntityProperty.GeneratePropertyForString(value);
-                }
-            }
-
             return entityProperties
                 .ToDictionary(pair => pair.Key,
-                    pair => ToEntityProperty(pair.Value));
+                    pair => ToTableEntityProperty(pair.Value, options));
+        }
+
+        private static EntityProperty ToTableEntityProperty(object property,
+            AzureTableStorageRepository.TableStorageApiOptions options)
+        {
+            switch (property)
+            {
+                case string text:
+                    return EntityProperty.GeneratePropertyForString(text);
+                case DateTime dateTime:
+                    return EntityProperty.GeneratePropertyForDateTimeOffset(
+                        ToTableEntityDateTimeOffsetProperty(dateTime, options));
+                case DateTimeOffset dateTimeOffset:
+                    return EntityProperty.GeneratePropertyForDateTimeOffset(
+                        ToTableEntityDateTimeOffsetProperty(dateTimeOffset, options));
+                case bool boolean:
+                    return EntityProperty.GeneratePropertyForBool(boolean);
+                case int int32:
+                    return EntityProperty.GeneratePropertyForInt(int32);
+                case long int64:
+                    return EntityProperty.GeneratePropertyForLong(int64);
+                case double @double:
+                    return EntityProperty.GeneratePropertyForDouble(@double);
+                case Guid guid:
+                    return EntityProperty.GeneratePropertyForGuid(guid);
+                case byte[] bytes:
+                    return EntityProperty.GeneratePropertyForByteArray(bytes);
+                case null:
+                    return EntityProperty.CreateEntityPropertyFromObject(AzureTableStorageRepository.NullValue);
+                default:
+                    var value = property.ToJson();
+                    return EntityProperty.GeneratePropertyForString(value);
+            }
         }
 
         private static object FromTableEntityProperty(this EntityProperty property, Type targetEntityType,
@@ -491,7 +506,7 @@ namespace Storage.Azure
                     return text;
 
                 case DateTime dateTime:
-                    return dateTime == options.MinimumAllowableUtcDateTime
+                    return dateTime.IsMinimumAllowableDate(options)
                         ? DateTime.MinValue.ToUniversalTime()
                         : dateTime;
 
@@ -531,6 +546,12 @@ namespace Storage.Azure
             }
 
             return null;
+        }
+
+        private static bool IsMinimumAllowableDate(this DateTime dateTime,
+            AzureTableStorageRepository.TableStorageApiOptions options)
+        {
+            return dateTime == options.MinimumAllowableUtcDateTime;
         }
     }
 

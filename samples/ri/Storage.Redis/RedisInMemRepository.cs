@@ -16,7 +16,6 @@ namespace Storage.Redis
     {
         private const string ContainerStorageKeyPrefix = @"in-mem:containers:";
         public const string RedisHashNullToken = @"null";
-        public const string TimeStampPropertyName = @"TimeStamp";
         private readonly string connectionString;
         private readonly IIdentifierFactory idFactory;
         private IRedisClientsManager redisClient;
@@ -62,23 +61,24 @@ namespace Storage.Redis
             var client = EnsureClient();
 
             var key = CreateRowKey(containerName, id);
-            var thing = RetrieveContainerEntitySafe<TEntity>(client, key);
-
-            return thing.Entity;
+            return RetrieveContainerEntitySafe<TEntity>(client, key);
         }
 
-        public void Replace<TEntity>(string containerName, string id, TEntity entity)
+        public TEntity Replace<TEntity>(string containerName, string id, TEntity entity)
             where TEntity : IPersistableEntity, new()
         {
             var client = EnsureClient();
 
             if (Exists(client, containerName, id))
             {
-                var key = CreateRowKey(containerName, id);
                 var keyValues = entity.ToContainerEntity();
+                var key = CreateRowKey(containerName, id);
                 client.Remove(key);
                 client.SetRangeInHash(key, keyValues);
+                return keyValues.FromContainerProperties<TEntity>();
             }
+
+            return default;
         }
 
         public long Count(string containerName)
@@ -145,8 +145,7 @@ namespace Storage.Redis
         {
             var primaryEntities = GetRowKeys(client, containerName)
                 .Select(rowKey => RetrieveContainerEntitySafe<TEntity>(client, rowKey))
-                .OrderBy(e => e.TimeStamp)
-                .Select(e => e.Entity)
+                .OrderBy(e => e.CreatedAtUtc)
                 .ToList();
 
             if (!query.Wheres.Any())
@@ -175,7 +174,7 @@ namespace Storage.Redis
 
             return GetRowKeys(client, containerName)
                 .ToDictionary(rowKey => rowKey,
-                    rowKey => RetrieveContainerEntitySafe(client, rowKey, joinedEntity.Join.Right.EntityType).Entity);
+                    rowKey => RetrieveContainerEntitySafe(client, rowKey, joinedEntity.Join.Right.EntityType));
         }
 
         private static string CreateRowKey<TEntity>(string containerName, TEntity entity)
@@ -194,7 +193,7 @@ namespace Storage.Redis
             return $"{ContainerStorageKeyPrefix}{containerName}:";
         }
 
-        private static RedisContainerEntity<TEntity> RetrieveContainerEntitySafe<TEntity>(IRedisClient client,
+        private static TEntity RetrieveContainerEntitySafe<TEntity>(IRedisClient client,
             string rowKey)
             where TEntity : IPersistableEntity, new()
         {
@@ -203,18 +202,18 @@ namespace Storage.Redis
                 var containerEntityProperties = client.GetAllEntriesFromHash(rowKey);
                 if (containerEntityProperties == null || containerEntityProperties.Count == 0)
                 {
-                    return new RedisContainerEntity<TEntity>();
+                    return default;
                 }
 
                 return containerEntityProperties.FromContainerProperties<TEntity>();
             }
             catch (Exception)
             {
-                return new RedisContainerEntity<TEntity>();
+                return default;
             }
         }
 
-        private static RedisContainerEntity<IPersistableEntity> RetrieveContainerEntitySafe(IRedisClient client,
+        private static IPersistableEntity RetrieveContainerEntitySafe(IRedisClient client,
             string rowKey, Type entityType)
         {
             try
@@ -265,13 +264,6 @@ namespace Storage.Redis
 
             return this.redisClient.GetClient();
         }
-
-        public class RedisContainerEntity<TEntity> where TEntity : IPersistableEntity
-        {
-            public TEntity Entity { get; set; }
-
-            public DateTime TimeStamp { get; set; }
-        }
     }
 
     public static class RedisStorageEntityExtensions
@@ -292,7 +284,7 @@ namespace Storage.Redis
                             dateTime = DateTime.MinValue.ToUniversalTime();
                         }
 
-                        value = dateTime.ToUniversalTime().ToString("O");
+                        value = dateTime.ToIso8601();
                         break;
 
                     case DateTimeOffset dateTimeOffset:
@@ -301,7 +293,7 @@ namespace Storage.Redis
                             dateTimeOffset = DateTimeOffset.MinValue.ToUniversalTime();
                         }
 
-                        value = dateTimeOffset.ToUniversalTime().ToString("O");
+                        value = dateTimeOffset.ToIso8601();
                         break;
 
                     case Guid guid:
@@ -330,45 +322,43 @@ namespace Storage.Redis
                 containerEntityProperties.Add(pair.Key, value);
             }
 
-            containerEntityProperties.Add(RedisInMemRepository.TimeStampPropertyName, DateTime.UtcNow.ToString("O"));
+            var nowUtc = DateTime.UtcNow.ToIso8601();
+            var createdAtUtc = (DateTime) containerEntityProperties[nameof(IModifiableEntity.CreatedAtUtc)]
+                .FromContainerProperty(typeof(DateTime));
+            if (!createdAtUtc.HasValue())
+            {
+                containerEntityProperties[nameof(IModifiableEntity.CreatedAtUtc)] = nowUtc;
+            }
+
+            containerEntityProperties[nameof(IModifiableEntity.LastModifiedAtUtc)] = nowUtc;
             containerEntityProperties.Remove(nameof(IPersistableEntity.EntityName));
 
             return containerEntityProperties;
         }
 
-        public static RedisInMemRepository.RedisContainerEntity<TEntity> FromContainerProperties<TEntity>(
+        public static TEntity FromContainerProperties<TEntity>(
             this Dictionary<string, string> containerProperties)
             where TEntity : IPersistableEntity, new()
         {
             var targetType = new TEntity().GetType();
-            var thing = containerProperties.FromContainerProperties(targetType);
-            return new RedisInMemRepository.RedisContainerEntity<TEntity>
-            {
-                Entity = (TEntity) thing.Entity,
-                TimeStamp = thing.TimeStamp
-            };
+            return (TEntity) containerProperties.FromContainerProperties(targetType);
         }
 
-        public static RedisInMemRepository.RedisContainerEntity<IPersistableEntity> FromContainerProperties(
+        public static IPersistableEntity FromContainerProperties(
             this Dictionary<string, string> containerProperties,
             Type entityType)
         {
             var entityPropertyTypeInfo = entityType.GetProperties();
             var containerEntityProperties = containerProperties
-                .Where(pair => entityPropertyTypeInfo.Any(prop => prop.Name.EqualsOrdinal(pair.Key)) && pair.Value != null)
+                .Where(pair =>
+                    entityPropertyTypeInfo.Any(prop => prop.Name.EqualsOrdinal(pair.Key)) && pair.Value != null)
                 .ToDictionary(pair => pair.Key,
                     pair => pair.Value.FromContainerProperty(entityPropertyTypeInfo.First(info =>
                         StringExtensions.EqualsIgnoreCase(info.Name, pair.Key)).PropertyType));
 
-            var timeStamp = (DateTime) containerProperties[RedisInMemRepository.TimeStampPropertyName]
-                .FromContainerProperty(typeof(DateTime));
             var entity = entityType.CreateInstance<IPersistableEntity>();
             entity.Rehydrate(containerEntityProperties);
-            return new RedisInMemRepository.RedisContainerEntity<IPersistableEntity>
-            {
-                Entity = entity,
-                TimeStamp = timeStamp
-            };
+            return entity;
         }
 
         private static object FromContainerProperty(this string propertyValue, Type targetType)
@@ -378,7 +368,7 @@ namespace Storage.Redis
             {
                 return null;
             }
-            
+
             if (targetType == typeof(bool))
             {
                 return bool.Parse(propertyValue);
@@ -386,7 +376,7 @@ namespace Storage.Redis
 
             if (targetType == typeof(DateTime))
             {
-                return DateTime.ParseExact(propertyValue, "O", null).ToUniversalTime();
+                return propertyValue.FromIso8601();
             }
 
             if (targetType == typeof(DateTimeOffset))

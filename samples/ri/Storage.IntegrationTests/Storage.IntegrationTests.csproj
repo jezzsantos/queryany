@@ -28,4 +28,10 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Include="..\..\..\src\Common\Assertions.cs">
+        <Link>Assertions.cs</Link>
+      </Compile>
+    </ItemGroup>
+
 </Project>

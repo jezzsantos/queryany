@@ -25,5 +25,40 @@ namespace QueryAny.Primitives
             return !(current.Equals(DateTime.MinValue.ToUniversalTime())
                      || current.Equals(DateTime.MinValue));
         }
+
+        /// <summary>
+        ///     Returns the ISO8601 representation of the specified <see cref="DateTimeOffset" /> value.
+        /// </summary>
+        public static string ToIso8601(this DateTimeOffset dateTimeOffset)
+        {
+            var utcDateTime = dateTimeOffset.ToUniversalTime();
+
+            return utcDateTime.ToString("O");
+        }
+
+        /// <summary>
+        ///     Returns the ISO8601 representation of the specified <see cref="DateTime" /> value.
+        /// </summary>
+        public static string ToIso8601(this DateTime dateTime)
+        {
+            var utcDateTime = dateTime.Kind != DateTimeKind.Utc
+                ? dateTime
+                : dateTime.ToUniversalTime();
+
+            return utcDateTime.ToString("O");
+        }
+
+        /// <summary>
+        ///     Returns the UTC <see cref="DateTime" /> for the specified time in ISO8601
+        /// </summary>
+        public static DateTime FromIso8601(this string value)
+        {
+            if (!value.HasValue())
+            {
+                return DateTime.MinValue.ToUniversalTime();
+            }
+
+            return DateTime.ParseExact(value, "O", null).ToUniversalTime();
+        }
     }
 }

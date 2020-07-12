@@ -61,14 +61,12 @@ namespace Storage.Azure
                 throw new ResourceNotFoundException();
             }
 
-            latest.PopulateWith(entity);
+            latest.PopulateWithNonDefaultValues(entity);
 
             using (var store = this.connection.Open())
             {
-                store.Replace(ContainerName, entity.Id, entity);
+                return store.Replace(ContainerName, entity.Id, latest);
             }
-
-            return entity;
         }
 
         public long Count()

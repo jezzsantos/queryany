@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ServiceStack;
 using Storage.Interfaces;
 
@@ -6,8 +7,14 @@ namespace Storage.UnitTests
 {
     public class TestEntity : IPersistableEntity
     {
-        public bool ABooleanValue { get; set; }
-        public double ADoubleValue { get; set; }
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
+        public bool ABooleanValue { get; }
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
+        public double ADoubleValue { get; }
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
+        public DateTime CreatedAtUtc { get; }
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
+        public DateTime LastModifiedAtUtc { get; }
 
         public string Id { get; private set; }
 

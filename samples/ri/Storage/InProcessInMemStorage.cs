@@ -54,10 +54,9 @@ namespace Storage
                 throw new ResourceNotFoundException();
             }
 
-            latest.PopulateWith(entity);
+            latest.PopulateWithNonDefaultValues(entity);
 
-            this.store.Replace(ContainerName, entity.Id, entity);
-            return entity;
+            return this.store.Replace(ContainerName, entity.Id, latest);
         }
 
         public long Count()

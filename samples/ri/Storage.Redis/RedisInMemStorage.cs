@@ -52,11 +52,9 @@ namespace Storage.Redis
                 throw new ResourceNotFoundException();
             }
 
-            latest.PopulateWith(entity);
+            latest.PopulateWithNonDefaultValues(entity);
 
-            this.repository.Replace(ContainerName, entity.Id, entity);
-
-            return entity;
+            return this.repository.Replace(ContainerName, entity.Id, latest);
         }
 
         public long Count()

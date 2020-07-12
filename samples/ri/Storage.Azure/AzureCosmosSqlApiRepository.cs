@@ -80,7 +80,7 @@ namespace Storage.Azure
             return containerEntity;
         }
 
-        public void Replace<TEntity>(string containerName, string id, TEntity entity)
+        public TEntity Replace<TEntity>(string containerName, string id, TEntity entity)
             where TEntity : IPersistableEntity, new()
         {
             var container = EnsureContainer(containerName);
@@ -88,8 +88,11 @@ namespace Storage.Azure
             var containerEntity = RetrieveContainerEntitySafe<TEntity>(container, id);
             if (containerEntity != null)
             {
-                container.UpsertItemAsync(entity.ToContainerEntity());
+                var thing = container.UpsertItemAsync<dynamic>(entity.ToContainerEntity()).GetAwaiter().GetResult();
+                return ((JObject)thing.Resource).FromContainerEntity<TEntity>();
             }
+
+            return default;
         }
 
         public long Count(string containerName)
@@ -282,10 +285,12 @@ namespace Storage.Azure
                 var entityId = containerEntityProperties[AzureCosmosSqlApiRepository.IdentifierPropertyName];
                 containerEntityProperties.Add(nameof(IPersistableEntity.Id), entityId);
             }
+
             if (containerEntityProperties.ContainsKey(AzureCosmosSqlApiRepository.IdentifierPropertyName))
             {
                 containerEntityProperties.Remove(AzureCosmosSqlApiRepository.IdentifierPropertyName);
             }
+
             foreach (var reservedPropertyName in AzureCosmosSqlApiRepository.CosmosReservedPropertyNames)
             {
                 containerEntityProperties.Remove(reservedPropertyName);
@@ -297,7 +302,7 @@ namespace Storage.Azure
         }
 
         private static void ComplexTypesFromContainerEntity(
-            Dictionary<string, object> containerEntityProperties, PropertyInfo[] entityPropertyTypeInfo)
+            IDictionary<string, object> containerEntityProperties, PropertyInfo[] entityPropertyTypeInfo)
         {
             var convertedEntityProperties = new Dictionary<string, object>();
             foreach (var containerEntityProperty in containerEntityProperties)
@@ -352,6 +357,15 @@ namespace Storage.Azure
 
             containerEntityProperties.Remove(nameof(IPersistableEntity.EntityName));
             containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id);
+            
+            var utcNow = DateTime.UtcNow;
+            var createdDate = (DateTime)containerEntityProperties[nameof(IPersistableEntity.CreatedAtUtc)];
+            if (!createdDate.HasValue())
+            {
+                containerEntityProperties[nameof(IPersistableEntity.CreatedAtUtc)] = utcNow;
+            }
+
+            containerEntityProperties[nameof(IPersistableEntity.LastModifiedAtUtc)] = utcNow;
 
             return containerEntity;
         }
