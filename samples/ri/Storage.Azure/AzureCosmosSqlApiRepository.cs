@@ -126,7 +126,7 @@ namespace Storage.Azure
 
                 var joinedTables = query.JoinedEntities
                     .Where(je => je.Join != null)
-                    .ToDictionary(je => je.Name, je => new
+                    .ToDictionary(je => je.EntityName, je => new
                     {
                         Collection = QueryJoiningContainer(je,
                             primaryResults.Select(e => e[je.Join.Left.JoinedFieldName])),
@@ -176,7 +176,7 @@ namespace Storage.Azure
         private List<JObject> QueryJoiningContainer(QueriedEntity<INamedEntity> joinedEntity,
             IEnumerable<JToken> propertyValues)
         {
-            var containerName = joinedEntity.Name;
+            var containerName = joinedEntity.EntityName;
             var container = EnsureContainer(containerName);
 
             //HACK: pretty limited way to query lots of entities by individual Id

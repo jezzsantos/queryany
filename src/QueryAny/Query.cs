@@ -244,7 +244,7 @@ namespace QueryAny
 
             bool IsJoinDefined(string entityName)
             {
-                return this.entities.JoinedEntities.Any(e => e.Name.EqualsOrdinal(entityName) && e.Join != null);
+                return this.entities.JoinedEntities.Any(e => e.EntityName.EqualsOrdinal(entityName) && e.Join != null);
             }
 
             if (!IsAnyJoinsDefined())
@@ -259,8 +259,8 @@ namespace QueryAny
                     Resources.QueryClause_SelectFromJoin_UnknownJoin.Format(joiningEntityName));
             }
 
-            var joiningEntity = JoinedEntities.First(e => e.Name.EqualsOrdinal(joiningEntityName));
-            var joinedEntity = PrimaryEntity.Name;
+            var joiningEntity = JoinedEntities.First(e => e.EntityName.EqualsOrdinal(joiningEntityName));
+            var joinedEntity = PrimaryEntity.EntityName;
             joiningEntity.AddSelected(joiningFieldName, joinedEntity, joinedFieldName);
             return new QueryClause<TEntity>(this.entities);
         }
@@ -325,7 +325,7 @@ namespace QueryAny
             bool IsEntityAlreadyJoinedAtLeastOnce()
             {
                 return this.entities
-                    .Any(e => e.Name.EqualsIgnoreCase(joiningEntity.GetEntityNameSafe()));
+                    .Any(e => e.EntityName.EqualsIgnoreCase(joiningEntity.GetEntityNameSafe()));
             }
 
             if (IsEntityAlreadyJoinedAtLeastOnce())
@@ -336,8 +336,8 @@ namespace QueryAny
 
             var joinedEntityCollection = new QueriedEntity<INamedEntity>(joiningEntity);
             joinedEntityCollection.AddJoin(
-                new JoinSide(PrimaryEntity.UnderlyingEntity.GetType(), PrimaryEntity.Name, fromEntityFieldName),
-                new JoinSide(typeof(TJoiningEntity), joinedEntityCollection.Name, joiningEntityFieldName), type);
+                new JoinSide(PrimaryEntity.UnderlyingEntity.GetType(), PrimaryEntity.EntityName, fromEntityFieldName),
+                new JoinSide(typeof(TJoiningEntity), joinedEntityCollection.EntityName, joiningEntityFieldName), type);
             this.entities.Add(joinedEntityCollection);
         }
 
@@ -377,7 +377,7 @@ namespace QueryAny
             Join = null;
         }
 
-        public string Name => UnderlyingEntity.GetEntityNameSafe();
+        public string EntityName => UnderlyingEntity.GetEntityNameSafe();
 
         internal TEntity UnderlyingEntity { get; }
 
@@ -391,12 +391,12 @@ namespace QueryAny
 
         public void AddSelected(string fieldName)
         {
-            this.selects.Add(new SelectDefinition(Name, fieldName, null, null));
+            this.selects.Add(new SelectDefinition(EntityName, fieldName, null, null));
         }
 
         public void AddSelected(string fieldName, string joinedEntityName, string joinedFieldName)
         {
-            this.selects.Add(new SelectDefinition(Name, fieldName, joinedEntityName,
+            this.selects.Add(new SelectDefinition(EntityName, fieldName, joinedEntityName,
                 joinedFieldName));
         }
     }

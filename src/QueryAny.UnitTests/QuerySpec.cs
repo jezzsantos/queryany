@@ -14,7 +14,7 @@ namespace QueryAny.UnitTests
         {
             var result = Query.From<UnnamedTestEntity>();
 
-            Assert.Equal("UnnamedTest", result.PrimaryEntity.Name);
+            Assert.Equal("UnnamedTest", result.PrimaryEntity.EntityName);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -22,7 +22,7 @@ namespace QueryAny.UnitTests
         {
             var result = Query.From<NamedTestEntity>();
 
-            Assert.Equal("aname", result.PrimaryEntity.Name);
+            Assert.Equal("aname", result.PrimaryEntity.EntityName);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -30,7 +30,7 @@ namespace QueryAny.UnitTests
         {
             var result = Query.From<UnnamedTestEntityUnconventionalNamed>();
 
-            Assert.Equal("unnamedtestentityunconventionalnamed", result.PrimaryEntity.Name);
+            Assert.Equal("unnamedtestentityunconventionalnamed", result.PrimaryEntity.EntityName);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -38,7 +38,7 @@ namespace QueryAny.UnitTests
         {
             var result = Query.Empty<NamedTestEntity>();
 
-            Assert.Equal("aname", result.PrimaryEntity.Name);
+            Assert.Equal("aname", result.PrimaryEntity.EntityName);
             Assert.Equal(0, result.Wheres.Count);
         }
 

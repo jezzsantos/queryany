@@ -124,7 +124,7 @@ namespace Storage.Azure
 
             var joinedTables = query.JoinedEntities
                 .Where(je => je.Join != null)
-                .ToDictionary(je => je.Name, je => new
+                .ToDictionary(je => je.EntityName, je => new
                 {
                     Collection = QueryJoiningTable(je,
                         primaryResults.Select(e => e.Properties[je.Join.Left.JoinedFieldName])),
@@ -228,7 +228,7 @@ namespace Storage.Azure
         private List<DynamicTableEntity> QueryJoiningTable(QueriedEntity<INamedEntity> joinedEntity,
             IEnumerable<EntityProperty> propertyValues)
         {
-            var tableName = joinedEntity.Name;
+            var tableName = joinedEntity.EntityName;
             var table = EnsureTable(tableName);
 
             //HACK: pretty limited way to query lots of entities by individual Id

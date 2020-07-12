@@ -102,7 +102,7 @@ namespace Storage.Redis
 
             var joinedContainers = query.JoinedEntities
                 .Where(je => je.Join != null)
-                .ToDictionary(je => je.Name, je => new
+                .ToDictionary(je => je.EntityName, je => new
                 {
                     Collection = QueryJoiningContainer(client, je),
                     JoinedEntity = je
@@ -167,7 +167,7 @@ namespace Storage.Redis
         private static Dictionary<string, IPersistableEntity> QueryJoiningContainer(IRedisClient client,
             QueriedEntity<INamedEntity> joinedEntity)
         {
-            var containerName = joinedEntity.Name;
+            var containerName = joinedEntity.EntityName;
             if (!Exists(client, containerName))
             {
                 return new Dictionary<string, IPersistableEntity>();

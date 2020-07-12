@@ -93,10 +93,10 @@ namespace Storage
 
             var joinedContainers = query.JoinedEntities
                 .Where(je => je.Join != null)
-                .ToDictionary(je => je.Name, je => new
+                .ToDictionary(je => je.EntityName, je => new
                 {
-                    Collection = this.containers.ContainsKey(je.Name)
-                        ? this.containers[je.Name]
+                    Collection = this.containers.ContainsKey(je.EntityName)
+                        ? this.containers[je.EntityName]
                         : new Dictionary<string, IPersistableEntity>(),
                     JoinedEntity = je
                 });
