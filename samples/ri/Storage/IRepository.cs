@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using QueryAny;
+using Services.Interfaces.Entities;
 using Storage.Interfaces;
 
 namespace Storage
 {
     public interface IRepository : IDisposable
     {
-        string Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new();
+        Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new();
 
-        void Remove<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new();
+        void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new();
 
-        TEntity Retrieve<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new();
+        TEntity Retrieve<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new();
 
-        TEntity Replace<TEntity>(string containerName, string id, TEntity entity)
+        TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity)
             where TEntity : IPersistableEntity, new();
 
         long Count(string containerName);

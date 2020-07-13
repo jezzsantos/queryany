@@ -5,14 +5,15 @@ using System.Linq.Dynamic.Core;
 using System.Text;
 using QueryAny;
 using QueryAny.Primitives;
+using Services.Interfaces.Entities;
 using Storage.Interfaces;
 
 namespace Storage
 {
     public class InProcessInMemRepository : IRepository
     {
-        private readonly Dictionary<string, Dictionary<string, Dictionary<string, object>>> containers =
-            new Dictionary<string, Dictionary<string, Dictionary<string, object>>>();
+        private readonly Dictionary<string, Dictionary<Identifier, Dictionary<string, object>>> containers =
+            new Dictionary<string, Dictionary<Identifier, Dictionary<string, object>>>();
 
         private readonly IIdentifierFactory idFactory;
 
@@ -22,11 +23,11 @@ namespace Storage
             this.idFactory = idFactory;
         }
 
-        public string Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
+        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
         {
             if (!this.containers.ContainsKey(containerName))
             {
-                this.containers.Add(containerName, new Dictionary<string, Dictionary<string, object>>());
+                this.containers.Add(containerName, new Dictionary<Identifier, Dictionary<string, object>>());
             }
 
             var id = this.idFactory.Create(entity);
@@ -35,7 +36,7 @@ namespace Storage
             return id;
         }
 
-        public void Remove<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
+        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
         {
             if (this.containers.ContainsKey(containerName))
             {
@@ -46,7 +47,7 @@ namespace Storage
             }
         }
 
-        public TEntity Replace<TEntity>(string containerName, string id, TEntity entity)
+        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity)
             where TEntity : IPersistableEntity, new()
         {
             if (this.containers.ContainsKey(containerName))
@@ -62,7 +63,7 @@ namespace Storage
             return default;
         }
 
-        public TEntity Retrieve<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
+        public TEntity Retrieve<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
         {
             if (this.containers.ContainsKey(containerName))
             {
@@ -101,7 +102,7 @@ namespace Storage
                 {
                     Collection = this.containers.ContainsKey(je.EntityName)
                         ? this.containers[je.EntityName]
-                        : new Dictionary<string, Dictionary<string, object>>(),
+                        : new Dictionary<Identifier, Dictionary<string, object>>(),
                     JoinedEntity = je
                 });
 
@@ -265,6 +266,12 @@ namespace Storage
             var @operator = condition.Operator.ToDynamicLinqWhereClause();
             var value = condition.Value;
 
+
+            if (value is bool boolean)
+            {
+                return $"{fieldName} {@operator} {boolean.ToLower()}";
+            }
+
             if (value is DateTime dateTime)
             {
                 return
@@ -292,22 +299,27 @@ namespace Storage
                 return $"{fieldName} {@operator} {value}";
             }
 
-            // Other Types (ComplexTypes must be equatable to their ToString() forms)
-            return $"iif ({fieldName} != null, {fieldName}.ToString(), null) {@operator} {value.ToEscapedString()}";
+            return value.OtherTypeToString(fieldName, @operator);
         }
 
-        private static string ToEscapedString(this object value)
+        private static string OtherTypeToString(this object value, string fieldName, string @operator)
         {
             if (value == null)
             {
-                return "null";
+                return $"iif ({fieldName} != null, {fieldName}.ToString(), null) {@operator} null";
             }
 
-            var escapedJson = value
+            if (value is IPersistableValueType valueType)
+            {
+                return
+                    $"iif ({fieldName} != null, {fieldName}.Dehydrate(), null) {@operator} \"{valueType.Dehydrate()}\"";
+            }
+
+            var escapedValue = value
                 .ToString()
                 .Replace("\"", "\\\"");
 
-            return $"\"{escapedJson}\"";
+            return $"iif ({fieldName} != null, {fieldName}.ToString(), null) {@operator} \"{escapedValue}\"";
         }
     }
 }

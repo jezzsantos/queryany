@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using QueryAny;
 using QueryAny.Primitives;
+using Services.Interfaces.Entities;
 using ServiceStack;
 using Storage.Interfaces;
-using StringExtensions = ServiceStack.StringExtensions;
 
 namespace Storage
 {
     public static class RepositoryExtensions
     {
         public static List<TEntity> JoinResults<TEntity>(this JoinDefinition joinDefinition,
-            Dictionary<string, Dictionary<string, object>> leftEntities,
-            Dictionary<string, Dictionary<string, object>> rightEntities,
-            Func<KeyValuePair<string, Dictionary<string, object>>, KeyValuePair<string, Dictionary<string, object>>,
-                KeyValuePair<string, Dictionary<string, object>>> mapFunc = null)
+            Dictionary<Identifier, Dictionary<string, object>> leftEntities,
+            Dictionary<Identifier, Dictionary<string, object>> rightEntities,
+            Func<KeyValuePair<Identifier, Dictionary<string, object>>,
+                KeyValuePair<Identifier, Dictionary<string, object>>,
+                KeyValuePair<Identifier, Dictionary<string, object>>> mapFunc = null)
         {
             switch (joinDefinition.Type)
             {
@@ -46,8 +47,9 @@ namespace Storage
             }
         }
 
-        public static Func<KeyValuePair<string, Dictionary<string, object>>,
-                KeyValuePair<string, Dictionary<string, object>>, KeyValuePair<string, Dictionary<string, object>>>
+        public static Func<KeyValuePair<Identifier, Dictionary<string, object>>,
+                KeyValuePair<Identifier, Dictionary<string, object>>,
+                KeyValuePair<Identifier, Dictionary<string, object>>>
             ProjectSelectedJoinedProperties(this IReadOnlyList<SelectDefinition> selects)
         {
             return (leftEntity, rightEntity) =>
@@ -78,7 +80,8 @@ namespace Storage
         }
 
         public static List<TEntity> CherryPickSelectedProperties<TEntity>(this IEnumerable<TEntity> entities,
-            QueryClause<TEntity> query) where TEntity : IPersistableEntity, new()
+            QueryClause<TEntity> query, IEnumerable<string> includeAdditionalProperties = null)
+            where TEntity : IPersistableEntity, new()
         {
             var primarySelects = query.PrimaryEntity.Selects;
             var joinedSelects = query.JoinedEntities.SelectMany(je => je.Selects);
@@ -93,11 +96,14 @@ namespace Storage
                 return entities.ToList();
             }
 
+            selectedPropertyNames = selectedPropertyNames
+                .Concat(new[] {nameof(IPersistableEntity.Id)})
+                .Concat(includeAdditionalProperties ?? Enumerable.Empty<string>())
+                .ToList();
+
             return entities
                 .Select(resultEntity => resultEntity.ToObjectDictionary()
-                    .Where(resultEntityProperty =>
-                        selectedPropertyNames.Contains(resultEntityProperty.Key) ||
-                        StringExtensions.EqualsIgnoreCase(resultEntityProperty.Key, nameof(IPersistableEntity.Id))))
+                    .Where(resultEntityProperty => selectedPropertyNames.Contains(resultEntityProperty.Key)))
                 .Select(selectedProperties => selectedProperties.FromObjectDictionary<TEntity>())
                 .ToList();
         }

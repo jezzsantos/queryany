@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using QueryAny.Primitives;
+using Services.Interfaces.Entities;
 using Storage.Interfaces;
 
 namespace CarsDomain.Entities
@@ -17,13 +18,13 @@ namespace CarsDomain.Entities
 
         public DateTime LastModifiedAtUtc { get; private set; }
 
-        public string Id { get; private set; }
+        public Identifier Id { get; private set; }
 
         public abstract string EntityName { get; }
 
-        public void Identify(string id)
+        public void Identify(Identifier id)
         {
-            Guard.AgainstNullOrEmpty(() => id, id);
+            Guard.AgainstNull(() => id, id);
             Id = id;
         }
 
@@ -31,7 +32,7 @@ namespace CarsDomain.Entities
         {
             return new Dictionary<string, object>
             {
-                {nameof(Id), Id},
+                {nameof(Id), Id.Dehydrate()},
                 {nameof(CreatedAtUtc), CreatedAtUtc},
                 {nameof(LastModifiedAtUtc), LastModifiedAtUtc}
             };
@@ -39,7 +40,7 @@ namespace CarsDomain.Entities
 
         public virtual void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
-            Id = properties.GetValueOrDefault<string>(nameof(Id));
+            Id = Identifier.Create(properties.GetValueOrDefault<string>(nameof(Id)));
             CreatedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(CreatedAtUtc));
             LastModifiedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(LastModifiedAtUtc));
         }

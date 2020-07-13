@@ -4,6 +4,7 @@ using CarsDomain.Entities;
 using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces;
+using Services.Interfaces.Entities;
 using Services.Interfaces.Resources;
 using ServiceStack;
 using Storage.Interfaces;
@@ -18,6 +19,8 @@ namespace CarsDomain
         {
             Guard.AgainstNull(() => storage, storage);
             this.storage = storage;
+
+            AutoMapping.RegisterPopulator((Car car, CarEntity entity) => { car.Id = entity.Id.Get(); });
         }
 
         public Car Create(ICurrentCaller caller, int year, string make, string model)
@@ -35,7 +38,7 @@ namespace CarsDomain
         {
             Guard.AgainstNullOrEmpty(() => id, id);
 
-            var car = this.storage.Get(id);
+            var car = this.storage.Get(Identifier.Create(id));
             if (id == null)
             {
                 throw new ResourceNotFoundException();

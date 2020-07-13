@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using QueryAny.Primitives.Properties;
 
 namespace QueryAny.Primitives
 {

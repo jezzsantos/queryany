@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Services.Interfaces.Entities;
 using ServiceStack;
 using Storage.Interfaces;
 
@@ -11,7 +12,7 @@ namespace Storage.IntegrationTests
         {
         }
 
-        public TestEntity(string id)
+        public TestEntity(Identifier id)
         {
             Id = id;
         }
@@ -29,9 +30,9 @@ namespace Storage.IntegrationTests
         public DateTime CreatedAtUtc { get; set; }
         public DateTime LastModifiedAtUtc { get; set; }
 
-        public string Id { get; private set; }
+        public Identifier Id { get; private set; }
 
-        public void Identify(string id)
+        public void Identify(Identifier id)
         {
             Id = id;
         }
@@ -58,9 +59,9 @@ namespace Storage.IntegrationTests
 
         public DateTime CreatedAtUtc { get; set; }
         public DateTime LastModifiedAtUtc { get; set; }
-        public string Id { get; private set; }
+        public Identifier Id { get; private set; }
 
-        public void Identify(string id)
+        public void Identify(Identifier id)
         {
             Id = id;
         }
@@ -89,9 +90,9 @@ namespace Storage.IntegrationTests
 
         public DateTime CreatedAtUtc { get; set; }
         public DateTime LastModifiedAtUtc { get; set; }
-        public string Id { get; private set; }
+        public Identifier Id { get; private set; }
 
-        public void Identify(string id)
+        public void Identify(Identifier id)
         {
             Id = id;
         }

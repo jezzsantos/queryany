@@ -1,17 +1,18 @@
 ﻿using QueryAny;
 using Services.Interfaces;
+using Services.Interfaces.Entities;
 
 namespace Storage.Interfaces
 {
     public interface IStorage<TEntity> where TEntity : IPersistableEntity, new()
     {
-        string Add(TEntity entity);
+        Identifier Add(TEntity entity);
 
         TEntity Update(TEntity entity, bool ignoreConcurrency);
 
-        void Delete(string id, bool ignoreConcurrency);
+        void Delete(Identifier id, bool ignoreConcurrency);
 
-        TEntity Get(string id);
+        TEntity Get(Identifier id);
 
         QueryResults<TEntity> Query(QueryClause<TEntity> query, SearchOptions options);
 

@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Text;
 using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using QueryAny;
 using QueryAny.Primitives;
+using Services.Interfaces.Entities;
 using ServiceStack;
 using Storage.Interfaces;
-using StringExtensions = ServiceStack.StringExtensions;
 
 namespace Storage.Azure
 {
@@ -21,10 +20,6 @@ namespace Storage.Azure
         internal const string IdentifierPropertyName = @"id";
         internal const string ContainerAlias = @"t";
         private const int DefaultThroughput = 400;
-
-        internal static readonly string[] CosmosReservedPropertyNames =
-            {"_rid", "_self", "_etag", "_attachments", "_ts"};
-
         private static readonly string DefaultPartitionKeyPath = $"/{IdentifierPropertyName}";
         private readonly string connectionString;
         private readonly Dictionary<string, Container> containers = new Dictionary<string, Container>();
@@ -48,7 +43,7 @@ namespace Storage.Azure
             // No need to do anything here. IDisposable is used as a marker interface
         }
 
-        public string Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
+        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
         {
             var container = EnsureContainer(containerName);
 
@@ -60,18 +55,18 @@ namespace Storage.Azure
             return id;
         }
 
-        public void Remove<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
+        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
         {
             var container = EnsureContainer(containerName);
 
             var containerEntity = RetrieveContainerEntitySafe<TEntity>(container, id);
             if (containerEntity != null)
             {
-                container.DeleteItemAsync<object>(id, new PartitionKey(id)).GetAwaiter().GetResult();
+                container.DeleteItemAsync<object>(id.Get(), new PartitionKey(id.Get())).GetAwaiter().GetResult();
             }
         }
 
-        public TEntity Retrieve<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
+        public TEntity Retrieve<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
         {
             var container = EnsureContainer(containerName);
 
@@ -80,7 +75,7 @@ namespace Storage.Azure
             return containerEntity;
         }
 
-        public TEntity Replace<TEntity>(string containerName, string id, TEntity entity)
+        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity)
             where TEntity : IPersistableEntity, new()
         {
             var container = EnsureContainer(containerName);
@@ -89,7 +84,7 @@ namespace Storage.Azure
             if (containerEntity != null)
             {
                 var thing = container.UpsertItemAsync<dynamic>(entity.ToContainerEntity()).GetAwaiter().GetResult();
-                return ((JObject)thing.Resource).FromContainerEntity<TEntity>();
+                return ((JObject) thing.Resource).FromContainerEntity<TEntity>();
             }
 
             return default;
@@ -147,7 +142,7 @@ namespace Storage.Azure
                         var join = joinedEntity.Join;
                         var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.Dehydrate());
                         var rightEntities = joinedTable.Value.Collection.ToDictionary(
-                            e => e[nameof(IPersistableEntity.Id)].Value<string>(),
+                            e => Identifier.Create(e[IdentifierPropertyName].Value<string>()),
                             e => e.FromContainerEntity(join.Right.EntityType).Dehydrate());
 
                         primaryEntities = join
@@ -156,7 +151,7 @@ namespace Storage.Azure
                     }
                 }
 
-                return primaryEntities.CherryPickSelectedProperties(query);
+                return primaryEntities.CherryPickSelectedProperties(query, new[] {IdentifierPropertyName});
             }
             catch (CosmosException ex)
             {
@@ -200,7 +195,7 @@ namespace Storage.Azure
             var selectedPropertyNames = joinedEntity.Selects
                 .Where(sel => sel.JoinedFieldName.HasValue())
                 .Select(j => j.JoinedFieldName)
-                .Concat(new[] {joinedEntity.Join.Right.JoinedFieldName, nameof(IPersistableEntity.Id)});
+                .Concat(new[] {joinedEntity.Join.Right.JoinedFieldName, IdentifierPropertyName});
             var selectedFields = string.Join(", ",
                 selectedPropertyNames
                     .Select(name => $"{ContainerAlias}.{name}"));
@@ -244,12 +239,13 @@ namespace Storage.Azure
             return this.containers[containerName];
         }
 
-        private static TEntity RetrieveContainerEntitySafe<TEntity>(Container container, string id)
+        private static TEntity RetrieveContainerEntitySafe<TEntity>(Container container, Identifier id)
             where TEntity : IPersistableEntity, new()
         {
             try
             {
-                var entity = container.ReadItemAsync<object>(id, new PartitionKey(id)).GetAwaiter().GetResult();
+                var entity = container.ReadItemAsync<object>(id.Get(), new PartitionKey(id.Get())).GetAwaiter()
+                    .GetResult();
                 if (entity != null)
                 {
                     return ((JObject) entity.Resource).FromContainerEntity<TEntity>();
@@ -275,76 +271,120 @@ namespace Storage.Azure
         public static IPersistableEntity FromContainerEntity(this JObject containerEntity, Type entityType)
         {
             var entityPropertyTypeInfo = entityType.GetProperties();
-            var containerEntityProperties = containerEntity
-                .ToObject<Dictionary<string, object>>();
 
-            ComplexTypesFromContainerEntity(containerEntityProperties, entityPropertyTypeInfo);
-
-            if (!containerEntityProperties.ContainsKey(nameof(IPersistableEntity.Id)))
-            {
-                var entityId = containerEntityProperties[AzureCosmosSqlApiRepository.IdentifierPropertyName];
-                containerEntityProperties.Add(nameof(IPersistableEntity.Id), entityId);
-            }
-
-            if (containerEntityProperties.ContainsKey(AzureCosmosSqlApiRepository.IdentifierPropertyName))
-            {
-                containerEntityProperties.Remove(AzureCosmosSqlApiRepository.IdentifierPropertyName);
-            }
-
-            foreach (var reservedPropertyName in AzureCosmosSqlApiRepository.CosmosReservedPropertyNames)
-            {
-                containerEntityProperties.Remove(reservedPropertyName);
-            }
+            var propertyValues = containerEntity.ToObject<Dictionary<string, object>>()
+                .Where(pair =>
+                    entityPropertyTypeInfo.Any(prop => prop.Name.EqualsOrdinal(pair.Key)) &&
+                    pair.Value != null)
+                .ToDictionary(pair => pair.Key,
+                    pair => pair.Value.FromContainerEntityProperty(entityPropertyTypeInfo
+                        .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType));
 
             var entity = entityType.CreateInstance<IPersistableEntity>();
-            entity.Rehydrate(containerEntityProperties);
+            entity.Rehydrate(propertyValues);
+            entity.Identify(Identifier.Create(containerEntity[AzureCosmosSqlApiRepository.IdentifierPropertyName]
+                .ToString()));
             return entity;
         }
 
-        private static void ComplexTypesFromContainerEntity(
-            IDictionary<string, object> containerEntityProperties, PropertyInfo[] entityPropertyTypeInfo)
+        private static object FromContainerEntityProperty(this object property, Type targetEntityType)
         {
-            var convertedEntityProperties = new Dictionary<string, object>();
-            foreach (var containerEntityProperty in containerEntityProperties)
+            var value = property;
+            switch (value)
             {
-                var entityPropertyType = entityPropertyTypeInfo.FirstOrDefault(ep =>
-                    StringExtensions.EqualsIgnoreCase(ep.Name, containerEntityProperty.Key));
-                if (entityPropertyType != null)
-                {
-                    var propertyType = entityPropertyType.PropertyType;
-                    if (propertyType.IsComplexStorageType())
+                case JObject jObject:
+                    if (targetEntityType.IsComplexStorageType())
                     {
-                        var json = (string) containerEntityProperty.Value;
-                        if (json.HasValue())
-                        {
-                            convertedEntityProperties.Add(containerEntityProperty.Key,
-                                JsonConvert.DeserializeObject(json, propertyType));
-                        }
+                        return jObject.ToObject(targetEntityType);
                     }
-                }
-            }
 
-            foreach (var convertedProperty in convertedEntityProperties)
-            {
-                containerEntityProperties[convertedProperty.Key] = convertedProperty.Value;
+                    return null;
+
+                case string text:
+                    if (targetEntityType == typeof(byte[]))
+                    {
+                        if (text.HasValue())
+                        {
+                            return Convert.FromBase64String(text);
+                        }
+
+                        return default(byte[]);
+                    }
+
+                    if (targetEntityType == typeof(Guid))
+                    {
+                        if (text.HasValue())
+                        {
+                            return Guid.Parse(text);
+                        }
+
+                        return Guid.Empty;
+                    }
+
+                    if (targetEntityType == typeof(IPersistableValueType))
+                    {
+                        var valueType = (IPersistableValueType) targetEntityType.CreateInstance();
+                        valueType.Rehydrate(text);
+                        return valueType;
+                    }
+
+                    if (targetEntityType.IsComplexStorageType())
+                    {
+                        if (text.StartsWith("{") && text.EndsWith("}"))
+                        {
+                            return JsonConvert.DeserializeObject(text, targetEntityType);
+                        }
+
+                        return null;
+                    }
+
+                    return text;
+
+                case DateTime _:
+                case DateTimeOffset _:
+                case bool _:
+                case int _:
+                case long _:
+                case double _:
+                    return value;
+
+                case null:
+                    return null;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(property));
             }
         }
 
         public static dynamic ToContainerEntity<TEntity>(this TEntity entity) where TEntity : IPersistableEntity
         {
+            bool IsNotExcluded(string propertyName)
+            {
+                var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id), nameof(INamedEntity.EntityName)};
+                return !excludedPropertyNames.Contains(propertyName);
+            }
+
             var containerEntity = new ExpandoObject();
             var containerEntityProperties = (IDictionary<string, object>) containerEntity;
-            var entityProperties = entity.Dehydrate();
+            var entityProperties = entity.Dehydrate()
+                .Where(pair => IsNotExcluded(pair.Key));
             foreach (var pair in entityProperties)
             {
                 var value = pair.Value;
-                if (value != null
-                    && value.GetType().IsComplexStorageType())
+                if (value != null)
                 {
-                    value = value.ToJson();
+                    if (value is IPersistableValueType valueType)
+                    {
+                        value = valueType.Dehydrate();
+                    }
+
+                    if (value.GetType().IsComplexStorageType())
+                    {
+                        value = value.ToString();
+                    }
                 }
 
-                if (pair.Value is DateTime dateTime)
+                if (value is DateTime dateTime)
                 {
                     if (dateTime == DateTime.MinValue)
                     {
@@ -355,11 +395,10 @@ namespace Storage.Azure
                 containerEntityProperties.Add(pair.Key, value);
             }
 
-            containerEntityProperties.Remove(nameof(IPersistableEntity.EntityName));
-            containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id);
-            
+            containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id.Get());
+
             var utcNow = DateTime.UtcNow;
-            var createdDate = (DateTime)containerEntityProperties[nameof(IPersistableEntity.CreatedAtUtc)];
+            var createdDate = (DateTime) containerEntityProperties[nameof(IPersistableEntity.CreatedAtUtc)];
             if (!createdDate.HasValue())
             {
                 containerEntityProperties[nameof(IPersistableEntity.CreatedAtUtc)] = utcNow;
@@ -370,7 +409,7 @@ namespace Storage.Azure
             return containerEntity;
         }
 
-        public static int Count(this FeedIterator<int> iterator)
+        public static long Count(this FeedIterator<int> iterator)
         {
             var count = 0;
             while (iterator.HasMoreResults)
@@ -405,7 +444,8 @@ namespace Storage.Azure
 
             if (query.PrimaryEntity.Selects.Any())
             {
-                builder.Append($"{AzureCosmosSqlApiRepository.ContainerAlias}.{nameof(IPersistableEntity.Id)}");
+                builder.Append(
+                    $"{AzureCosmosSqlApiRepository.ContainerAlias}.{AzureCosmosSqlApiRepository.IdentifierPropertyName}");
                 foreach (var select in query.PrimaryEntity.Selects)
                 {
                     builder.Append($", {AzureCosmosSqlApiRepository.ContainerAlias}.{select.FieldName}");
@@ -508,56 +548,70 @@ namespace Storage.Azure
         private static string ToAzureCosmosSqlApiWhereClause(this WhereCondition condition)
         {
             var fieldName = condition.FieldName;
-            var conditionOperator = condition.Operator.ToAzureCosmosSqlApiWhereClause();
+            if (fieldName.EqualsOrdinal(nameof(IPersistableEntity.Id)))
+            {
+                fieldName = AzureCosmosSqlApiRepository.IdentifierPropertyName;
+            }
+
+            var @operator = condition.Operator.ToAzureCosmosSqlApiWhereClause();
 
             var value = condition.Value;
             switch (value)
             {
                 case string text:
-                    return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {conditionOperator} '{text}'";
+                    return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{text}'";
 
                 case DateTime dateTime:
                     return dateTime.HasValue()
-                        ? $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {conditionOperator} '{dateTime:yyyy-MM-ddTHH:mm:ss.fffffffZ}'"
-                        : $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {conditionOperator} '{dateTime:yyyy-MM-ddTHH:mm:ssZ}'";
+                        ? $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ss.fffffffZ}'"
+                        : $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ssZ}'";
 
                 case DateTimeOffset dateTimeOffset:
                     return
-                        $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {conditionOperator} '{dateTimeOffset:O}'";
+                        $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{dateTimeOffset:O}'";
 
                 case bool _:
                     return
-                        $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {conditionOperator} {value.ToString().ToLowerInvariant()}";
+                        $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} {value.ToString().ToLowerInvariant()}";
 
                 case double _:
                 case int _:
                 case long _:
-                    return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {conditionOperator} {value}";
+                    return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} {value}";
 
                 case byte[] bytes:
                     return
-                        $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {conditionOperator} '{Convert.ToBase64String(bytes)}'";
+                        $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{Convert.ToBase64String(bytes)}'";
 
                 case Guid guid:
-                    return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {conditionOperator} '{guid:D}'";
+                    return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{guid:D}'";
 
                 case null:
-                    return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {conditionOperator} null";
+                    return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} null";
 
                 default:
-                    //Complex type?
-                    return
-                        $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {conditionOperator} '{value.ToEscapedString()}'";
+                    return value.ToOtherString(fieldName, @operator);
             }
         }
 
-        private static string ToEscapedString(this object value)
+        private static string ToOtherString(this object value, string fieldName, string @operator)
         {
-            var escapedJson = value
+            if (value == null)
+            {
+                return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} null";
+            }
+
+            if (value is IPersistableValueType valueType)
+            {
+                return
+                    $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{valueType.Dehydrate()}'";
+            }
+
+            var escapedValue = value
                 .ToString()
                 .Replace("\"", "\\\"");
 
-            return escapedJson;
+            return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{escapedValue}'";
         }
     }
 }

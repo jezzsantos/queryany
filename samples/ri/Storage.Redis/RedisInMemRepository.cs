@@ -5,6 +5,7 @@ using System.Linq.Dynamic.Core;
 using Newtonsoft.Json;
 using QueryAny;
 using QueryAny.Primitives;
+using Services.Interfaces.Entities;
 using ServiceStack;
 using ServiceStack.Redis;
 using Storage.Interfaces;
@@ -33,7 +34,7 @@ namespace Storage.Redis
             // No need to do anything here. IDisposable is used as a marker interface
         }
 
-        public string Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
+        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
         {
             var client = EnsureClient();
 
@@ -46,7 +47,7 @@ namespace Storage.Redis
             return id;
         }
 
-        public void Remove<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
+        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
         {
             var client = EnsureClient();
 
@@ -56,7 +57,7 @@ namespace Storage.Redis
             }
         }
 
-        public TEntity Retrieve<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
+        public TEntity Retrieve<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
         {
             var client = EnsureClient();
 
@@ -64,7 +65,7 @@ namespace Storage.Redis
             return RetrieveContainerEntitySafe<TEntity>(client, key);
         }
 
-        public TEntity Replace<TEntity>(string containerName, string id, TEntity entity)
+        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity)
             where TEntity : IPersistableEntity, new()
         {
             var client = EnsureClient();
@@ -117,7 +118,7 @@ namespace Storage.Redis
                     var leftEntities = primaryEntities
                         .ToDictionary(e => e.Id, e => e.Dehydrate());
                     var rightEntities = joinedContainer.Value.Collection
-                        .ToDictionary(e => e.Key, e => e.Value.Dehydrate());
+                        .ToDictionary(e => Identifier.Create(e.Key), e => e.Value.Dehydrate());
 
                     primaryEntities = join
                         .JoinResults<TEntity>(leftEntities, rightEntities,
@@ -183,9 +184,14 @@ namespace Storage.Redis
             return CreateRowKey(containerName, entity.Id);
         }
 
-        private static string CreateRowKey(string containerName, string id)
+        private static string CreateRowKey(string containerName, Identifier id)
         {
-            return $"{CreateContainerKey(containerName)}{id}";
+            return $"{CreateContainerKey(containerName)}{id.Get()}";
+        }
+
+        private static string CreateRowKeyPattern(string containerName, string pattern)
+        {
+            return $"{CreateContainerKey(containerName)}{pattern}";
         }
 
         private static string CreateContainerKey(string containerName)
@@ -238,13 +244,13 @@ namespace Storage.Redis
             return EnumerableExtensions.Safe(client.SearchKeys(pattern)).ToList();
         }
 
-        private static void DeleteRow(IRedisClient client, string containerName, string id)
+        private static void DeleteRow(IRedisClient client, string containerName, Identifier id)
         {
             var key = CreateRowKey(containerName, id);
             client.Remove(key);
         }
 
-        private static bool Exists(IRedisClient client, string containerName, string id)
+        private static bool Exists(IRedisClient client, string containerName, Identifier id)
         {
             var key = CreateRowKey(containerName, id);
             var count = client.GetHashKeys(key).Count;
@@ -253,7 +259,7 @@ namespace Storage.Redis
 
         private static bool Exists(IRedisClient client, string containerName)
         {
-            var key = CreateRowKey(containerName, "*");
+            var key = CreateRowKeyPattern(containerName, "*");
             var count = client.SearchKeys(key).Count;
             return count != 0;
         }
@@ -278,6 +284,10 @@ namespace Storage.Redis
                 string value;
                 switch (pair.Value)
                 {
+                    case Identifier id:
+                        value = id.Get();
+                        break;
+
                     case DateTime dateTime:
                         if (!dateTime.HasValue())
                         {
@@ -367,6 +377,11 @@ namespace Storage.Redis
                 || propertyValue == RedisInMemRepository.RedisHashNullToken)
             {
                 return null;
+            }
+
+            if (targetType == typeof(Identifier))
+            {
+                return Identifier.Create(propertyValue);
             }
 
             if (targetType == typeof(bool))

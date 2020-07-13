@@ -2,6 +2,7 @@
 using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces;
+using Services.Interfaces.Entities;
 using ServiceStack;
 using Storage.Interfaces;
 
@@ -20,22 +21,22 @@ namespace Storage
 
         protected abstract string ContainerName { get; }
 
-        public string Add(TEntity entity)
+        public Identifier Add(TEntity entity)
         {
             Guard.AgainstNull(() => entity, entity);
             return this.store.Add(ContainerName, entity);
         }
 
-        public void Delete(string id, bool ignoreConcurrency)
+        public void Delete(Identifier id, bool ignoreConcurrency)
         {
-            Guard.AgainstNullOrEmpty(() => id, id);
+            Guard.AgainstNull(() => id, id);
 
             this.store.Remove<TEntity>(ContainerName, id);
         }
 
-        public TEntity Get(string id)
+        public TEntity Get(Identifier id)
         {
-            Guard.AgainstNullOrEmpty(() => id, id);
+            Guard.AgainstNull(() => id, id);
 
             return this.store.Retrieve<TEntity>(ContainerName, id);
         }

@@ -1,9 +1,11 @@
-﻿namespace Storage.Interfaces
+﻿using Services.Interfaces.Entities;
+
+namespace Storage.Interfaces
 {
     public interface IIdentifierFactory
     {
-        string Create(IIdentifiableEntity entity);
-        
-        bool IsValid(string value);
+        Identifier Create(IIdentifiableEntity entity);
+
+        bool IsValid(Identifier value);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Services.Interfaces.Entities;
 
 namespace Storage.Interfaces
 {

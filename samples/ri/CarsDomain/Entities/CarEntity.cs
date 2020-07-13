@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using QueryAny.Primitives;
-using Storage.Interfaces;
+using Services.Interfaces.Entities;
 
 namespace CarsDomain.Entities
 {

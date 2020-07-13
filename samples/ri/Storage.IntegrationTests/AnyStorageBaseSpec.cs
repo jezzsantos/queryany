@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 using Services.Interfaces;
+using Services.Interfaces.Entities;
 using ServiceStack;
 using Storage.Interfaces;
 
@@ -59,7 +60,7 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenDeleteAndEntityNotExists_ThenReturns()
         {
-            this.storage.Delete("anid", false);
+            this.storage.Delete(Identifier.Create("anid"), false);
 
             Assert.Equal(0, this.storage.Count());
         }
@@ -74,7 +75,7 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenGetAndNotExists_ThenReturnsNull()
         {
-            var entity = this.storage.Get("anid");
+            var entity = this.storage.Get(Identifier.Create("anid"));
 
             Assert.Null(entity);
         }
@@ -144,7 +145,7 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenUpdateAndNotExists_ThenThrows()
         {
-            var entity = new TestEntity("anid")
+            var entity = new TestEntity(Identifier.Create("anid"))
             {
                 AStringValue = "updated"
             };

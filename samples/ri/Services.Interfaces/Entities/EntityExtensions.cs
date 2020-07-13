@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Storage.Interfaces
+namespace Services.Interfaces.Entities
 {
     public static class EntityExtensions
     {

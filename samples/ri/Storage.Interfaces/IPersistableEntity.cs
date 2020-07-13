@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using QueryAny;
+using Services.Interfaces.Entities;
 
 namespace Storage.Interfaces
 {

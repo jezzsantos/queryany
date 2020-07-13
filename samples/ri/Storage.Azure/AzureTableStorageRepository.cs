@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces;
+using Services.Interfaces.Entities;
 using ServiceStack;
 using Storage.Interfaces;
 
@@ -44,7 +45,7 @@ namespace Storage.Azure
             // No need to do anything here. IDisposable is used as a marker interface
         }
 
-        public string Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
+        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
         {
             var table = EnsureTable(containerName);
 
@@ -56,7 +57,7 @@ namespace Storage.Azure
             return id;
         }
 
-        public void Remove<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
+        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
         {
             var table = EnsureTable(containerName);
 
@@ -67,7 +68,7 @@ namespace Storage.Azure
             }
         }
 
-        public TEntity Retrieve<TEntity>(string containerName, string id) where TEntity : IPersistableEntity, new()
+        public TEntity Retrieve<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
         {
             var table = EnsureTable(containerName);
 
@@ -77,7 +78,7 @@ namespace Storage.Azure
                 : default;
         }
 
-        public TEntity Replace<TEntity>(string containerName, string id, TEntity entity)
+        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity)
             where TEntity : IPersistableEntity, new()
         {
             var table = EnsureTable(containerName);
@@ -146,7 +147,7 @@ namespace Storage.Azure
                     var joinedEntity = joinedTable.Value.JoinedEntity;
                     var join = joinedEntity.Join;
                     var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.Dehydrate());
-                    var rightEntities = joinedTable.Value.Collection.ToDictionary(e => e.RowKey,
+                    var rightEntities = joinedTable.Value.Collection.ToDictionary(e => Identifier.Create(e.RowKey),
                         e => e.FromTableEntity(join.Right.EntityType, this.options).Dehydrate());
 
                     primaryEntities = join
@@ -311,13 +312,13 @@ namespace Storage.Azure
             return false;
         }
 
-        private DynamicTableEntity RetrieveTableEntitySafe(CloudTable table, string id)
+        private DynamicTableEntity RetrieveTableEntitySafe(CloudTable table, Identifier id)
         {
             try
             {
                 var entity = SafeExecute(table,
                     () => table.Execute(
-                        TableOperation.Retrieve<DynamicTableEntity>(this.options.DefaultPartitionKey, id)));
+                        TableOperation.Retrieve<DynamicTableEntity>(this.options.DefaultPartitionKey, id.Get())));
                 return entity.Result as DynamicTableEntity;
             }
             catch (Exception)
@@ -406,8 +407,60 @@ namespace Storage.Azure
 
             var entity = entityType.CreateInstance<IPersistableEntity>();
             entity.Rehydrate(propertyValues);
-            entity.Identify(tableEntity.RowKey);
+            entity.Identify(Identifier.Create(tableEntity.RowKey));
             return entity;
+        }
+
+        private static object FromTableEntityProperty(this EntityProperty property, Type targetEntityType,
+            AzureTableStorageRepository.TableStorageApiOptions options)
+        {
+            var value = property.PropertyAsObject;
+            switch (value)
+            {
+                case string text:
+                    if (text.EqualsOrdinal(AzureTableStorageRepository.NullValue))
+                    {
+                        return null;
+                    }
+
+                    if (targetEntityType == typeof(IPersistableValueType))
+                    {
+                        var valueType = (IPersistableValueType) targetEntityType.CreateInstance();
+                        valueType.Rehydrate(text);
+                        return valueType;
+                    }
+
+                    if (targetEntityType.IsComplexStorageType())
+                    {
+                        if (text.StartsWith("{") && text.EndsWith("}"))
+                        {
+                            return JsonConvert.DeserializeObject(text, targetEntityType);
+                        }
+
+                        return null;
+                    }
+
+                    return text;
+
+                case DateTime dateTime:
+                    return dateTime.IsMinimumAllowableDate(options)
+                        ? DateTime.MinValue.ToUniversalTime()
+                        : dateTime;
+
+                case bool _:
+                case int _:
+                case long _:
+                case double _:
+                case Guid _:
+                case byte[] _:
+                    return value;
+
+                case null:
+                    return null;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(property));
+            }
         }
 
         public static DynamicTableEntity ToTableEntity<TEntity>(this TEntity entity,
@@ -422,7 +475,7 @@ namespace Storage.Azure
 
             var entityProperties = entity.Dehydrate()
                 .Where(pair => IsNotExcluded(pair.Key));
-            var tableEntity = new DynamicTableEntity(options.DefaultPartitionKey, entity.Id)
+            var tableEntity = new DynamicTableEntity(options.DefaultPartitionKey, entity.Id.Get())
             {
                 Properties = entityProperties.ToTableEntityProperties(options)
             };
@@ -475,54 +528,14 @@ namespace Storage.Azure
                     return EntityProperty.GeneratePropertyForByteArray(bytes);
                 case null:
                     return EntityProperty.CreateEntityPropertyFromObject(AzureTableStorageRepository.NullValue);
-                default:
-                    var value = property.ToJson();
-                    return EntityProperty.GeneratePropertyForString(value);
-            }
-        }
-
-        private static object FromTableEntityProperty(this EntityProperty property, Type targetEntityType,
-            AzureTableStorageRepository.TableStorageApiOptions options)
-        {
-            var value = property.PropertyAsObject;
-            switch (value)
-            {
-                case string text:
-                    if (text.EqualsOrdinal(AzureTableStorageRepository.NullValue))
-                    {
-                        return null;
-                    }
-
-                    if (targetEntityType.IsComplexStorageType())
-                    {
-                        if (text.StartsWith("{") && text.EndsWith("}"))
-                        {
-                            return JsonConvert.DeserializeObject(text, targetEntityType);
-                        }
-
-                        return null;
-                    }
-
-                    return text;
-
-                case DateTime dateTime:
-                    return dateTime.IsMinimumAllowableDate(options)
-                        ? DateTime.MinValue.ToUniversalTime()
-                        : dateTime;
-
-                case bool _:
-                case int _:
-                case long _:
-                case double _:
-                case Guid _:
-                case byte[] _:
-                    return value;
-
-                case null:
-                    return null;
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(property));
+                    if (property is IPersistableValueType valueType)
+                    {
+                        return EntityProperty.GeneratePropertyForString(valueType.Dehydrate());
+                    }
+
+                    return EntityProperty.GeneratePropertyForString(property.ToString());
             }
         }
 
@@ -663,7 +676,11 @@ namespace Storage.Azure
                     return TableQuery.GenerateFilterCondition(fieldName, conditionOperator,
                         AzureTableStorageRepository.NullValue);
                 default:
-                    //Complex type?
+                    if (value is IPersistableValueType valueType)
+                    {
+                        return TableQuery.GenerateFilterCondition(fieldName, conditionOperator, valueType.Dehydrate());
+                    }
+
                     return TableQuery.GenerateFilterCondition(fieldName, conditionOperator, value.ToJson());
             }
         }

@@ -1,24 +1,34 @@
 ﻿using System;
-using QueryAny.Primitives;
+using Services.Interfaces.Entities;
 using Storage.Interfaces;
 
 namespace Storage
 {
     public class GuidIdentifierFactory : IIdentifierFactory
     {
-        public string Create(IIdentifiableEntity entity)
+        public Identifier Create(IIdentifiableEntity entity)
         {
-            return Guid.NewGuid().ToString("D");
+            return Identifier.Create(Guid.NewGuid().ToString("D"));
         }
 
-        public bool IsValid(string value)
+        public bool IsValid(Identifier value)
         {
             if (!value.HasValue())
             {
                 return false;
             }
 
-            return Guid.TryParse(value, out _);
+            if (!Guid.TryParse(value.Get(), out var result))
+            {
+                return false;
+            }
+
+            if (result == Guid.Empty)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

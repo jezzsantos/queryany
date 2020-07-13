@@ -2,6 +2,7 @@
 using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces;
+using Services.Interfaces.Entities;
 using ServiceStack;
 using Storage.Interfaces;
 
@@ -19,21 +20,21 @@ namespace Storage.Redis
 
         protected abstract string ContainerName { get; }
 
-        public string Add(TEntity entity)
+        public Identifier Add(TEntity entity)
         {
             return this.repository.Add(ContainerName, entity);
         }
 
-        public void Delete(string id, bool ignoreConcurrency)
+        public void Delete(Identifier id, bool ignoreConcurrency)
         {
-            Guard.AgainstNullOrEmpty(() => id, id);
+            Guard.AgainstNull(() => id, id);
 
             this.repository.Remove<TEntity>(ContainerName, id);
         }
 
-        public TEntity Get(string id)
+        public TEntity Get(Identifier id)
         {
-            Guard.AgainstNullOrEmpty(() => id, id);
+            Guard.AgainstNull(() => id, id);
 
             return this.repository.Retrieve<TEntity>(ContainerName, id);
         }

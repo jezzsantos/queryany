@@ -28,7 +28,7 @@ namespace Storage.UnitTests
 
             var result = query.ToAzureCosmosSqlApiWhereClause("acontainername");
 
-            Assert.Equal("SELECT t.Id, t.ABooleanValue FROM acontainername t", result);
+            Assert.Equal("SELECT t.id, t.ABooleanValue FROM acontainername t", result);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -41,7 +41,7 @@ namespace Storage.UnitTests
 
             var result = query.ToAzureCosmosSqlApiWhereClause("acontainername");
 
-            Assert.Equal("SELECT t.Id, t.ABooleanValue, t.ADoubleValue FROM acontainername t", result);
+            Assert.Equal("SELECT t.id, t.ABooleanValue, t.ADoubleValue FROM acontainername t", result);
         }
     }
 }
