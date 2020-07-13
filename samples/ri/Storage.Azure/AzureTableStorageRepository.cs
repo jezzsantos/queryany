@@ -5,7 +5,6 @@ using System.Net;
 using System.Text;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.Cosmos.Table.Protocol;
-using Newtonsoft.Json;
 using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces;
@@ -402,13 +401,11 @@ namespace Storage.Azure
                     pair => pair.Value.FromTableEntityProperty(entityPropertyTypeInfo
                         .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType, options));
 
-            var entity = entityType.CreateInstance<IPersistableEntity>();
-            entity.Rehydrate(propertyValues);
-            entity.Identify(Identifier.Create(tableEntity.RowKey));
-            return entity;
+            var id = tableEntity.RowKey;
+            return propertyValues.CreateEntity(entityType, id);
         }
 
-        private static object FromTableEntityProperty(this EntityProperty property, Type targetEntityType,
+        private static object FromTableEntityProperty(this EntityProperty property, Type targetPropertyType,
             AzureTableStorageRepository.TableStorageApiOptions options)
         {
             var value = property.PropertyAsObject;
@@ -420,21 +417,14 @@ namespace Storage.Azure
                         return null;
                     }
 
-                    if (targetEntityType == typeof(IPersistableValueType))
+                    if (typeof(IPersistableValueType).IsAssignableFrom(targetPropertyType))
                     {
-                        var valueType = (IPersistableValueType) targetEntityType.CreateInstance();
-                        valueType.Rehydrate(text);
-                        return valueType;
+                        return text.ValueTypeFromContainerProperty(targetPropertyType);
                     }
 
-                    if (targetEntityType.IsComplexStorageType())
+                    if (targetPropertyType.IsComplexStorageType())
                     {
-                        if (text.StartsWith("{") && text.EndsWith("}"))
-                        {
-                            return JsonConvert.DeserializeObject(text, targetEntityType);
-                        }
-
-                        return null;
+                        return text.ComplexTypeFromContainerProperty(targetPropertyType);
                     }
 
                     return text;

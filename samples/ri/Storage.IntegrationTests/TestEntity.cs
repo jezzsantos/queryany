@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using QueryAny.Primitives;
 using Services.Interfaces.Entities;
@@ -28,6 +28,8 @@ namespace Storage.IntegrationTests
         public long ALongValue { get; set; }
         public byte[] ABinaryValue { get; set; }
         public ComplexNonValueType AComplexNonValueTypeValue { get; set; }
+
+        public ComplexValueType AComplexValueTypeValue { get; set; }
         public DateTime CreatedAtUtc { get; set; }
         public DateTime LastModifiedAtUtc { get; set; }
 
@@ -117,6 +119,50 @@ namespace Storage.IntegrationTests
         public override string ToString()
         {
             return this.ToJson();
+        }
+    }
+
+    public class ComplexValueType : ValueType<ComplexValueType>
+    {
+        private ComplexValueType(string @string, int integer, bool boolean)
+        {
+            AStringProperty = @string;
+            AnIntName = integer;
+            ABooleanPropertyName = boolean;
+        }
+
+        public string AStringProperty { get; private set; }
+        public int AnIntName { get; private set; }
+        public bool ABooleanPropertyName { get; private set; }
+
+        public static ComplexValueType Create(string @string, int integer, bool boolean)
+        {
+            return new ComplexValueType(@string, integer, boolean);
+        }
+
+        public override string Dehydrate()
+        {
+            return $"{AStringProperty}::{AnIntName}::{ABooleanPropertyName}";
+        }
+
+        public override void Rehydrate(string value)
+        {
+            if (value.HasValue())
+            {
+                var parts = value.Split("::");
+                AStringProperty = parts[0];
+                AnIntName = parts[1].HasValue()
+                    ? int.Parse(parts[1])
+                    : 0;
+                ABooleanPropertyName = parts[2].HasValue()
+                    ? bool.Parse(parts[2])
+                    : false;
+            }
+        }
+
+        protected override IEnumerable<object> GetAtomicValues()
+        {
+            return new object[] {AStringProperty, AnIntName, ABooleanPropertyName};
         }
     }
 }

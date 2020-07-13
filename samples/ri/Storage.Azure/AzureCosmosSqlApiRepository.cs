@@ -5,12 +5,10 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using Microsoft.Azure.Cosmos;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces.Entities;
-using ServiceStack;
 using Storage.Interfaces;
 
 namespace Storage.Azure
@@ -280,28 +278,26 @@ namespace Storage.Azure
                     pair => pair.Value.FromContainerEntityProperty(entityPropertyTypeInfo
                         .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType));
 
-            var entity = entityType.CreateInstance<IPersistableEntity>();
-            entity.Rehydrate(propertyValues);
-            entity.Identify(Identifier.Create(containerEntity[AzureCosmosSqlApiRepository.IdentifierPropertyName]
-                .ToString()));
-            return entity;
+            var id = containerEntity[AzureCosmosSqlApiRepository.IdentifierPropertyName].ToString();
+
+            return propertyValues.CreateEntity(entityType, id);
         }
 
-        private static object FromContainerEntityProperty(this object property, Type targetEntityType)
+        private static object FromContainerEntityProperty(this object property, Type targetPropertyType)
         {
             var value = property;
             switch (value)
             {
                 case JObject jObject:
-                    if (targetEntityType.IsComplexStorageType())
+                    if (targetPropertyType.IsComplexStorageType())
                     {
-                        return jObject.ToObject(targetEntityType);
+                        return jObject.ToObject(targetPropertyType);
                     }
 
                     return null;
 
                 case string text:
-                    if (targetEntityType == typeof(byte[]))
+                    if (targetPropertyType == typeof(byte[]))
                     {
                         if (text.HasValue())
                         {
@@ -311,7 +307,7 @@ namespace Storage.Azure
                         return default(byte[]);
                     }
 
-                    if (targetEntityType == typeof(Guid))
+                    if (targetPropertyType == typeof(Guid))
                     {
                         if (text.HasValue())
                         {
@@ -321,21 +317,14 @@ namespace Storage.Azure
                         return Guid.Empty;
                     }
 
-                    if (targetEntityType == typeof(IPersistableValueType))
+                    if (typeof(IPersistableValueType).IsAssignableFrom(targetPropertyType))
                     {
-                        var valueType = (IPersistableValueType) targetEntityType.CreateInstance();
-                        valueType.Rehydrate(text);
-                        return valueType;
+                        return text.ValueTypeFromContainerProperty(targetPropertyType);
                     }
 
-                    if (targetEntityType.IsComplexStorageType())
+                    if (targetPropertyType.IsComplexStorageType())
                     {
-                        if (text.StartsWith("{") && text.EndsWith("}"))
-                        {
-                            return JsonConvert.DeserializeObject(text, targetEntityType);
-                        }
-
-                        return null;
+                        return text.ComplexTypeFromContainerProperty(targetPropertyType);
                     }
 
                     return text;

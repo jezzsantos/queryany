@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
-using Newtonsoft.Json;
 using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces.Entities;
@@ -295,6 +294,7 @@ namespace Storage.Redis
             foreach (var pair in entityProperties)
             {
                 string value;
+                var propertyType = pair.Value?.GetType();
                 switch (pair.Value)
                 {
                     case DateTime dateTime:
@@ -324,9 +324,7 @@ namespace Storage.Redis
                         break;
 
                     case string text:
-                        value = text.GetType().IsComplexStorageType()
-                            ? text.ToJson()
-                            : text;
+                        value = text;
                         break;
 
                     case null:
@@ -334,6 +332,13 @@ namespace Storage.Redis
                         break;
 
                     default:
+                        if (propertyType != null &&
+                            typeof(IPersistableValueType).IsAssignableFrom(propertyType))
+                        {
+                            value = ((IPersistableValueType) pair.Value).Dehydrate();
+                            break;
+                        }
+
                         value = pair.Value.ToString();
                         break;
                 }
@@ -364,7 +369,7 @@ namespace Storage.Redis
         }
 
         public static IPersistableEntity FromContainerProperties(
-            this Dictionary<string, string> containerProperties, string entityId,
+            this Dictionary<string, string> containerProperties, string id,
             Type entityType)
         {
             var entityPropertyTypeInfo = entityType.GetProperties();
@@ -375,13 +380,10 @@ namespace Storage.Redis
                     pair => pair.Value.FromContainerProperty(entityPropertyTypeInfo.First(info =>
                         StringExtensions.EqualsIgnoreCase(info.Name, pair.Key)).PropertyType));
 
-            var entity = entityType.CreateInstance<IPersistableEntity>();
-            entity.Rehydrate(containerEntityProperties);
-            entity.Identify(Identifier.Create(entityId));
-            return entity;
+            return containerEntityProperties.CreateEntity(entityType, id);
         }
 
-        private static object FromContainerProperty(this string propertyValue, Type targetType)
+        private static object FromContainerProperty(this string propertyValue, Type targetPropertyType)
         {
             if (propertyValue == null
                 || propertyValue == RedisInMemRepository.RedisHashNullToken)
@@ -389,41 +391,49 @@ namespace Storage.Redis
                 return null;
             }
 
-            if (targetType == typeof(Identifier))
+            if (targetPropertyType == typeof(Identifier))
             {
                 return Identifier.Create(propertyValue);
             }
 
-            if (targetType == typeof(bool))
+            if (targetPropertyType == typeof(bool))
             {
                 return bool.Parse(propertyValue);
             }
 
-            if (targetType == typeof(DateTime))
+            if (targetPropertyType == typeof(DateTime))
             {
                 return propertyValue.FromIso8601();
             }
 
-            if (targetType == typeof(DateTimeOffset))
+            if (targetPropertyType == typeof(DateTimeOffset))
             {
                 return DateTimeOffset.ParseExact(propertyValue, "O", null).ToUniversalTime();
             }
 
-            if (targetType == typeof(Guid))
+            if (targetPropertyType == typeof(Guid))
             {
                 return Guid.Parse(propertyValue);
             }
 
-            if (targetType == typeof(byte[]))
+            if (targetPropertyType == typeof(byte[]))
             {
                 return Convert.FromBase64String(propertyValue);
             }
 
-            if (targetType.IsComplexStorageType())
+            if (typeof(IPersistableValueType).IsAssignableFrom(targetPropertyType))
             {
                 if (propertyValue.HasValue())
                 {
-                    return JsonConvert.DeserializeObject(propertyValue, targetType);
+                    return propertyValue.ValueTypeFromContainerProperty(targetPropertyType);
+                }
+            }
+
+            if (targetPropertyType.IsComplexStorageType())
+            {
+                if (propertyValue.HasValue())
+                {
+                    return propertyValue.ComplexTypeFromContainerProperty(targetPropertyType);
                 }
             }
 

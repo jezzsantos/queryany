@@ -180,10 +180,7 @@ namespace Storage
             Identifier id)
             where TEntity : IPersistableEntity, new()
         {
-            var entity = new TEntity();
-            entity.Rehydrate(entityProperties);
-            entity.Identify(id);
-            return entity;
+            return entityProperties.CreateEntity<TEntity>(id);
         }
     }
 

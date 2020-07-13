@@ -22,6 +22,7 @@ namespace QueryAny.Primitives
         {
             if (value == null)
             {
+                // ReSharper disable once ExpressionIsAlwaysNull
                 AgainstNull<TValue, ArgumentNullException>(reference, value);
             }
         }

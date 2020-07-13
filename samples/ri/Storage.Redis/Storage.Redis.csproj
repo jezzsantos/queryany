@@ -9,7 +9,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
       <PackageReference Include="ServiceStack.Redis.Core" Version="5.9.0" />
     </ItemGroup>
 

@@ -53,11 +53,11 @@ namespace Services.Interfaces.UnitTests
 
     public class TestSingleValueType : ValueType<TestSingleValueType>
     {
-        private readonly string value;
+        private readonly string stringValue;
 
         public TestSingleValueType(string value)
         {
-            this.value = value;
+            this.stringValue = value;
         }
 
         public override string Dehydrate()
@@ -72,7 +72,7 @@ namespace Services.Interfaces.UnitTests
 
         protected override IEnumerable<object> GetAtomicValues()
         {
-            return new[] {this.value};
+            return new[] {this.stringValue};
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces.Entities;
@@ -108,6 +109,68 @@ namespace Storage
                 .ToList();
         }
 
+        public static IPersistableEntity CreateEntity(this IReadOnlyDictionary<string, object> propertyValues,
+            Type entityType, string id)
+        {
+            return CreateEntity(propertyValues, entityType, Identifier.Create(id));
+        }
+
+        public static TEntity CreateEntity<TEntity>(this IReadOnlyDictionary<string, object> propertyValues,
+            Identifier id) where TEntity : IPersistableEntity, new()
+        {
+            return (TEntity) CreateEntity(propertyValues, typeof(TEntity), id);
+        }
+
+        private static IPersistableEntity CreateEntity(this IReadOnlyDictionary<string, object> propertyValues,
+            Type entityType, Identifier id)
+        {
+            try
+            {
+                var entity = entityType.CreateInstance<IPersistableEntity>();
+                entity.Rehydrate(propertyValues);
+                entity.Identify(id);
+                return entity;
+            }
+            catch (Exception)
+            {
+                return default;
+            }
+        }
+
+        public static IPersistableValueType ValueTypeFromContainerProperty(this string propertyValue,
+            Type targetPropertyType)
+        {
+            try
+            {
+                var valueType = (IPersistableValueType) targetPropertyType.CreateInstance();
+                valueType.Rehydrate(propertyValue);
+                return valueType;
+            }
+            catch (Exception)
+            {
+                return default;
+            }
+        }
+
+        public static object ComplexTypeFromContainerProperty(this string propertyValue, Type targetPropertyType)
+        {
+            if (propertyValue.HasValue())
+            {
+                try
+                {
+                    if (propertyValue.StartsWith("{") && propertyValue.EndsWith("}"))
+                    {
+                        return JsonConvert.DeserializeObject(propertyValue, targetPropertyType);
+                    }
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
+
+            return null;
+        }
 
         private static bool HasPropertyValue(this Dictionary<string, object> entityProperties, string propertyName)
         {
