@@ -61,8 +61,8 @@ namespace Storage.Redis
         {
             var client = EnsureClient();
 
-            var key = CreateRowKey(containerName, id);
-            return RetrieveContainerEntitySafe<TEntity>(client, key);
+            var rowKey = CreateRowKey(containerName, id);
+            return FromContainerEntity<TEntity>(client, rowKey);
         }
 
         public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity)
@@ -76,7 +76,7 @@ namespace Storage.Redis
                 var key = CreateRowKey(containerName, id);
                 client.Remove(key);
                 client.SetRangeInHash(key, keyValues);
-                return keyValues.FromContainerProperties<TEntity>();
+                return keyValues.FromContainerProperties<TEntity>(id.Get());
             }
 
             return default;
@@ -145,7 +145,7 @@ namespace Storage.Redis
             where TEntity : IPersistableEntity, new()
         {
             var primaryEntities = GetRowKeys(client, containerName)
-                .Select(rowKey => RetrieveContainerEntitySafe<TEntity>(client, rowKey))
+                .Select(rowKey => FromContainerEntity<TEntity>(client, rowKey))
                 .OrderBy(e => e.CreatedAtUtc)
                 .ToList();
 
@@ -175,7 +175,7 @@ namespace Storage.Redis
 
             return GetRowKeys(client, containerName)
                 .ToDictionary(rowKey => rowKey,
-                    rowKey => RetrieveContainerEntitySafe(client, rowKey, joinedEntity.Join.Right.EntityType));
+                    rowKey => FromContainerEntity(client, rowKey, joinedEntity.Join.Right.EntityType));
         }
 
         private static string CreateRowKey<TEntity>(string containerName, TEntity entity)
@@ -199,8 +199,12 @@ namespace Storage.Redis
             return $"{ContainerStorageKeyPrefix}{containerName}:";
         }
 
-        private static TEntity RetrieveContainerEntitySafe<TEntity>(IRedisClient client,
-            string rowKey)
+        private static string GetEntityIdFromRowKey(string rowKey)
+        {
+            return rowKey.Substring(rowKey.LastIndexOf(":", StringComparison.Ordinal) + 1);
+        }
+
+        private static TEntity FromContainerEntity<TEntity>(IRedisClient client, string rowKey)
             where TEntity : IPersistableEntity, new()
         {
             try
@@ -211,7 +215,8 @@ namespace Storage.Redis
                     return default;
                 }
 
-                return containerEntityProperties.FromContainerProperties<TEntity>();
+                var id = GetEntityIdFromRowKey(rowKey);
+                return containerEntityProperties.FromContainerProperties<TEntity>(id);
             }
             catch (Exception)
             {
@@ -219,7 +224,7 @@ namespace Storage.Redis
             }
         }
 
-        private static IPersistableEntity RetrieveContainerEntitySafe(IRedisClient client,
+        private static IPersistableEntity FromContainerEntity(IRedisClient client,
             string rowKey, Type entityType)
         {
             try
@@ -230,7 +235,8 @@ namespace Storage.Redis
                     return default;
                 }
 
-                return containerEntityProperties.FromContainerProperties(entityType);
+                var id = GetEntityIdFromRowKey(rowKey);
+                return containerEntityProperties.FromContainerProperties(id, entityType);
             }
             catch (Exception)
             {
@@ -277,17 +283,20 @@ namespace Storage.Redis
         public static Dictionary<string, string> ToContainerEntity<TEntity>(this TEntity entity)
             where TEntity : IPersistableEntity
         {
-            var entityProperties = entity.Dehydrate();
+            bool IsNotExcluded(string propertyName)
+            {
+                var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id), nameof(INamedEntity.EntityName)};
+                return !excludedPropertyNames.Contains(propertyName);
+            }
+
+            var entityProperties = entity.Dehydrate()
+                .Where(pair => IsNotExcluded(pair.Key));
             var containerEntityProperties = new Dictionary<string, string>();
             foreach (var pair in entityProperties)
             {
                 string value;
                 switch (pair.Value)
                 {
-                    case Identifier id:
-                        value = id.Get();
-                        break;
-
                     case DateTime dateTime:
                         if (!dateTime.HasValue())
                         {
@@ -347,15 +356,15 @@ namespace Storage.Redis
         }
 
         public static TEntity FromContainerProperties<TEntity>(
-            this Dictionary<string, string> containerProperties)
+            this Dictionary<string, string> containerProperties, string entityId)
             where TEntity : IPersistableEntity, new()
         {
             var targetType = new TEntity().GetType();
-            return (TEntity) containerProperties.FromContainerProperties(targetType);
+            return (TEntity) containerProperties.FromContainerProperties(entityId, targetType);
         }
 
         public static IPersistableEntity FromContainerProperties(
-            this Dictionary<string, string> containerProperties,
+            this Dictionary<string, string> containerProperties, string entityId,
             Type entityType)
         {
             var entityPropertyTypeInfo = entityType.GetProperties();
@@ -368,6 +377,7 @@ namespace Storage.Redis
 
             var entity = entityType.CreateInstance<IPersistableEntity>();
             entity.Rehydrate(containerEntityProperties);
+            entity.Identify(Identifier.Create(entityId));
             return entity;
         }
 

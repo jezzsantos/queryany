@@ -176,7 +176,7 @@ namespace Storage.Azure
 
             void DeleteInBatches(IEnumerable<DynamicTableEntity> entities)
             {
-                Action<TableBatchOperation> command = batch =>
+                void Command(TableBatchOperation batch)
                 {
                     try
                     {
@@ -186,7 +186,7 @@ namespace Storage.Azure
                     {
                         // Ignore delete
                     }
-                };
+                }
 
                 var batches = new Dictionary<string, TableBatchOperation>();
                 foreach (var entity in entities)
@@ -210,7 +210,7 @@ namespace Storage.Azure
                         continue;
                     }
 
-                    SafeExecute(table, () => command(batch));
+                    SafeExecute(table, () => Command(batch));
                     batches[partitionKey] = new TableBatchOperation();
                 }
 
@@ -218,7 +218,7 @@ namespace Storage.Azure
                 {
                     if (batch.Count > 0)
                     {
-                        SafeExecute(table, () => command(batch));
+                        SafeExecute(table, () => Command(batch));
                     }
                 }
             }
@@ -375,12 +375,9 @@ namespace Storage.Azure
             public static readonly TableStorageApiOptions AzureCosmosDbStorage = new TableStorageApiOptions
                 {DefaultPartitionKey = "default", MinimumAllowableUtcDateTime = DateTimeOffset.MinValue};
 
-            // ReSharper disable once MemberCanBePrivate.Global
-            public string DefaultPartitionKey { get; set; }
+            public string DefaultPartitionKey { get; private set; }
 
-            // ReSharper disable once MemberCanBePrivate.Global
-            // ReSharper disable once UnusedAutoPropertyAccessor.Global
-            public DateTimeOffset MinimumAllowableUtcDateTime { get; set; }
+            public DateTimeOffset MinimumAllowableUtcDateTime { get; private set; }
         }
     }
 

@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using QueryAny.Primitives;
 using Services.Interfaces.Entities;
 using ServiceStack;
 using Storage.Interfaces;
@@ -26,7 +27,7 @@ namespace Storage.IntegrationTests
         public int AIntValue { get; set; }
         public long ALongValue { get; set; }
         public byte[] ABinaryValue { get; set; }
-        public ComplexType AComplexTypeValue { get; set; }
+        public ComplexNonValueType AComplexNonValueTypeValue { get; set; }
         public DateTime CreatedAtUtc { get; set; }
         public DateTime LastModifiedAtUtc { get; set; }
 
@@ -108,7 +109,7 @@ namespace Storage.IntegrationTests
         }
     }
 
-    public class ComplexType
+    public class ComplexNonValueType
     {
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public string APropertyValue { get; set; }

@@ -56,7 +56,7 @@ namespace Storage
                 {
                     var entityProperties = entity.ToContainerProperties();
                     this.containers[containerName][id] = entityProperties;
-                    return entityProperties.FromContainerProperties<TEntity>();
+                    return entityProperties.FromContainerProperties<TEntity>(id);
                 }
             }
 
@@ -69,7 +69,7 @@ namespace Storage
             {
                 if (this.containers[containerName].ContainsKey(id))
                 {
-                    return this.containers[containerName][id].FromContainerProperties<TEntity>();
+                    return this.containers[containerName][id].FromContainerProperties<TEntity>(id);
                 }
             }
 
@@ -142,9 +142,9 @@ namespace Storage
         private List<TEntity> QueryPrimaryEntities<TEntity>(string containerName, QueryClause<TEntity> query)
             where TEntity : IPersistableEntity, new()
         {
-            var primaryEntities = this.containers[containerName].Values
-                .ToList()
-                .ConvertAll(e => e.FromContainerProperties<TEntity>());
+            var primaryEntities = this.containers[containerName]
+                .Select(pair => pair.Value.FromContainerProperties<TEntity>(pair.Key))
+                .ToList();
 
             if (!query.Wheres.Any())
             {
@@ -176,11 +176,13 @@ namespace Storage
             return entityProperties;
         }
 
-        public static TEntity FromContainerProperties<TEntity>(this Dictionary<string, object> entityProperties)
+        public static TEntity FromContainerProperties<TEntity>(this Dictionary<string, object> entityProperties,
+            Identifier id)
             where TEntity : IPersistableEntity, new()
         {
             var entity = new TEntity();
             entity.Rehydrate(entityProperties);
+            entity.Identify(id);
             return entity;
         }
     }

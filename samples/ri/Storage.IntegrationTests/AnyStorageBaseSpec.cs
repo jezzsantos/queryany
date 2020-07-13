@@ -94,7 +94,7 @@ namespace Storage.IntegrationTests
                 AStringValue = "astringvalue",
                 ADateTimeUtcValue = DateTime.Today.ToUniversalTime(),
                 ADateTimeOffsetUtcValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
-                AComplexTypeValue = new ComplexType
+                AComplexNonValueTypeValue = new ComplexNonValueType
                 {
                     APropertyValue = "avalue"
                 }
@@ -116,7 +116,7 @@ namespace Storage.IntegrationTests
             Assert.Equal("astringvalue", result.AStringValue);
             Assert.Equal(DateTime.Today.ToUniversalTime(), result.ADateTimeUtcValue);
             Assert.Equal(DateTimeOffset.UnixEpoch.ToUniversalTime(), result.ADateTimeOffsetUtcValue);
-            Assert.Equal(new ComplexType {APropertyValue = "avalue"}.ToJson(), result.AComplexTypeValue.ToJson());
+            Assert.Equal(new ComplexNonValueType {APropertyValue = "avalue"}.ToJson(), result.AComplexNonValueTypeValue.ToJson());
         }
 
         [TestMethod]
@@ -607,13 +607,13 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
-        public void WhenQueryForComplexTypeValue_ThenReturnsResult()
+        public void WhenQueryForComplexNonValueTypeValue_ThenReturnsResult()
         {
-            var complex1 = new ComplexType {APropertyValue = "avalue1"};
-            var complex2 = new ComplexType {APropertyValue = "avalue2"};
-            this.storage.Add(new TestEntity {AComplexTypeValue = complex1});
-            var id2 = this.storage.Add(new TestEntity {AComplexTypeValue = complex2});
-            var query = Query.From<TestEntity>().Where(e => e.AComplexTypeValue, ConditionOperator.EqualTo, complex2);
+            var complex1 = new ComplexNonValueType {APropertyValue = "avalue1"};
+            var complex2 = new ComplexNonValueType {APropertyValue = "avalue2"};
+            this.storage.Add(new TestEntity {AComplexNonValueTypeValue = complex1});
+            var id2 = this.storage.Add(new TestEntity {AComplexNonValueTypeValue = complex2});
+            var query = Query.From<TestEntity>().Where(e => e.AComplexNonValueTypeValue, ConditionOperator.EqualTo, complex2);
 
             var results = this.storage.Query(query, null);
 
@@ -622,12 +622,12 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
-        public void WhenQueryForNullComplexTypeValue_ThenReturnsResult()
+        public void WhenQueryForNullComplexNonValueTypeValue_ThenReturnsResult()
         {
-            var complex1 = new ComplexType {APropertyValue = "avalue1"};
-            this.storage.Add(new TestEntity {AComplexTypeValue = complex1});
-            var id2 = this.storage.Add(new TestEntity {AComplexTypeValue = null});
-            var query = Query.From<TestEntity>().Where(e => e.AComplexTypeValue, ConditionOperator.EqualTo, null);
+            var complex1 = new ComplexNonValueType {APropertyValue = "avalue1"};
+            this.storage.Add(new TestEntity {AComplexNonValueTypeValue = complex1});
+            var id2 = this.storage.Add(new TestEntity {AComplexNonValueTypeValue = null});
+            var query = Query.From<TestEntity>().Where(e => e.AComplexNonValueTypeValue, ConditionOperator.EqualTo, null);
 
             var results = this.storage.Query(query, null);
 
@@ -636,12 +636,12 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
-        public void WhenQueryForNotEqualNullComplexTypeValue_ThenReturnsResult()
+        public void WhenQueryForNotEqualNullComplexNonValueTypeValue_ThenReturnsResult()
         {
-            var complex1 = new ComplexType {APropertyValue = "avalue1"};
-            var id1 = this.storage.Add(new TestEntity {AComplexTypeValue = complex1});
-            this.storage.Add(new TestEntity {AComplexTypeValue = null});
-            var query = Query.From<TestEntity>().Where(e => e.AComplexTypeValue, ConditionOperator.NotEqualTo, null);
+            var complex1 = new ComplexNonValueType {APropertyValue = "avalue1"};
+            var id1 = this.storage.Add(new TestEntity {AComplexNonValueTypeValue = complex1});
+            this.storage.Add(new TestEntity {AComplexNonValueTypeValue = null});
+            var query = Query.From<TestEntity>().Where(e => e.AComplexNonValueTypeValue, ConditionOperator.NotEqualTo, null);
 
             var results = this.storage.Query(query, null);
 
@@ -663,7 +663,7 @@ namespace Storage.IntegrationTests
                 AStringValue = "astringvalue",
                 ADateTimeUtcValue = DateTime.Today.ToUniversalTime(),
                 ADateTimeOffsetUtcValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
-                AComplexTypeValue = new ComplexType
+                AComplexNonValueTypeValue = new ComplexNonValueType
                 {
                     APropertyValue = "avalue"
                 }
@@ -686,7 +686,7 @@ namespace Storage.IntegrationTests
             Assert.Equal("astringvalue", result.AStringValue);
             Assert.Equal(DateTime.Today.ToUniversalTime(), result.ADateTimeUtcValue);
             Assert.Equal(DateTimeOffset.UnixEpoch.ToUniversalTime(), result.ADateTimeOffsetUtcValue);
-            Assert.Equal(new ComplexType {APropertyValue = "avalue"}.ToJson(), result.AComplexTypeValue.ToJson());
+            Assert.Equal(new ComplexNonValueType {APropertyValue = "avalue"}.ToJson(), result.AComplexNonValueTypeValue.ToJson());
         }
 
         [TestMethod]
@@ -703,7 +703,7 @@ namespace Storage.IntegrationTests
                 AStringValue = "astringvalue",
                 ADateTimeUtcValue = DateTime.Today.ToUniversalTime(),
                 ADateTimeOffsetUtcValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
-                AComplexTypeValue = new ComplexType
+                AComplexNonValueTypeValue = new ComplexNonValueType
                 {
                     APropertyValue = "avalue"
                 }
@@ -727,7 +727,7 @@ namespace Storage.IntegrationTests
             Assert.Equal(null, result.AStringValue);
             Assert.Equal(DateTime.MinValue, result.ADateTimeUtcValue);
             Assert.Equal(DateTimeOffset.MinValue, result.ADateTimeOffsetUtcValue);
-            Assert.Equal(null, result.AComplexTypeValue);
+            Assert.Equal(null, result.AComplexNonValueTypeValue);
         }
 
         [TestMethod]

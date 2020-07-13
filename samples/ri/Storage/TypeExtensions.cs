@@ -1,4 +1,5 @@
 ﻿using System;
+using Services.Interfaces.Entities;
 
 namespace Storage
 {
@@ -15,6 +16,7 @@ namespace Storage
                 || type == typeof(double)
                 || type == typeof(byte[])
                 || type == typeof(Guid)
+                || type == typeof(IPersistableValueType)
             )
             {
                 return false;
