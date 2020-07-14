@@ -14,7 +14,7 @@ namespace Storage.Redis
 
         protected RedisInMemStorage(RedisInMemRepository repository)
         {
-            Guard.AgainstNull(() => repository, repository);
+            repository.GuardAgainstNull(nameof(repository));
             this.repository = repository;
         }
 
@@ -27,21 +27,21 @@ namespace Storage.Redis
 
         public void Delete(Identifier id, bool ignoreConcurrency)
         {
-            Guard.AgainstNull(() => id, id);
+            id.GuardAgainstNull(nameof(id));
 
             this.repository.Remove<TEntity>(ContainerName, id);
         }
 
         public TEntity Get(Identifier id)
         {
-            Guard.AgainstNull(() => id, id);
+            id.GuardAgainstNull(nameof(id));
 
             return this.repository.Retrieve<TEntity>(ContainerName, id);
         }
 
         public TEntity Update(TEntity entity, bool ignoreConcurrency)
         {
-            Guard.AgainstNull(() => entity, entity);
+            entity.GuardAgainstNull(nameof(entity));
             if (!entity.Id.HasValue())
             {
                 throw new ResourceNotFoundException("Entity has empty identifier");
@@ -70,7 +70,7 @@ namespace Storage.Redis
 
         public QueryResults<TEntity> Query(QueryClause<TEntity> query, SearchOptions options)
         {
-            Guard.AgainstNull(() => query, query);
+            query.GuardAgainstNull(nameof(query));
 
             if (query == null || query.Options.IsEmpty)
             {

@@ -8,7 +8,7 @@ namespace Storage.IntegrationTests.Azure
     {
         public TestEntityAzureStorage(IAzureStorageConnection connection, string containerName) : base(connection)
         {
-            Guard.AgainstNullOrEmpty(() => containerName, containerName);
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
             ContainerName = containerName;
         }
 

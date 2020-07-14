@@ -17,7 +17,7 @@ namespace CarsDomain
 
         public Cars(IStorage<CarEntity> storage)
         {
-            Guard.AgainstNull(() => storage, storage);
+            storage.GuardAgainstNull(nameof(storage));
             this.storage = storage;
 
             AutoMapping.RegisterPopulator((Car car, CarEntity entity) => { car.Id = entity.Id.Get(); });
@@ -36,7 +36,7 @@ namespace CarsDomain
 
         public Car Occupy(ICurrentCaller caller, string id, in DateTime untilUtc)
         {
-            Guard.AgainstNullOrEmpty(() => id, id);
+            id.GuardAgainstNullOrEmpty(nameof(id));
 
             var car = this.storage.Get(Identifier.Create(id));
             if (id == null)

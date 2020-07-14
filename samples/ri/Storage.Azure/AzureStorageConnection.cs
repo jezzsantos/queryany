@@ -8,7 +8,7 @@ namespace Storage.Azure
 
         public AzureStorageConnection(IRepository repository)
         {
-            Guard.AgainstNull(() => repository, repository);
+            repository.GuardAgainstNull(nameof(repository));
             this.repository = repository;
         }
 

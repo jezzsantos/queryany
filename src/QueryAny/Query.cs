@@ -33,7 +33,7 @@ namespace QueryAny
 
         public FromClause(TEntity entity)
         {
-            Guard.AgainstNull(() => entity, entity);
+            entity.GuardAgainstNull(nameof(entity));
             this.entities = new QueriedEntities(new List<QueriedEntity<INamedEntity>>
             {
                 new QueriedEntity<INamedEntity>(entity)
@@ -50,7 +50,7 @@ namespace QueryAny
             ConditionOperator condition,
             TValue value)
         {
-            Guard.AgainstNull(() => propertyName, propertyName);
+            propertyName.GuardAgainstNull(nameof(propertyName));
 
             var fieldName = Reflector<TEntity>.GetPropertyName(propertyName);
             this.entities.AddWhere(LogicalOperator.None, fieldName, condition, value);
@@ -62,8 +62,8 @@ namespace QueryAny
             Expression<Func<TJoiningEntity, TValue>> joiningEntityPropertyName, JoinType type = JoinType.Inner)
             where TJoiningEntity : INamedEntity, new()
         {
-            Guard.AgainstNull(() => fromEntityPropertyName, fromEntityPropertyName);
-            Guard.AgainstNull(() => joiningEntityPropertyName, joiningEntityPropertyName);
+            fromEntityPropertyName.GuardAgainstNull(nameof(fromEntityPropertyName));
+            joiningEntityPropertyName.GuardAgainstNull(nameof(joiningEntityPropertyName));
             var fromEntityFieldName = Reflector<TEntity>.GetPropertyName(fromEntityPropertyName);
             var joiningEntityFieldName = Reflector<TJoiningEntity>.GetPropertyName(joiningEntityPropertyName);
             var joiningEntity = new TJoiningEntity();
@@ -91,7 +91,7 @@ namespace QueryAny
 
         public JoinClause(QueriedEntities entities)
         {
-            Guard.AgainstNull(() => entities, entities);
+            entities.GuardAgainstNull(nameof(entities));
             this.entities = entities;
         }
 
@@ -99,7 +99,7 @@ namespace QueryAny
             ConditionOperator condition,
             TValue value)
         {
-            Guard.AgainstNull(() => propertyName, propertyName);
+            propertyName.GuardAgainstNull(nameof(propertyName));
 
             var fieldName = Reflector<TJoinedEntity>.GetPropertyName(propertyName);
             this.entities.AddWhere(LogicalOperator.None, fieldName, condition, value);
@@ -111,8 +111,8 @@ namespace QueryAny
             Expression<Func<TJoiningEntity, TValue>> joiningEntityPropertyName, JoinType type = JoinType.Inner)
             where TJoiningEntity : INamedEntity, new()
         {
-            Guard.AgainstNull(() => fromEntityPropertyName, fromEntityPropertyName);
-            Guard.AgainstNull(() => joiningEntityPropertyName, joiningEntityPropertyName);
+            fromEntityPropertyName.GuardAgainstNull(nameof(fromEntityPropertyName));
+            joiningEntityPropertyName.GuardAgainstNull(nameof(joiningEntityPropertyName));
             var fromEntityFieldName = Reflector<TJoinedEntity>.GetPropertyName(fromEntityPropertyName);
             var joiningEntityFieldName = Reflector<TJoiningEntity>.GetPropertyName(joiningEntityPropertyName);
             var joiningEntity = new TJoiningEntity();
@@ -139,7 +139,7 @@ namespace QueryAny
 
         public QueryClause(QueriedEntities entities)
         {
-            Guard.AgainstNull(() => entities, entities);
+            entities.GuardAgainstNull(nameof(entities));
             this.entities = entities;
         }
 
@@ -157,7 +157,7 @@ namespace QueryAny
             ConditionOperator condition,
             TValue value)
         {
-            Guard.AgainstNull(() => propertyName, propertyName);
+            propertyName.GuardAgainstNull(nameof(propertyName));
             if (!this.entities.Wheres.Any())
             {
                 throw new InvalidOperationException(
@@ -173,7 +173,7 @@ namespace QueryAny
             ConditionOperator condition,
             TValue value)
         {
-            Guard.AgainstNull(() => propertyName, propertyName);
+            propertyName.GuardAgainstNull(nameof(propertyName));
             if (!this.entities.Wheres.Any())
             {
                 throw new InvalidOperationException(
@@ -187,7 +187,7 @@ namespace QueryAny
 
         public QueryClause<TEntity> AndWhere(Func<FromClause<TEntity>, QueryClause<TEntity>> subWhere)
         {
-            Guard.AgainstNull(() => subWhere, subWhere);
+            subWhere.GuardAgainstNull(nameof(subWhere));
             if (!this.entities.Wheres.Any())
             {
                 throw new InvalidOperationException(
@@ -200,7 +200,7 @@ namespace QueryAny
 
         public QueryClause<TEntity> OrWhere(Func<FromClause<TEntity>, QueryClause<TEntity>> subWhere)
         {
-            Guard.AgainstNull(() => subWhere, subWhere);
+            subWhere.GuardAgainstNull(nameof(subWhere));
 
             bool AnyWhereDefined()
             {
@@ -219,7 +219,7 @@ namespace QueryAny
 
         public QueryClause<TEntity> Select<TValue>(Expression<Func<TEntity, TValue>> propertyName)
         {
-            Guard.AgainstNull(() => propertyName, propertyName);
+            propertyName.GuardAgainstNull(nameof(propertyName));
 
             var fieldName = Reflector<TEntity>.GetPropertyName(propertyName);
             PrimaryEntity.AddSelected(fieldName);
@@ -231,8 +231,8 @@ namespace QueryAny
             Expression<Func<TJoiningEntity, TValue>> joiningEntityPropertyName)
             where TJoiningEntity : INamedEntity, new()
         {
-            Guard.AgainstNull(() => fromEntityPropertyName, fromEntityPropertyName);
-            Guard.AgainstNull(() => joiningEntityPropertyName, joiningEntityPropertyName);
+            fromEntityPropertyName.GuardAgainstNull(nameof(fromEntityPropertyName));
+            joiningEntityPropertyName.GuardAgainstNull(nameof(joiningEntityPropertyName));
             var joinedFieldName = Reflector<TEntity>.GetPropertyName(fromEntityPropertyName);
             var joiningEntityName = new TJoiningEntity().GetEntityNameSafe();
             var joiningFieldName = Reflector<TJoiningEntity>.GetPropertyName(joiningEntityPropertyName);
@@ -273,7 +273,7 @@ namespace QueryAny
 
         public QueriedEntities(List<QueriedEntity<INamedEntity>> entities)
         {
-            Guard.AgainstNull(() => entities, entities);
+            entities.GuardAgainstNull(nameof(entities));
             this.entities = entities;
             this.wheres = new List<WhereExpression>();
             Options = new QueryOptions();
@@ -292,7 +292,7 @@ namespace QueryAny
         internal void AddWhere<TValue>(LogicalOperator combine, string fieldName, ConditionOperator condition,
             TValue value)
         {
-            Guard.AgainstNullOrEmpty(() => fieldName, fieldName);
+            fieldName.GuardAgainstNullOrEmpty(nameof(fieldName));
             this.wheres.Add(new WhereExpression
             {
                 Operator = combine,
@@ -371,7 +371,7 @@ namespace QueryAny
 
         public QueriedEntity(TEntity entity)
         {
-            Guard.AgainstNull(() => entity, entity);
+            entity.GuardAgainstNull(nameof(entity));
             UnderlyingEntity = entity;
             this.selects = new List<SelectDefinition>();
             Join = null;
@@ -405,8 +405,8 @@ namespace QueryAny
     {
         public JoinDefinition(JoinSide left, JoinSide right, JoinType type)
         {
-            Guard.AgainstNull(() => left, left);
-            Guard.AgainstNull(() => right, right);
+            left.GuardAgainstNull(nameof(left));
+            right.GuardAgainstNull(nameof(right));
             Left = left;
             Right = right;
             Type = type;
@@ -423,9 +423,9 @@ namespace QueryAny
     {
         public JoinSide(Type entityType, string entityName, string joinedFieldName)
         {
-            Guard.AgainstNull(() => entityType, entityType);
-            Guard.AgainstNullOrEmpty(() => entityName, entityName);
-            Guard.AgainstNullOrEmpty(() => joinedFieldName, joinedFieldName);
+            entityType.GuardAgainstNull(nameof(entityType));
+            entityName.GuardAgainstNullOrEmpty(nameof(entityName));
+            joinedFieldName.GuardAgainstNullOrEmpty(nameof(joinedFieldName));
             EntityType = entityType;
             EntityName = entityName;
             JoinedFieldName = joinedFieldName;
@@ -442,8 +442,8 @@ namespace QueryAny
     {
         public SelectDefinition(string entityName, string fieldName, string joinedEntityName, string joinedFieldName)
         {
-            Guard.AgainstNullOrEmpty(() => entityName, entityName);
-            Guard.AgainstNullOrEmpty(() => fieldName, fieldName);
+            entityName.GuardAgainstNullOrEmpty(nameof(entityName));
+            fieldName.GuardAgainstNullOrEmpty(nameof(fieldName));
             EntityName = entityName;
             FieldName = fieldName;
             JoinedEntityName = joinedEntityName;

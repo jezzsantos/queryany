@@ -14,7 +14,7 @@ namespace Storage
 
         protected InProcessInMemStorage(InProcessInMemRepository store)
         {
-            Guard.AgainstNull(() => store, store);
+            store.GuardAgainstNull(nameof(store));
 
             this.store = store;
         }
@@ -23,27 +23,27 @@ namespace Storage
 
         public Identifier Add(TEntity entity)
         {
-            Guard.AgainstNull(() => entity, entity);
+            entity.GuardAgainstNull(nameof(entity));
             return this.store.Add(ContainerName, entity);
         }
 
         public void Delete(Identifier id, bool ignoreConcurrency)
         {
-            Guard.AgainstNull(() => id, id);
+            id.GuardAgainstNull(nameof(id));
 
             this.store.Remove<TEntity>(ContainerName, id);
         }
 
         public TEntity Get(Identifier id)
         {
-            Guard.AgainstNull(() => id, id);
+            id.GuardAgainstNull(nameof(id));
 
             return this.store.Retrieve<TEntity>(ContainerName, id);
         }
 
         public TEntity Update(TEntity entity, bool ignoreConcurrency)
         {
-            Guard.AgainstNull(() => entity, entity);
+            entity.GuardAgainstNull(nameof(entity));
             if (!entity.Id.HasValue())
             {
                 throw new ResourceNotFoundException("Entity has empty identifier");
@@ -72,7 +72,7 @@ namespace Storage
 
         public QueryResults<TEntity> Query(QueryClause<TEntity> query, SearchOptions options)
         {
-            Guard.AgainstNull(() => query, query);
+            query.GuardAgainstNull(nameof(query));
 
             if (query == null || query.Options.IsEmpty)
             {

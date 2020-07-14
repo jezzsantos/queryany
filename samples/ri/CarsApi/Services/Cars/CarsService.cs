@@ -12,7 +12,7 @@ namespace CarsApi.Services.Cars
 
         public CarsService(ICars cars)
         {
-            Guard.AgainstNull(() => cars, cars);
+            cars.GuardAgainstNull(nameof(cars));
 
             this.cars = cars;
         }

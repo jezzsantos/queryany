@@ -22,8 +22,8 @@ namespace Storage.Redis
 
         public RedisInMemRepository(string connectionString, IIdentifierFactory idFactory)
         {
-            Guard.AgainstNullOrEmpty(() => connectionString, connectionString);
-            Guard.AgainstNull(() => idFactory, idFactory);
+            connectionString.GuardAgainstNullOrEmpty(nameof(connectionString));
+            idFactory.GuardAgainstNull(nameof(idFactory));
             this.connectionString = connectionString;
             this.idFactory = idFactory;
         }

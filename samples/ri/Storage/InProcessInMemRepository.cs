@@ -19,7 +19,7 @@ namespace Storage
 
         public InProcessInMemRepository(IIdentifierFactory idFactory)
         {
-            Guard.AgainstNull(() => idFactory, idFactory);
+            idFactory.GuardAgainstNull(nameof(idFactory));
             this.idFactory = idFactory;
         }
 

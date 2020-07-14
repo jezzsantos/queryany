@@ -24,7 +24,7 @@ namespace CarsDomain.Entities
 
         public void Identify(Identifier id)
         {
-            Guard.AgainstNull(() => id, id);
+            id.GuardAgainstNull(nameof(id));
             Id = id;
         }
 

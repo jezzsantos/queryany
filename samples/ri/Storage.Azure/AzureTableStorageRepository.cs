@@ -31,9 +31,9 @@ namespace Storage.Azure
         protected AzureTableStorageRepository(string connectionString, IIdentifierFactory idFactory,
             TableStorageApiOptions options)
         {
-            Guard.AgainstNullOrEmpty(() => connectionString, connectionString);
-            Guard.AgainstNull(() => idFactory, idFactory);
-            Guard.AgainstNull(() => options, options);
+            connectionString.GuardAgainstNullOrEmpty(nameof(connectionString));
+            idFactory.GuardAgainstNull(nameof(idFactory));
+            options.GuardAgainstNull(nameof(options));
             this.connectionString = connectionString;
             this.idFactory = idFactory;
             this.options = options;

@@ -25,7 +25,7 @@ namespace Storage.IntegrationTests
         {
             public TestEntityInMemStorage(InProcessInMemRepository repository, string containerName) : base(repository)
             {
-                Guard.AgainstNullOrEmpty(() => containerName, containerName);
+                containerName.GuardAgainstNullOrEmpty(nameof(containerName));
                 ContainerName = containerName;
             }
 

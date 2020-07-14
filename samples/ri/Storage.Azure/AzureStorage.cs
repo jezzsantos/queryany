@@ -14,7 +14,7 @@ namespace Storage.Azure
 
         protected AzureStorage(IAzureStorageConnection connection)
         {
-            Guard.AgainstNull(() => connection, connection);
+            connection.GuardAgainstNull(nameof(connection));
             this.connection = connection;
         }
 
@@ -30,7 +30,7 @@ namespace Storage.Azure
 
         public void Delete(Identifier id, bool ignoreConcurrency)
         {
-            Guard.AgainstNull(() => id, id);
+            id.GuardAgainstNull(nameof(id));
 
             using (var store = this.connection.Open())
             {
@@ -40,7 +40,7 @@ namespace Storage.Azure
 
         public TEntity Get(Identifier id)
         {
-            Guard.AgainstNull(() => id, id);
+            id.GuardAgainstNull(nameof(id));
 
             using (var store = this.connection.Open())
             {
@@ -50,7 +50,7 @@ namespace Storage.Azure
 
         public TEntity Update(TEntity entity, bool ignoreConcurrency)
         {
-            Guard.AgainstNull(() => entity, entity);
+            entity.GuardAgainstNull(nameof(entity));
             if (!entity.Id.HasValue())
             {
                 throw new ResourceNotFoundException("Entity has empty identifier");
@@ -88,7 +88,7 @@ namespace Storage.Azure
 
         public QueryResults<TEntity> Query(QueryClause<TEntity> query, SearchOptions options)
         {
-            Guard.AgainstNull(() => query, query);
+            query.GuardAgainstNull(nameof(query));
 
             if (query == null || query.Options.IsEmpty)
             {

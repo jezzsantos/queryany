@@ -132,7 +132,7 @@ namespace QueryAny.Primitives
 
         private static MethodInfo GetMethodInfo(LambdaExpression lambda)
         {
-            Guard.AgainstNull(() => lambda, lambda);
+            lambda.GuardAgainstNull(nameof(lambda));
 
             if (lambda.Body.NodeType != ExpressionType.Call)
             {
@@ -144,7 +144,7 @@ namespace QueryAny.Primitives
 
         private static MemberInfo GetMemberInfo(LambdaExpression lambda)
         {
-            Guard.AgainstNull(() => lambda, lambda);
+            lambda.GuardAgainstNull(nameof(lambda));
 
             if (lambda.Body.NodeType == ExpressionType.MemberAccess)
             {

@@ -9,7 +9,7 @@ namespace CarsApi.Services.Cars
     {
         public SearchAvailableCarsRequestValidator(IHasSearchOptionsValidator hasSearchOptionsValidator)
         {
-            Guard.AgainstNull(() => hasSearchOptionsValidator, hasSearchOptionsValidator);
+            hasSearchOptionsValidator.GuardAgainstNull(nameof(hasSearchOptionsValidator));
 
             Include(hasSearchOptionsValidator);
         }

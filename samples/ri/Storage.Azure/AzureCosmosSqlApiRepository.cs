@@ -28,9 +28,9 @@ namespace Storage.Azure
 
         public AzureCosmosSqlApiRepository(string connectionString, string databaseName, IIdentifierFactory idFactory)
         {
-            Guard.AgainstNullOrEmpty(() => connectionString, connectionString);
-            Guard.AgainstNullOrEmpty(() => databaseName, databaseName);
-            Guard.AgainstNull(() => idFactory, idFactory);
+            connectionString.GuardAgainstNullOrEmpty(nameof(connectionString));
+            databaseName.GuardAgainstNullOrEmpty(nameof(databaseName));
+            idFactory.GuardAgainstNull(nameof(idFactory));
             this.connectionString = connectionString;
             this.databaseName = databaseName;
             this.idFactory = idFactory;

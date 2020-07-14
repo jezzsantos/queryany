@@ -9,7 +9,7 @@ namespace Services.Interfaces.Entities
 
         private Identifier(string identifier)
         {
-            Guard.AgainstNullOrEmpty(() => identifier, identifier);
+            identifier.GuardAgainstNullOrEmpty(nameof(identifier));
             this.identifier = identifier;
         }
 
