@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 using Storage.Azure;
@@ -8,8 +9,6 @@ namespace Storage.UnitTests
     [TestClass]
     public class AzureStorageTableWhereExtensionsSpec
     {
-        private static readonly IAssertion Assert = new Assertion();
-
         [TestMethod, TestCategory("Unit")]
         public void WhenToAzureTableStorageWhereClauseAndSingleCondition_ThenReturnsSqlExpression()
         {
@@ -28,7 +27,7 @@ namespace Storage.UnitTests
 
             var result = wheres.ToAzureTableStorageWhereClause();
 
-            Assert.Equal("afield1 eq 'astringvalue'", result);
+            result.Should().Be("afield1 eq 'astringvalue'");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -59,7 +58,7 @@ namespace Storage.UnitTests
 
             var result = wheres.ToAzureTableStorageWhereClause();
 
-            Assert.Equal("afield1 eq 'astringvalue' and afield2 ge 'astringvalue'", result);
+            result.Should().Be("afield1 eq 'astringvalue' and afield2 ge 'astringvalue'");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -106,9 +105,8 @@ namespace Storage.UnitTests
 
             var result = wheres.ToAzureTableStorageWhereClause();
 
-            Assert.Equal(
-                "afield1 eq 'astringvalue' and (afield2 eq 'astringvalue2' or afield3 eq 'astringvalue3')",
-                result);
+            result.Should()
+                .Be("afield1 eq 'astringvalue' and (afield2 eq 'astringvalue2' or afield3 eq 'astringvalue3')");
         }
     }
 }

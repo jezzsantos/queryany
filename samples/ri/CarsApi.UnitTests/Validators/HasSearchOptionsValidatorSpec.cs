@@ -1,5 +1,6 @@
 using CarsApi.Properties;
 using CarsApi.Validators;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Services.Interfaces;
@@ -11,7 +12,6 @@ namespace CarsApi.UnitTests.Validators
     [TestClass]
     public class HasSearchOptionsValidatorSpec
     {
-        private static readonly IAssertion Assert = new Assertion();
         private HasSearchOptionsDto dto;
         private Mock<IHasGetOptionsValidator> getOptionsValidator;
         private HasSearchOptionsValidator validator;
@@ -68,8 +68,8 @@ namespace CarsApi.UnitTests.Validators
         {
             this.dto.Limit = SearchOptions.NoLimit - 1;
 
-            Assert.Throws<ValidationException>(Resources.HasSearchOptionsValidator_InvalidLimit, () =>
-                this.validator.ValidateAndThrow(this.dto));
+            this.validator.Invoking(x => x.ValidateAndThrow(this.dto)).Should().Throw<ValidationException>()
+                .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidLimit);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -77,8 +77,8 @@ namespace CarsApi.UnitTests.Validators
         {
             this.dto.Limit = SearchOptions.MaxLimit + 1;
 
-            Assert.Throws<ValidationException>(Resources.HasSearchOptionsValidator_InvalidLimit, () =>
-                this.validator.ValidateAndThrow(this.dto));
+            this.validator.Invoking(x => x.ValidateAndThrow(this.dto)).Should().Throw<ValidationException>()
+                .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidLimit);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -110,8 +110,8 @@ namespace CarsApi.UnitTests.Validators
         {
             this.dto.Offset = SearchOptions.NoOffset - 1;
 
-            Assert.Throws<ValidationException>(Resources.HasSearchOptionsValidator_InvalidOffset, () =>
-                this.validator.ValidateAndThrow(this.dto));
+            this.validator.Invoking(x => x.ValidateAndThrow(this.dto)).Should().Throw<ValidationException>()
+                .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidOffset);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -119,8 +119,8 @@ namespace CarsApi.UnitTests.Validators
         {
             this.dto.Offset = SearchOptions.MaxLimit + 1;
 
-            Assert.Throws<ValidationException>(Resources.HasSearchOptionsValidator_InvalidOffset, () =>
-                this.validator.ValidateAndThrow(this.dto));
+            this.validator.Invoking(x => x.ValidateAndThrow(this.dto)).Should().Throw<ValidationException>()
+                .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidOffset);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -136,8 +136,8 @@ namespace CarsApi.UnitTests.Validators
         {
             this.dto.Sort = "*";
 
-            Assert.Throws<ValidationException>(Resources.HasSearchOptionsValidator_InvalidSort, () =>
-                this.validator.ValidateAndThrow(this.dto));
+            this.validator.Invoking(x => x.ValidateAndThrow(this.dto)).Should().Throw<ValidationException>()
+                .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidSort);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -153,8 +153,8 @@ namespace CarsApi.UnitTests.Validators
         {
             this.dto.Filter = "*";
 
-            Assert.Throws<ValidationException>(Resources.HasSearchOptionsValidator_InvalidFilter, () =>
-                this.validator.ValidateAndThrow(this.dto));
+            this.validator.Invoking(x => x.ValidateAndThrow(this.dto)).Should().Throw<ValidationException>()
+                .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidFilter);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -170,8 +170,8 @@ namespace CarsApi.UnitTests.Validators
         {
             this.dto.Distinct = "*";
 
-            Assert.Throws<ValidationException>(Resources.HasSearchOptionsValidator_InvalidDistinct, () =>
-                this.validator.ValidateAndThrow(this.dto));
+            this.validator.Invoking(x => x.ValidateAndThrow(this.dto)).Should().Throw<ValidationException>()
+                .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidDistinct);
         }
     }
 

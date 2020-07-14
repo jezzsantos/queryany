@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 
@@ -7,8 +8,6 @@ namespace Storage.UnitTests
     [TestClass]
     public class DynamicLinqWhereExtensionsSpec
     {
-        private static readonly IAssertion Assert = new Assertion();
-
         [TestMethod, TestCategory("Unit")]
         public void WhenToDynamicLinqWhereClauseAndSingleCondition_ThenReturnsLinq()
         {
@@ -27,7 +26,7 @@ namespace Storage.UnitTests
 
             var result = wheres.ToDynamicLinqWhereClause();
 
-            Assert.Equal("afield1 == \"astringvalue\"", result);
+            result.Should().Be("afield1 == \"astringvalue\"");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -58,7 +57,7 @@ namespace Storage.UnitTests
 
             var result = wheres.ToDynamicLinqWhereClause();
 
-            Assert.Equal("afield1 == \"astringvalue\" and afield2 >= \"astringvalue\"", result);
+            result.Should().Be("afield1 == \"astringvalue\" and afield2 >= \"astringvalue\"");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -105,9 +104,7 @@ namespace Storage.UnitTests
 
             var result = wheres.ToDynamicLinqWhereClause();
 
-            Assert.Equal(
-                "afield1 == \"astringvalue\" and (afield2 == \"astringvalue2\" or afield3 == \"astringvalue3\")",
-                result);
+            result.Should().Be("afield1 == \"astringvalue\" and (afield2 == \"astringvalue2\" or afield3 == \"astringvalue3\")");
         }
     }
 }

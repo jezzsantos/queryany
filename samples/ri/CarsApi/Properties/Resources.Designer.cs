@@ -97,7 +97,7 @@ namespace CarsApi.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The format of the Embed expression in invalid.
+        ///   Looks up a localized string similar to The format of the Embed expression is invalid.
         /// </summary>
         public static string HasGetOptionsValidator_InvalidEmbed {
             get {

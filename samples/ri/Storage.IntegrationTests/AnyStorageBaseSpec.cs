@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 using Services.Interfaces;
@@ -12,7 +13,6 @@ namespace Storage.IntegrationTests
     public abstract class AnyStorageBaseSpec
 
     {
-        private static readonly IAssertion Assert = new Assertion();
         private IStorage<FirstJoiningTestEntity> firstJoiningStorage;
         private IStorage<SecondJoiningTestEntity> secondJoiningStorage;
         private IStorage<TestEntity> storage;
@@ -34,17 +34,17 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenAddAndEntityNotExists_ThenAddsNew()
         {
-            Assert.Equal(0, this.storage.Count());
+            this.storage.Count().Should().Be(0);
 
             var id = this.storage.Add(new TestEntity());
 
-            Assert.Equal(1, this.storage.Count());
+            this.storage.Count().Should().Be(1);
 
             var added = this.storage.Get(id);
-            Assert.Equal(id, added.Id);
-            Assert.Near(DateTime.UtcNow, added.CreatedAtUtc);
-            Assert.Near(DateTime.UtcNow, added.LastModifiedAtUtc);
-            Assert.True(added.LastModifiedAtUtc == added.CreatedAtUtc);
+            added.Id.Should().Be(id);
+            added.CreatedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            added.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            added.CreatedAtUtc.Should().Be(added.LastModifiedAtUtc);
         }
 
         [TestMethod]
@@ -54,7 +54,7 @@ namespace Storage.IntegrationTests
 
             this.storage.Delete(id, false);
 
-            Assert.Equal(0, this.storage.Count());
+            this.storage.Count().Should().Be(0);
         }
 
         [TestMethod]
@@ -62,14 +62,14 @@ namespace Storage.IntegrationTests
         {
             this.storage.Delete(Identifier.Create("anid"), false);
 
-            Assert.Equal(0, this.storage.Count());
+            this.storage.Count().Should().Be(0);
         }
 
         [TestMethod]
         public void WhenDeleteAndIdIsEmpty_ThenThrows()
         {
-            Assert.Throws<ArgumentNullException>(() =>
-                this.storage.Delete(null, false));
+            this.storage.Invoking(x => x.Delete(null, false))
+                .Should().Throw<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -77,7 +77,7 @@ namespace Storage.IntegrationTests
         {
             var entity = this.storage.Get(Identifier.Create("anid"));
 
-            Assert.Null(entity);
+            entity.Should().BeNull();
         }
 
         [TestMethod]
@@ -105,28 +105,28 @@ namespace Storage.IntegrationTests
 
             var result = this.storage.Get(id);
 
-            Assert.Equal(id, result.Id);
-            Assert.Near(DateTime.UtcNow, result.CreatedAtUtc);
-            Assert.Near(DateTime.UtcNow, result.LastModifiedAtUtc);
-            Assert.True(result.ABinaryValue.SequenceEqual(new byte[] {0x01}));
-            Assert.Equal(true, result.ABooleanValue);
-            Assert.Equal(Guid.Empty, result.AGuidValue);
-            Assert.Equal(1, result.AIntValue);
-            Assert.Equal(2, result.ALongValue);
-            Assert.Equal(0.1, result.ADoubleValue);
-            Assert.Equal("astringvalue", result.AStringValue);
-            Assert.Equal(DateTime.Today.ToUniversalTime(), result.ADateTimeUtcValue);
-            Assert.Equal(DateTimeOffset.UnixEpoch.ToUniversalTime(), result.ADateTimeOffsetUtcValue);
-            Assert.Equal(new ComplexNonValueType {APropertyValue = "avalue"}.ToString(),
-                result.AComplexNonValueTypeValue.ToString());
-            Assert.Equal(ComplexValueType.Create("avalue", 25, true), result.AComplexValueTypeValue);
+            result.Id.Should().Be(id);
+            result.CreatedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            result.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            result.ABinaryValue.SequenceEqual(new byte[] {0x01}).Should().BeTrue();
+            result.ABooleanValue.Should().Be(true);
+            result.AGuidValue.Should().Be(Guid.Empty);
+            result.AIntValue.Should().Be(1);
+            result.ALongValue.Should().Be(2);
+            result.ADoubleValue.Should().Be(0.1);
+            result.AStringValue.Should().Be("astringvalue");
+            result.ADateTimeUtcValue.Should().Be(DateTime.Today.ToUniversalTime());
+            result.ADateTimeOffsetUtcValue.Should().Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
+            result.AComplexNonValueTypeValue.ToString().Should()
+                .Be(new ComplexNonValueType {APropertyValue = "avalue"}.ToString());
+            result.AComplexValueTypeValue.Should().Be(ComplexValueType.Create("avalue", 25, true));
         }
 
         [TestMethod]
         public void WhenGetAndIdIsEmpty_ThenThrows()
         {
-            Assert.Throws<ArgumentNullException>(() =>
-                this.storage.Get(null));
+            this.storage.Invoking(x => x.Get(null))
+                .Should().Throw<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -138,10 +138,10 @@ namespace Storage.IntegrationTests
             entity.AStringValue = "updated";
             var updated = this.storage.Update(entity, false);
 
-            Assert.Equal(id, updated.Id);
-            Assert.Equal("updated", updated.AStringValue);
-            Assert.Near(DateTime.UtcNow, updated.LastModifiedAtUtc);
-            Assert.True(updated.LastModifiedAtUtc > updated.CreatedAtUtc,
+            updated.Id.Should().Be(id);
+            updated.AStringValue.Should().Be("updated");
+            updated.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            updated.LastModifiedAtUtc.Should().BeAfter(updated.CreatedAtUtc,
                 $"{nameof(IModifiableEntity.LastModifiedAtUtc)} ({updated.LastModifiedAtUtc:O}) is not after {nameof(IModifiableEntity.CreatedAtUtc)} ({updated.CreatedAtUtc:O})");
         }
 
@@ -153,8 +153,8 @@ namespace Storage.IntegrationTests
                 AStringValue = "updated"
             };
 
-            Assert.Throws<ResourceNotFoundException>(() =>
-                this.storage.Update(entity, false));
+            this.storage.Invoking(x => x.Update(entity, false))
+                .Should().Throw<ResourceNotFoundException>();
         }
 
         [TestMethod]
@@ -162,8 +162,8 @@ namespace Storage.IntegrationTests
         {
             var entity = new TestEntity();
 
-            Assert.Throws<ResourceNotFoundException>(() =>
-                this.storage.Update(entity, false));
+            this.storage.Invoking(x => x.Update(entity, false))
+                .Should().Throw<ResourceNotFoundException>();
         }
 
         [TestMethod]
@@ -171,7 +171,7 @@ namespace Storage.IntegrationTests
         {
             var count = this.storage.Count();
 
-            Assert.Equal(0, count);
+            count.Should().Be(0);
         }
 
         [TestMethod]
@@ -182,14 +182,14 @@ namespace Storage.IntegrationTests
 
             var count = this.storage.Count();
 
-            Assert.Equal(2, count);
+            count.Should().Be(2);
         }
 
         [TestMethod]
         public void WhenQueryAndQueryIsNull_ThenThrows()
         {
-            Assert.Throws<ArgumentNullException>(() =>
-                this.storage.Query(null, null));
+            this.storage.Invoking(x => x.Query(null, null))
+                .Should().Throw<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -203,7 +203,7 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(0, results.Results.Count);
+            results.Results.Count.Should().Be(0);
         }
 
         [TestMethod]
@@ -218,8 +218,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id);
         }
 
         [TestMethod]
@@ -229,7 +229,7 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(0, results.Results.Count);
+            results.Results.Count.Should().Be(0);
         }
 
         [TestMethod]
@@ -243,7 +243,7 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(0, results.Results.Count);
+            results.Results.Count.Should().Be(0);
         }
 
         [TestMethod]
@@ -257,8 +257,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id);
         }
 
         [TestMethod]
@@ -276,9 +276,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(2, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
-            Assert.Equal(id2, results.Results[1].Id);
+            results.Results.Count.Should().Be(2);
+            results.Results[0].Id.Should().Be(id1);
+            results.Results[1].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -290,8 +290,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -303,8 +303,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -316,8 +316,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -329,8 +329,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id1);
         }
 
         [TestMethod]
@@ -344,8 +344,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -360,8 +360,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -375,8 +375,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -391,8 +391,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -407,9 +407,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(2, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
-            Assert.Equal(id2, results.Results[1].Id);
+            results.Results.Count.Should().Be(2);
+            results.Results[0].Id.Should().Be(id1);
+            results.Results[1].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -423,8 +423,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id1);
         }
 
         [TestMethod]
@@ -439,9 +439,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(2, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
-            Assert.Equal(id2, results.Results[1].Id);
+            results.Results.Count.Should().Be(2);
+            results.Results[0].Id.Should().Be(id1);
+            results.Results[1].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -456,8 +456,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id1);
         }
 
         [TestMethod]
@@ -469,8 +469,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -482,8 +482,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -495,8 +495,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -508,9 +508,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(2, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
-            Assert.Equal(id2, results.Results[1].Id);
+            results.Results.Count.Should().Be(2);
+            results.Results[0].Id.Should().Be(id1);
+            results.Results[1].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -522,8 +522,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id1);
         }
 
         [TestMethod]
@@ -535,9 +535,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(2, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
-            Assert.Equal(id2, results.Results[1].Id);
+            results.Results.Count.Should().Be(2);
+            results.Results[0].Id.Should().Be(id1);
+            results.Results[1].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -549,8 +549,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id1);
         }
 
         [TestMethod]
@@ -562,8 +562,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -575,8 +575,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -590,8 +590,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -605,8 +605,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
         }
 
         [TestMethod]
@@ -621,9 +621,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
-            Assert.Equal(complex2.ToString(), results.Results[0].AComplexNonValueTypeValue.ToString());
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].AComplexNonValueTypeValue.ToString().Should().Be(complex2.ToString());
         }
 
         [TestMethod]
@@ -637,9 +637,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
-            Assert.Equal(null, results.Results[0].AComplexNonValueTypeValue);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].AComplexNonValueTypeValue.Should().Be(null);
         }
 
         [TestMethod]
@@ -653,9 +653,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
-            Assert.Equal(complex1.ToString(), results.Results[0].AComplexNonValueTypeValue.ToString());
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].AComplexNonValueTypeValue.ToString().Should().Be(complex1.ToString());
         }
 
 
@@ -671,9 +671,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
-            Assert.Equal(complex2, results.Results[0].AComplexValueTypeValue);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].AComplexValueTypeValue.Should().Be(complex2);
         }
 
         [TestMethod]
@@ -687,9 +687,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id2, results.Results[0].Id);
-            Assert.Equal(null, results.Results[0].AComplexValueTypeValue);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].AComplexValueTypeValue.Should().Be(null);
         }
 
         [TestMethod]
@@ -703,9 +703,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
-            Assert.Equal(complex1, results.Results[0].AComplexValueTypeValue);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].AComplexValueTypeValue.Should().Be(complex1);
         }
 
         [TestMethod]
@@ -734,21 +734,21 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
+            results.Results.Count.Should().Be(1);
             var result = results.Results[0];
-            Assert.Equal(id, result.Id);
-            Assert.True(result.ABinaryValue.SequenceEqual(new byte[] {0x01}));
-            Assert.Equal(true, result.ABooleanValue);
-            Assert.Equal(Guid.Empty, result.AGuidValue);
-            Assert.Equal(1, result.AIntValue);
-            Assert.Equal(2, result.ALongValue);
-            Assert.Equal(0.1, result.ADoubleValue);
-            Assert.Equal("astringvalue", result.AStringValue);
-            Assert.Equal(DateTime.Today.ToUniversalTime(), result.ADateTimeUtcValue);
-            Assert.Equal(DateTimeOffset.UnixEpoch.ToUniversalTime(), result.ADateTimeOffsetUtcValue);
-            Assert.Equal(new ComplexNonValueType {APropertyValue = "avalue"}.ToJson(),
-                result.AComplexNonValueTypeValue.ToJson());
-            Assert.Equal(ComplexValueType.Create("avalue", 25, true), result.AComplexValueTypeValue);
+            result.Id.Should().Be(id);
+            result.ABinaryValue.SequenceEqual(new byte[] {0x01}).Should().BeTrue();
+            result.ABooleanValue.Should().Be(true);
+            result.AGuidValue.Should().Be(Guid.Empty);
+            result.AIntValue.Should().Be(1);
+            result.ALongValue.Should().Be(2);
+            result.ADoubleValue.Should().Be(0.1);
+            result.AStringValue.Should().Be("astringvalue");
+            result.ADateTimeUtcValue.Should().Be(DateTime.Today.ToUniversalTime());
+            result.ADateTimeOffsetUtcValue.Should().Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
+            result.AComplexNonValueTypeValue.ToJson().Should()
+                .Be(new ComplexNonValueType {APropertyValue = "avalue"}.ToJson());
+            result.AComplexValueTypeValue.Should().Be(ComplexValueType.Create("avalue", 25, true));
         }
 
         [TestMethod]
@@ -778,20 +778,20 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
+            results.Results.Count.Should().Be(1);
             var result = results.Results[0];
-            Assert.Equal(id, result.Id);
-            Assert.True(result.ABinaryValue.SequenceEqual(new byte[] {0x01}));
-            Assert.Equal(false, result.ABooleanValue);
-            Assert.Equal(Guid.Empty, result.AGuidValue);
-            Assert.Equal(0, result.AIntValue);
-            Assert.Equal(0, result.ALongValue);
-            Assert.Equal(0, result.ADoubleValue);
-            Assert.Equal(null, result.AStringValue);
-            Assert.Equal(DateTime.MinValue, result.ADateTimeUtcValue);
-            Assert.Equal(DateTimeOffset.MinValue, result.ADateTimeOffsetUtcValue);
-            Assert.Equal(null, result.AComplexNonValueTypeValue);
-            Assert.Equal(null, result.AComplexValueTypeValue);
+            result.Id.Should().Be(id);
+            result.ABinaryValue.SequenceEqual(new byte[] {0x01}).Should().BeTrue();
+            result.ABooleanValue.Should().Be(false);
+            result.AGuidValue.Should().Be(Guid.Empty);
+            result.AIntValue.Should().Be(0);
+            result.ALongValue.Should().Be(0);
+            result.ADoubleValue.Should().Be(0);
+            result.AStringValue.Should().Be(null);
+            result.ADateTimeUtcValue.Should().Be(DateTime.MinValue);
+            result.ADateTimeOffsetUtcValue.Should().Be(DateTimeOffset.MinValue);
+            result.AComplexNonValueTypeValue.Should().Be(null);
+            result.AComplexValueTypeValue.Should().Be(null);
         }
 
         [TestMethod]
@@ -804,7 +804,7 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(0, results.Results.Count);
+            results.Results.Count.Should().Be(0);
         }
 
         [TestMethod]
@@ -820,8 +820,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id1);
         }
 
         [TestMethod]
@@ -834,8 +834,8 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id1);
         }
 
         [TestMethod]
@@ -852,10 +852,10 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(3, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
-            Assert.Equal(id2, results.Results[1].Id);
-            Assert.Equal(id3, results.Results[2].Id);
+            results.Results.Count.Should().Be(3);
+            results.Results[0].Id.Should().Be(id1);
+            results.Results[1].Id.Should().Be(id2);
+            results.Results[2].Id.Should().Be(id3);
         }
 
         [TestMethod]
@@ -869,7 +869,7 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(0, results.Results.Count);
+            results.Results.Count.Should().Be(0);
         }
 
         [TestMethod]
@@ -886,9 +886,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
-            Assert.Equal(9, results.Results[0].AIntValue);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].AIntValue.Should().Be(9);
         }
 
         [TestMethod]
@@ -902,9 +902,9 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
-            Assert.Equal(7, results.Results[0].AIntValue);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].AIntValue.Should().Be(7);
         }
 
         [TestMethod]
@@ -922,13 +922,13 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(3, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
-            Assert.Equal(9, results.Results[0].AIntValue);
-            Assert.Equal(id2, results.Results[1].Id);
-            Assert.Equal(7, results.Results[1].AIntValue);
-            Assert.Equal(id3, results.Results[2].Id);
-            Assert.Equal(7, results.Results[2].AIntValue);
+            results.Results.Count.Should().Be(3);
+            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].AIntValue.Should().Be(9);
+            results.Results[1].Id.Should().Be(id2);
+            results.Results[1].AIntValue.Should().Be(7);
+            results.Results[2].Id.Should().Be(id3);
+            results.Results[2].AIntValue.Should().Be(7);
         }
 
         [TestMethod]
@@ -950,10 +950,10 @@ namespace Storage.IntegrationTests
 
             var results = this.storage.Query(query, null);
 
-            Assert.Equal(1, results.Results.Count);
-            Assert.Equal(id1, results.Results[0].Id);
-            Assert.Equal(9, results.Results[0].AIntValue);
-            Assert.Equal(8, results.Results[0].ALongValue);
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].AIntValue.Should().Be(9);
+            results.Results[0].ALongValue.Should().Be(8);
         }
     }
 }

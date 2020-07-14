@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Services.Interfaces.Entities;
 
@@ -29,7 +30,7 @@ namespace Services.Interfaces.UnitTests
         {
             var result = new TestSingleValueType("avalue").Equals(new TestSingleValueType("avalue"));
 
-            Assert.IsTrue(result);
+            result.Should().BeTrue();
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -47,7 +48,7 @@ namespace Services.Interfaces.UnitTests
             var result =
                 new TestMultiValueType("avalue1", 25, true).Equals(new TestMultiValueType("avalue1", 25, true));
 
-            Assert.IsTrue(result);
+            result.Should().BeTrue();
         }
     }
 

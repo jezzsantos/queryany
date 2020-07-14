@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Services.Interfaces.UnitTests
@@ -26,11 +27,11 @@ namespace Services.Interfaces.UnitTests
         {
             var result = this.hasSearchOptions.ToSearchOptions();
 
-            Assert.AreEqual(SearchOptions.DefaultLimit, result.Limit);
-            Assert.AreEqual(SearchOptions.NoOffset, result.Offset);
+            result.Limit.Should().Be(SearchOptions.DefaultLimit);
+            result.Offset.Should().Be(SearchOptions.NoOffset);
             Assert.IsNull(result.Sort.By);
-            Assert.AreEqual(SortDirection.Ascending, result.Sort.Direction);
-            Assert.AreEqual(0, result.Filter.Fields.Count);
+            result.Sort.Direction.Should().Be(SortDirection.Ascending);
+            result.Filter.Fields.Count.Should().Be(0);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -41,11 +42,11 @@ namespace Services.Interfaces.UnitTests
 
             var result = this.hasSearchOptions.ToSearchOptions();
 
-            Assert.AreEqual(9, result.Limit);
-            Assert.AreEqual(99, result.Offset);
+            result.Limit.Should().Be(9);
+            result.Offset.Should().Be(99);
             Assert.IsNull(result.Sort.By);
-            Assert.AreEqual(SortDirection.Ascending, result.Sort.Direction);
-            Assert.AreEqual(0, result.Filter.Fields.Count);
+            result.Sort.Direction.Should().Be(SortDirection.Ascending);
+            result.Filter.Fields.Count.Should().Be(0);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -56,11 +57,11 @@ namespace Services.Interfaces.UnitTests
 
             var result = this.hasSearchOptions.ToSearchOptions();
 
-            Assert.AreEqual(SearchOptions.DefaultLimit, result.Limit);
-            Assert.AreEqual(99, result.Offset);
+            result.Limit.Should().Be(SearchOptions.DefaultLimit);
+            result.Offset.Should().Be(99);
             Assert.IsNull(result.Sort.By);
-            Assert.AreEqual(SortDirection.Ascending, result.Sort.Direction);
-            Assert.AreEqual(0, result.Filter.Fields.Count);
+            result.Sort.Direction.Should().Be(SortDirection.Ascending);
+            result.Filter.Fields.Count.Should().Be(0);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -70,15 +71,15 @@ namespace Services.Interfaces.UnitTests
 
             var result = this.hasSearchOptions.ToSearchOptions();
 
-            Assert.AreEqual("Field1", result.Sort.By);
-            Assert.AreEqual(SortDirection.Ascending, result.Sort.Direction);
+            result.Sort.By.Should().Be("Field1");
+            result.Sort.Direction.Should().Be(SortDirection.Ascending);
 
             this.hasSearchOptions.Sort = "-Field1";
 
             result = this.hasSearchOptions.ToSearchOptions();
 
-            Assert.AreEqual("Field1", result.Sort.By);
-            Assert.AreEqual(SortDirection.Descending, result.Sort.Direction);
+            result.Sort.By.Should().Be("Field1");
+            result.Sort.Direction.Should().Be(SortDirection.Descending);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -88,9 +89,9 @@ namespace Services.Interfaces.UnitTests
 
             var result = this.hasSearchOptions.ToSearchOptions();
 
-            Assert.AreEqual(2, result.Filter.Fields.Count);
-            Assert.AreEqual("Field1", result.Filter.Fields[0]);
-            Assert.AreEqual("Field2", result.Filter.Fields[1]);
+            result.Filter.Fields.Count.Should().Be(2);
+            result.Filter.Fields[0].Should().Be("Field1");
+            result.Filter.Fields[1].Should().Be("Field2");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -98,12 +99,12 @@ namespace Services.Interfaces.UnitTests
         {
             var result = this.hasSearchOptions.ToSearchOptions(9, 99, "-asort", "afilter");
 
-            Assert.AreEqual(9, result.Limit);
-            Assert.AreEqual(99, result.Offset);
-            Assert.AreEqual("asort", result.Sort.By);
-            Assert.AreEqual(SortDirection.Descending, result.Sort.Direction);
-            Assert.AreEqual(1, result.Filter.Fields.Count);
-            Assert.AreEqual("afilter", result.Filter.Fields[0]);
+            result.Limit.Should().Be(9);
+            result.Offset.Should().Be(99);
+            result.Sort.By.Should().Be("asort");
+            result.Sort.Direction.Should().Be(SortDirection.Descending);
+            result.Filter.Fields.Count.Should().Be(1);
+            result.Filter.Fields[0].Should().Be("afilter");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -111,12 +112,12 @@ namespace Services.Interfaces.UnitTests
         {
             var result = this.hasSearchOptions.ToSearchOptions(0, 99, "-asort", "afilter");
 
-            Assert.AreEqual(SearchOptions.DefaultLimit, result.Limit);
-            Assert.AreEqual(99, result.Offset);
-            Assert.AreEqual("asort", result.Sort.By);
-            Assert.AreEqual(SortDirection.Descending, result.Sort.Direction);
-            Assert.AreEqual(1, result.Filter.Fields.Count);
-            Assert.AreEqual("afilter", result.Filter.Fields[0]);
+            result.Limit.Should().Be(SearchOptions.DefaultLimit);
+            result.Offset.Should().Be(99);
+            result.Sort.By.Should().Be("asort");
+            result.Sort.Direction.Should().Be(SortDirection.Descending);
+            result.Filter.Fields.Count.Should().Be(1);
+            result.Filter.Fields[0].Should().Be("afilter");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -129,12 +130,12 @@ namespace Services.Interfaces.UnitTests
 
             var result = this.hasSearchOptions.ToSearchOptions(9, 99, "asort2", "afilter2");
 
-            Assert.AreEqual(6, result.Limit);
-            Assert.AreEqual(66, result.Offset);
-            Assert.AreEqual("asort1", result.Sort.By);
-            Assert.AreEqual(SortDirection.Descending, result.Sort.Direction);
-            Assert.AreEqual(1, result.Filter.Fields.Count);
-            Assert.AreEqual("afilter1", result.Filter.Fields[0]);
+            result.Limit.Should().Be(6);
+            result.Offset.Should().Be(66);
+            result.Sort.By.Should().Be("asort1");
+            result.Sort.Direction.Should().Be(SortDirection.Descending);
+            result.Filter.Fields.Count.Should().Be(1);
+            result.Filter.Fields[0].Should().Be("afilter1");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -144,7 +145,7 @@ namespace Services.Interfaces.UnitTests
 
             var result = this.hasSearchOptions.ToSearchOptions();
 
-            Assert.AreEqual("adistinct", result.Distinct);
+            result.Distinct.Should().Be("adistinct");
         }
     }
 

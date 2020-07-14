@@ -1,4 +1,5 @@
 ﻿using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny.Properties;
 
@@ -7,14 +8,13 @@ namespace QueryAny.UnitTests
     [TestClass]
     public class QuerySpec
     {
-        private static readonly IAssertion Assert = new Assertion();
-
         [TestMethod, TestCategory("Unit")]
         public void WhenFromWithUnnamedEntityType_ThenCreatesADerivedNamedCollection()
         {
             var result = Query.From<UnnamedTestEntity>();
 
-            Assert.Equal("UnnamedTest", result.PrimaryEntity.EntityName);
+            result.PrimaryEntity.EntityName.Should().Be("UnnamedTest");
+            result.PrimaryEntity.EntityName.Should().Be("UnnamedTest");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -22,7 +22,7 @@ namespace QueryAny.UnitTests
         {
             var result = Query.From<NamedTestEntity>();
 
-            Assert.Equal("aname", result.PrimaryEntity.EntityName);
+            result.PrimaryEntity.EntityName.Should().Be("aname");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -30,7 +30,7 @@ namespace QueryAny.UnitTests
         {
             var result = Query.From<UnnamedTestEntityUnconventionalNamed>();
 
-            Assert.Equal("unnamedtestentityunconventionalnamed", result.PrimaryEntity.EntityName);
+            result.PrimaryEntity.EntityName.Should().Be("unnamedtestentityunconventionalnamed");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -38,15 +38,16 @@ namespace QueryAny.UnitTests
         {
             var result = Query.Empty<NamedTestEntity>();
 
-            Assert.Equal("aname", result.PrimaryEntity.EntityName);
-            Assert.Equal(0, result.Wheres.Count);
+            result.PrimaryEntity.EntityName.Should().Be("aname");
+            result.Wheres.Count.Should().Be(0);
         }
 
         [TestMethod, TestCategory("Unit")]
         public void WhenAndWhereOnEmpty_ThenThrows()
         {
-            Assert.Throws<InvalidOperationException>(() =>
-                Query.Empty<NamedTestEntity>().AndWhere(e => e.AStringProperty, ConditionOperator.EqualTo, "1"));
+            Query.Empty<NamedTestEntity>()
+                .Invoking(x => x.AndWhere(e => e.AStringProperty, ConditionOperator.EqualTo, "1"))
+                .Should().Throw<InvalidOperationException>();
         }
 
 
@@ -55,16 +56,15 @@ namespace QueryAny.UnitTests
         {
             var result = Query.From<NamedTestEntity>().WhereAll();
 
-            Assert.Equal(0, result.Wheres.Count);
+            result.Wheres.Count.Should().Be(0);
         }
 
         [TestMethod, TestCategory("Unit")]
         public void WhenAndWhereAfterWhereAll_ThenThrows()
         {
-            Assert.Throws<InvalidOperationException>(() =>
-                Query.From<NamedTestEntity>()
-                    .WhereAll()
-                    .AndWhere(e => e.AStringProperty, ConditionOperator.EqualTo, "1"));
+            Query.From<NamedTestEntity>()
+                .WhereAll().Invoking(x => x.AndWhere(e => e.AStringProperty, ConditionOperator.EqualTo, "1"))
+                .Should().Throw<InvalidOperationException>();
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -72,11 +72,11 @@ namespace QueryAny.UnitTests
         {
             var result = Query.From<NamedTestEntity>().Where(e => e.AStringProperty, ConditionOperator.EqualTo, "1");
 
-            Assert.Equal(1, result.Wheres.Count);
-            Assert.Equal(LogicalOperator.None, result.Wheres[0].Operator);
-            Assert.Equal(ConditionOperator.EqualTo, result.Wheres[0].Condition.Operator);
-            Assert.Equal("AStringProperty", result.Wheres[0].Condition.FieldName);
-            Assert.Equal("1", result.Wheres[0].Condition.Value);
+            result.Wheres.Count.Should().Be(1);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.Value.Should().Be("1");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -86,11 +86,11 @@ namespace QueryAny.UnitTests
             var result = Query.From<NamedTestEntity>()
                 .Where(e => e.ADateTimeProperty, ConditionOperator.EqualTo, datum);
 
-            Assert.Equal(1, result.Wheres.Count);
-            Assert.Equal(LogicalOperator.None, result.Wheres[0].Operator);
-            Assert.Equal(ConditionOperator.EqualTo, result.Wheres[0].Condition.Operator);
-            Assert.Equal("ADateTimeProperty", result.Wheres[0].Condition.FieldName);
-            Assert.Equal(datum, result.Wheres[0].Condition.Value);
+            result.Wheres.Count.Should().Be(1);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be("ADateTimeProperty");
+            result.Wheres[0].Condition.Value.Should().Be(datum);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -100,16 +100,15 @@ namespace QueryAny.UnitTests
                 .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "1")
                 .AndWhere(e => e.AStringProperty, ConditionOperator.NotEqualTo, "2");
 
-            Assert.Equal(2, result.Wheres.Count);
-            Assert.Equal(LogicalOperator.None, result.Wheres[0].Operator);
-            Assert.Equal(ConditionOperator.EqualTo, result.Wheres[0].Condition.Operator);
-            Assert.Equal("AStringProperty", result.Wheres[0].Condition.FieldName);
-            Assert.Equal("1", result.Wheres[0].Condition.Value);
-            Assert.Equal(LogicalOperator.And, result.Wheres[1].Operator);
-            Assert.Equal(ConditionOperator.NotEqualTo,
-                result.Wheres[1].Condition.Operator);
-            Assert.Equal("AStringProperty", result.Wheres[1].Condition.FieldName);
-            Assert.Equal("2", result.Wheres[1].Condition.Value);
+            result.Wheres.Count.Should().Be(2);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.Value.Should().Be("1");
+            result.Wheres[1].Operator.Should().Be(LogicalOperator.And);
+            result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
+            result.Wheres[1].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[1].Condition.Value.Should().Be("2");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -120,16 +119,15 @@ namespace QueryAny.UnitTests
                 .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "1")
                 .AndWhere(e => e.ADateTimeProperty, ConditionOperator.NotEqualTo, datum);
 
-            Assert.Equal(2, result.Wheres.Count);
-            Assert.Equal(LogicalOperator.None, result.Wheres[0].Operator);
-            Assert.Equal(ConditionOperator.EqualTo, result.Wheres[0].Condition.Operator);
-            Assert.Equal("AStringProperty", result.Wheres[0].Condition.FieldName);
-            Assert.Equal("1", result.Wheres[0].Condition.Value);
-            Assert.Equal(LogicalOperator.And, result.Wheres[1].Operator);
-            Assert.Equal(ConditionOperator.NotEqualTo,
-                result.Wheres[1].Condition.Operator);
-            Assert.Equal("ADateTimeProperty", result.Wheres[1].Condition.FieldName);
-            Assert.Equal(datum, result.Wheres[1].Condition.Value);
+            result.Wheres.Count.Should().Be(2);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.Value.Should().Be("1");
+            result.Wheres[1].Operator.Should().Be(LogicalOperator.And);
+            result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
+            result.Wheres[1].Condition.FieldName.Should().Be("ADateTimeProperty");
+            result.Wheres[1].Condition.Value.Should().Be(datum);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -139,16 +137,15 @@ namespace QueryAny.UnitTests
                 .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "1")
                 .OrWhere(e => e.AStringProperty, ConditionOperator.NotEqualTo, "2");
 
-            Assert.Equal(2, result.Wheres.Count);
-            Assert.Equal(LogicalOperator.None, result.Wheres[0].Operator);
-            Assert.Equal(ConditionOperator.EqualTo, result.Wheres[0].Condition.Operator);
-            Assert.Equal("AStringProperty", result.Wheres[0].Condition.FieldName);
-            Assert.Equal("1", result.Wheres[0].Condition.Value);
-            Assert.Equal(LogicalOperator.Or, result.Wheres[1].Operator);
-            Assert.Equal(ConditionOperator.NotEqualTo,
-                result.Wheres[1].Condition.Operator);
-            Assert.Equal("AStringProperty", result.Wheres[1].Condition.FieldName);
-            Assert.Equal("2", result.Wheres[1].Condition.Value);
+            result.Wheres.Count.Should().Be(2);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.Value.Should().Be("1");
+            result.Wheres[1].Operator.Should().Be(LogicalOperator.Or);
+            result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
+            result.Wheres[1].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[1].Condition.Value.Should().Be("2");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -159,16 +156,15 @@ namespace QueryAny.UnitTests
                 .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "1")
                 .OrWhere(e => e.ADateTimeProperty, ConditionOperator.NotEqualTo, datum);
 
-            Assert.Equal(2, result.Wheres.Count);
-            Assert.Equal(LogicalOperator.None, result.Wheres[0].Operator);
-            Assert.Equal(ConditionOperator.EqualTo, result.Wheres[0].Condition.Operator);
-            Assert.Equal("AStringProperty", result.Wheres[0].Condition.FieldName);
-            Assert.Equal("1", result.Wheres[0].Condition.Value);
-            Assert.Equal(LogicalOperator.Or, result.Wheres[1].Operator);
-            Assert.Equal(ConditionOperator.NotEqualTo,
-                result.Wheres[1].Condition.Operator);
-            Assert.Equal("ADateTimeProperty", result.Wheres[1].Condition.FieldName);
-            Assert.Equal(datum, result.Wheres[1].Condition.Value);
+            result.Wheres.Count.Should().Be(2);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.Value.Should().Be("1");
+            result.Wheres[1].Operator.Should().Be(LogicalOperator.Or);
+            result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
+            result.Wheres[1].Condition.FieldName.Should().Be("ADateTimeProperty");
+            result.Wheres[1].Condition.Value.Should().Be(datum);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -178,19 +174,17 @@ namespace QueryAny.UnitTests
                 .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "1")
                 .AndWhere(sub => sub.Where(e => e.AStringProperty, ConditionOperator.NotEqualTo, "2"));
 
-            Assert.Equal(2, result.Wheres.Count);
-            Assert.Equal(LogicalOperator.None, result.Wheres[0].Operator);
-            Assert.Equal(ConditionOperator.EqualTo, result.Wheres[0].Condition.Operator);
-            Assert.Equal("AStringProperty", result.Wheres[0].Condition.FieldName);
-            Assert.Equal("1", result.Wheres[0].Condition.Value);
-            Assert.Equal(LogicalOperator.And, result.Wheres[1].Operator);
-            Assert.Equal(null, result.Wheres[1].Condition);
-            Assert.Equal(1, result.Wheres[1].NestedWheres.Count);
-            Assert.Equal(ConditionOperator.NotEqualTo,
-                result.Wheres[1].NestedWheres[0].Condition.Operator);
-            Assert.Equal("AStringProperty",
-                result.Wheres[1].NestedWheres[0].Condition.FieldName);
-            Assert.Equal("2", result.Wheres[1].NestedWheres[0].Condition.Value);
+            result.Wheres.Count.Should().Be(2);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.Value.Should().Be("1");
+            result.Wheres[1].Operator.Should().Be(LogicalOperator.And);
+            result.Wheres[1].Condition.Should().Be(null);
+            result.Wheres[1].NestedWheres.Count.Should().Be(1);
+            result.Wheres[1].NestedWheres[0].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
+            result.Wheres[1].NestedWheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[1].NestedWheres[0].Condition.Value.Should().Be("2");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -202,26 +196,21 @@ namespace QueryAny.UnitTests
                     sub.Where(e => e.AStringProperty, ConditionOperator.NotEqualTo, "2")
                         .AndWhere(e => e.AStringProperty, ConditionOperator.EqualTo, "3"));
 
-            Assert.Equal(2, result.Wheres.Count);
-            Assert.Equal(LogicalOperator.None, result.Wheres[0].Operator);
-            Assert.Equal(ConditionOperator.EqualTo, result.Wheres[0].Condition.Operator);
-            Assert.Equal("AStringProperty", result.Wheres[0].Condition.FieldName);
-            Assert.Equal("1", result.Wheres[0].Condition.Value);
-            Assert.Equal(LogicalOperator.And, result.Wheres[1].Operator);
-            Assert.Equal(null, result.Wheres[1].Condition);
-            Assert.Equal(2, result.Wheres[1].NestedWheres.Count);
-            Assert.Equal(ConditionOperator.NotEqualTo,
-                result.Wheres[1].NestedWheres[0].Condition.Operator);
-            Assert.Equal("AStringProperty",
-                result.Wheres[1].NestedWheres[0].Condition.FieldName);
-            Assert.Equal("2", result.Wheres[1].NestedWheres[0].Condition.Value);
-            Assert.Equal(LogicalOperator.And,
-                result.Wheres[1].NestedWheres[1].Operator);
-            Assert.Equal(ConditionOperator.EqualTo,
-                result.Wheres[1].NestedWheres[1].Condition.Operator);
-            Assert.Equal("AStringProperty",
-                result.Wheres[1].NestedWheres[1].Condition.FieldName);
-            Assert.Equal("3", result.Wheres[1].NestedWheres[1].Condition.Value);
+            result.Wheres.Count.Should().Be(2);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.Value.Should().Be("1");
+            result.Wheres[1].Operator.Should().Be(LogicalOperator.And);
+            result.Wheres[1].Condition.Should().Be(null);
+            result.Wheres[1].NestedWheres.Count.Should().Be(2);
+            result.Wheres[1].NestedWheres[0].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
+            result.Wheres[1].NestedWheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[1].NestedWheres[0].Condition.Value.Should().Be("2");
+            result.Wheres[1].NestedWheres[1].Operator.Should().Be(LogicalOperator.And);
+            result.Wheres[1].NestedWheres[1].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[1].NestedWheres[1].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[1].NestedWheres[1].Condition.Value.Should().Be("3");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -231,13 +220,13 @@ namespace QueryAny.UnitTests
                 .Join<SecondTestEntity, string>(f => f.AFirstStringProperty, s => s.ASecondStringProperty)
                 .Where(e => e.AFirstStringProperty, ConditionOperator.EqualTo, "avalue");
 
-            Assert.Equal(2, result.AllEntities.Count);
-            Assert.Null(result.PrimaryEntity.Join);
-            Assert.Equal("first", result.AllEntities[1].Join.Left.EntityName);
-            Assert.Equal("AFirstStringProperty", result.AllEntities[1].Join.Left.JoinedFieldName);
-            Assert.Equal("second", result.AllEntities[1].Join.Right.EntityName);
-            Assert.Equal("ASecondStringProperty", result.AllEntities[1].Join.Right.JoinedFieldName);
-            Assert.Equal(JoinType.Inner, result.AllEntities[1].Join.Type);
+            result.AllEntities.Count.Should().Be(2);
+            result.PrimaryEntity.Join.Should().BeNull();
+            result.AllEntities[1].Join.Left.EntityName.Should().Be("first");
+            result.AllEntities[1].Join.Left.JoinedFieldName.Should().Be("AFirstStringProperty");
+            result.AllEntities[1].Join.Right.EntityName.Should().Be("second");
+            result.AllEntities[1].Join.Right.JoinedFieldName.Should().Be("ASecondStringProperty");
+            result.AllEntities[1].Join.Type.Should().Be(JoinType.Inner);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -249,27 +238,30 @@ namespace QueryAny.UnitTests
                 .AndJoin<ThirdTestEntity, DateTime>(f => f.AFirstDateTimeProperty, t => t.AThirdDateTimeProperty)
                 .Where(e => e.AFirstStringProperty, ConditionOperator.EqualTo, "avalue");
 
-            Assert.Equal(3, result.AllEntities.Count);
-            Assert.Null(result.PrimaryEntity.Join);
-            Assert.Equal("first", result.AllEntities[1].Join.Left.EntityName);
-            Assert.Equal("AFirstStringProperty", result.AllEntities[1].Join.Left.JoinedFieldName);
-            Assert.Equal("second", result.AllEntities[1].Join.Right.EntityName);
-            Assert.Equal("ASecondStringProperty", result.AllEntities[1].Join.Right.JoinedFieldName);
-            Assert.Equal(JoinType.Left, result.AllEntities[1].Join.Type);
+            result.AllEntities.Count.Should().Be(3);
+            result.PrimaryEntity.Join.Should().BeNull();
+            result.AllEntities[1].Join.Left.EntityName.Should().Be("first");
+            result.AllEntities[1].Join.Left.JoinedFieldName.Should().Be("AFirstStringProperty");
+            result.AllEntities[1].Join.Right.EntityName.Should().Be("second");
+            result.AllEntities[1].Join.Right.JoinedFieldName.Should().Be("ASecondStringProperty");
+            result.AllEntities[1].Join.Type.Should().Be(JoinType.Left);
 
-            Assert.Equal("first", result.AllEntities[2].Join.Left.EntityName);
-            Assert.Equal("AFirstDateTimeProperty", result.AllEntities[2].Join.Left.JoinedFieldName);
-            Assert.Equal("third", result.AllEntities[2].Join.Right.EntityName);
-            Assert.Equal("AThirdDateTimeProperty", result.AllEntities[2].Join.Right.JoinedFieldName);
-            Assert.Equal(JoinType.Inner, result.AllEntities[2].Join.Type);
+            result.AllEntities[2].Join.Left.EntityName.Should().Be("first");
+            result.AllEntities[2].Join.Left.JoinedFieldName.Should().Be("AFirstDateTimeProperty");
+            result.AllEntities[2].Join.Right.EntityName.Should().Be("third");
+            result.AllEntities[2].Join.Right.JoinedFieldName.Should().Be("AThirdDateTimeProperty");
+            result.AllEntities[2].Join.Type.Should().Be(JoinType.Inner);
         }
 
         [TestMethod, TestCategory("Unit")]
         public void WhenJoinWithMultipleJoinsWithSameType_ThenThrows()
         {
-            Assert.Throws<InvalidOperationException>(() => Query.From<FirstTestEntity>()
+            Query.From<FirstTestEntity>()
                 .Join<SecondTestEntity, string>(f => f.AFirstStringProperty, s => s.ASecondStringProperty)
-                .AndJoin<SecondTestEntity, DateTime>(f => f.AFirstDateTimeProperty, t => t.ASecondDateTimeProperty));
+                .Invoking(x =>
+                    x.AndJoin<SecondTestEntity, DateTime>(f => f.AFirstDateTimeProperty,
+                        t => t.ASecondDateTimeProperty))
+                .Should().Throw<InvalidOperationException>();
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -281,19 +273,19 @@ namespace QueryAny.UnitTests
                 .AndJoin<ThirdTestEntity, string>(f => f.AFirstStringProperty, t => t.AThirdStringProperty)
                 .Where(e => e.AFirstStringProperty, ConditionOperator.EqualTo, "avalue");
 
-            Assert.Equal(3, result.AllEntities.Count);
-            Assert.Null(result.PrimaryEntity.Join);
-            Assert.Equal("first", result.AllEntities[1].Join.Left.EntityName);
-            Assert.Equal("AFirstStringProperty", result.AllEntities[1].Join.Left.JoinedFieldName);
-            Assert.Equal("second", result.AllEntities[1].Join.Right.EntityName);
-            Assert.Equal("ASecondStringProperty", result.AllEntities[1].Join.Right.JoinedFieldName);
-            Assert.Equal(JoinType.Left, result.AllEntities[1].Join.Type);
+            result.AllEntities.Count.Should().Be(3);
+            result.PrimaryEntity.Join.Should().BeNull();
+            result.AllEntities[1].Join.Left.EntityName.Should().Be("first");
+            result.AllEntities[1].Join.Left.JoinedFieldName.Should().Be("AFirstStringProperty");
+            result.AllEntities[1].Join.Right.EntityName.Should().Be("second");
+            result.AllEntities[1].Join.Right.JoinedFieldName.Should().Be("ASecondStringProperty");
+            result.AllEntities[1].Join.Type.Should().Be(JoinType.Left);
 
-            Assert.Equal("first", result.AllEntities[2].Join.Left.EntityName);
-            Assert.Equal("AFirstStringProperty", result.AllEntities[2].Join.Left.JoinedFieldName);
-            Assert.Equal("third", result.AllEntities[2].Join.Right.EntityName);
-            Assert.Equal("AThirdStringProperty", result.AllEntities[2].Join.Right.JoinedFieldName);
-            Assert.Equal(JoinType.Inner, result.AllEntities[2].Join.Type);
+            result.AllEntities[2].Join.Left.EntityName.Should().Be("first");
+            result.AllEntities[2].Join.Left.JoinedFieldName.Should().Be("AFirstStringProperty");
+            result.AllEntities[2].Join.Right.EntityName.Should().Be("third");
+            result.AllEntities[2].Join.Right.JoinedFieldName.Should().Be("AThirdStringProperty");
+            result.AllEntities[2].Join.Type.Should().Be(JoinType.Inner);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -302,7 +294,7 @@ namespace QueryAny.UnitTests
             var result = Query.From<NamedTestEntity>()
                 .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue");
 
-            Assert.Equal(0, result.PrimaryEntity.Selects.Count);
+            result.PrimaryEntity.Selects.Count.Should().Be(0);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -312,11 +304,11 @@ namespace QueryAny.UnitTests
                 .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue")
                 .Select(e => e.ADateTimeProperty);
 
-            Assert.Equal(1, result.PrimaryEntity.Selects.Count);
-            Assert.Equal("aname", result.PrimaryEntity.Selects[0].EntityName);
-            Assert.Equal("ADateTimeProperty", result.PrimaryEntity.Selects[0].FieldName);
-            Assert.Null(result.PrimaryEntity.Selects[0].JoinedEntityName);
-            Assert.Null(result.PrimaryEntity.Selects[0].JoinedFieldName);
+            result.PrimaryEntity.Selects.Count.Should().Be(1);
+            result.PrimaryEntity.Selects[0].EntityName.Should().Be("aname");
+            result.PrimaryEntity.Selects[0].FieldName.Should().Be("ADateTimeProperty");
+            result.PrimaryEntity.Selects[0].JoinedEntityName.Should().BeNull();
+            result.PrimaryEntity.Selects[0].JoinedFieldName.Should().BeNull();
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -326,34 +318,37 @@ namespace QueryAny.UnitTests
                 .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue")
                 .Select(e => e.AStringProperty).Select(e => e.ADateTimeProperty);
 
-            Assert.Equal(2, result.PrimaryEntity.Selects.Count);
-            Assert.Equal("aname", result.PrimaryEntity.Selects[0].EntityName);
-            Assert.Equal("AStringProperty", result.PrimaryEntity.Selects[0].FieldName);
-            Assert.Null(result.PrimaryEntity.Selects[0].JoinedEntityName);
-            Assert.Null(result.PrimaryEntity.Selects[0].JoinedFieldName);
-            Assert.Equal("aname", result.PrimaryEntity.Selects[1].EntityName);
-            Assert.Equal("ADateTimeProperty", result.PrimaryEntity.Selects[1].FieldName);
-            Assert.Null(result.PrimaryEntity.Selects[1].JoinedEntityName);
-            Assert.Null(result.PrimaryEntity.Selects[1].JoinedFieldName);
+            result.PrimaryEntity.Selects.Count.Should().Be(2);
+            result.PrimaryEntity.Selects[0].EntityName.Should().Be("aname");
+            result.PrimaryEntity.Selects[0].FieldName.Should().Be("AStringProperty");
+            result.PrimaryEntity.Selects[0].JoinedEntityName.Should().BeNull();
+            result.PrimaryEntity.Selects[0].JoinedFieldName.Should().BeNull();
+            result.PrimaryEntity.Selects[1].EntityName.Should().Be("aname");
+            result.PrimaryEntity.Selects[1].FieldName.Should().Be("ADateTimeProperty");
+            result.PrimaryEntity.Selects[1].JoinedEntityName.Should().BeNull();
+            result.PrimaryEntity.Selects[1].JoinedFieldName.Should().BeNull();
         }
 
         [TestMethod, TestCategory("Unit")]
         public void WhenSelectFromJoinAndNoJoins_ThenThrows()
         {
-            Assert.Throws<InvalidOperationException>(Resources.QueryClause_SelectFromJoin_NoJoins, () =>
-                Query.From<NamedTestEntity>()
-                    .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue")
-                    .SelectFromJoin<SecondTestEntity, string>(e => e.AStringProperty, s => s.ASecondStringProperty));
+            Query.From<NamedTestEntity>()
+                .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue")
+                .Invoking(x =>
+                    x.SelectFromJoin<SecondTestEntity, string>(e => e.AStringProperty, s => s.ASecondStringProperty))
+                .Should().Throw<InvalidOperationException>().WithMessageLike(Resources.QueryClause_SelectFromJoin_NoJoins);
         }
 
         [TestMethod, TestCategory("Unit")]
         public void WhenSelectFromJoinAndUnknownJoins_ThenThrows()
         {
-            Assert.Throws<InvalidOperationException>(Resources.QueryClause_SelectFromJoin_UnknownJoin, () =>
-                Query.From<NamedTestEntity>()
-                    .Join<FirstTestEntity, string>(e => e.AStringProperty, f => f.AFirstStringProperty)
-                    .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue")
-                    .SelectFromJoin<SecondTestEntity, string>(e => e.AStringProperty, s => s.ASecondStringProperty));
+            Query.From<NamedTestEntity>()
+                .Join<FirstTestEntity, string>(e => e.AStringProperty, f => f.AFirstStringProperty)
+                .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue")
+                .Invoking(x =>
+                    x.SelectFromJoin<SecondTestEntity, string>(e => e.AStringProperty, s => s.ASecondStringProperty))
+                .Should().Throw<InvalidOperationException>()
+                .WithMessageLike(Resources.QueryClause_SelectFromJoin_UnknownJoin);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -364,12 +359,12 @@ namespace QueryAny.UnitTests
                 .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue")
                 .SelectFromJoin<FirstTestEntity, string>(e => e.AStringProperty, s => s.AFirstStringProperty);
 
-            Assert.Equal(0, result.PrimaryEntity.Selects.Count);
-            Assert.Equal(1, result.AllEntities[1].Selects.Count);
-            Assert.Equal("first", result.AllEntities[1].Selects[0].EntityName);
-            Assert.Equal("AFirstStringProperty", result.AllEntities[1].Selects[0].FieldName);
-            Assert.Equal("aname", result.AllEntities[1].Selects[0].JoinedEntityName);
-            Assert.Equal("AStringProperty", result.AllEntities[1].Selects[0].JoinedFieldName);
+            result.PrimaryEntity.Selects.Count.Should().Be(0);
+            result.AllEntities[1].Selects.Count.Should().Be(1);
+            result.AllEntities[1].Selects[0].EntityName.Should().Be("first");
+            result.AllEntities[1].Selects[0].FieldName.Should().Be("AFirstStringProperty");
+            result.AllEntities[1].Selects[0].JoinedEntityName.Should().Be("aname");
+            result.AllEntities[1].Selects[0].JoinedFieldName.Should().Be("AStringProperty");
         }
     }
 

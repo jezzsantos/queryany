@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 using Storage.Azure;
 
@@ -7,8 +8,6 @@ namespace Storage.UnitTests
     [TestClass]
     public class AzureCosmosSqlApiWhereExtensionsSpec
     {
-        private static readonly IAssertion Assert = new Assertion();
-
         [TestMethod, TestCategory("Unit")]
         public void WhenToAzureCosmosSqlApiWhereClauseAndNoSelects_ThenReturnsSqlExpression()
         {
@@ -16,7 +15,7 @@ namespace Storage.UnitTests
 
             var result = query.ToAzureCosmosSqlApiWhereClause("acontainername");
 
-            Assert.Equal("SELECT * FROM acontainername t", result);
+            result.Should().Be("SELECT * FROM acontainername t");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -28,7 +27,7 @@ namespace Storage.UnitTests
 
             var result = query.ToAzureCosmosSqlApiWhereClause("acontainername");
 
-            Assert.Equal("SELECT t.id, t.ABooleanValue FROM acontainername t", result);
+            result.Should().Be("SELECT t.id, t.ABooleanValue FROM acontainername t");
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -41,7 +40,7 @@ namespace Storage.UnitTests
 
             var result = query.ToAzureCosmosSqlApiWhereClause("acontainername");
 
-            Assert.Equal("SELECT t.id, t.ABooleanValue, t.ADoubleValue FROM acontainername t", result);
+            result.Should().Be("SELECT t.id, t.ABooleanValue, t.ADoubleValue FROM acontainername t");
         }
     }
 }

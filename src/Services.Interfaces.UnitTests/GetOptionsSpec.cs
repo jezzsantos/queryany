@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Services.Interfaces.UnitTests
@@ -16,7 +17,7 @@ namespace Services.Interfaces.UnitTests
         {
             var result = HasGetOptions.All.ToGetOptions();
 
-            Assert.AreEqual(ExpandOptions.All, result.Expand);
+            result.Expand.Should().Be(ExpandOptions.All);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -24,7 +25,7 @@ namespace Services.Interfaces.UnitTests
         {
             var result = HasGetOptions.None.ToGetOptions();
 
-            Assert.AreEqual(ExpandOptions.None, result.Expand);
+            result.Expand.Should().Be(ExpandOptions.None);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -32,7 +33,7 @@ namespace Services.Interfaces.UnitTests
         {
             var result = HasGetOptions.Custom<TestResource>(x => x.AProperty1).ToGetOptions();
 
-            Assert.AreEqual(ExpandOptions.Custom, result.Expand);
+            result.Expand.Should().Be(ExpandOptions.Custom);
             Assert.AreEqual(1, result.ResourceReferences.Count());
             Assert.AreEqual("testresource.aproperty1", result.ResourceReferences.ToList()[0]);
         }
@@ -42,7 +43,7 @@ namespace Services.Interfaces.UnitTests
         {
             var result = HasGetOptions.Custom<TestResource>(x => x.AProperty1, x => x.AProperty2).ToGetOptions();
 
-            Assert.AreEqual(ExpandOptions.Custom, result.Expand);
+            result.Expand.Should().Be(ExpandOptions.Custom);
             Assert.AreEqual(2, result.ResourceReferences.Count());
             Assert.AreEqual("testresource.aproperty1", result.ResourceReferences.ToList()[0]);
             Assert.AreEqual("testresource.aproperty2", result.ResourceReferences.ToList()[1]);
@@ -75,7 +76,7 @@ namespace Services.Interfaces.UnitTests
 
             var result = this.hasGetOptions.ToGetOptions();
 
-            Assert.AreEqual(ExpandOptions.All, result.Expand);
+            result.Expand.Should().Be(ExpandOptions.All);
             Assert.AreEqual(0, result.ResourceReferences.Count());
         }
 
@@ -86,7 +87,7 @@ namespace Services.Interfaces.UnitTests
 
             var result = this.hasGetOptions.ToGetOptions();
 
-            Assert.AreEqual(ExpandOptions.None, result.Expand);
+            result.Expand.Should().Be(ExpandOptions.None);
             Assert.AreEqual(0, result.ResourceReferences.Count());
         }
 
@@ -97,7 +98,7 @@ namespace Services.Interfaces.UnitTests
 
             var result = this.hasGetOptions.ToGetOptions();
 
-            Assert.AreEqual(ExpandOptions.All, result.Expand);
+            result.Expand.Should().Be(ExpandOptions.All);
             Assert.AreEqual(0, result.ResourceReferences.Count());
         }
 
@@ -108,7 +109,7 @@ namespace Services.Interfaces.UnitTests
 
             var result = this.hasGetOptions.ToGetOptions();
 
-            Assert.AreEqual(ExpandOptions.Custom, result.Expand);
+            result.Expand.Should().Be(ExpandOptions.Custom);
             Assert.AreEqual(3, result.ResourceReferences.Count());
             Assert.AreEqual("aresourceref1", result.ResourceReferences.ToList()[0]);
             Assert.AreEqual("aresourceref2", result.ResourceReferences.ToList()[1]);

@@ -1,5 +1,6 @@
 using System;
 using CarsDomain.Entities;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Services.Interfaces.Apis;
 using ServiceStack;
@@ -40,7 +41,7 @@ namespace CarsApi.IntegrationTests
 
             var cars = client.Get(new SearchAvailableCarsRequest());
 
-            Assert.AreEqual(0, cars.Cars.Count);
+            cars.Cars.Count.Should().Be(0);
         }
 
         [TestMethod, TestCategory("Integration")]
@@ -62,8 +63,8 @@ namespace CarsApi.IntegrationTests
 
             var cars = client.Get(new SearchAvailableCarsRequest());
 
-            Assert.AreEqual(1, cars.Cars.Count);
-            Assert.AreEqual(car.Id, cars.Cars[0].Id);
+            cars.Cars.Count.Should().Be(1);
+            cars.Cars[0].Id.Should().Be(car.Id);
         }
     }
 }

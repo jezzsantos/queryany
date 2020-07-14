@@ -1,5 +1,6 @@
 ﻿using CarsApi.Properties;
 using CarsApi.Validators;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Services.Interfaces;
 using ServiceStack.FluentValidation;
@@ -9,7 +10,6 @@ namespace CarsApi.UnitTests.Validators
     [TestClass]
     public class HasGetOptionsValidatorSpec
     {
-        private static readonly IAssertion Assert = new Assertion();
         private HasGetOptionsDto dto;
 
         private HasGetOptionsValidator validator;
@@ -72,8 +72,9 @@ namespace CarsApi.UnitTests.Validators
         {
             this.dto.Embed = "^aresourceref";
 
-            Assert.Throws<ValidationException>(Resources.HasGetOptionsValidator_InvalidEmbed,
-                () => this.validator.ValidateAndThrow(this.dto));
+
+            this.validator.Invoking(x => x.ValidateAndThrow(this.dto)).Should().Throw<ValidationException>()
+                .WithMessageLike(Resources.HasGetOptionsValidator_InvalidEmbed);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -81,8 +82,8 @@ namespace CarsApi.UnitTests.Validators
         {
             this.dto.Embed = "aresourceref.^achildresourceref";
 
-            Assert.Throws<ValidationException>(Resources.HasGetOptionsValidator_InvalidEmbed,
-                () => this.validator.ValidateAndThrow(this.dto));
+            this.validator.Invoking(x => x.ValidateAndThrow(this.dto)).Should().Throw<ValidationException>()
+                .WithMessageLike(Resources.HasGetOptionsValidator_InvalidEmbed);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -90,8 +91,8 @@ namespace CarsApi.UnitTests.Validators
         {
             this.dto.Embed = "aresourceref.achildresourceref.^agrandchildresourceref";
 
-            Assert.Throws<ValidationException>(Resources.HasGetOptionsValidator_InvalidEmbed,
-                () => this.validator.ValidateAndThrow(this.dto));
+            this.validator.Invoking(x => x.ValidateAndThrow(this.dto)).Should().Throw<ValidationException>()
+                .WithMessageLike(Resources.HasGetOptionsValidator_InvalidEmbed);
         }
 
         [TestMethod, TestCategory("Unit")]
@@ -100,8 +101,8 @@ namespace CarsApi.UnitTests.Validators
             this.dto.Embed =
                 "aresourceref1,aresourceref2,aresourceref3,aresourceref4,aresourceref5,aresourceref6,aresourceref7,aresourceref8,aresourceref9,aresourceref10,aresourceref11";
 
-            Assert.Throws<ValidationException>(Resources.HasGetOptionsValidator_TooManyResourceReferences,
-                () => this.validator.ValidateAndThrow(this.dto));
+            this.validator.Invoking(x => x.ValidateAndThrow(this.dto)).Should().Throw<ValidationException>()
+                .WithMessageLike(Resources.HasGetOptionsValidator_TooManyResourceReferences);
         }
     }
 
