@@ -74,11 +74,13 @@ This is where all QueryAny storage implementations will exist for this sample.
 
 Contains all integration tests for testing the API.
 
-> Here we demonstrate testing API's by pre-populating data directly in the repository, as only an example of how to plug in different repository for testing. Normally, however, we would populate the state of the API through the API itself, and erase all data through the repository layer. This removes the dependency to know how application data is actually persisted in any repository, since, in fact data could be spread across multiple repositories and technologies.
+> Design Choice: Here we demonstrate testing API's by pre-populating data through the API only, as an example of how to plug in different repository for testing. Normally, we would populate the state of the domain through the API itself, and erase all data for each test through the API. This removes the dependency to know how application data is actually persisted in any repository, since, given the fact that QueryAny is abstracting that from you in the first place! (since data could be spread across multiple repositories and technologies).
 
 ## Storage.IntegrationTests
 
-Contains integration tests for verifying various repository implementations. These tests have been templatized so that new implementations have a test suite to verify them.
+Contains integration tests for verifying various repository implementations. 
+
+These tests have been templatized so that new implementations have a test suite to verify them.
 
 ## ???.UnitTests projects
 
