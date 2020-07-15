@@ -36,7 +36,7 @@ namespace Storage.IntegrationTests.Azure
         {
             if (!this.stores.ContainsKey(containerName))
             {
-                this.stores.Add(containerName, new TestEntityAzureStorage<TEntity>(
+                this.stores.Add(containerName, new TestEntityAzureStorage<TEntity>(Logger,
                     new AzureStorageConnection(repository), containerName));
             }
 

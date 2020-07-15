@@ -1,10 +1,11 @@
 ﻿using CarsDomain.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace Storage
 {
-    public class CarEntityInMemStorage : InProcessInMemStorage<CarEntity>
+    public class CarEntityInMemStorage : GenericStorage<CarEntity>
     {
-        public CarEntityInMemStorage(InProcessInMemRepository repository) : base(repository)
+        public CarEntityInMemStorage(ILogger logger, InProcessInMemRepository repository) : base(logger, repository)
         {
         }
 

@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 using Services.Interfaces;
@@ -17,9 +19,12 @@ namespace Storage.IntegrationTests
         private IStorage<SecondJoiningTestEntity> secondJoiningStorage;
         private IStorage<TestEntity> storage;
 
+        protected ILogger Logger { get; private set; }
+
         [TestInitialize]
         public void Initialize()
         {
+            this.Logger = new Logger<AnyStorageBaseSpec>(new NullLoggerFactory());
             this.storage = GetStore<TestEntity>(new TestEntity().EntityName);
             this.storage.DestroyAll();
             this.firstJoiningStorage = GetStore<FirstJoiningTestEntity>(new FirstJoiningTestEntity().EntityName);

@@ -40,7 +40,10 @@ namespace CarsDomain.Entities
 
         public virtual void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
-            Id = Identifier.Create(properties.GetValueOrDefault<string>(nameof(Id)));
+            var id = properties.GetValueOrDefault<string>(nameof(Id));
+            Id = id.HasValue()
+                ? Identifier.Create(id)
+                : null;
             CreatedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(CreatedAtUtc));
             LastModifiedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(LastModifiedAtUtc));
         }

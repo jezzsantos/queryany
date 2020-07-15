@@ -4,7 +4,9 @@ using CarsDomain;
 using CarsDomain.Entities;
 using Funq;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using ServiceStack;
+using ServiceStack.Text;
 using ServiceStack.Validation;
 using Storage;
 using Storage.Azure;
@@ -22,14 +24,29 @@ namespace CarsApi
 
         public override void Configure(Container container)
         {
-            SetConfig(new HostConfig
-            {
-                DefaultRedirectPath = "/metadata",
-                DebugMode = AppSettings.Get(nameof(HostConfig.DebugMode), false)
-            });
+            var debugEnabled = AppSettings.Get(nameof(HostConfig.DebugMode), false);
+            SetupServiceConfig(debugEnabled);
 
             RegisterValidators(container);
             RegisterDependencies(container);
+        }
+
+        private void SetupServiceConfig(bool debugEnabled)
+        {
+            SetConfig(new HostConfig
+            {
+                DebugMode = debugEnabled,
+                DefaultRedirectPath = "/metadata"
+            });
+
+            SetupJsonResponses();
+        }
+
+        private static void SetupJsonResponses()
+        {
+            JsConfig.DateHandler = DateHandler.ISO8601;
+            JsConfig.AssumeUtc = true;
+            JsConfig.AlwaysUseUtc = true;
         }
 
         private static void RegisterDependencies(Container container)
@@ -53,7 +70,7 @@ namespace CarsApi
             var hostName = config["AzureCosmosDbHostName"];
             var localEmulatorConnectionString = $"AccountEndpoint=https://{hostName}:8081/;AccountKey={accountKey}";
             container.AddSingleton<IStorage<CarEntity>>(c =>
-                new CarEntityAzureStorage(new AzureStorageConnection(
+                new CarEntityAzureStorage(c.Resolve<ILogger>(), new AzureStorageConnection(
                     new AzureCosmosSqlApiRepository(localEmulatorConnectionString, "Production",
                         new GuidIdentifierFactory()))));
         }

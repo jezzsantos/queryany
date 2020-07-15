@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces;
@@ -6,15 +7,18 @@ using Services.Interfaces.Entities;
 using ServiceStack;
 using Storage.Interfaces;
 
-namespace Storage.Redis
+namespace Storage
 {
-    public abstract class RedisInMemStorage<TEntity> : IStorage<TEntity> where TEntity : IPersistableEntity, new()
+    public abstract class GenericStorage<TEntity> : IStorage<TEntity> where TEntity : IPersistableEntity, new()
     {
+        private readonly ILogger logger;
         private readonly IRepository repository;
 
-        protected RedisInMemStorage(RedisInMemRepository repository)
+        protected GenericStorage(ILogger logger, IRepository repository)
         {
+            logger.GuardAgainstNull(nameof(logger));
             repository.GuardAgainstNull(nameof(repository));
+            this.logger = logger;
             this.repository = repository;
         }
 
@@ -22,7 +26,11 @@ namespace Storage.Redis
 
         public Identifier Add(TEntity entity)
         {
-            return this.repository.Add(ContainerName, entity);
+            entity.GuardAgainstNull(nameof(entity));
+            var id = this.repository.Add(ContainerName, entity);
+
+            this.logger.LogDebug("Entity {0} was added to repository", id);
+            return id;
         }
 
         public void Delete(Identifier id, bool ignoreConcurrency)
@@ -30,13 +38,17 @@ namespace Storage.Redis
             id.GuardAgainstNull(nameof(id));
 
             this.repository.Remove<TEntity>(ContainerName, id);
+            this.logger.LogDebug("Entity {0} was deleted from repository", id);
         }
 
         public TEntity Get(Identifier id)
         {
             id.GuardAgainstNull(nameof(id));
 
-            return this.repository.Retrieve<TEntity>(ContainerName, id);
+            var entity = this.repository.Retrieve<TEntity>(ContainerName, id);
+
+            this.logger.LogDebug("Entity {0} was retrieved from repository", id);
+            return entity;
         }
 
         public TEntity Update(TEntity entity, bool ignoreConcurrency)
@@ -55,7 +67,10 @@ namespace Storage.Redis
 
             latest.PopulateWithNonDefaultValues(entity);
 
-            return this.repository.Replace(ContainerName, entity.Id, latest);
+            var updated = this.repository.Replace(ContainerName, entity.Id, latest);
+
+            this.logger.LogDebug("Entity {0} was updated in repository", entity.Id.Get());
+            return updated;
         }
 
         public long Count()
@@ -66,6 +81,7 @@ namespace Storage.Redis
         public void DestroyAll()
         {
             this.repository.DestroyAll(ContainerName);
+            this.logger.LogDebug("All entities were deleted from repository");
         }
 
         public QueryResults<TEntity> Query(QueryClause<TEntity> query, SearchOptions options)
@@ -74,11 +90,13 @@ namespace Storage.Redis
 
             if (query == null || query.Options.IsEmpty)
             {
+                this.logger.LogDebug("No entities were retrieved from repository");
                 return new QueryResults<TEntity>(new List<TEntity>());
             }
 
             var resultEntities = this.repository.Query(ContainerName, query);
 
+            this.logger.LogDebug("Entities were retrieved from repository");
             return new QueryResults<TEntity>(resultEntities.ConvertAll(e => e));
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces;
@@ -11,10 +12,13 @@ namespace Storage.Azure
     public abstract class AzureStorage<TEntity> : IStorage<TEntity> where TEntity : IPersistableEntity, new()
     {
         private readonly IAzureStorageConnection connection;
+        private readonly ILogger logger;
 
-        protected AzureStorage(IAzureStorageConnection connection)
+        protected AzureStorage(ILogger logger, IAzureStorageConnection connection)
         {
+            logger.GuardAgainstNull(nameof(logger));
             connection.GuardAgainstNull(nameof(connection));
+            this.logger = logger;
             this.connection = connection;
         }
 
@@ -22,9 +26,11 @@ namespace Storage.Azure
 
         public Identifier Add(TEntity entity)
         {
-            using (var store = this.connection.Open())
+            using (var repository = this.connection.Open())
             {
-                return store.Add(ContainerName, entity);
+                var id = repository.Add(ContainerName, entity);
+                this.logger.LogDebug("Entity {0} was added to repository", id);
+                return id;
             }
         }
 
@@ -32,9 +38,10 @@ namespace Storage.Azure
         {
             id.GuardAgainstNull(nameof(id));
 
-            using (var store = this.connection.Open())
+            using (var repository = this.connection.Open())
             {
-                store.Remove<TEntity>(ContainerName, id);
+                repository.Remove<TEntity>(ContainerName, id);
+                this.logger.LogDebug("Entity {0} was deleted from repository", id);
             }
         }
 
@@ -42,9 +49,11 @@ namespace Storage.Azure
         {
             id.GuardAgainstNull(nameof(id));
 
-            using (var store = this.connection.Open())
+            using (var repository = this.connection.Open())
             {
-                return store.Retrieve<TEntity>(ContainerName, id);
+                var entity = repository.Retrieve<TEntity>(ContainerName, id);
+                this.logger.LogDebug("Entity {0} was retrieved from repository", id);
+                return entity;
             }
         }
 
@@ -64,25 +73,28 @@ namespace Storage.Azure
 
             latest.PopulateWithNonDefaultValues(entity);
 
-            using (var store = this.connection.Open())
+            using (var repository = this.connection.Open())
             {
-                return store.Replace(ContainerName, entity.Id, latest);
+                var updated = repository.Replace(ContainerName, entity.Id, latest);
+                this.logger.LogDebug("Entity {0} was updated in repository", entity.Id.Get());
+                return updated;
             }
         }
 
         public long Count()
         {
-            using (var store = this.connection.Open())
+            using (var repository = this.connection.Open())
             {
-                return store.Count(ContainerName);
+                return repository.Count(ContainerName);
             }
         }
 
         public void DestroyAll()
         {
-            using (var store = this.connection.Open())
+            using (var repository = this.connection.Open())
             {
-                store.DestroyAll(ContainerName);
+                repository.DestroyAll(ContainerName);
+                this.logger.LogDebug("All entities were deleted from repository");
             }
         }
 
@@ -92,15 +104,17 @@ namespace Storage.Azure
 
             if (query == null || query.Options.IsEmpty)
             {
+                this.logger.LogDebug("No entities were retrieved from repository");
                 return new QueryResults<TEntity>(new List<TEntity>());
             }
 
             List<TEntity> resultEntities;
-            using (var store = this.connection.Open())
+            using (var repository = this.connection.Open())
             {
-                resultEntities = store.Query(ContainerName, query);
+                resultEntities = repository.Query(ContainerName, query);
             }
 
+            this.logger.LogDebug("Entities were retrieved from repository");
             return new QueryResults<TEntity>(resultEntities.ConvertAll(e => e));
         }
     }

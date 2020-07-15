@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny.Primitives;
 using Storage.Interfaces;
@@ -34,17 +35,17 @@ namespace Storage.IntegrationTests.Redis
         {
             if (!this.stores.ContainsKey(containerName))
             {
-                this.stores.Add(containerName, new TestEntityInMemStorage<TEntity>(
-                    repository, containerName));
+                this.stores.Add(containerName, new TestEntityInMemStorage<TEntity>(Logger, repository, containerName));
             }
 
             return (IStorage<TEntity>) this.stores[containerName];
         }
 
-        private class TestEntityInMemStorage<TEntity> : RedisInMemStorage<TEntity>
+        private class TestEntityInMemStorage<TEntity> : GenericStorage<TEntity>
             where TEntity : IPersistableEntity, new()
         {
-            public TestEntityInMemStorage(RedisInMemRepository repository, string containerName) : base(repository)
+            public TestEntityInMemStorage(ILogger logger, RedisInMemRepository repository, string containerName) : base(
+                logger, repository)
             {
                 containerName.GuardAgainstNullOrEmpty(nameof(containerName));
                 ContainerName = containerName;

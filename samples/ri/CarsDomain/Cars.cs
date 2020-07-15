@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CarsDomain.Entities;
+using Microsoft.Extensions.Logging;
 using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces;
@@ -13,11 +14,14 @@ namespace CarsDomain
 {
     public class Cars : DomainObject, ICars
     {
+        private readonly ILogger logger;
         private readonly IStorage<CarEntity> storage;
 
-        public Cars(IStorage<CarEntity> storage)
+        public Cars(ILogger<Car> logger, IStorage<CarEntity> storage)
         {
+            logger.GuardAgainstNull(nameof(logger));
             storage.GuardAgainstNull(nameof(storage));
+            this.logger = logger;
             this.storage = storage;
 
             AutoMapping.RegisterPopulator((Car car, CarEntity entity) => { car.Id = entity.Id.Get(); });
@@ -31,6 +35,7 @@ namespace CarsDomain
             var id = this.storage.Add(carEntity);
             carEntity.Identify(id);
 
+            this.logger.LogInformation("Car {1} was created by {0}", caller.Id, id);
             return carEntity.ConvertTo<Car>();
         }
 
@@ -47,6 +52,7 @@ namespace CarsDomain
             car.Occupy(untilUtc);
             this.storage.Update(car, false);
 
+            this.logger.LogInformation("Car {1} was occupied until {2}, by {0}", caller.Id, id, untilUtc.ToIso8601());
             return car.ConvertTo<Car>();
         }
 
@@ -56,6 +62,7 @@ namespace CarsDomain
                 .Where(e => e.OccupiedUntilUtc, ConditionOperator.LessThan, DateTime.UtcNow);
             var cars = this.storage.Query(query, searchOptions).Results;
 
+            this.logger.LogInformation("Available cars were retrieved by {0}", caller.Id);
             return cars
                 .ConvertAll(c => WithGetOptions(c.ConvertTo<Car>(), getOptions));
         }

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny.Primitives;
 using Storage.Interfaces;
@@ -16,14 +17,14 @@ namespace Storage.IntegrationTests
 
         protected override IStorage<TEntity> GetStore<TEntity>(string containerName)
         {
-            return new TestEntityInMemStorage<TEntity>(
-                this.repository, containerName);
+            return new TestEntityInMemStorage<TEntity>(Logger, this.repository, containerName);
         }
 
-        private class TestEntityInMemStorage<TEntity> : InProcessInMemStorage<TEntity>
+        private class TestEntityInMemStorage<TEntity> : GenericStorage<TEntity>
             where TEntity : IPersistableEntity, new()
         {
-            public TestEntityInMemStorage(InProcessInMemRepository repository, string containerName) : base(repository)
+            public TestEntityInMemStorage(ILogger logger, InProcessInMemRepository repository, string containerName) :
+                base(logger, repository)
             {
                 containerName.GuardAgainstNullOrEmpty(nameof(containerName));
                 ContainerName = containerName;

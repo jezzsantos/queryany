@@ -1,6 +1,8 @@
 using System;
 using CarsDomain.Entities;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Services.Interfaces.Apis;
 using ServiceStack;
@@ -14,12 +16,15 @@ namespace CarsApi.IntegrationTests
     {
         private const string ServiceUrl = "http://localhost:2000/";
         private ServiceStackHost appHost;
+        private ILogger logger;
         private CarEntityInMemStorage store;
 
         [TestInitialize]
         public void Initialize()
         {
-            this.store = new CarEntityInMemStorage(new InProcessInMemRepository(new GuidIdentifierFactory()));
+            this.logger = new Logger<CarsApiSpec>(new NullLoggerFactory());
+            this.store =
+                new CarEntityInMemStorage(this.logger, new InProcessInMemRepository(new GuidIdentifierFactory()));
 
             this.appHost = new TestAppHost();
             this.appHost.Container.AddSingleton<IStorage<CarEntity>>(this.store);

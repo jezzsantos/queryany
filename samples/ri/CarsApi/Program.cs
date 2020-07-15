@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 using ServiceStack;
 
 namespace CarsApi
@@ -15,6 +16,7 @@ namespace CarsApi
         {
             return WebHost.CreateDefaultBuilder(args)
                 .UseModularStartup<Startup>()
+                .ConfigureLogging((context, builder) => builder.AddConsole())
                 .Build();
         }
     }

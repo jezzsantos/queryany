@@ -2,7 +2,7 @@
 {
     public class FakeCaller : ICurrentCaller
     {
-        public string Id => "afaekuserid";
+        public string Id => "anonymous";
         public string[] Roles => new[] {"normaluser"};
     }
 }
