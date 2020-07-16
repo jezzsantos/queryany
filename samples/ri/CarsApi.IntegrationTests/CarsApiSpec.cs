@@ -23,8 +23,7 @@ namespace CarsApi.IntegrationTests
         public void Initialize()
         {
             this.logger = new Logger<CarsApiSpec>(new NullLoggerFactory());
-            this.store =
-                new CarEntityInMemStorage(this.logger, new InProcessInMemRepository(new GuidIdentifierFactory()));
+            this.store = CarEntityInMemStorage.Create(this.logger, new GuidIdentifierFactory());
 
             this.appHost = new TestAppHost();
             this.appHost.Container.AddSingleton<IStorage<CarEntity>>(this.store);

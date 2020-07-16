@@ -1,16 +1,22 @@
-﻿using QueryAny;
+﻿using System.Collections.Generic;
+using QueryAny;
 using Services.Interfaces;
 using Services.Interfaces.Entities;
 
 namespace Storage.Interfaces
 {
-    public interface IStorage<TEntity> where TEntity : IPersistableEntity, new()
+    public delegate TEntity EntityFactory<out TEntity>(IReadOnlyDictionary<string, object> hydratingProperties)
+        where TEntity : IPersistableEntity;
+
+    public interface IStorage<TEntity> where TEntity : IPersistableEntity
     {
+        EntityFactory<TEntity> EntityFactory { get; }
+        
         Identifier Add(TEntity entity);
 
-        TEntity Update(TEntity entity, bool ignoreConcurrency);
+        TEntity Update(TEntity entity);
 
-        void Delete(Identifier id, bool ignoreConcurrency);
+        void Delete(Identifier id);
 
         TEntity Get(Identifier id);
 

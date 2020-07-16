@@ -9,39 +9,43 @@ using Storage.Interfaces;
 
 namespace Storage.Azure
 {
-    public abstract class AzureStorage<TEntity> : IStorage<TEntity> where TEntity : IPersistableEntity, new()
+    public abstract class AzureStorage<TEntity> : IStorage<TEntity> where TEntity : IPersistableEntity
     {
         private readonly IAzureStorageConnection connection;
         private readonly ILogger logger;
 
-        protected AzureStorage(ILogger logger, IAzureStorageConnection connection)
+        protected AzureStorage(ILogger logger, EntityFactory<TEntity> entityFactory, IAzureStorageConnection connection)
         {
             logger.GuardAgainstNull(nameof(logger));
             connection.GuardAgainstNull(nameof(connection));
+            entityFactory.GuardAgainstNull(nameof(entityFactory));
             this.logger = logger;
             this.connection = connection;
+            EntityFactory = entityFactory;
         }
 
         protected abstract string ContainerName { get; }
+
+        public EntityFactory<TEntity> EntityFactory { get; }
 
         public Identifier Add(TEntity entity)
         {
             using (var repository = this.connection.Open())
             {
                 var id = repository.Add(ContainerName, entity);
-                this.logger.LogDebug("Entity {0} was added to repository", id);
+                this.logger.LogDebug("Entity {Id} was added to repository", id);
                 return id;
             }
         }
 
-        public void Delete(Identifier id, bool ignoreConcurrency)
+        public void Delete(Identifier id)
         {
             id.GuardAgainstNull(nameof(id));
 
             using (var repository = this.connection.Open())
             {
                 repository.Remove<TEntity>(ContainerName, id);
-                this.logger.LogDebug("Entity {0} was deleted from repository", id);
+                this.logger.LogDebug("Entity {Id} was deleted from repository", id);
             }
         }
 
@@ -51,13 +55,13 @@ namespace Storage.Azure
 
             using (var repository = this.connection.Open())
             {
-                var entity = repository.Retrieve<TEntity>(ContainerName, id);
-                this.logger.LogDebug("Entity {0} was retrieved from repository", id);
+                var entity = repository.Retrieve(ContainerName, id, EntityFactory);
+                this.logger.LogDebug("Entity {Id} was retrieved from repository", id);
                 return entity;
             }
         }
 
-        public TEntity Update(TEntity entity, bool ignoreConcurrency)
+        public TEntity Update(TEntity entity)
         {
             entity.GuardAgainstNull(nameof(entity));
             if (!entity.Id.HasValue())
@@ -75,8 +79,8 @@ namespace Storage.Azure
 
             using (var repository = this.connection.Open())
             {
-                var updated = repository.Replace(ContainerName, entity.Id, latest);
-                this.logger.LogDebug("Entity {0} was updated in repository", entity.Id.Get());
+                var updated = repository.Replace(ContainerName, entity.Id, latest, EntityFactory);
+                this.logger.LogDebug("Entity {Id} was updated in repository", entity.Id);
                 return updated;
             }
         }
@@ -111,7 +115,7 @@ namespace Storage.Azure
             List<TEntity> resultEntities;
             using (var repository = this.connection.Open())
             {
-                resultEntities = repository.Query(ContainerName, query);
+                resultEntities = repository.Query(ContainerName, query, EntityFactory);
             }
 
             this.logger.LogDebug("Entities were retrieved from repository");

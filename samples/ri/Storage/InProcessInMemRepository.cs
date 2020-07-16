@@ -23,7 +23,7 @@ namespace Storage
             this.idFactory = idFactory;
         }
 
-        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
+        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
         {
             if (!this.containers.ContainsKey(containerName))
             {
@@ -36,7 +36,7 @@ namespace Storage
             return id;
         }
 
-        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
+        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity
         {
             if (this.containers.ContainsKey(containerName))
             {
@@ -47,8 +47,9 @@ namespace Storage
             }
         }
 
-        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity)
-            where TEntity : IPersistableEntity, new()
+        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity,
+            EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             if (this.containers.ContainsKey(containerName))
             {
@@ -56,20 +57,21 @@ namespace Storage
                 {
                     var entityProperties = entity.ToContainerProperties();
                     this.containers[containerName][id] = entityProperties;
-                    return entityProperties.FromContainerProperties<TEntity>(id);
+                    return entityProperties.FromContainerProperties(id, entityFactory);
                 }
             }
 
             return default;
         }
 
-        public TEntity Retrieve<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
+        public TEntity Retrieve<TEntity>(string containerName, Identifier id, EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             if (this.containers.ContainsKey(containerName))
             {
                 if (this.containers[containerName].ContainsKey(id))
                 {
-                    return this.containers[containerName][id].FromContainerProperties<TEntity>(id);
+                    return this.containers[containerName][id].FromContainerProperties(id, entityFactory);
                 }
             }
 
@@ -86,15 +88,16 @@ namespace Storage
             return 0;
         }
 
-        public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query)
-            where TEntity : IPersistableEntity, new()
+        public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query,
+            EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             if (!this.containers.ContainsKey(containerName))
             {
                 return new List<TEntity>();
             }
 
-            var primaryEntities = QueryPrimaryEntities(containerName, query);
+            var primaryEntities = QueryPrimaryEntities(containerName, query, entityFactory);
 
             var joinedContainers = query.JoinedEntities
                 .Where(je => je.Join != null)
@@ -139,11 +142,12 @@ namespace Storage
             // No need to do anything here. IDisposable is used as a marker interface
         }
 
-        private List<TEntity> QueryPrimaryEntities<TEntity>(string containerName, QueryClause<TEntity> query)
-            where TEntity : IPersistableEntity, new()
+        private List<TEntity> QueryPrimaryEntities<TEntity>(string containerName, QueryClause<TEntity> query,
+            EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             var primaryEntities = this.containers[containerName]
-                .Select(pair => pair.Value.FromContainerProperties<TEntity>(pair.Key))
+                .Select(pair => pair.Value.FromContainerProperties(pair.Key, entityFactory))
                 .ToList();
 
             if (!query.Wheres.Any())
@@ -177,10 +181,10 @@ namespace Storage
         }
 
         public static TEntity FromContainerProperties<TEntity>(this Dictionary<string, object> entityProperties,
-            Identifier id)
-            where TEntity : IPersistableEntity, new()
+            Identifier id, EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
-            return entityProperties.CreateEntity<TEntity>(id);
+            return entityProperties.CreateEntity(id, entityFactory);
         }
     }
 

@@ -32,11 +32,12 @@ namespace Storage.IntegrationTests.Azure
             AzureStorageAccountBaseSpec.CleanupAllTests();
         }
 
-        protected override IStorage<TEntity> GetStore<TEntity>(string containerName)
+        protected override IStorage<TEntity> GetStore<TEntity>(string containerName,
+            EntityFactory<TEntity> entityFactory)
         {
             if (!this.stores.ContainsKey(containerName))
             {
-                this.stores.Add(containerName, new TestEntityAzureStorage<TEntity>(Logger,
+                this.stores.Add(containerName, new TestEntityAzureStorage<TEntity>(Logger, entityFactory,
                     new AzureStorageConnection(repository), containerName));
             }
 

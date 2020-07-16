@@ -23,23 +23,23 @@ We wanted developers to be able to define their own simple repository interface 
 For example, they may define a generic repository interface like this in their code:
 
 ```
-    public interface IStorage<TEntity> where TEntity : IIdentifyableEntity, new()
+    public interface IStorage<TEntity>
     {
         void Add(TEntity entity);
 
-        TEntity Update(TEntity entity, bool ignoreConcurrency);
+        TEntity Update(TEntity entity);
 
-        void Delete(string id, bool ignoreConcurrency);
+        void Delete(string id);
 
         TEntity Get(string id);
 
-        QueryResults<TEntity> Query(Query query, SearchOptions options);
+        QueryResults<TEntity> Query(Query query, QueryOptions options);
 
         long Count();
     }
 ```
 
-And then implement that interface in an In-Memory store (eg. `ConcurrentDictionary<TEntity>` or in Redis or MemCache) for unit testing, or for SQLServerDB, Postgres, CosmosDB, MongoDB, Redis etc. in production.
+And then implement that interface in an In-Memory store (eg. using a collection of `ConcurrentDictionary<TEntity>` or in Redis or MemCache or whatever DB they like) for unit testing, or for SQLServerDB, Postgres, CosmosDB, MongoDB, Redis etc. in production.
 
 But to realize that vision, developers need an effective way of defining queries from their repositories, and a query language is required to do that effectively.
 

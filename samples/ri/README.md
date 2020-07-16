@@ -4,11 +4,11 @@ This folder contains a very close to real world example of a REST based API for 
 
 The example is split into several layers to mimic the real world implementation it was extracted from and based off of.
 
-It has tried not to be too opinionated about the layout of files/folders/assemblies on disk, other than to assume that you would likely split your projects/components into logical, testable layers for maintainability, reuse and future scalability (scale out), as your product grows.
+It has tried not to be too strongly opinionated about the layout of files/folders/assemblies on disk, other than to assume that you would likely split your projects/components into logical, testable layers for maintainability, reuse and future scalability (scale out), as your product grows.
 
 The RI solution demonstrates strict discipline around decoupling and separation of concerns, both of which manage accidental complexity as things change, and as the codebase scales.
 
-The RI does does implement patterns that allow clients to can have fine grained control the data returned on the wire.
+The RI does does fully implement patterns (in GET APIs) that allow clients to can have fine grained control the data returned on the wire.
 
 > Design Choice: There are some *interesting* and pragmatic implementation patterns demonstrated within this RI. Remember that this RI has laid out just *one* way of doing things. There are many ways of doing the same kind of things, with various design tradeoffs, especially in the area of entity persistence, and in the realm of building products has prioritized maintainability over optimal performance. If you are looking for the *best* way to do things, then you haven't programmed long enough to learn that no such thing exists - every context of every product is unique. Our advice to you is start with something small, and adapt it as you learn more, avoid over-engineering it at all costs. If in doubt, favor what you definitely know you have to work with, rather than attempting to future proof it. KISS, DRY and YAGNI my friends.
 
@@ -44,7 +44,7 @@ It contains an 'application layer' (in DDD parlance) or 'Interactor' (in Clean A
 
 > The domain entities in this implementation are relatively simple in terms of functionality and rules (close to anemic - due to limited scope of the sample).
 
-> Design Choice: Domain entities are persistent "aware" for practicality. There are many ways to handle/decouple persistence from your entities, this is *one* pattern, you may desire another. You definitely don't want you entities to do their own persistence (like ActiveRecord does), but having the knowledge of what internal data they need to be serialized (dehydrated) and de-serialized (hydrated) is something in-practice they *could* legitimately know. YMMV, this pattern is absolutely scalable and simple to maintain.
+> Design Choice: Domain entities are persistent "aware" for practicality. There are many ways to handle/decouple persistence between your entities and repositories, this is *one* pattern, you may desire another. You definitely don't want your entities to do their own persistence (like the ActiveRecord pattern does). Do could define a mapping layer to DTO's between entities and repositories (as ORM's do), but having the knowledge of what internal data an entity needs to be serialized (de-hydrated) and de-serialized (re-hydrated) is knowledge in-practice that an entity *could* legitimately have. YMMV, this pattern is absolutely flexible, scalable and simple to maintain.
 
 > We anticipate that there will be one of these assemblies for every major domain in the product.
 

@@ -51,6 +51,11 @@ namespace Storage.IntegrationTests
         {
             this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
         }
+
+        public static EntityFactory<TestEntity> GetFactory()
+        {
+            return properties => new TestEntity();
+        }
     }
 
     public class FirstJoiningTestEntity : IPersistableEntity
@@ -77,6 +82,11 @@ namespace Storage.IntegrationTests
         public void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
             this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
+        }
+        
+        public static EntityFactory<FirstJoiningTestEntity> GetFactory()
+        {
+            return properties => new FirstJoiningTestEntity();
         }
     }
 
@@ -108,6 +118,11 @@ namespace Storage.IntegrationTests
         public void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
             this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
+        }
+        
+        public static EntityFactory<SecondJoiningTestEntity> GetFactory()
+        {
+            return properties => new SecondJoiningTestEntity();
         }
     }
 

@@ -31,21 +31,24 @@ namespace Storage.IntegrationTests.Redis
             RedisInMemStorageBaseSpec.CleanupAllTests();
         }
 
-        protected override IStorage<TEntity> GetStore<TEntity>(string containerName)
+        protected override IStorage<TEntity> GetStore<TEntity>(string containerName,
+            EntityFactory<TEntity> entityFactory)
         {
             if (!this.stores.ContainsKey(containerName))
             {
-                this.stores.Add(containerName, new TestEntityInMemStorage<TEntity>(Logger, repository, containerName));
+                this.stores.Add(containerName,
+                    new TestEntityInMemStorage<TEntity>(Logger, entityFactory, repository, containerName));
             }
 
             return (IStorage<TEntity>) this.stores[containerName];
         }
 
         private class TestEntityInMemStorage<TEntity> : GenericStorage<TEntity>
-            where TEntity : IPersistableEntity, new()
+            where TEntity : IPersistableEntity
         {
-            public TestEntityInMemStorage(ILogger logger, RedisInMemRepository repository, string containerName) : base(
-                logger, repository)
+            public TestEntityInMemStorage(ILogger logger, EntityFactory<TEntity> entityFactory,
+                RedisInMemRepository repository, string containerName) : base(
+                logger, entityFactory, repository)
             {
                 containerName.GuardAgainstNullOrEmpty(nameof(containerName));
                 ContainerName = containerName;

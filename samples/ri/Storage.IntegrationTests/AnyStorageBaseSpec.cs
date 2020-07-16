@@ -24,17 +24,20 @@ namespace Storage.IntegrationTests
         [TestInitialize]
         public void Initialize()
         {
-            this.Logger = new Logger<AnyStorageBaseSpec>(new NullLoggerFactory());
-            this.storage = GetStore<TestEntity>(new TestEntity().EntityName);
+            Logger = new Logger<AnyStorageBaseSpec>(new NullLoggerFactory());
+            this.storage = GetStore(new TestEntity().EntityName, TestEntity.GetFactory());
             this.storage.DestroyAll();
-            this.firstJoiningStorage = GetStore<FirstJoiningTestEntity>(new FirstJoiningTestEntity().EntityName);
+            this.firstJoiningStorage =
+                GetStore(new FirstJoiningTestEntity().EntityName, FirstJoiningTestEntity.GetFactory());
             this.firstJoiningStorage.DestroyAll();
-            this.secondJoiningStorage = GetStore<SecondJoiningTestEntity>(new SecondJoiningTestEntity().EntityName);
+            this.secondJoiningStorage = GetStore(new SecondJoiningTestEntity().EntityName,
+                SecondJoiningTestEntity.GetFactory());
             this.secondJoiningStorage.DestroyAll();
         }
 
-        protected abstract IStorage<TEntity> GetStore<TEntity>(string containerName)
-            where TEntity : IPersistableEntity, new();
+        protected abstract IStorage<TEntity> GetStore<TEntity>(string containerName,
+            EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity;
 
         [TestMethod]
         public void WhenAddAndEntityNotExists_ThenAddsNew()
@@ -57,7 +60,7 @@ namespace Storage.IntegrationTests
         {
             var id = this.storage.Add(new TestEntity());
 
-            this.storage.Delete(id, false);
+            this.storage.Delete(id);
 
             this.storage.Count().Should().Be(0);
         }
@@ -65,7 +68,7 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenDeleteAndEntityNotExists_ThenReturns()
         {
-            this.storage.Delete(Identifier.Create("anid"), false);
+            this.storage.Delete(Identifier.Create("anid"));
 
             this.storage.Count().Should().Be(0);
         }
@@ -73,7 +76,7 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenDeleteAndIdIsEmpty_ThenThrows()
         {
-            this.storage.Invoking(x => x.Delete(null, false))
+            this.storage.Invoking(x => x.Delete(null))
                 .Should().Throw<ArgumentNullException>();
         }
 
@@ -141,7 +144,7 @@ namespace Storage.IntegrationTests
             var id = this.storage.Add(entity);
 
             entity.AStringValue = "updated";
-            var updated = this.storage.Update(entity, false);
+            var updated = this.storage.Update(entity);
 
             updated.Id.Should().Be(id);
             updated.AStringValue.Should().Be("updated");
@@ -158,7 +161,7 @@ namespace Storage.IntegrationTests
                 AStringValue = "updated"
             };
 
-            this.storage.Invoking(x => x.Update(entity, false))
+            this.storage.Invoking(x => x.Update(entity))
                 .Should().Throw<ResourceNotFoundException>();
         }
 
@@ -167,7 +170,7 @@ namespace Storage.IntegrationTests
         {
             var entity = new TestEntity();
 
-            this.storage.Invoking(x => x.Update(entity, false))
+            this.storage.Invoking(x => x.Update(entity))
                 .Should().Throw<ResourceNotFoundException>();
         }
 

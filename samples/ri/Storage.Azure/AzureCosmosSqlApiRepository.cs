@@ -41,7 +41,7 @@ namespace Storage.Azure
             // No need to do anything here. IDisposable is used as a marker interface
         }
 
-        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
+        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
         {
             var container = EnsureContainer(containerName);
 
@@ -53,36 +53,37 @@ namespace Storage.Azure
             return id;
         }
 
-        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
+        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity
         {
             var container = EnsureContainer(containerName);
 
-            var containerEntity = RetrieveContainerEntitySafe<TEntity>(container, id);
-            if (containerEntity != null)
+            if (Exists(container, id))
             {
                 container.DeleteItemAsync<object>(id.Get(), new PartitionKey(id.Get())).GetAwaiter().GetResult();
             }
         }
 
-        public TEntity Retrieve<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
+        public TEntity Retrieve<TEntity>(string containerName, Identifier id, EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             var container = EnsureContainer(containerName);
 
-            var containerEntity = RetrieveContainerEntitySafe<TEntity>(container, id);
+            var containerEntity = RetrieveContainerEntitySafe(container, id, entityFactory);
 
             return containerEntity;
         }
 
-        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity)
-            where TEntity : IPersistableEntity, new()
+        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity,
+            EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             var container = EnsureContainer(containerName);
 
-            var containerEntity = RetrieveContainerEntitySafe<TEntity>(container, id);
+            var containerEntity = RetrieveContainerEntitySafe(container, id, entityFactory);
             if (containerEntity != null)
             {
                 var thing = container.UpsertItemAsync<dynamic>(entity.ToContainerEntity()).GetAwaiter().GetResult();
-                return ((JObject) thing.Resource).FromContainerEntity<TEntity>();
+                return ((JObject) thing.Resource).FromContainerEntity(entityFactory);
             }
 
             return default;
@@ -109,8 +110,9 @@ namespace Storage.Azure
             }
         }
 
-        public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query)
-            where TEntity : IPersistableEntity, new()
+        public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query,
+            EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             var container = EnsureContainer(containerName);
 
@@ -130,7 +132,7 @@ namespace Storage.Azure
                     });
 
                 var primaryEntities = primaryResults
-                    .ConvertAll(r => r.FromContainerEntity<TEntity>());
+                    .ConvertAll(r => r.FromContainerEntity(entityFactory));
 
                 if (joinedTables.Any())
                 {
@@ -141,7 +143,8 @@ namespace Storage.Azure
                         var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.Dehydrate());
                         var rightEntities = joinedTable.Value.Collection.ToDictionary(
                             e => Identifier.Create(e[IdentifierPropertyName].Value<string>()),
-                            e => e.FromContainerEntity(join.Right.EntityType).Dehydrate());
+                            e => e.FromContainerEntity(join.Right.EntityType, properties => entityFactory(properties))
+                                .Dehydrate());
 
                         primaryEntities = join
                             .JoinResults<TEntity>(leftEntities, rightEntities,
@@ -237,8 +240,23 @@ namespace Storage.Azure
             return this.containers[containerName];
         }
 
-        private static TEntity RetrieveContainerEntitySafe<TEntity>(Container container, Identifier id)
-            where TEntity : IPersistableEntity, new()
+        private static bool Exists(Container container, Identifier id)
+        {
+            try
+            {
+                var entity = container.ReadItemAsync<object>(id.Get(), new PartitionKey(id.Get())).GetAwaiter()
+                    .GetResult();
+                return entity != null;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private static TEntity RetrieveContainerEntitySafe<TEntity>(Container container, Identifier id,
+            EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             try
             {
@@ -246,7 +264,7 @@ namespace Storage.Azure
                     .GetResult();
                 if (entity != null)
                 {
-                    return ((JObject) entity.Resource).FromContainerEntity<TEntity>();
+                    return ((JObject) entity.Resource).FromContainerEntity(entityFactory);
                 }
 
                 return default;
@@ -260,13 +278,16 @@ namespace Storage.Azure
 
     internal static class AzureCosmosSqlApiExtensions
     {
-        public static TEntity FromContainerEntity<TEntity>(this JObject containerEntity)
-            where TEntity : IPersistableEntity, new()
+        public static TEntity FromContainerEntity<TEntity>(this JObject containerEntity,
+            EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
-            return (TEntity) containerEntity.FromContainerEntity(new TEntity().GetType());
+            return (TEntity) containerEntity.FromContainerEntity(typeof(TEntity),
+                properties => entityFactory(properties));
         }
 
-        public static IPersistableEntity FromContainerEntity(this JObject containerEntity, Type entityType)
+        public static IPersistableEntity FromContainerEntity(this JObject containerEntity, Type entityType,
+            EntityFactory<IPersistableEntity> entityFactory)
         {
             var entityPropertyTypeInfo = entityType.GetProperties();
 
@@ -280,7 +301,7 @@ namespace Storage.Azure
 
             var id = containerEntity[AzureCosmosSqlApiRepository.IdentifierPropertyName].ToString();
 
-            return propertyValues.CreateEntity(entityType, id);
+            return propertyValues.CreateEntity(id, entityFactory);
         }
 
         private static object FromContainerEntityProperty(this object property, Type targetPropertyType)
@@ -426,7 +447,7 @@ namespace Storage.Azure
     public static class AzureCosmosSqlApiWhereExtensions
     {
         public static string ToAzureCosmosSqlApiWhereClause<TEntity>(this QueryClause<TEntity> query,
-            string containerName) where TEntity : INamedEntity, new()
+            string containerName) where TEntity : INamedEntity
         {
             var builder = new StringBuilder();
             builder.Append(@"SELECT ");

@@ -1,12 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using Services.Interfaces.Entities;
+using Storage.Interfaces;
 
 namespace CarsDomain.Entities
 {
     public class CarEntity : EntityBase
     {
+        private readonly ILogger logger;
+
+        public CarEntity(ILogger logger)
+        {
+            logger.GuardAgainstNull(nameof(logger));
+            this.logger = logger;
+        }
+
         public CarModel Model { get; private set; }
 
         public DateTime OccupiedUntilUtc { get; private set; }
@@ -42,6 +52,13 @@ namespace CarsDomain.Entities
             }
 
             OccupiedUntilUtc = untilUtc;
+            this.logger.LogDebug("Car was occupied until {Until}", untilUtc);
+        }
+
+
+        public static EntityFactory<CarEntity> GetFactory(ILogger logger)
+        {
+            return properties => new CarEntity(logger);
         }
     }
 }

@@ -4,20 +4,22 @@ using System.Linq;
 using System.Linq.Expressions;
 using QueryAny.Primitives;
 using QueryAny.Properties;
+using ServiceStack;
+using StringExtensions = QueryAny.Primitives.StringExtensions;
 
 namespace QueryAny
 {
     public static class Query
     {
-        public static FromClause<TEntity> From<TEntity>() where TEntity : INamedEntity, new()
+        public static FromClause<TEntity> From<TEntity>() where TEntity : INamedEntity
         {
-            var entity = new TEntity();
+            var entity = (TEntity) typeof(TEntity).CreateInstance();
             return new FromClause<TEntity>(entity);
         }
 
-        public static QueryClause<TEntity> Empty<TEntity>() where TEntity : INamedEntity, new()
+        public static QueryClause<TEntity> Empty<TEntity>() where TEntity : INamedEntity
         {
-            var entity = new TEntity();
+            var entity = (TEntity) typeof(TEntity).CreateInstance();
             var entities = new QueriedEntities(new List<QueriedEntity<INamedEntity>>
             {
                 new QueriedEntity<INamedEntity>(entity)
@@ -27,7 +29,7 @@ namespace QueryAny
         }
     }
 
-    public class FromClause<TEntity> where TEntity : INamedEntity, new()
+    public class FromClause<TEntity> where TEntity : INamedEntity
     {
         private readonly QueriedEntities entities;
 
@@ -85,7 +87,7 @@ namespace QueryAny
     }
 
     public class JoinClause<TJoinedEntity>
-        where TJoinedEntity : INamedEntity, new()
+        where TJoinedEntity : INamedEntity
     {
         private readonly QueriedEntities entities;
 
@@ -133,7 +135,7 @@ namespace QueryAny
         }
     }
 
-    public class QueryClause<TEntity> where TEntity : INamedEntity, new()
+    public class QueryClause<TEntity> where TEntity : INamedEntity
     {
         private readonly QueriedEntities entities;
 
@@ -306,7 +308,7 @@ namespace QueryAny
         }
 
         internal void AddCondition<TEntity>(LogicalOperator combine,
-            Func<FromClause<TEntity>, QueryClause<TEntity>> subWhere) where TEntity : INamedEntity, new()
+            Func<FromClause<TEntity>, QueryClause<TEntity>> subWhere) where TEntity : INamedEntity
         {
             var fromClause = new FromClause<TEntity>((TEntity) PrimaryEntity.UnderlyingEntity);
             subWhere(fromClause);
@@ -325,7 +327,7 @@ namespace QueryAny
             bool IsEntityAlreadyJoinedAtLeastOnce()
             {
                 return this.entities
-                    .Any(e => e.EntityName.EqualsIgnoreCase(joiningEntity.GetEntityNameSafe()));
+                    .Any(e => StringExtensions.EqualsIgnoreCase(e.EntityName, joiningEntity.GetEntityNameSafe()));
             }
 
             if (IsEntityAlreadyJoinedAtLeastOnce())

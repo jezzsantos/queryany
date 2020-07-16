@@ -33,7 +33,7 @@ namespace Storage.Redis
             // No need to do anything here. IDisposable is used as a marker interface
         }
 
-        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
+        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
         {
             var client = EnsureClient();
 
@@ -46,7 +46,7 @@ namespace Storage.Redis
             return id;
         }
 
-        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
+        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity
         {
             var client = EnsureClient();
 
@@ -56,16 +56,18 @@ namespace Storage.Redis
             }
         }
 
-        public TEntity Retrieve<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
+        public TEntity Retrieve<TEntity>(string containerName, Identifier id, EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             var client = EnsureClient();
 
             var rowKey = CreateRowKey(containerName, id);
-            return FromContainerEntity<TEntity>(client, rowKey);
+            return FromContainerEntity(client, rowKey, entityFactory);
         }
 
-        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity)
-            where TEntity : IPersistableEntity, new()
+        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity,
+            EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             var client = EnsureClient();
 
@@ -75,7 +77,7 @@ namespace Storage.Redis
                 var key = CreateRowKey(containerName, id);
                 client.Remove(key);
                 client.SetRangeInHash(key, keyValues);
-                return keyValues.FromContainerProperties<TEntity>(id.Get());
+                return keyValues.FromContainerProperties(id.Get(), entityFactory);
             }
 
             return default;
@@ -88,8 +90,9 @@ namespace Storage.Redis
             return GetRowKeys(client, containerName).Count;
         }
 
-        public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query)
-            where TEntity : IPersistableEntity, new()
+        public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query,
+            EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             var client = EnsureClient();
 
@@ -98,13 +101,13 @@ namespace Storage.Redis
                 return new List<TEntity>();
             }
 
-            var primaryEntities = QueryPrimaryEntities(client, containerName, query);
+            var primaryEntities = QueryPrimaryEntities(client, containerName, query, entityFactory);
 
             var joinedContainers = query.JoinedEntities
                 .Where(je => je.Join != null)
                 .ToDictionary(je => je.EntityName, je => new
                 {
-                    Collection = QueryJoiningContainer(client, je),
+                    Collection = QueryJoiningContainer(client, je, properties => entityFactory(properties)),
                     JoinedEntity = je
                 });
 
@@ -140,11 +143,11 @@ namespace Storage.Redis
         }
 
         private static List<TEntity> QueryPrimaryEntities<TEntity>(IRedisClient client, string containerName,
-            QueryClause<TEntity> query)
-            where TEntity : IPersistableEntity, new()
+            QueryClause<TEntity> query, EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             var primaryEntities = GetRowKeys(client, containerName)
-                .Select(rowKey => FromContainerEntity<TEntity>(client, rowKey))
+                .Select(rowKey => FromContainerEntity(client, rowKey, entityFactory))
                 .OrderBy(e => e.CreatedAtUtc)
                 .ToList();
 
@@ -164,7 +167,7 @@ namespace Storage.Redis
         }
 
         private static Dictionary<string, IPersistableEntity> QueryJoiningContainer(IRedisClient client,
-            QueriedEntity<INamedEntity> joinedEntity)
+            QueriedEntity<INamedEntity> joinedEntity, EntityFactory<IPersistableEntity> entityFactory)
         {
             var containerName = joinedEntity.EntityName;
             if (!Exists(client, containerName))
@@ -174,7 +177,7 @@ namespace Storage.Redis
 
             return GetRowKeys(client, containerName)
                 .ToDictionary(rowKey => rowKey,
-                    rowKey => FromContainerEntity(client, rowKey, joinedEntity.Join.Right.EntityType));
+                    rowKey => FromContainerEntity(client, rowKey, joinedEntity.Join.Right.EntityType, entityFactory));
         }
 
         private static string CreateRowKey<TEntity>(string containerName, TEntity entity)
@@ -203,8 +206,9 @@ namespace Storage.Redis
             return rowKey.Substring(rowKey.LastIndexOf(":", StringComparison.Ordinal) + 1);
         }
 
-        private static TEntity FromContainerEntity<TEntity>(IRedisClient client, string rowKey)
-            where TEntity : IPersistableEntity, new()
+        private static TEntity FromContainerEntity<TEntity>(IRedisClient client, string rowKey,
+            EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             try
             {
@@ -215,7 +219,7 @@ namespace Storage.Redis
                 }
 
                 var id = GetEntityIdFromRowKey(rowKey);
-                return containerEntityProperties.FromContainerProperties<TEntity>(id);
+                return containerEntityProperties.FromContainerProperties(id, properties => entityFactory(properties));
             }
             catch (Exception)
             {
@@ -224,7 +228,7 @@ namespace Storage.Redis
         }
 
         private static IPersistableEntity FromContainerEntity(IRedisClient client,
-            string rowKey, Type entityType)
+            string rowKey, Type entityType, EntityFactory<IPersistableEntity> entityFactory)
         {
             try
             {
@@ -235,7 +239,7 @@ namespace Storage.Redis
                 }
 
                 var id = GetEntityIdFromRowKey(rowKey);
-                return containerEntityProperties.FromContainerProperties(id, entityType);
+                return containerEntityProperties.FromContainerProperties(id, entityType, entityFactory);
             }
             catch (Exception)
             {
@@ -361,16 +365,18 @@ namespace Storage.Redis
         }
 
         public static TEntity FromContainerProperties<TEntity>(
-            this Dictionary<string, string> containerProperties, string entityId)
-            where TEntity : IPersistableEntity, new()
+            this Dictionary<string, string> containerProperties, string entityId, EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
-            var targetType = new TEntity().GetType();
-            return (TEntity) containerProperties.FromContainerProperties(entityId, targetType);
+            var targetType = typeof(TEntity);
+            return (TEntity) containerProperties.FromContainerProperties(entityId, targetType,
+                properties => entityFactory(properties));
         }
 
         public static IPersistableEntity FromContainerProperties(
             this Dictionary<string, string> containerProperties, string id,
-            Type entityType)
+            Type entityType,
+            EntityFactory<IPersistableEntity> entityFactory)
         {
             var entityPropertyTypeInfo = entityType.GetProperties();
             var containerEntityProperties = containerProperties
@@ -380,7 +386,7 @@ namespace Storage.Redis
                     pair => pair.Value.FromContainerProperty(entityPropertyTypeInfo.First(info =>
                         StringExtensions.EqualsIgnoreCase(info.Name, pair.Key)).PropertyType));
 
-            return containerEntityProperties.CreateEntity(entityType, id);
+            return containerEntityProperties.CreateEntity(id, entityFactory);
         }
 
         private static object FromContainerProperty(this string propertyValue, Type targetPropertyType)

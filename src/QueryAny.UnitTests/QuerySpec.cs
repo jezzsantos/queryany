@@ -336,7 +336,8 @@ namespace QueryAny.UnitTests
                 .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "avalue")
                 .Invoking(x =>
                     x.SelectFromJoin<SecondTestEntity, string>(e => e.AStringProperty, s => s.ASecondStringProperty))
-                .Should().Throw<InvalidOperationException>().WithMessageLike(Resources.QueryClause_SelectFromJoin_NoJoins);
+                .Should().Throw<InvalidOperationException>()
+                .WithMessageLike(Resources.QueryClause_SelectFromJoin_NoJoins);
         }
 
         [TestMethod, TestCategory("Unit")]

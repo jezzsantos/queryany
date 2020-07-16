@@ -104,7 +104,8 @@ namespace Storage.UnitTests
 
             var result = wheres.ToDynamicLinqWhereClause();
 
-            result.Should().Be("afield1 == \"astringvalue\" and (afield2 == \"astringvalue2\" or afield3 == \"astringvalue3\")");
+            result.Should()
+                .Be("afield1 == \"astringvalue\" and (afield2 == \"astringvalue2\" or afield3 == \"astringvalue3\")");
         }
     }
 }

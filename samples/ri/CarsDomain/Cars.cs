@@ -29,19 +29,20 @@ namespace CarsDomain
 
         public Car Create(ICurrentCaller caller, int year, string make, string model)
         {
-            var carEntity = new CarEntity();
+            var carEntity = new CarEntity(this.logger);
             carEntity.SetModel(year, make, model);
 
             var id = this.storage.Add(carEntity);
             carEntity.Identify(id);
 
-            this.logger.LogInformation("Car {1} was created by {0}", caller.Id, id);
+            this.logger.LogInformation("Car {Id} was created by {Caller}", id, caller.Id);
             return carEntity.ConvertTo<Car>();
         }
 
         public Car Occupy(ICurrentCaller caller, string id, in DateTime untilUtc)
         {
             id.GuardAgainstNullOrEmpty(nameof(id));
+
 
             var car = this.storage.Get(Identifier.Create(id));
             if (id == null)
@@ -50,9 +51,9 @@ namespace CarsDomain
             }
 
             car.Occupy(untilUtc);
-            this.storage.Update(car, false);
+            this.storage.Update(car);
 
-            this.logger.LogInformation("Car {1} was occupied until {2}, by {0}", caller.Id, id, untilUtc.ToIso8601());
+            this.logger.LogInformation("Car {Id} was occupied until {Until}, by {Caller}", id, untilUtc, caller.Id);
             return car.ConvertTo<Car>();
         }
 
@@ -60,9 +61,10 @@ namespace CarsDomain
         {
             var query = Query.From<CarEntity>()
                 .Where(e => e.OccupiedUntilUtc, ConditionOperator.LessThan, DateTime.UtcNow);
-            var cars = this.storage.Query(query, searchOptions).Results;
+            var cars = this.storage.Query(query, searchOptions)
+                .Results;
 
-            this.logger.LogInformation("Available cars were retrieved by {0}", caller.Id);
+            this.logger.LogInformation("Available cars were retrieved by {Caller}", caller.Id);
             return cars
                 .ConvertAll(c => WithGetOptions(c.ConvertTo<Car>(), getOptions));
         }

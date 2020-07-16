@@ -44,7 +44,7 @@ namespace Storage.Azure
             // No need to do anything here. IDisposable is used as a marker interface
         }
 
-        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity, new()
+        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
         {
             var table = EnsureTable(containerName);
 
@@ -56,7 +56,7 @@ namespace Storage.Azure
             return id;
         }
 
-        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
+        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity
         {
             var table = EnsureTable(containerName);
 
@@ -67,18 +67,20 @@ namespace Storage.Azure
             }
         }
 
-        public TEntity Retrieve<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity, new()
+        public TEntity Retrieve<TEntity>(string containerName, Identifier id, EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             var table = EnsureTable(containerName);
 
             var tableEntity = RetrieveTableEntitySafe(table, id);
             return tableEntity != null
-                ? tableEntity.FromTableEntity<TEntity>(this.options)
+                ? tableEntity.FromTableEntity(this.options, entityFactory)
                 : default;
         }
 
-        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity)
-            where TEntity : IPersistableEntity, new()
+        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity,
+            EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             var table = EnsureTable(containerName);
 
@@ -89,7 +91,7 @@ namespace Storage.Azure
                         () => table.Execute(TableOperation.InsertOrReplace(entity.ToTableEntity(this.options))))
                     .Result as DynamicTableEntity;
 
-                return result.FromTableEntity<TEntity>(this.options);
+                return result.FromTableEntity(this.options, entityFactory);
             }
 
             return default;
@@ -109,8 +111,9 @@ namespace Storage.Azure
             return results.LongCount();
         }
 
-        public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query)
-            where TEntity : IPersistableEntity, new()
+        public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query,
+            EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
             var table = EnsureTable(containerName);
             var filter = query.Wheres.ToAzureTableStorageWhereClause();
@@ -137,7 +140,7 @@ namespace Storage.Azure
                 });
 
             var primaryEntities = primaryResults
-                .ConvertAll(r => r.FromTableEntity<TEntity>(this.options));
+                .ConvertAll(r => r.FromTableEntity(this.options, entityFactory));
 
             if (joinedTables.Any())
             {
@@ -147,7 +150,8 @@ namespace Storage.Azure
                     var join = joinedEntity.Join;
                     var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.Dehydrate());
                     var rightEntities = joinedTable.Value.Collection.ToDictionary(e => Identifier.Create(e.RowKey),
-                        e => e.FromTableEntity(join.Right.EntityType, this.options).Dehydrate());
+                        e => e.FromTableEntity(join.Right.EntityType, this.options,
+                            properties => entityFactory(properties)).Dehydrate());
 
                     primaryEntities = join
                         .JoinResults<TEntity>(leftEntities, rightEntities,
@@ -383,14 +387,15 @@ namespace Storage.Azure
     internal static class AzureTableStorageEntityExtensions
     {
         public static TEntity FromTableEntity<TEntity>(this DynamicTableEntity tableEntity,
-            AzureTableStorageRepository.TableStorageApiOptions options)
-            where TEntity : IPersistableEntity, new()
+            AzureTableStorageRepository.TableStorageApiOptions options, EntityFactory<TEntity> entityFactory)
+            where TEntity : IPersistableEntity
         {
-            return (TEntity) tableEntity.FromTableEntity(new TEntity().GetType(), options);
+            return (TEntity) tableEntity.FromTableEntity(typeof(TEntity), options,
+                properties => entityFactory(properties));
         }
 
         public static IPersistableEntity FromTableEntity(this DynamicTableEntity tableEntity, Type entityType,
-            AzureTableStorageRepository.TableStorageApiOptions options)
+            AzureTableStorageRepository.TableStorageApiOptions options, EntityFactory<IPersistableEntity> entityFactory)
         {
             var entityPropertyTypeInfo = entityType.GetProperties();
             var propertyValues = tableEntity.Properties
@@ -402,7 +407,7 @@ namespace Storage.Azure
                         .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType, options));
 
             var id = tableEntity.RowKey;
-            return propertyValues.CreateEntity(entityType, id);
+            return propertyValues.CreateEntity(id, entityFactory);
         }
 
         private static object FromTableEntityProperty(this EntityProperty property, Type targetPropertyType,

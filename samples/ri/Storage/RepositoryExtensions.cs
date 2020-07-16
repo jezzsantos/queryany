@@ -82,7 +82,7 @@ namespace Storage
 
         public static List<TEntity> CherryPickSelectedProperties<TEntity>(this IEnumerable<TEntity> entities,
             QueryClause<TEntity> query, IEnumerable<string> includeAdditionalProperties = null)
-            where TEntity : IPersistableEntity, new()
+            where TEntity : IPersistableEntity
         {
             var primarySelects = query.PrimaryEntity.Selects;
             var joinedSelects = query.JoinedEntities.SelectMany(je => je.Selects);
@@ -109,24 +109,24 @@ namespace Storage
                 .ToList();
         }
 
-        public static IPersistableEntity CreateEntity(this IReadOnlyDictionary<string, object> propertyValues,
-            Type entityType, string id)
-        {
-            return CreateEntity(propertyValues, entityType, Identifier.Create(id));
-        }
-
         public static TEntity CreateEntity<TEntity>(this IReadOnlyDictionary<string, object> propertyValues,
-            Identifier id) where TEntity : IPersistableEntity, new()
+            Identifier id, EntityFactory<TEntity> entityFactory) where TEntity : IPersistableEntity
         {
-            return (TEntity) CreateEntity(propertyValues, typeof(TEntity), id);
+            return (TEntity) CreateEntityInternal(propertyValues, id, properties => entityFactory(properties));
         }
 
-        private static IPersistableEntity CreateEntity(this IReadOnlyDictionary<string, object> propertyValues,
-            Type entityType, Identifier id)
+        public static IPersistableEntity CreateEntity(this IReadOnlyDictionary<string, object> propertyValues,
+            string id, EntityFactory<IPersistableEntity> entityFactory)
+        {
+            return CreateEntityInternal(propertyValues, Identifier.Create(id), entityFactory);
+        }
+
+        private static IPersistableEntity CreateEntityInternal(this IReadOnlyDictionary<string, object> propertyValues,
+            Identifier id, EntityFactory<IPersistableEntity> entityFactory)
         {
             try
             {
-                var entity = entityType.CreateInstance<IPersistableEntity>();
+                var entity = entityFactory(propertyValues);
                 entity.Rehydrate(propertyValues);
                 entity.Identify(id);
                 return entity;
