@@ -172,7 +172,7 @@ namespace Storage.Azure
             this.containers.Remove(containerName);
         }
 
-        private List<JObject> QueryJoiningContainer(QueriedEntity<INamedEntity> joinedEntity,
+        private List<JObject> QueryJoiningContainer(QueriedEntity joinedEntity,
             IEnumerable<JToken> propertyValues)
         {
             var containerName = joinedEntity.EntityName;
@@ -370,7 +370,7 @@ namespace Storage.Azure
         {
             bool IsNotExcluded(string propertyName)
             {
-                var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id), nameof(INamedEntity.EntityName)};
+                var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id)};
                 return !excludedPropertyNames.Contains(propertyName);
             }
 
@@ -447,7 +447,7 @@ namespace Storage.Azure
     public static class AzureCosmosSqlApiWhereExtensions
     {
         public static string ToAzureCosmosSqlApiWhereClause<TEntity>(this QueryClause<TEntity> query,
-            string containerName) where TEntity : INamedEntity
+            string containerName) where TEntity : IQueryableEntity
         {
             var builder = new StringBuilder();
             builder.Append(@"SELECT ");

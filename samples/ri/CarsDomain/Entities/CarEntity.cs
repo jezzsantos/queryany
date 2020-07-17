@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
+using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces.Entities;
 using Storage.Interfaces;
 
 namespace CarsDomain.Entities
 {
+    [EntityName("Car")]
     public class CarEntity : EntityBase
     {
         private readonly ILogger logger;
@@ -20,8 +22,6 @@ namespace CarsDomain.Entities
         public CarModel Model { get; private set; }
 
         public DateTime OccupiedUntilUtc { get; private set; }
-
-        public override string EntityName => "Car";
 
         public override Dictionary<string, object> Dehydrate()
         {

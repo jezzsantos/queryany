@@ -25,12 +25,12 @@ namespace Storage.IntegrationTests
         public void Initialize()
         {
             Logger = new Logger<AnyStorageBaseSpec>(new NullLoggerFactory());
-            this.storage = GetStore(new TestEntity().EntityName, TestEntity.GetFactory());
+            this.storage = GetStore(typeof(TestEntity).GetEntityNameSafe(), TestEntity.GetFactory());
             this.storage.DestroyAll();
             this.firstJoiningStorage =
-                GetStore(new FirstJoiningTestEntity().EntityName, FirstJoiningTestEntity.GetFactory());
+                GetStore(typeof(FirstJoiningTestEntity).GetEntityNameSafe(), FirstJoiningTestEntity.GetFactory());
             this.firstJoiningStorage.DestroyAll();
-            this.secondJoiningStorage = GetStore(new SecondJoiningTestEntity().EntityName,
+            this.secondJoiningStorage = GetStore(typeof(SecondJoiningTestEntity).GetEntityNameSafe(),
                 SecondJoiningTestEntity.GetFactory());
             this.secondJoiningStorage.DestroyAll();
         }

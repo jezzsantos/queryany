@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using QueryAny;
 using QueryAny.Primitives;
 using Services.Interfaces.Entities;
 using ServiceStack;
@@ -7,6 +8,7 @@ using Storage.Interfaces;
 
 namespace Storage.IntegrationTests
 {
+    [EntityName("testentities")]
     public class TestEntity : IPersistableEntity
     {
         public TestEntity()
@@ -30,6 +32,7 @@ namespace Storage.IntegrationTests
         public ComplexNonValueType AComplexNonValueTypeValue { get; set; }
 
         public ComplexValueType AComplexValueTypeValue { get; set; }
+
         public DateTime CreatedAtUtc { get; set; }
         public DateTime LastModifiedAtUtc { get; set; }
 
@@ -39,8 +42,6 @@ namespace Storage.IntegrationTests
         {
             Id = id;
         }
-
-        public string EntityName => "testentities";
 
         public Dictionary<string, object> Dehydrate()
         {
@@ -58,12 +59,11 @@ namespace Storage.IntegrationTests
         }
     }
 
+    [EntityName("firstjoiningtestentities")]
     public class FirstJoiningTestEntity : IPersistableEntity
     {
         public string AStringValue { get; set; }
         public int AIntValue { get; set; }
-
-        public string EntityName => "firstjoiningtestentities";
 
         public DateTime CreatedAtUtc { get; set; }
         public DateTime LastModifiedAtUtc { get; set; }
@@ -83,13 +83,14 @@ namespace Storage.IntegrationTests
         {
             this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
         }
-        
+
         public static EntityFactory<FirstJoiningTestEntity> GetFactory()
         {
             return properties => new FirstJoiningTestEntity();
         }
     }
 
+    [EntityName("secondjoiningtestentities")]
     public class SecondJoiningTestEntity : IPersistableEntity
     {
         public string AStringValue { get; set; }
@@ -99,8 +100,6 @@ namespace Storage.IntegrationTests
 
         public long ALongValue { get; set; }
 
-        public string EntityName => "secondjoiningtestentities";
-
         public DateTime CreatedAtUtc { get; set; }
         public DateTime LastModifiedAtUtc { get; set; }
         public Identifier Id { get; private set; }
@@ -119,7 +118,7 @@ namespace Storage.IntegrationTests
         {
             this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
         }
-        
+
         public static EntityFactory<SecondJoiningTestEntity> GetFactory()
         {
             return properties => new SecondJoiningTestEntity();

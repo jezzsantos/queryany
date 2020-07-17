@@ -10,9 +10,9 @@ The RI solution demonstrates strict discipline around decoupling and separation 
 
 The RI does does fully implement patterns (in GET APIs) that allow clients to can have fine grained control the data returned on the wire.
 
-> Design Choice: There are some *interesting* and pragmatic implementation patterns demonstrated within this RI. Remember that this RI has laid out just *one* way of doing things. There are many ways of doing the same kind of things, with various design tradeoffs, especially in the area of entity persistence, and in the realm of building products has prioritized maintainability over optimal performance. If you are looking for the *best* way to do things, then you haven't programmed long enough to learn that no such thing exists - every context of every product is unique. Our advice to you is start with something small, and adapt it as you learn more, avoid over-engineering it at all costs. If in doubt, favor what you definitely know you have to work with, rather than attempting to future proof it. KISS, DRY and YAGNI my friends.
+> Design Choice: There are some *interesting* and pragmatic implementation patterns demonstrated within this RI. Remember that this RI has laid out just *one* way of doing things. There are many ways of doing the same kind of things, with various design trade offs, especially in the area of entity persistence, and in the realm of building products has prioritized maintainability over optimal performance. If you are looking for the *best* way to do things, then you haven't programmed long enough to learn that no such thing exists - every context of every product is unique. Our advice to you is start with something small, and adapt it as you learn more, avoid over-engineering it at all costs. If in doubt, favor what you definitely know you have to work with, rather than attempting to future proof it. KISS, DRY and YAGNI my friends.
 
-# Architecture
+# Structure
 
 The RI solution is structured as projects on disk, as follows:
 
@@ -87,6 +87,34 @@ These tests have been templatized so that new implementations have a test suite 
 Contains all unit level tests for all components in the architecture, separated by component.
 
 > We anticipate that there would probably be a separate test project per assembly to test.
+
+# Design Notes
+
+In this RI we have a number of shortcuts in design for practical purposes, that reduce the overhead on developers for keeping strictly to pure design principles. 
+These design decisions aim to make the code easy to work with while at the same time maintain high levels of maintainability. 
+
+## Persistence
+
+Ideally, there would be a mapping between domain entities and DTO's whenever entities transfer over any boundaries outside the domain. 
+
+For example 1: When HTTP requests invoke domain entities to perform activities, the data passed into entities would be in the form of DTO's coming over the wire as JSON. 
+
+For example 2: When domain entities are persisted to storage, the entity would be mapped to a DTO and then passed to a physical repository for persisting to that store.
+
+* All these mappings (entity <-> DTO and visa-versa)  require knowledge of those mappings codified somewhere. 
+* Typically, in the case of inbound invocation (eg. HTTP requests/responses), this mapping is codified outside the entity in a service contract.
+* Typically, in the case of an outbound invocation (eg. Persistence), this mapping is codified inside the entity itself.
+* The mapping code may be complex (depending on the entity complexity), and this code may also be hard to maintain correctly, is often tedious to maintain, and difficult to make cohesive.
+
+For these reasons and others, we have taken a design shortcut in persistence mapping by making the entities opt into supporting persistency in a generic way. 
+
+Each domain entity is required to:
+ 1. Define a name of a logical collection (i.e. the name of a table, for use by database repository) (See: [EntityNameAttribute](https://github.com/jezzsantos/queryany/blob/master/src/QueryAny/EntityNameAttribute.cs))
+ 1. Define a set of properties (object dictionary) that represents the internal state of the entity (See: [Dehydrate](https://github.com/jezzsantos/queryany/blob/master/samples/ri/CarsDomain/Entities/EntityBase.cs)).
+ 1. Define a function that can restore the internal state of the entity from a set of properties (See: [Rehydrate](https://github.com/jezzsantos/queryany/blob/master/samples/ri/CarsDomain/Entities/EntityBase.cs)).
+ 1. Define an entity factory function that can be called to construct a new instance of the entity (See: [EntityFactory](https://github.com/jezzsantos/queryany/blob/master/samples/ri/Storage.Interfaces/IStorage.cs#L13)).
+ 
+ With this policy in effect, domain entities can maintain their full OO behaviors whilst participating in persistence schemes, like the one implemented in this RI. 
 
 # Local Development and Testing
 

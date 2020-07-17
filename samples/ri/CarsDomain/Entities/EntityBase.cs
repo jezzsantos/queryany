@@ -20,8 +20,6 @@ namespace CarsDomain.Entities
 
         public Identifier Id { get; private set; }
 
-        public abstract string EntityName { get; }
-
         public void Identify(Identifier id)
         {
             id.GuardAgainstNull(nameof(id));

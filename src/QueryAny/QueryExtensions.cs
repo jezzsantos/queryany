@@ -1,5 +1,5 @@
 ﻿using System;
-using QueryAny.Primitives;
+using System.Reflection;
 
 namespace QueryAny
 {
@@ -7,14 +7,15 @@ namespace QueryAny
     {
         private const string EntityTypeNameConventionSuffix = @"Entity";
 
-        public static string GetEntityNameSafe(this INamedEntity entity)
+        public static string GetEntityNameSafe(this Type entityType)
         {
-            if (entity.EntityName.HasValue())
+            var entityNameAttribute = entityType.GetCustomAttribute<EntityNameAttribute>();
+            if (entityNameAttribute != null)
             {
-                return entity.EntityName;
+                return entityNameAttribute.EntityName;
             }
 
-            var name = entity.GetType().Name;
+            var name = entityType.Name;
             return name.EndsWith(EntityTypeNameConventionSuffix)
                 ? name.Substring(0, name.LastIndexOf(EntityTypeNameConventionSuffix, StringComparison.Ordinal))
                 : $"{name.ToLowerInvariant()}";

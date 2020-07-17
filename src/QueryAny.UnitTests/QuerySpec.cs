@@ -187,6 +187,27 @@ namespace QueryAny.UnitTests
             result.Wheres[1].NestedWheres[0].Condition.Value.Should().Be("2");
         }
 
+        
+        [TestMethod, TestCategory("Unit")]
+        public void WhenAndWhereWithSubWhereClause_ThenCreatesAnOredNestedWhere()
+        {
+            var result = Query.From<NamedTestEntity>()
+                .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "1")
+                .OrWhere(sub => sub.Where(e => e.AStringProperty, ConditionOperator.NotEqualTo, "2"));
+
+            result.Wheres.Count.Should().Be(2);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.Value.Should().Be("1");
+            result.Wheres[1].Operator.Should().Be(LogicalOperator.Or);
+            result.Wheres[1].Condition.Should().Be(null);
+            result.Wheres[1].NestedWheres.Count.Should().Be(1);
+            result.Wheres[1].NestedWheres[0].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
+            result.Wheres[1].NestedWheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[1].NestedWheres[0].Condition.Value.Should().Be("2");
+        }
+        
         [TestMethod, TestCategory("Unit")]
         public void WhenAndWhereWithSubWhereClauses_ThenCreatesAnAndedNestedWheres()
         {
@@ -369,45 +390,40 @@ namespace QueryAny.UnitTests
         }
     }
 
-    public class UnnamedTestEntity : INamedEntity
+    public class UnnamedTestEntity : IQueryableEntity
     {
-        public string EntityName => null;
     }
 
-    public class UnnamedTestEntityUnconventionalNamed : INamedEntity
+    public class UnnamedTestEntityUnconventionalNamed : IQueryableEntity
     {
-        public string EntityName => null;
     }
 
-    public class NamedTestEntity : INamedEntity
+    [EntityName("aname")]
+    public class NamedTestEntity : IQueryableEntity
     {
         public string AStringProperty => null;
 
         public DateTime ADateTimeProperty => default;
-
-        public string EntityName => "aname";
     }
 
-    public class FirstTestEntity : INamedEntity
+    [EntityName("first")]
+    public class FirstTestEntity : IQueryableEntity
     {
         public string AFirstStringProperty => null;
         public DateTime AFirstDateTimeProperty => DateTime.MinValue;
-        public string EntityName => "first";
     }
 
-    public class SecondTestEntity : INamedEntity
+    [EntityName("second")]
+    public class SecondTestEntity : IQueryableEntity
     {
         public string ASecondStringProperty => null;
         public DateTime ASecondDateTimeProperty => DateTime.MinValue;
-
-        public string EntityName => "second";
     }
 
-    public class ThirdTestEntity : INamedEntity
+    [EntityName("third")]
+    public class ThirdTestEntity : IQueryableEntity
     {
         public string AThirdStringProperty => null;
         public DateTime AThirdDateTimeProperty => DateTime.MinValue;
-
-        public string EntityName => "third";
     }
 }

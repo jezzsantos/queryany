@@ -234,7 +234,7 @@ namespace Storage.Azure
             }
         }
 
-        private List<DynamicTableEntity> QueryJoiningTable(QueriedEntity<INamedEntity> joinedEntity,
+        private List<DynamicTableEntity> QueryJoiningTable(QueriedEntity joinedEntity,
             IEnumerable<EntityProperty> propertyValues)
         {
             var tableName = joinedEntity.EntityName;
@@ -461,7 +461,7 @@ namespace Storage.Azure
         {
             bool IsNotExcluded(string propertyName)
             {
-                var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id), nameof(INamedEntity.EntityName)};
+                var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id)};
                 return !excludedPropertyNames.Contains(propertyName);
             }
 

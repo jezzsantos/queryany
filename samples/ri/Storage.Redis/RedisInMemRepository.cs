@@ -167,7 +167,7 @@ namespace Storage.Redis
         }
 
         private static Dictionary<string, IPersistableEntity> QueryJoiningContainer(IRedisClient client,
-            QueriedEntity<INamedEntity> joinedEntity, EntityFactory<IPersistableEntity> entityFactory)
+            QueriedEntity joinedEntity, EntityFactory<IPersistableEntity> entityFactory)
         {
             var containerName = joinedEntity.EntityName;
             if (!Exists(client, containerName))
@@ -288,7 +288,7 @@ namespace Storage.Redis
         {
             bool IsNotExcluded(string propertyName)
             {
-                var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id), nameof(INamedEntity.EntityName)};
+                var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id)};
                 return !excludedPropertyNames.Contains(propertyName);
             }
 
@@ -359,7 +359,6 @@ namespace Storage.Redis
             }
 
             containerEntityProperties[nameof(IModifiableEntity.LastModifiedAtUtc)] = nowUtc;
-            containerEntityProperties.Remove(nameof(IPersistableEntity.EntityName));
 
             return containerEntityProperties;
         }

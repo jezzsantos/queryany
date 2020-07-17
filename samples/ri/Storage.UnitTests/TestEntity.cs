@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using QueryAny;
 using Services.Interfaces.Entities;
 using ServiceStack;
 using Storage.Interfaces;
 
 namespace Storage.UnitTests
 {
+    [EntityName("testentities")]
     public class TestEntity : IPersistableEntity
     {
         // ReSharper disable once UnassignedGetOnlyAutoProperty
@@ -26,8 +28,6 @@ namespace Storage.UnitTests
         {
             Id = id;
         }
-
-        public string EntityName => "testentities";
 
         public Dictionary<string, object> Dehydrate()
         {
