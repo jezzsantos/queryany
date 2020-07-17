@@ -41,6 +41,7 @@ namespace QueryAny
         public QueriedEntity PrimaryEntity => this.entities.PrimaryEntity;
 
         public IReadOnlyList<WhereExpression> Wheres => this.entities.Wheres;
+        public ResultOptions ResultOptions => this.entities.ResultOptions;
 
         public QueryClause<TPrimaryEntity> Where<TValue>(Expression<Func<TPrimaryEntity, TValue>> propertyName,
             ConditionOperator condition,
@@ -76,6 +77,18 @@ namespace QueryAny
                     "You cannot use an 'WhereAll' after a 'Where'");
             }
 
+            return new QueryClause<TPrimaryEntity>(this.entities);
+        }
+
+        public QueryClause<TPrimaryEntity> Take(long limit)
+        {
+            this.entities.ResultOptions.SetLimit(limit);
+            return new QueryClause<TPrimaryEntity>(this.entities);
+        }
+
+        public QueryClause<TPrimaryEntity> Skip(long offset)
+        {
+            this.entities.ResultOptions.SetOffset(offset);
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
     }
@@ -150,6 +163,8 @@ namespace QueryAny
         public IReadOnlyList<WhereExpression> Wheres => this.entities.Wheres;
 
         public QueryOptions Options => this.entities.Options;
+
+        public ResultOptions ResultOptions => this.entities.ResultOptions;
 
         public QueryClause<TPrimaryEntity> AndWhere<TValue>(Expression<Func<TPrimaryEntity, TValue>> propertyName,
             ConditionOperator condition,
@@ -264,6 +279,18 @@ namespace QueryAny
             joiningEntity.AddSelected(joiningFieldName, joinedEntity, joinedFieldName);
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
+
+        public QueryClause<TPrimaryEntity> Take(long limit)
+        {
+            this.entities.ResultOptions.SetLimit(limit);
+            return new QueryClause<TPrimaryEntity>(this.entities);
+        }
+
+        public QueryClause<TPrimaryEntity> Skip(long offset)
+        {
+            this.entities.ResultOptions.SetOffset(offset);
+            return new QueryClause<TPrimaryEntity>(this.entities);
+        }
     }
 
     public class QueriedEntities
@@ -277,6 +304,7 @@ namespace QueryAny
             this.entities = entities;
             this.wheres = new List<WhereExpression>();
             Options = new QueryOptions();
+            ResultOptions = new ResultOptions();
         }
 
         public IReadOnlyList<QueriedEntity> AllEntities => this.entities;
@@ -288,6 +316,8 @@ namespace QueryAny
         public IReadOnlyList<WhereExpression> Wheres => this.wheres.AsReadOnly();
 
         public QueryOptions Options { get; }
+
+        public ResultOptions ResultOptions { get; }
 
         internal void AddWhere<TValue>(LogicalOperator combine, string fieldName, ConditionOperator condition,
             TValue value)
@@ -320,7 +350,7 @@ namespace QueryAny
             });
         }
 
-        public void AddJoin<TJoiningEntity>(Type joiningEntity, string fromEntityFieldName,
+        internal void AddJoin<TJoiningEntity>(Type joiningEntity, string fromEntityFieldName,
             string joiningEntityFieldName, JoinType type) where TJoiningEntity : IQueryableEntity
         {
             bool IsEntityAlreadyJoinedAtLeastOnce()
@@ -343,7 +373,7 @@ namespace QueryAny
             this.entities.Add(joinedEntityCollection);
         }
 
-        public void UpdateOptions(bool isEmpty)
+        internal void UpdateOptions(bool isEmpty)
         {
             if (isEmpty)
             {
@@ -384,6 +414,7 @@ namespace QueryAny
         internal Type UnderlyingEntity { get; }
 
         public IReadOnlyList<SelectDefinition> Selects => this.selects.AsReadOnly();
+
         public JoinDefinition Join { get; private set; }
 
         internal void AddJoin(JoinSide left, JoinSide right, JoinType type)
@@ -391,15 +422,57 @@ namespace QueryAny
             Join = new JoinDefinition(left, right, type);
         }
 
-        public void AddSelected(string fieldName)
+        internal void AddSelected(string fieldName)
         {
             this.selects.Add(new SelectDefinition(EntityName, fieldName, null, null));
         }
 
-        public void AddSelected(string fieldName, string joinedEntityName, string joinedFieldName)
+        internal void AddSelected(string fieldName, string joinedEntityName, string joinedFieldName)
         {
             this.selects.Add(new SelectDefinition(EntityName, fieldName, joinedEntityName,
                 joinedFieldName));
+        }
+    }
+
+    public class ResultOptions
+    {
+        public const long DefaultLimit = -1;
+        public const long DefaultOffset = 0;
+
+        public ResultOptions()
+        {
+            Limit = DefaultLimit;
+            Offset = DefaultOffset;
+        }
+
+        public long Limit { get; private set; }
+
+        public long Offset { get; private set; }
+
+        internal void SetLimit(long limit)
+        {
+            if (limit < 0)
+            {
+                throw new InvalidOperationException(Resources.QueryClause_Options_InvalidLimit);
+            }
+
+            if (limit >= 0)
+            {
+                Limit = limit;
+            }
+        }
+
+        internal void SetOffset(long offset)
+        {
+            if (offset < 0)
+            {
+                throw new InvalidOperationException(Resources.QueryClause_Options_InvalidOffset);
+            }
+
+            if (offset >= 0)
+            {
+                Offset = offset;
+            }
         }
     }
 

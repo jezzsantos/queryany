@@ -50,7 +50,6 @@ namespace QueryAny.UnitTests
                 .Should().Throw<InvalidOperationException>();
         }
 
-
         [TestMethod, TestCategory("Unit")]
         public void WhenWhereAll_ThenCreatesAWhere()
         {
@@ -187,7 +186,6 @@ namespace QueryAny.UnitTests
             result.Wheres[1].NestedWheres[0].Condition.Value.Should().Be("2");
         }
 
-        
         [TestMethod, TestCategory("Unit")]
         public void WhenAndWhereWithSubWhereClause_ThenCreatesAnOredNestedWhere()
         {
@@ -207,7 +205,7 @@ namespace QueryAny.UnitTests
             result.Wheres[1].NestedWheres[0].Condition.FieldName.Should().Be("AStringProperty");
             result.Wheres[1].NestedWheres[0].Condition.Value.Should().Be("2");
         }
-        
+
         [TestMethod, TestCategory("Unit")]
         public void WhenAndWhereWithSubWhereClauses_ThenCreatesAnAndedNestedWheres()
         {
@@ -388,17 +386,86 @@ namespace QueryAny.UnitTests
             result.AllEntities[1].Selects[0].JoinedEntityName.Should().Be("aname");
             result.AllEntities[1].Selects[0].JoinedFieldName.Should().Be("AStringProperty");
         }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenTakeAndEmpty_ThenReturnsDefaultLimit()
+        {
+            var results = Query.Empty<NamedTestEntity>();
+
+            results.ResultOptions.Limit.Should().Be(ResultOptions.DefaultLimit);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenTakeWithNegativeNumber_ThenThrows()
+        {
+            Query.From<NamedTestEntity>()
+                .Invoking(x => x.Take(-1))
+                .Should().Throw<InvalidOperationException>();
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenTakeAndNoTake_ThenReturnsDefaultLimit()
+        {
+            var results = Query.From<NamedTestEntity>();
+
+            results.ResultOptions.Limit.Should().Be(ResultOptions.DefaultLimit);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenTakeAndNoResults_ThenThrows()
+        {
+            var results = Query.From<NamedTestEntity>()
+                .Take(10);
+
+            results.ResultOptions.Limit.Should().Be(10);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenSkipAndEmpty_ThenReturnsDefaultLimit()
+        {
+            var results = Query.Empty<NamedTestEntity>();
+
+            results.ResultOptions.Offset.Should().Be(ResultOptions.DefaultOffset);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenSkipWithNegativeNumber_ThenThrows()
+        {
+            Query.From<NamedTestEntity>()
+                .Invoking(x => x.Skip(-1))
+                .Should().Throw<InvalidOperationException>();
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenSkipAndNoSkip_ThenReturnsDefaultLimit()
+        {
+            var results = Query.From<NamedTestEntity>();
+
+            results.ResultOptions.Offset.Should().Be(ResultOptions.DefaultOffset);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenSkipAndNoResults_ThenThrows()
+        {
+            var results = Query.From<NamedTestEntity>()
+                .Skip(10);
+
+            results.ResultOptions.Offset.Should().Be(10);
+        }
     }
 
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class UnnamedTestEntity : IQueryableEntity
     {
     }
 
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class UnnamedTestEntityUnconventionalNamed : IQueryableEntity
     {
     }
 
     [EntityName("aname")]
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class NamedTestEntity : IQueryableEntity
     {
         public string AStringProperty => null;
@@ -407,6 +474,7 @@ namespace QueryAny.UnitTests
     }
 
     [EntityName("first")]
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class FirstTestEntity : IQueryableEntity
     {
         public string AFirstStringProperty => null;
@@ -414,6 +482,7 @@ namespace QueryAny.UnitTests
     }
 
     [EntityName("second")]
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class SecondTestEntity : IQueryableEntity
     {
         public string ASecondStringProperty => null;
@@ -421,6 +490,7 @@ namespace QueryAny.UnitTests
     }
 
     [EntityName("third")]
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class ThirdTestEntity : IQueryableEntity
     {
         public string AThirdStringProperty => null;

@@ -61,6 +61,24 @@ namespace QueryAny.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You cannot &apos;Take&apos; less than 0 results.
+        /// </summary>
+        public static string QueryClause_Options_InvalidLimit {
+            get {
+                return ResourceManager.GetString("QueryClause_Options_InvalidLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot &apos;Skip&apos; less than 0 results.
+        /// </summary>
+        public static string QueryClause_Options_InvalidOffset {
+            get {
+                return ResourceManager.GetString("QueryClause_Options_InvalidOffset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You cannot &apos;SelectFromJoin&apos; on entity {0}, because no joins are yet defined.
         /// </summary>
         public static string QueryClause_SelectFromJoin_NoJoins {
