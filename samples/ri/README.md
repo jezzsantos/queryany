@@ -14,7 +14,11 @@ The RI does does fully implement patterns (in GET APIs) that allow clients to ca
 
 # Structure
 
-The RI solution is structured as projects on disk, as follows:
+The RI solution is structured as projects on disk, into two logical parts:
+
+* Infrastructure - This contains all infrastructure and adapters to that infrastructure (eg. Web API adapters and Storage adapters)
+* Domain - core domain classes, unfettered by infrastructure.
+
 
 ## CarsApi
 

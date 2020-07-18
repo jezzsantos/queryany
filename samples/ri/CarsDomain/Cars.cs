@@ -17,14 +17,14 @@ namespace CarsDomain
         private readonly ILogger logger;
         private readonly IStorage<CarEntity> storage;
 
-        public Cars(ILogger<Car> logger, IStorage<CarEntity> storage)
+        public Cars(ILogger<Cars> logger, IStorage<CarEntity> storage)
         {
             logger.GuardAgainstNull(nameof(logger));
             storage.GuardAgainstNull(nameof(storage));
             this.logger = logger;
             this.storage = storage;
 
-            AutoMapping.RegisterPopulator((Car car, CarEntity entity) => { car.Id = entity.Id.Get(); });
+            AutoMapping.RegisterPopulator((Car car, CarEntity entity) => { car.Id = entity.Id?.Get(); });
         }
 
         public Car Create(ICurrentCaller caller, int year, string make, string model)
@@ -42,7 +42,6 @@ namespace CarsDomain
         public Car Occupy(ICurrentCaller caller, string id, in DateTime untilUtc)
         {
             id.GuardAgainstNullOrEmpty(nameof(id));
-
 
             var car = this.storage.Get(Identifier.Create(id));
             if (id == null)

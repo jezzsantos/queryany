@@ -6,7 +6,7 @@ using ServiceStack;
 
 namespace CarsApi.Services.Cars
 {
-    public class CarsService : Service
+    internal class CarsService : Service
     {
         private readonly ICars cars;
 
