@@ -24,10 +24,16 @@
     <data name="QueryClause_SelectFromJoin_UnknownJoin" xml:space="preserve">
         <value>You cannot 'SelectFromJoin' on entity {0}, because no join for that entity is yet defined</value>
     </data>
-    <data name="QueryClause_Options_InvalidLimit" xml:space="preserve">
+    <data name="ResultOptions_InvalidLimit" xml:space="preserve">
         <value>You cannot 'Take' less than 0 results</value>
     </data>
-    <data name="QueryClause_Options_InvalidOffset" xml:space="preserve">
+    <data name="ResultOptions_InvalidOffset" xml:space="preserve">
         <value>You cannot 'Skip' less than 0 results</value>
+    </data>
+    <data name="QueriedEntities_LimitAlreadySet" xml:space="preserve">
+        <value>You cannot 'Take' more than once</value>
+    </data>
+    <data name="QueriedEntities_OffsetAlreadySet" xml:space="preserve">
+        <value>You cannot 'Skip' more than once</value>
     </data>
 </root>

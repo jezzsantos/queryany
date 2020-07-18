@@ -61,20 +61,20 @@ namespace QueryAny.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You cannot &apos;Take&apos; less than 0 results.
+        ///   Looks up a localized string similar to You cannot &apos;Take&apos; more than once.
         /// </summary>
-        public static string QueryClause_Options_InvalidLimit {
+        public static string QueriedEntities_LimitAlreadySet {
             get {
-                return ResourceManager.GetString("QueryClause_Options_InvalidLimit", resourceCulture);
+                return ResourceManager.GetString("QueriedEntities_LimitAlreadySet", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You cannot &apos;Skip&apos; less than 0 results.
+        ///   Looks up a localized string similar to You cannot &apos;Skip&apos; more than once.
         /// </summary>
-        public static string QueryClause_Options_InvalidOffset {
+        public static string QueriedEntities_OffsetAlreadySet {
             get {
-                return ResourceManager.GetString("QueryClause_Options_InvalidOffset", resourceCulture);
+                return ResourceManager.GetString("QueriedEntities_OffsetAlreadySet", resourceCulture);
             }
         }
         
@@ -93,6 +93,24 @@ namespace QueryAny.Properties {
         public static string QueryClause_SelectFromJoin_UnknownJoin {
             get {
                 return ResourceManager.GetString("QueryClause_SelectFromJoin_UnknownJoin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot &apos;Take&apos; less than 0 results.
+        /// </summary>
+        public static string ResultOptions_InvalidLimit {
+            get {
+                return ResourceManager.GetString("ResultOptions_InvalidLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot &apos;Skip&apos; less than 0 results.
+        /// </summary>
+        public static string ResultOptions_InvalidOffset {
+            get {
+                return ResourceManager.GetString("ResultOptions_InvalidOffset", resourceCulture);
             }
         }
     }

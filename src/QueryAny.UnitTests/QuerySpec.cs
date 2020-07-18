@@ -388,7 +388,7 @@ namespace QueryAny.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenTakeAndEmpty_ThenReturnsDefaultLimit()
+        public void WhenTakeAndEmpty_ThenLimitIsDefaultLimit()
         {
             var results = Query.Empty<NamedTestEntity>();
 
@@ -404,7 +404,7 @@ namespace QueryAny.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenTakeAndNoTake_ThenReturnsDefaultLimit()
+        public void WhenTakeAndNoTake_ThenLimitIsDefaultLimit()
         {
             var results = Query.From<NamedTestEntity>();
 
@@ -412,7 +412,7 @@ namespace QueryAny.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenTakeAndNoResults_ThenThrows()
+        public void WhenTakeAndNoResults_ThenLimitIsSet()
         {
             var results = Query.From<NamedTestEntity>()
                 .Take(10);
@@ -421,7 +421,16 @@ namespace QueryAny.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenSkipAndEmpty_ThenReturnsDefaultLimit()
+        public void WhenTakeAgain_ThenThrows()
+        {
+            Query.From<NamedTestEntity>().Take(10)
+                .Invoking(x => x.Take(10))
+                .Should().Throw<InvalidOperationException>()
+                .WithMessageLike(Resources.QueriedEntities_LimitAlreadySet);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenSkipAndEmpty_ThenOffsetIsDefaultLimit()
         {
             var results = Query.Empty<NamedTestEntity>();
 
@@ -437,7 +446,7 @@ namespace QueryAny.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenSkipAndNoSkip_ThenReturnsDefaultLimit()
+        public void WhenSkipAndNoSkip_ThenOffsetIsDefaultLimit()
         {
             var results = Query.From<NamedTestEntity>();
 
@@ -445,12 +454,21 @@ namespace QueryAny.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenSkipAndNoResults_ThenThrows()
+        public void WhenSkipAndNoResults_ThenOffsetIsSet()
         {
             var results = Query.From<NamedTestEntity>()
                 .Skip(10);
 
             results.ResultOptions.Offset.Should().Be(10);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenSkipAgain_ThenThrows()
+        {
+            Query.From<NamedTestEntity>().Skip(10)
+                .Invoking(x => x.Skip(10))
+                .Should().Throw<InvalidOperationException>()
+                .WithMessageLike(Resources.QueriedEntities_OffsetAlreadySet);
         }
     }
 
