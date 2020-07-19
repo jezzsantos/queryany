@@ -15,17 +15,17 @@ namespace Storage
         public static int GetDefaultSkip<TEntity>(this QueryClause<TEntity> query)
             where TEntity : IPersistableEntity
         {
-            return (int) (query.ResultOptions.Offset != ResultOptions.DefaultOffset
+            return query.ResultOptions.Offset != ResultOptions.DefaultOffset
                 ? query.ResultOptions.Offset
-                : 0);
+                : 0;
         }
 
         public static int GetDefaultTake<TEntity>(this QueryClause<TEntity> query, IRepository repository)
             where TEntity : IPersistableEntity
         {
-            return (int) (query.ResultOptions.Limit == ResultOptions.DefaultLimit
+            return query.ResultOptions.Limit == ResultOptions.DefaultLimit
                 ? repository.MaxQueryResults
-                : query.ResultOptions.Limit);
+                : query.ResultOptions.Limit;
         }
 
         public static string GetDefaultOrdering<TEntity>(this QueryClause<TEntity> query)

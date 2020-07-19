@@ -95,7 +95,7 @@ namespace QueryAny
             }
         }
 
-        internal void SetLimit(long limit)
+        internal void SetLimit(int limit)
         {
             if (ResultOptions.Limit != ResultOptions.DefaultLimit)
             {
@@ -105,7 +105,7 @@ namespace QueryAny
             ResultOptions.SetLimit(limit);
         }
 
-        internal void SetOffset(long offset)
+        internal void SetOffset(int offset)
         {
             if (ResultOptions.Offset != ResultOptions.DefaultOffset)
             {

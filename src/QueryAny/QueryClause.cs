@@ -144,13 +144,13 @@ namespace QueryAny
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
-        public QueryClause<TPrimaryEntity> Take(long limit)
+        public QueryClause<TPrimaryEntity> Take(int limit)
         {
             this.entities.SetLimit(limit);
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
-        public QueryClause<TPrimaryEntity> Skip(long offset)
+        public QueryClause<TPrimaryEntity> Skip(int offset)
         {
             this.entities.SetOffset(offset);
             return new QueryClause<TPrimaryEntity>(this.entities);

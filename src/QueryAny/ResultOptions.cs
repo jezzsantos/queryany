@@ -6,8 +6,8 @@ namespace QueryAny
 {
     public class ResultOptions
     {
-        public const long DefaultLimit = -1;
-        public const long DefaultOffset = 0;
+        public const int DefaultLimit = -1;
+        public const int DefaultOffset = 0;
         public const OrderDirection DefaultOrderDirection = OrderDirection.Ascending;
         public static readonly string DefaultOrder = null;
 
@@ -18,34 +18,28 @@ namespace QueryAny
             Order = new Ordering(DefaultOrder, DefaultOrderDirection);
         }
 
-        public long Limit { get; private set; }
-        public long Offset { get; private set; }
+        public int Limit { get; private set; }
+        public int Offset { get; private set; }
         public Ordering Order { get; private set; }
 
-        internal void SetLimit(long limit)
+        internal void SetLimit(int limit)
         {
             if (limit < 0)
             {
                 throw new InvalidOperationException(Resources.ResultOptions_InvalidLimit);
             }
 
-            if (limit >= 0)
-            {
-                Limit = limit;
-            }
+            Limit = limit;
         }
 
-        internal void SetOffset(long offset)
+        internal void SetOffset(int offset)
         {
             if (offset < 0)
             {
                 throw new InvalidOperationException(Resources.ResultOptions_InvalidOffset);
             }
 
-            if (offset >= 0)
-            {
-                Offset = offset;
-            }
+            Offset = offset;
         }
 
         internal void SetOrdering(string by, OrderDirection direction)

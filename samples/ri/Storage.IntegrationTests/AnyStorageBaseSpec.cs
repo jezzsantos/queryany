@@ -1133,8 +1133,7 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryAndTakeAndSkipAllAvailable_ThenReturnsNoResults()
         {
-            var entities =
-                CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = $"avalue{counter:000}");
+            CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = $"avalue{counter:000}");
 
             var query = Query.From<TestEntity>()
                 .WhereAll()
