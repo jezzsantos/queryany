@@ -8,6 +8,8 @@ namespace Storage
 {
     public interface IRepository : IDisposable
     {
+        int MaxQueryResults { get; }
+
         Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity;
 
         void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity;

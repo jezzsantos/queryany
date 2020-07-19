@@ -99,6 +99,29 @@ These design decisions aim to make the code easy to work with while at the same 
 
 ## Persistence
 
+### Performance Compromise
+
+Due to he fact that we are using a generic abstraction `IStorage<TEntity>` to remove early complexity (by reducing coupling) from the codebase, 
+and because that strategy entails compromising repository technology specific optimizations, 
+we accept the fact that no repository technology will be used optimally in this reference implementation.
+
+No abstraction can possibly be optimal for every single repository technology.
+
+We accept that fact, and we accept that these lost optimizations are likely not to be important for 80% of the use cases for repositories for persistence for a software product in it infancy.
+
+We also accept that at the time in the software products life when these optimizations may become important, we simply can use a more optimal implementation for that part of the product, or switch repository technologies.
+
+For those reasons, the following sub-optimizations on specific repository implementations is acceptable:
+
+* A `1000` query limit on all queries, in: `InProcessInMemRepository`, `RedisInMemRepository`, `AzureTableStorageRepository`, `AzureCosmosSqlApiRepository`.
+* Loading all entities from each container, in: `InProcessInMemRepository`, `RedisInMemRepository`.
+* In memory (where) filtering, in: `InProcessInMemRepository`, `RedisInMemRepository`.
+* Multiple individual fetching of joined entities, in: `AzureTableStorageRepository`, `AzureCosmosSqlApiRepository`.
+* In memory joining of joined containers, in: `InProcessInMemRepository`, `RedisInMemRepository`, `AzureTableStorageRepository`, `AzureCosmosSqlApiRepository`.
+* In memory ordering, limiting, offsetting, in: `InProcessInMemRepository`, `RedisInMemRepository`, `AzureTableStorageRepository`.
+
+### Mapping Shortcut
+
 Ideally, there would be a mapping between domain entities and DTO's whenever entities transfer over any boundaries outside the domain. 
 
 For example 1: When HTTP requests invoke domain entities to perform activities, the data passed into entities would be in the form of DTO's coming over the wire as JSON. 

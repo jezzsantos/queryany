@@ -12,6 +12,65 @@ namespace Storage
 {
     public static class RepositoryExtensions
     {
+        public static int GetDefaultSkip<TEntity>(this QueryClause<TEntity> query)
+            where TEntity : IPersistableEntity
+        {
+            return (int) (query.ResultOptions.Offset != ResultOptions.DefaultOffset
+                ? query.ResultOptions.Offset
+                : 0);
+        }
+
+        public static int GetDefaultTake<TEntity>(this QueryClause<TEntity> query, IRepository repository)
+            where TEntity : IPersistableEntity
+        {
+            return (int) (query.ResultOptions.Limit == ResultOptions.DefaultLimit
+                ? repository.MaxQueryResults
+                : query.ResultOptions.Limit);
+        }
+
+        public static string GetDefaultOrdering<TEntity>(this QueryClause<TEntity> query)
+            where TEntity : IPersistableEntity
+        {
+            return query.IsDefaultOrdering()
+                ? $"{Reflector<TEntity>.GetPropertyName(e => e.CreatedAtUtc)}"
+                : $"{query.ResultOptions.Order.By}";
+        }
+
+        private static bool IsDefaultOrdering<TEntity>(this QueryClause<TEntity> query)
+            where TEntity : IQueryableEntity
+        {
+            var by = query.ResultOptions.Order.By;
+            if (!by.HasValue())
+            {
+                return true;
+            }
+
+            if (by.EqualsOrdinal(nameof(IModifiableEntity.CreatedAtUtc)))
+            {
+                return true;
+            }
+
+            var selectedFields = query.GetAllSelectedFields();
+            if (selectedFields.Any())
+            {
+                return !query.GetAllSelectedFields().Contains(by);
+            }
+
+            return false;
+        }
+
+        private static List<string> GetAllSelectedFields<TEntity>(this QueryClause<TEntity> query)
+            where TEntity : IQueryableEntity
+        {
+            var primarySelects = query.PrimaryEntity.Selects;
+            var joinedSelects = query.JoinedEntities.SelectMany(je => je.Selects);
+
+            return primarySelects
+                .Select(select => select.FieldName)
+                .Concat(joinedSelects.Select(select => select.FieldName))
+                .ToList();
+        }
+
         public static List<TEntity> JoinResults<TEntity>(this JoinDefinition joinDefinition,
             Dictionary<Identifier, Dictionary<string, object>> leftEntities,
             Dictionary<Identifier, Dictionary<string, object>> rightEntities,
@@ -84,14 +143,7 @@ namespace Storage
             QueryClause<TEntity> query, IEnumerable<string> includeAdditionalProperties = null)
             where TEntity : IPersistableEntity
         {
-            var primarySelects = query.PrimaryEntity.Selects;
-            var joinedSelects = query.JoinedEntities.SelectMany(je => je.Selects);
-
-            var selectedPropertyNames = primarySelects
-                .Select(select => select.FieldName)
-                .Concat(joinedSelects.Select(select => select.FieldName))
-                .ToList();
-
+            var selectedPropertyNames = query.GetAllSelectedFields();
             if (!selectedPropertyNames.Any())
             {
                 return entities.ToList();

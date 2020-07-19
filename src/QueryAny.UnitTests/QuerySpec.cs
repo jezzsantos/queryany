@@ -470,6 +470,51 @@ namespace QueryAny.UnitTests
                 .Should().Throw<InvalidOperationException>()
                 .WithMessageLike(Resources.QueriedEntities_OffsetAlreadySet);
         }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenOrderByAndEmpty_ThenOrderIsDefaultOrder()
+        {
+            var results = Query.Empty<NamedTestEntity>();
+
+            results.ResultOptions.Order.By.Should().Be(ResultOptions.DefaultOrder);
+            results.ResultOptions.Order.Direction.Should().Be(ResultOptions.DefaultOrderDirection);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenOrderByWithNull_ThenThrows()
+        {
+            Query.From<NamedTestEntity>()
+                .Invoking(x => x.OrderBy(e => null))
+                .Should().Throw<InvalidOperationException>();
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenOrderByAndNoOrderBy_ThenOrderIsDefaultOrderAndDirection()
+        {
+            var results = Query.From<NamedTestEntity>();
+
+            results.ResultOptions.Order.By.Should().Be(ResultOptions.DefaultOrder);
+            results.ResultOptions.Order.Direction.Should().Be(OrderDirection.Ascending);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenOrderBy_ThenOrderIsSet()
+        {
+            var results = Query.From<NamedTestEntity>()
+                .OrderBy(e => e.AStringProperty);
+
+            results.ResultOptions.Order.By.Should().Be("AStringProperty");
+            results.ResultOptions.Order.Direction.Should().Be(OrderDirection.Ascending);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenOrderByAgain_ThenThrows()
+        {
+            Query.From<NamedTestEntity>().OrderBy(e => e.AStringProperty)
+                .Invoking(x => x.OrderBy(e => e.AStringProperty))
+                .Should().Throw<InvalidOperationException>()
+                .WithMessageLike(Resources.QueriedEntities_OrderAlreadySet);
+        }
     }
 
     // ReSharper disable once ClassNeverInstantiated.Global

@@ -155,5 +155,12 @@ namespace QueryAny
             this.entities.SetOffset(offset);
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
+
+        public QueryClause<TPrimaryEntity> OrderBy(Expression<Func<TPrimaryEntity, string>> by,
+            OrderDirection direction = OrderDirection.Ascending)
+        {
+            this.entities.SetOrdering(by, direction);
+            return new QueryClause<TPrimaryEntity>(this.entities);
+        }
     }
 }

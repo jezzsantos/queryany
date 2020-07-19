@@ -41,6 +41,8 @@ namespace Storage.Azure
             // No need to do anything here. IDisposable is used as a marker interface
         }
 
+        public int MaxQueryResults => 1000;
+
         public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
         {
             var container = EnsureContainer(containerName);
@@ -118,7 +120,7 @@ namespace Storage.Azure
 
             try
             {
-                var containerQuery = new QueryDefinition(query.ToAzureCosmosSqlApiWhereClause(containerName));
+                var containerQuery = new QueryDefinition(query.ToAzureCosmosSqlApiWhereClause(containerName, this));
                 var primaryResults = container.GetItemQueryIterator<object>(containerQuery)
                     .ToList();
 
@@ -447,7 +449,7 @@ namespace Storage.Azure
     public static class AzureCosmosSqlApiWhereExtensions
     {
         public static string ToAzureCosmosSqlApiWhereClause<TEntity>(this QueryClause<TEntity> query,
-            string containerName) where TEntity : IQueryableEntity
+            string containerName, IRepository repository) where TEntity : IPersistableEntity
         {
             var builder = new StringBuilder();
             builder.Append(@"SELECT ");
@@ -474,7 +476,29 @@ namespace Storage.Azure
                 builder.Append($" WHERE {wheres}");
             }
 
+            var orderBy = query.ToAzureCosmosSqlApiOrderByClause();
+            if (orderBy.HasValue())
+            {
+                builder.Append($" ORDER BY {orderBy}");
+            }
+
+            var skip = query.GetDefaultSkip();
+            var take = query.GetDefaultTake(repository);
+            builder.Append($" OFFSET {skip} LIMIT {take}");
+
             return builder.ToString();
+        }
+
+        private static string ToAzureCosmosSqlApiOrderByClause<TEntity>(this QueryClause<TEntity> query)
+            where TEntity : IPersistableEntity
+        {
+            var orderBy = query.ResultOptions.Order;
+            var direction = orderBy.Direction == OrderDirection.Ascending
+                ? "ASC"
+                : "DESC";
+            var by = query.GetDefaultOrdering();
+
+            return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{by} {direction}";
         }
 
         public static string ToAzureCosmosSqlApiWhereClause(this IReadOnlyList<WhereExpression> wheres)

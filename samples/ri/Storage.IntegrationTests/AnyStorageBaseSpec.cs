@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -666,7 +667,6 @@ namespace Storage.IntegrationTests
             results.Results[0].AComplexNonValueTypeValue.ToString().Should().Be(complex1.ToString());
         }
 
-
         [TestMethod]
         public void WhenQueryForComplexValueTypeValue_ThenReturnsResult()
         {
@@ -962,6 +962,238 @@ namespace Storage.IntegrationTests
             results.Results[0].Id.Should().Be(id1);
             results.Results[0].AIntValue.Should().Be(9);
             results.Results[0].ALongValue.Should().Be(8);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndNoOrderBy_ThenReturnsResultsSortedByDateCreatedAscending()
+        {
+            var entities = CreateMultipleEntities(100);
+
+            var query = Query.From<TestEntity>()
+                .WhereAll();
+
+            var results = this.storage.Query(query, null);
+
+            VerifyOrderedResults(results, entities);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndOrderByOnUnSelectedField_ThenReturnsResultsSortedByDateCreatedAscending()
+        {
+            var entities =
+                CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = $"avalue{100 - counter:000}");
+
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .Select(e => e.Id)
+                .OrderBy(e => e.AStringValue);
+
+            var results = this.storage.Query(query, null);
+
+            VerifyOrderedResults(results, entities);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndOrderByProperty_ThenReturnsResultsSortedByPropertyAscending()
+        {
+            var entities =
+                CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = $"avalue{100 - counter:000}");
+
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .OrderBy(e => e.AStringValue);
+
+            var results = this.storage.Query(query, null);
+
+            VerifyOrderedResultsInReverse(results, entities);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndOrderByPropertyDescending_ThenReturnsResultsSortedByPropertyDescending()
+        {
+            var entities =
+                CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = $"avalue{counter:000}");
+
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .OrderBy(e => e.AStringValue, OrderDirection.Descending);
+
+            var results = this.storage.Query(query, null);
+
+            VerifyOrderedResultsInReverse(results, entities);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndNoTake_ThenReturnsAllResults()
+        {
+            var entities =
+                CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = $"avalue{counter:000}");
+
+            var query = Query.From<TestEntity>()
+                .WhereAll();
+
+            var results = this.storage.Query(query, null);
+
+            VerifyOrderedResults(results, entities);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndZeroTake_ThenReturnsNoResults()
+        {
+            CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = $"avalue{counter:000}");
+
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .Take(0);
+
+            var results = this.storage.Query(query, null);
+
+            results.Results.Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndTakeLessThanAvailable_ThenReturnsAsManyResults()
+        {
+            var entities =
+                CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = $"avalue{counter:000}");
+
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .Take(10);
+
+            var results = this.storage.Query(query, null);
+
+            VerifyOrderedResults(results, entities, 0, 10);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndTakeMoreThanAvailable_ThenReturnsAllResults()
+        {
+            var entities =
+                CreateMultipleEntities(10, (counter, entity) => entity.AStringValue = $"avalue{counter:000}");
+
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .Take(100);
+
+            var results = this.storage.Query(query, null);
+
+            VerifyOrderedResults(results, entities, 0, 10);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndTakeAndOrderByPropertyDescending_ThenReturnsAsManyResults()
+        {
+            var entities =
+                CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = $"avalue{counter:000}");
+
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .OrderBy(e => e.AStringValue, OrderDirection.Descending)
+                .Take(10);
+
+            var results = this.storage.Query(query, null);
+
+            VerifyOrderedResultsInReverse(results, entities, 0, 10);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndTakeAndOrderByDescending_ThenReturnsFirstPageOfResults()
+        {
+            var entities =
+                CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = $"avalue{counter:000}");
+
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .OrderBy(e => e.AStringValue, OrderDirection.Descending)
+                .Take(10);
+
+            var results = this.storage.Query(query, null);
+
+            VerifyOrderedResultsInReverse(results, entities, 0, 10);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndTakeAndSkipAndOrderBy_ThenReturnsNextPageOfResults()
+        {
+            var entities =
+                CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = $"avalue{counter:000}");
+
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .OrderBy(e => e.AStringValue)
+                .Skip(10)
+                .Take(10);
+
+            var results = this.storage.Query(query, null);
+
+            VerifyOrderedResultsInReverse(results, entities, 10, 10);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndTakeAndSkipAllAvailable_ThenReturnsNoResults()
+        {
+            var entities =
+                CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = $"avalue{counter:000}");
+
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .OrderBy(e => e.AStringValue)
+                .Skip(100)
+                .Take(10);
+
+            var results = this.storage.Query(query, null);
+
+            results.Results.Count.Should().Be(0);
+        }
+
+        private List<Identifier> CreateMultipleEntities(int count, Action<int, TestEntity> factory = null)
+        {
+            var createdIdentifiers = new List<Identifier>();
+            Repeat.Times(counter =>
+            {
+                var entity = new TestEntity();
+                factory?.Invoke(counter, entity);
+                var id = this.storage.Add(entity);
+                createdIdentifiers.Add(id);
+            }, count);
+            return createdIdentifiers;
+        }
+
+        private static void VerifyOrderedResultsInReverse(QueryResults<TestEntity> results, List<Identifier> entities,
+            int? offset = null, int? limit = null)
+        {
+            entities.Reverse();
+            VerifyOrderedResults(results, entities, offset, limit);
+        }
+
+        private static void VerifyOrderedResults(QueryResults<TestEntity> results, IReadOnlyList<Identifier> entities,
+            int? offset = null, int? limit = null)
+        {
+            var expectedResultCount = limit ?? entities.Count;
+            results.Results.Count.Should().Be(expectedResultCount);
+
+            var resultIndex = 0;
+            var entityCount = 0;
+            results.Results.ForEach(result =>
+            {
+                if (limit.HasValue && entityCount >= limit.Value)
+                {
+                    return;
+                }
+
+                if (!offset.HasValue || resultIndex >= offset)
+                {
+                    var createdIdentifier = entities[resultIndex];
+
+                    result.Id.Should().Be(createdIdentifier,
+                        $"Result at ({resultIndex}) should have been: {createdIdentifier}");
+
+                    entityCount++;
+                }
+
+                resultIndex++;
+            });
         }
     }
 }

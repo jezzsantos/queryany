@@ -23,6 +23,8 @@ namespace Storage
             this.idFactory = idFactory;
         }
 
+        public int MaxQueryResults => 1000;
+
         public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
         {
             if (!this.containers.ContainsKey(containerName))
@@ -150,13 +152,20 @@ namespace Storage
                 .Select(pair => pair.Value.FromContainerProperties(pair.Key, entityFactory))
                 .ToList();
 
+            var orderByExpression = query.ToDynamicLinqOrderByClause();
+            var primaryEntitiesDynamic = primaryEntities.AsQueryable()
+                .OrderBy(orderByExpression)
+                .Skip(query.GetDefaultSkip())
+                .Take(query.GetDefaultTake(this));
+
             if (!query.Wheres.Any())
             {
-                return primaryEntities;
+                return primaryEntitiesDynamic
+                    .ToList();
             }
 
             var queryExpression = query.Wheres.ToDynamicLinqWhereClause();
-            primaryEntities = primaryEntities.AsQueryable()
+            primaryEntities = primaryEntitiesDynamic
                 .Where(queryExpression)
                 .ToList();
 
@@ -190,6 +199,14 @@ namespace Storage
 
     public static class DynamicLinqWhereExtensions
     {
+        public static string ToDynamicLinqOrderByClause<TEntity>(this QueryClause<TEntity> query)
+            where TEntity : IPersistableEntity
+        {
+            var orderBy = query.GetDefaultOrdering();
+            orderBy = $"{orderBy}{(query.ResultOptions.Order.Direction == OrderDirection.Descending ? " DESC" : "")}";
+            return orderBy;
+        }
+
         public static string ToDynamicLinqWhereClause(this IEnumerable<WhereExpression> wheres)
         {
             var builder = new StringBuilder();

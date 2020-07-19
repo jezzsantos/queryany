@@ -30,10 +30,16 @@
     <data name="ResultOptions_InvalidOffset" xml:space="preserve">
         <value>You cannot 'Skip' less than 0 results</value>
     </data>
+    <data name="ResultOptions_InvalidOrderBy" xml:space="preserve">
+        <value>You cannot 'OrderBy' null</value>
+    </data>
     <data name="QueriedEntities_LimitAlreadySet" xml:space="preserve">
         <value>You cannot 'Take' more than once</value>
     </data>
     <data name="QueriedEntities_OffsetAlreadySet" xml:space="preserve">
         <value>You cannot 'Skip' more than once</value>
+    </data>
+    <data name="QueriedEntities_OrderAlreadySet" xml:space="preserve">
+        <value>You cannot 'ByBy' more than once</value>
     </data>
 </root>

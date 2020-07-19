@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using QueryAny.Primitives;
 using QueryAny.Properties;
 
@@ -112,6 +113,21 @@ namespace QueryAny
             }
 
             ResultOptions.SetOffset(offset);
+        }
+
+        internal void SetOrdering<TPrimaryEntity>(Expression<Func<TPrimaryEntity, string>> by, OrderDirection direction)
+            where TPrimaryEntity : IQueryableEntity
+        {
+            if (ResultOptions.Order.By.NotEqualsIgnoreCase(ResultOptions.DefaultOrder))
+            {
+                throw new InvalidOperationException(Resources.QueriedEntities_OrderAlreadySet);
+            }
+
+            var byPropertyName = Reflector<TPrimaryEntity>.IsValidPropertyName(by)
+                ? Reflector<TPrimaryEntity>.GetPropertyName(by)
+                : null;
+
+            ResultOptions.SetOrdering(byPropertyName, direction);
         }
     }
 }

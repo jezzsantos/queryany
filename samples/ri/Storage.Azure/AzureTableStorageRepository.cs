@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Net;
 using System.Text;
 using Microsoft.Azure.Cosmos.Table;
@@ -43,6 +44,8 @@ namespace Storage.Azure
         {
             // No need to do anything here. IDisposable is used as a marker interface
         }
+
+        public int MaxQueryResults => TableConstants.TableServiceMaxResults;
 
         public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
         {
@@ -116,31 +119,17 @@ namespace Storage.Azure
             where TEntity : IPersistableEntity
         {
             var table = EnsureTable(containerName);
-            var filter = query.Wheres.ToAzureTableStorageWhereClause();
-            var tableQuery = new TableQuery<DynamicTableEntity>().Where(filter);
 
-            if (query.PrimaryEntity.Selects.Any())
-            {
-                tableQuery.SelectColumns = query.PrimaryEntity.Selects
-                    .Select(sel => sel.FieldName)
-                    .ToList();
-            }
-
-            var primaryResults = SafeExecute(table, () => table.ExecuteQuery(tableQuery))
-                .OrderBy(e => e.Timestamp)
-                .ToList();
+            var primaryEntities = QueryPrimaryEntities(table, query, entityFactory);
 
             var joinedTables = query.JoinedEntities
                 .Where(je => je.Join != null)
                 .ToDictionary(je => je.EntityName, je => new
                 {
                     Collection = QueryJoiningTable(je,
-                        primaryResults.Select(e => e.Properties[je.Join.Left.JoinedFieldName])),
+                        primaryEntities.Select(e => e.ToTableEntity(this.options)[je.Join.Left.JoinedFieldName])),
                     JoinedEntity = je
                 });
-
-            var primaryEntities = primaryResults
-                .ConvertAll(r => r.FromTableEntity(this.options, entityFactory));
 
             if (joinedTables.Any())
             {
@@ -234,6 +223,39 @@ namespace Storage.Azure
             }
         }
 
+        private List<TEntity> QueryPrimaryEntities<TEntity>(CloudTable table,
+            QueryClause<TEntity> query, EntityFactory<TEntity> entityFactory) where TEntity : IPersistableEntity
+        {
+            var filter = query.Wheres.ToAzureTableStorageWhereClause();
+            var tableQuery = new TableQuery<DynamicTableEntity>()
+                .Where(filter);
+
+            if (query.PrimaryEntity.Selects.Any())
+            {
+                tableQuery.SelectColumns = query.PrimaryEntity.Selects
+                    .Select(sel => sel.FieldName)
+                    .Concat(new[] {query.GetDefaultOrdering()})
+                    .ToList();
+            }
+
+            var take = query.GetDefaultTake(this);
+            if (take == 0)
+            {
+                return new List<TEntity>();
+            }
+
+            // HACK: AzureTableStorage does not support Skip, nor OrderBy (so we have to fetch all data and do Skip and OrderBy in memory)
+            var skip = query.GetDefaultSkip();
+            var orderByExpression = query.ToDynamicLinqOrderByClause();
+            return SafeExecute(table, () => table.ExecuteQuery(tableQuery))
+                .Select(e => e.FromTableEntity(this.options, entityFactory))
+                .AsQueryable()
+                .OrderBy(orderByExpression)
+                .Skip(skip)
+                .Take(take)
+                .ToList();
+        }
+
         private List<DynamicTableEntity> QueryJoiningTable(QueriedEntity joinedEntity,
             IEnumerable<EntityProperty> propertyValues)
         {
@@ -266,7 +288,6 @@ namespace Storage.Azure
             tableQuery.SelectColumns = selectedPropertyNames;
 
             return SafeExecute(table, () => table.ExecuteQuery(tableQuery))
-                .OrderBy(e => e.Timestamp)
                 .ToList();
         }
 

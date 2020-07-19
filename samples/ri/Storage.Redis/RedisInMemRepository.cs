@@ -33,6 +33,8 @@ namespace Storage.Redis
             // No need to do anything here. IDisposable is used as a marker interface
         }
 
+        public int MaxQueryResults => 1000;
+
         public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
         {
             var client = EnsureClient();
@@ -142,7 +144,7 @@ namespace Storage.Redis
             }
         }
 
-        private static List<TEntity> QueryPrimaryEntities<TEntity>(IRedisClient client, string containerName,
+        private List<TEntity> QueryPrimaryEntities<TEntity>(IRedisClient client, string containerName,
             QueryClause<TEntity> query, EntityFactory<TEntity> entityFactory)
             where TEntity : IPersistableEntity
         {
@@ -151,19 +153,24 @@ namespace Storage.Redis
                 .OrderBy(e => e.CreatedAtUtc)
                 .ToList();
 
+            var orderByExpression = query.ToDynamicLinqOrderByClause();
+            var primaryEntitiesDynamic = primaryEntities.AsQueryable()
+                .OrderBy(orderByExpression)
+                .Skip(query.GetDefaultSkip())
+                .Take(query.GetDefaultTake(this));
+
             if (!query.Wheres.Any())
             {
-                return primaryEntities
+                return primaryEntitiesDynamic
                     .ToList();
             }
 
             var queryExpression = query.Wheres.ToDynamicLinqWhereClause();
-            primaryEntities = primaryEntities.AsQueryable()
+            primaryEntities = primaryEntitiesDynamic
                 .Where(queryExpression)
                 .ToList();
 
-            return primaryEntities
-                .ToList();
+            return primaryEntities;
         }
 
         private static Dictionary<string, IPersistableEntity> QueryJoiningContainer(IRedisClient client,

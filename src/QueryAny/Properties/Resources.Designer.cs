@@ -79,6 +79,15 @@ namespace QueryAny.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You cannot &apos;ByBy&apos; more than once.
+        /// </summary>
+        public static string QueriedEntities_OrderAlreadySet {
+            get {
+                return ResourceManager.GetString("QueriedEntities_OrderAlreadySet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You cannot &apos;SelectFromJoin&apos; on entity {0}, because no joins are yet defined.
         /// </summary>
         public static string QueryClause_SelectFromJoin_NoJoins {
@@ -111,6 +120,15 @@ namespace QueryAny.Properties {
         public static string ResultOptions_InvalidOffset {
             get {
                 return ResourceManager.GetString("ResultOptions_InvalidOffset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot &apos;OrderBy&apos; null.
+        /// </summary>
+        public static string ResultOptions_InvalidOrderBy {
+            get {
+                return ResourceManager.GetString("ResultOptions_InvalidOrderBy", resourceCulture);
             }
         }
     }
