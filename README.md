@@ -25,7 +25,7 @@ For example, they may define a generic repository interface like this in their c
 ```
     public interface IStorage<TEntity>
     {
-        void Add(TEntity entity);
+        void Create(TEntity entity);
 
         TEntity Update(TEntity entity);
 
@@ -56,17 +56,19 @@ You can now completely decouple your persistence store from your domain code, an
 For example, define a query in code like this:
 
 ```
-Query.From<OrderEntity>()
+var query = Query.From<OrderEntity>()
     .Join<CustomerEntity, OrderEntity>(c => c.Id, o => o.CustomerId)
     .Where<OrderEntity>(o => o.Id, Operator.EQ, "25")
     .Select(c => c.Id).Select(c => c.Name)
 ```
 
-Can fetch this data from a SQL database, or from a Non-SQL database, or from JSON files just as easily. Why should your domain logic need to care where the data comes from?
+Can fetch this data from a SQL database, or from a Non-SQL database, or from JSON files just as easily. 
 
-> Note: that this example query uses joins to two different entities together to create a final result-set, but that does not require the database to implement joins natively at all, just like No-SQL databases do not.
+Why should your domain logic need to care where the data/state comes from?
 
-> Note: This is NOT a new version of LINQ or intended to be like LINQ at all. Its simply a language for defining queries that can work across any datastore.
+> Note: that this query uses joins to two different entities to create a final result-set, but that does not require the database to implement joins natively at all, just like No-SQL databases do not.
+
+> Note: This is NOT a new version of LINQ or intended to be like LINQ at all. Its simply a fluent language for defining queries that can work across any datastore.
 
 ## Documentation
 
