@@ -1,4 +1,4 @@
-﻿namespace Services.Interfaces.Apis
+﻿namespace Services.Interfaces.ServiceOperations
 {
     public abstract class SearchOperation<TResponse> : GetOperation<TResponse>, IHasSearchOptions
     {

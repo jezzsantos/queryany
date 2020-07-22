@@ -1,6 +1,6 @@
 ﻿using ServiceStack;
 
-namespace Services.Interfaces.Apis
+namespace Services.Interfaces.ServiceOperations
 {
     public abstract class GetOperation<TResponse> : IReturn<TResponse>, IGet
     {

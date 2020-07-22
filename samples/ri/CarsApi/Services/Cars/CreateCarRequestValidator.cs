@@ -2,7 +2,7 @@
 using System.Linq;
 using CarsApi.Properties;
 using QueryAny.Primitives;
-using Services.Interfaces.Apis;
+using Services.Interfaces.ServiceOperations;
 using ServiceStack.FluentValidation;
 
 namespace CarsApi.Services.Cars

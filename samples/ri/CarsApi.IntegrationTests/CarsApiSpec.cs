@@ -4,7 +4,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Services.Interfaces.Apis;
+using Services.Interfaces.ServiceOperations;
 using ServiceStack;
 using Storage;
 using Storage.Interfaces;

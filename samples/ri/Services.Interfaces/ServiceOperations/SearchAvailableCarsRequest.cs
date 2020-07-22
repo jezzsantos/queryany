@@ -1,6 +1,6 @@
 ﻿using ServiceStack;
 
-namespace Services.Interfaces.Apis
+namespace Services.Interfaces.ServiceOperations
 {
     [Route("/cars/available", "GET")]
     public class SearchAvailableCarsRequest : SearchOperation<SearchAvailableCarsResponse>

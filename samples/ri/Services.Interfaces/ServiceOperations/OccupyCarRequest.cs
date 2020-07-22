@@ -1,7 +1,7 @@
 ﻿using System;
 using ServiceStack;
 
-namespace Services.Interfaces.Apis
+namespace Services.Interfaces.ServiceOperations
 {
     [Route("/cars/{Id}/occupy", "PUT")]
     public class OccupyCarRequest : IReturn<OccupyCarResponse>, IPut

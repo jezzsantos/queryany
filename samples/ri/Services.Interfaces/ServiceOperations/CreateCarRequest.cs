@@ -1,6 +1,6 @@
 ﻿using ServiceStack;
 
-namespace Services.Interfaces.Apis
+namespace Services.Interfaces.ServiceOperations
 {
     [Route("/cars", "POST")]
     public class CreateCarRequest : IReturn<CreateCarResponse>, IPost

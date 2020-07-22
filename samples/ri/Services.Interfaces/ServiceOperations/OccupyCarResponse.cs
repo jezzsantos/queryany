@@ -1,6 +1,6 @@
 ﻿using Services.Interfaces.Resources;
 
-namespace Services.Interfaces.Apis
+namespace Services.Interfaces.ServiceOperations
 {
     public class OccupyCarResponse
     {

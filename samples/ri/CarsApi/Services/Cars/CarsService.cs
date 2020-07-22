@@ -1,7 +1,7 @@
 ﻿using CarsDomain;
 using QueryAny.Primitives;
 using Services.Interfaces;
-using Services.Interfaces.Apis;
+using Services.Interfaces.ServiceOperations;
 using ServiceStack;
 
 namespace CarsApi.Services.Cars

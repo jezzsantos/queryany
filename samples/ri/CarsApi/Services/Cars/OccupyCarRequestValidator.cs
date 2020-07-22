@@ -1,7 +1,7 @@
 ﻿using CarsApi.Properties;
 using QueryAny.Primitives;
-using Services.Interfaces.Apis;
 using Services.Interfaces.Entities;
+using Services.Interfaces.ServiceOperations;
 using ServiceStack.FluentValidation;
 using Storage.Interfaces;
 
