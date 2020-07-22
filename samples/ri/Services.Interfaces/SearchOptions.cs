@@ -4,7 +4,7 @@ namespace Services.Interfaces
 {
     public class SearchOptions
     {
-        internal const char SortSignAscending = '+';
+        private const char SortSignAscending = '+';
         internal const char SortSignDescending = '-';
 
         public const int DefaultLimit = 100;

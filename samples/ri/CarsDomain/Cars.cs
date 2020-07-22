@@ -59,7 +59,8 @@ namespace CarsDomain
         public List<Car> SearchAvailable(ICurrentCaller caller, SearchOptions searchOptions, GetOptions getOptions)
         {
             var query = Query.From<CarEntity>()
-                .Where(e => e.OccupiedUntilUtc, ConditionOperator.LessThan, DateTime.UtcNow);
+                .Where(e => e.OccupiedUntilUtc, ConditionOperator.LessThan, DateTime.UtcNow)
+                .WithSearchOptions(searchOptions);
             var cars = this.storage.Query(query, searchOptions)
                 .Results;
 
