@@ -2,15 +2,15 @@
 
 This folder contains a very close to real world example of a REST based API for managing Cars for a Car Sharing software product, that follows many of the principles of Domain Driven Design (DDD) and Clean Architecture/Onion Architecture/Hexagonal Architecture. This is not an implementation of strict DDD.
 
-The example is split into several layers to mimic the real world implementation it was extracted from and based off of.
-
 It has tried not to be too strongly opinionated about the layout of files/folders/assemblies on disk, other than to assume that you would likely split your projects/components into logical, testable layers for maintainability, reuse and future scalability (scale out), as your product grows.
 
-The RI solution demonstrates strict discipline around decoupling and separation of concerns, both of which manage accidental complexity as things change, and as the codebase scales.
+The RI solution demonstrates strict discipline around decoupling and separation of concerns, both of which manage accidental complexity as things change and as the codebase grows.
 
-The RI does does fully implement patterns (in GET APIs) that allow clients to can have fine grained control the data returned on the wire.
+The RI does does fully implement all patterns (in GET APIs) that allow clients to can have fine grained control the data returned on the wire. That would negate the need for GraphQL endpoints.
 
-> Design Choice: There are some *interesting* and pragmatic implementation patterns demonstrated within this RI. Remember that this RI has laid out just *one* way of doing things. There are many ways of doing the same kind of things, with various design trade offs, especially in the area of entity persistence, and in the realm of building products has prioritized maintainability over optimal performance. If you are looking for the *best* way to do things, then you haven't programmed long enough to learn that no such thing exists - every context of every product is unique. Our advice to you is start with something small, and adapt it as you learn more, avoid over-engineering it at all costs. If in doubt, favor what you definitely know you have to work with, rather than attempting to future proof it. KISS, DRY and YAGNI my friends.
+> Design Choice: There are some pragmatic implementation patterns demonstrated within this RI. Remember that this RI has laid out just *one way* of doing things. There are *many ways* of doing the same kind of things, with various design trade offs, especially in the area of entity mapping and persistence. In the realm of building products, this RI demonstrates prioritization of maintainability over optimal performance. If you are looking for the *best* way to do things, then you haven't programmed long enough to learn that no such thing exists. Our advice to you is start with something small, and adapt it as you learn more, avoid over-engineering it at all costs. If in doubt, favor what you definitely know you have to work with now, rather than attempting to future proof it. KISS, DRY and YAGNI my friends.
+
+> Note: If you dont like what you see here. That's cool, just ignore it. But don't make the mistake of coupling your persistence to your domain.
 
 # Structure
 
@@ -19,6 +19,7 @@ The RI solution is structured as projects on disk, into two logical parts:
 * Infrastructure - This contains all infrastructure and adapters to that infrastructure (eg. Web API adapters and Storage adapters)
 * Domain - core domain classes, unfettered by infrastructure.
 
+There should be no dependency from: classes in Domain -> to classes in Infrastructure. Ever!
 
 ## CarsApi
 
@@ -38,7 +39,7 @@ It contains the `ServiceHost` class (specific to ServiceStack) which loads all s
 
 Essentially the core domain logic layer.
 
-> Note: In a real architecture, would never actually name this layer, or the types within it, using the suffix "Domain". It is just there as a guide post for you.
+> Note: In a real architecture, you would never actually name this layer (or the types within it) using the suffix "Domain". It is just here as a guide post for you. So you can tell what the layer is the core of the app.
 
 It defines the domain logic classes, entities all domains specific rules, etc.
 
@@ -78,13 +79,17 @@ This is where all QueryAny storage implementations will exist for this sample.
 
 Contains all integration tests for testing the API.
 
-> Design Choice: Here we demonstrate testing API's by pre-populating data through the API only, as an example of how to plug in different repository for testing. Normally, we would populate the state of the domain through the API itself, and erase all data for each test through the API. This removes the dependency to know how application data is actually persisted in any repository, since, given the fact that QueryAny is abstracting that from you in the first place! (since data could be spread across multiple repositories and technologies).
+> Design Choice: Here we demonstrate testing API's by pre-populating data through the API only. (In practice (not demonstrated here) you may need to have additional API's to load/delete resources for some domains, that would definitely not be shipped in your production distribution) Normally, we would populate the state of the domain through the API itself, and erase all data for each test through the repository we are using in testing. This removes the dependency to know how application data is actually persisted in any repository, since, given the fact that QueryAny is abstracting that knowledge from you in the first place! (since data could be spread across multiple repositories and accessed via various technologies).
 
 ## Storage.IntegrationTests
 
-Contains integration tests for verifying various repository implementations. 
+Contains integration tests for verifying various repository implementations, against their real repository technology. 
 
 These tests have been templatized so that new implementations have a test suite to verify them.
+
+> Note: These tests can be slow depending on the repository implementation. 
+
+>Design Choice: We deliberately chose to use local installations of these repositories rather than cloud based instances. So at this point, you should be able to run all these tests offline.
 
 ## ???.UnitTests projects
 
@@ -101,39 +106,39 @@ These design decisions aim to make the code easy to work with while at the same 
 
 ### Performance Compromise
 
-Due to he fact that we are using a generic abstraction `IStorage<TEntity>` to remove early complexity (by reducing coupling) from the codebase, 
-and because that strategy entails compromising repository technology specific optimizations, 
-we accept the fact that no repository technology will be used optimally in this reference implementation.
+Due to the fact that we are using a generic abstraction `IStorage<TEntity>` to remove early complexity (by reducing coupling) from the codebase, 
+and because this strategy entails compromising repository technology specific optimizations; 
+we accept the fact that no repository technology will be used optimally in this reference implementation. They will be used generically.
 
-No abstraction can possibly be optimal for every single repository technology.
+No abstraction can possibly be optimal for every single repository technology, since all repository technologies aim to satisfy different performance design goals. However, most of these optimizations are not important to you in the early stages of product development.
 
-We accept that fact, and we accept that these lost optimizations are likely not to be important for 80% of the use cases for repositories for persistence for a software product in it infancy.
+We accept that fact, and we accept that these lost optimizations are likely not to be important for 80% of the use cases for repositories for persistence for a software product in its early stages.
 
-We also accept that at the time in the software products life when these optimizations may become important, we simply can use a more optimal implementation for that part of the product, or switch repository technologies.
+We also accept that at the time in the software products life when these optimizations may become important, you can simply optimize that usage by engineering in a more optimal implementation for that part of the product. This has the effect of increasing complexity (making that more optimal part of the codebase harder to change in the future).
 
 For those reasons, the following sub-optimizations on specific repository implementations is acceptable:
 
-* A `1000` query limit on all queries, in: `InProcessInMemRepository`, `RedisInMemRepository`, `AzureTableStorageRepository`, `AzureCosmosSqlApiRepository`.
-* Loading all entities from each container, in: `InProcessInMemRepository`, `RedisInMemRepository`.
-* In memory (where) filtering, in: `InProcessInMemRepository`, `RedisInMemRepository`.
-* Multiple individual fetching of joined entities, in: `AzureTableStorageRepository`, `AzureCosmosSqlApiRepository`.
-* In memory joining of joined containers, in: `InProcessInMemRepository`, `RedisInMemRepository`, `AzureTableStorageRepository`, `AzureCosmosSqlApiRepository`.
+* A `1000` result limit on all queries, in: `InProcessInMemRepository`, `RedisInMemRepository`, `AzureTableStorageRepository`, `AzureCosmosSqlApiRepository`.
+* Loading all entities (into memory) from each container, in: `InProcessInMemRepository`, `RedisInMemRepository`.
+* In memory (Where clause) filtering, in: `InProcessInMemRepository`, `RedisInMemRepository`.
+* Multiple fetches of individual joined entities, in: `AzureTableStorageRepository`, `AzureCosmosSqlApiRepository`.
+* In memory joining of joined entities, in: `InProcessInMemRepository`, `RedisInMemRepository`, `AzureTableStorageRepository`, `AzureCosmosSqlApiRepository`.
 * In memory ordering, limiting, offsetting, in: `InProcessInMemRepository`, `RedisInMemRepository`, `AzureTableStorageRepository`.
 
 ### Mapping Shortcut
 
 Ideally, there would be a mapping between domain entities and DTO's whenever entities transfer over any boundaries outside the domain. 
 
-For example 1: When HTTP requests invoke domain entities to perform activities, the data passed into entities would be in the form of DTO's coming over the wire as JSON. 
+For example 1: When HTTP requests invoke domain entities to perform activities, the data passed into entities would be in the form of DTO's coming over the wire as JSON. That requires mapping DTO -> Entity and visa versa.
 
-For example 2: When domain entities are persisted to storage, the entity would be mapped to a DTO and then passed to a physical repository for persisting to that store.
+For example 2: When domain entities are persisted to storage, the entity would be mapped to a DTO and then passed to a physical repository for persisting to that store. That requires mapping Entity -> DTO and visa versa.
 
-* All these mappings (entity <-> DTO and visa-versa)  require knowledge of those mappings codified somewhere. 
+* All these mappings (entity <-> DTO and visa-versa)  require knowledge of those mappings codified somewhere in the code. 
 * Typically, in the case of inbound invocation (eg. HTTP requests/responses), this mapping is codified outside the entity in a service contract.
 * Typically, in the case of an outbound invocation (eg. Persistence), this mapping is codified inside the entity itself.
-* The mapping code may be complex (depending on the entity complexity), and this code may also be hard to maintain correctly, is often tedious to maintain, and difficult to make cohesive.
+* The mapping code may be complex (depending on the entity's complexity), and this code may also be hard to maintain correctly. It is often tedious to maintain, difficult to type check and difficult to make cohesive.
 
-For these reasons and others, we have taken a design shortcut in persistence mapping by making the entities opt into supporting persistency in a generic way. 
+For these reasons and some others, we have taken a design shortcut in persistence mapping by making the entities opt into supporting persistency in a generic way. 
 
 Each domain entity is required to:
  1. Define a name of a logical collection (i.e. the name of a table, for use by database repository) (See: [EntityNameAttribute](https://github.com/jezzsantos/queryany/blob/master/src/QueryAny/EntityNameAttribute.cs))
@@ -141,17 +146,25 @@ Each domain entity is required to:
  1. Define a function that can restore the internal state of the entity from a set of properties (See: [Rehydrate](https://github.com/jezzsantos/queryany/blob/master/samples/ri/CarsDomain/Entities/EntityBase.cs)).
  1. Define an entity factory function that can be called to construct a new instance of the entity (See: [EntityFactory](https://github.com/jezzsantos/queryany/blob/master/samples/ri/Storage.Interfaces/IStorage.cs#L13)).
  
- With this policy in effect, domain entities can maintain their full OO behaviors whilst participating in persistence schemes, like the one implemented in this RI. 
+ With this entity policy in effect, domain entities can maintain their full OO behaviors and encapsulation whilst participating in persistence schemes, like the one implemented in this RI. Which is typically very hard to design for most developers. 
+ 
+ > Note: Again, this is one strategy, there are many.
 
-# Local Development and Testing
+# Local Development and Manual Testing
 
 1. First: [Getting Started](https://github.com/jezzsantos/queryany/wiki/Getting-Started) for details on what you need installed on your machine.
-2. Start the `CarsApi` project locally. (A browser should open to API documentation site).
-3. You will need to start the Azure CosmosDB emulator on your machine (from Start Menu), and ensure that you have created a new cosmos database called: "Production".
+1. Start the `CarsApi` project locally with F5. (A browser should open to API documentation site).
+1. You will need to start the Azure CosmosDB emulator on your machine (from the Start Menu), and ensure that you have manually created a new cosmos database called: "Production".
 
-### Test the API
-
-To test everything is working:
+To manually test everything is working, or debug the code:
 
 1. Navigate to: [GET https://localhost:5001/cars/available](https://localhost:5001/cars/available) (you should get an empty array of cars in response)
-2. Create a new car by calling (using a tool like PostMan): `POST /cars` with a JSON body like this: `{"Year": 2020,"Make": "Honda","Model": "Civic"}` 
+1. Using a tool ike PostMan or other REST client, create a new car by calling: `POST /cars` with a JSON body like this: `{"Year": 2020,"Make": "Honda","Model": "Civic"}`
+
+# Automated Testing
+
+1. First: [Getting Started](https://github.com/jezzsantos/queryany/wiki/Getting-Started) for details on what you need installed on your machine.
+1. Build the solution.
+1. Run all tests in the solution.
+
+> Note: if the integration tests for one of the repositories fail, its likely due to the fact that you dont have that technology installed on your local machine, or that you are not running your IDE as Administrator, and therefore cant start/stop those local services. Refer to step 1 above.
