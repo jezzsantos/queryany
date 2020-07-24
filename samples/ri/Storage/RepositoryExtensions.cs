@@ -33,13 +33,13 @@ namespace Storage
         {
             return query.IsDefaultOrdering()
                 ? $"{Reflector<TEntity>.GetPropertyName(e => e.CreatedAtUtc)}"
-                : $"{query.ResultOptions.Order.By}";
+                : $"{query.ResultOptions.OrderBy.By}";
         }
 
         private static bool IsDefaultOrdering<TEntity>(this QueryClause<TEntity> query)
             where TEntity : IQueryableEntity
         {
-            var by = query.ResultOptions.Order.By;
+            var by = query.ResultOptions.OrderBy.By;
             if (!by.HasValue())
             {
                 return true;

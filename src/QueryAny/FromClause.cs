@@ -73,7 +73,7 @@ namespace QueryAny
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
-        public QueryClause<TPrimaryEntity> OrderBy(Expression<Func<TPrimaryEntity, string>> by,
+        public QueryClause<TPrimaryEntity> OrderBy<TValue>(Expression<Func<TPrimaryEntity, TValue>> by,
             OrderDirection direction = OrderDirection.Ascending)
         {
             this.entities.SetOrdering(by, direction);

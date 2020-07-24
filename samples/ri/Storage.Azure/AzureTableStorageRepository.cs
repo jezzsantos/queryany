@@ -244,14 +244,13 @@ namespace Storage.Azure
                 return new List<TEntity>();
             }
 
-            // HACK: AzureTableStorage does not support Skip, nor OrderBy (so we have to fetch all data and do Skip and OrderBy in memory)
-            var skip = query.GetDefaultSkip();
-            var orderByExpression = query.ToDynamicLinqOrderByClause();
+            // HACK: AzureTableStorage does not support Skip, nor OrderBy, nor Distinct
+            // HACK: so we have to fetch all data and do Skip, OrderBy in memory
             return SafeExecute(table, () => table.ExecuteQuery(tableQuery))
                 .Select(e => e.FromTableEntity(this.options, entityFactory))
                 .AsQueryable()
-                .OrderBy(orderByExpression)
-                .Skip(skip)
+                .OrderBy(query.ToDynamicLinqOrderByClause())
+                .Skip(query.GetDefaultSkip())
                 .Take(take)
                 .ToList();
         }

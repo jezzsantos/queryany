@@ -6,10 +6,10 @@ using Storage.Azure;
 
 namespace Storage.UnitTests
 {
-    [TestClass]
+    [TestClass, TestCategory("Unit")]
     public class AzureStorageTableWhereExtensionsSpec
     {
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenToAzureTableStorageWhereClauseAndSingleCondition_ThenReturnsSqlExpression()
         {
             var wheres = new List<WhereExpression>
@@ -30,7 +30,7 @@ namespace Storage.UnitTests
             result.Should().Be("afield1 eq 'astringvalue'");
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenToAzureTableStorageWhereClauseAndMultipleConditions_ThenReturnsSqlExpression()
         {
             var wheres = new List<WhereExpression>
@@ -61,7 +61,7 @@ namespace Storage.UnitTests
             result.Should().Be("afield1 eq 'astringvalue' and afield2 ge 'astringvalue'");
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenToAzureTableStorageWhereClauseAndNestedConditions_ThenReturnsSqlExpression()
         {
             var wheres = new List<WhereExpression>

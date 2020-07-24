@@ -15,12 +15,12 @@ namespace QueryAny
         {
             Limit = DefaultLimit;
             Offset = DefaultOffset;
-            Order = new Ordering(DefaultOrder, DefaultOrderDirection);
+            OrderBy = new Ordering(DefaultOrder, DefaultOrderDirection);
         }
 
         public int Limit { get; private set; }
         public int Offset { get; private set; }
-        public Ordering Order { get; private set; }
+        public Ordering OrderBy { get; private set; }
 
         internal void SetLimit(int limit)
         {
@@ -49,7 +49,7 @@ namespace QueryAny
                 throw new InvalidOperationException(Resources.ResultOptions_InvalidOrderBy);
             }
 
-            Order = new Ordering(by, direction);
+            OrderBy = new Ordering(by, direction);
         }
     }
 }

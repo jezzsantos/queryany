@@ -7,7 +7,7 @@ using ServiceStack.FluentValidation;
 
 namespace CarsApi.UnitTests.Validators
 {
-    [TestClass]
+    [TestClass, TestCategory("Unit")]
     public class HasGetOptionsValidatorSpec
     {
         private HasGetOptionsDto dto;
@@ -21,13 +21,13 @@ namespace CarsApi.UnitTests.Validators
             this.dto = new HasGetOptionsDto();
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenAllPropertiesValid_ThenSucceeds()
         {
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEmbedIsNull_ThenSucceeds()
         {
             this.dto.Embed = null;
@@ -35,7 +35,7 @@ namespace CarsApi.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEmbedIsOff_ThenSucceeds()
         {
             this.dto.Embed = HasGetOptions.EmbedNone;
@@ -43,7 +43,7 @@ namespace CarsApi.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEmbedIsTopLevelField_ThenSucceeds()
         {
             this.dto.Embed = "aresourceref";
@@ -51,7 +51,7 @@ namespace CarsApi.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEmbedIsChildLevelField_ThenSucceeds()
         {
             this.dto.Embed = "aresourceref.achildresourceref";
@@ -59,7 +59,7 @@ namespace CarsApi.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEmbedIsGrandChildLevelField_ThenSucceeds()
         {
             this.dto.Embed = "aresourceref.achildresourceref.agrandchildresourceref";
@@ -67,7 +67,7 @@ namespace CarsApi.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEmbedIsInvalidResourceReference_ThenThrows()
         {
             this.dto.Embed = "^aresourceref";
@@ -77,7 +77,7 @@ namespace CarsApi.UnitTests.Validators
                 .WithMessageLike(Resources.HasGetOptionsValidator_InvalidEmbed);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEmbedIsInvalidChildResourceReference_ThenThrows()
         {
             this.dto.Embed = "aresourceref.^achildresourceref";
@@ -86,7 +86,7 @@ namespace CarsApi.UnitTests.Validators
                 .WithMessageLike(Resources.HasGetOptionsValidator_InvalidEmbed);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEmbedIsInvalidGrandChildResourceReference_ThenThrows()
         {
             this.dto.Embed = "aresourceref.achildresourceref.^agrandchildresourceref";
@@ -95,7 +95,7 @@ namespace CarsApi.UnitTests.Validators
                 .WithMessageLike(Resources.HasGetOptionsValidator_InvalidEmbed);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEmbedContainsTooManyResources_ThenThrows()
         {
             this.dto.Embed =

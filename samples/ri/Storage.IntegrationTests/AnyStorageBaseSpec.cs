@@ -16,16 +16,14 @@ namespace Storage.IntegrationTests
     public abstract class AnyStorageBaseSpec
 
     {
+        protected static readonly ILogger Logger = new Logger<AnyStorageBaseSpec>(new NullLoggerFactory());
         private IStorage<FirstJoiningTestEntity> firstJoiningStorage;
         private IStorage<SecondJoiningTestEntity> secondJoiningStorage;
         private IStorage<TestEntity> storage;
 
-        protected ILogger Logger { get; private set; }
-
         [TestInitialize]
         public void Initialize()
         {
-            Logger = new Logger<AnyStorageBaseSpec>(new NullLoggerFactory());
             this.storage = GetStore(typeof(TestEntity).GetEntityNameSafe(), TestEntity.GetFactory());
             this.storage.DestroyAll();
             this.firstJoiningStorage =

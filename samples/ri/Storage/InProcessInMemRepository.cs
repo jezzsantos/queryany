@@ -203,7 +203,7 @@ namespace Storage
             where TEntity : IPersistableEntity
         {
             var orderBy = query.GetDefaultOrdering();
-            orderBy = $"{orderBy}{(query.ResultOptions.Order.Direction == OrderDirection.Descending ? " DESC" : "")}";
+            orderBy = $"{orderBy}{(query.ResultOptions.OrderBy.Direction == OrderDirection.Descending ? " DESC" : "")}";
             return orderBy;
         }
 

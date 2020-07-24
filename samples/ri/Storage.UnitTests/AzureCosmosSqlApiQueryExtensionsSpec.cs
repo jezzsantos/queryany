@@ -6,8 +6,8 @@ using Storage.Azure;
 
 namespace Storage.UnitTests
 {
-    [TestClass]
-    public class AzureCosmosSqlApiWhereExtensionsSpec
+    [TestClass, TestCategory("Unit")]
+    public class AzureCosmosSqlApiQueryExtensionsSpec
     {
         private Mock<IRepository> repository;
 
@@ -19,38 +19,38 @@ namespace Storage.UnitTests
                 .Returns(99);
         }
 
-        [TestMethod, TestCategory("Unit")]
-        public void WhenToAzureCosmosSqlApiWhereClauseAndNoSelects_ThenReturnsSqlExpression()
+        [TestMethod]
+        public void WhenToAzureCosmosSqlApiQueryClauseAndNoSelects_ThenReturnsSqlExpression()
         {
             var query = Query.Empty<TestEntity>();
 
-            var result = query.ToAzureCosmosSqlApiWhereClause("acontainername", this.repository.Object);
+            var result = query.ToAzureCosmosSqlApiQueryClause("acontainername", this.repository.Object);
 
             result.Should().Be("SELECT * FROM acontainername t ORDER BY t.CreatedAtUtc ASC OFFSET 0 LIMIT 99");
         }
 
-        [TestMethod, TestCategory("Unit")]
-        public void WhenToAzureCosmosSqlApiWhereClauseAndSingleSelect_ThenReturnsSqlExpression()
+        [TestMethod]
+        public void WhenToAzureCosmosSqlApiQueryClauseAndSingleSelect_ThenReturnsSqlExpression()
         {
             var query = Query.From<TestEntity>()
                 .WhereAll()
                 .Select(e => e.ABooleanValue);
 
-            var result = query.ToAzureCosmosSqlApiWhereClause("acontainername", this.repository.Object);
+            var result = query.ToAzureCosmosSqlApiQueryClause("acontainername", this.repository.Object);
 
             result.Should()
                 .Be("SELECT t.id, t.ABooleanValue FROM acontainername t ORDER BY t.CreatedAtUtc ASC OFFSET 0 LIMIT 99");
         }
 
-        [TestMethod, TestCategory("Unit")]
-        public void WhenToAzureCosmosSqlApiWhereClauseAndMultipleSelects_ThenReturnsSqlExpression()
+        [TestMethod]
+        public void WhenToAzureCosmosSqlApiQueryClauseAndMultipleSelects_ThenReturnsSqlExpression()
         {
             var query = Query.From<TestEntity>()
                 .WhereAll()
                 .Select(e => e.ABooleanValue)
                 .Select(e => e.ADoubleValue);
 
-            var result = query.ToAzureCosmosSqlApiWhereClause("acontainername", this.repository.Object);
+            var result = query.ToAzureCosmosSqlApiQueryClause("acontainername", this.repository.Object);
 
             result.Should()
                 .Be(

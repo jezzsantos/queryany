@@ -39,7 +39,7 @@
     <data name="QueriedEntities_OffsetAlreadySet" xml:space="preserve">
         <value>You cannot 'Skip' more than once</value>
     </data>
-    <data name="QueriedEntities_OrderAlreadySet" xml:space="preserve">
-        <value>You cannot 'ByBy' more than once</value>
+    <data name="QueriedEntities_OrderByAlreadySet" xml:space="preserve">
+        <value>You cannot 'OrderBy' more than once</value>
     </data>
 </root>

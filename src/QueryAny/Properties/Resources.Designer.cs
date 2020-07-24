@@ -79,11 +79,11 @@ namespace QueryAny.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You cannot &apos;ByBy&apos; more than once.
+        ///   Looks up a localized string similar to You cannot &apos;OrderBy&apos; more than once.
         /// </summary>
-        public static string QueriedEntities_OrderAlreadySet {
+        public static string QueriedEntities_OrderByAlreadySet {
             get {
-                return ResourceManager.GetString("QueriedEntities_OrderAlreadySet", resourceCulture);
+                return ResourceManager.GetString("QueriedEntities_OrderByAlreadySet", resourceCulture);
             }
         }
         

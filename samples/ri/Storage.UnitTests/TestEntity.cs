@@ -10,6 +10,8 @@ namespace Storage.UnitTests
     [EntityName("testentities")]
     public class TestEntity : IPersistableEntity
     {
+        public string AStringValue { get; set; }
+
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         public bool ABooleanValue { get; }
 
@@ -17,12 +19,15 @@ namespace Storage.UnitTests
         public double ADoubleValue { get; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
+        internal string AnInternalProperty { get; }
+
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
         public DateTime CreatedAtUtc { get; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         public DateTime LastModifiedAtUtc { get; }
 
-        public Identifier Id { get; private set; }
+        public Identifier Id { get; set; }
 
         public void Identify(Identifier id)
         {

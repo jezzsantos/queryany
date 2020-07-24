@@ -7,10 +7,10 @@ using Services.Interfaces;
 
 namespace CarsDomain.UnitTests
 {
-    [TestClass]
+    [TestClass, TestCategory("Unit")]
     public class QueryAnyExtensionsSpec
     {
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenWithSearchOptionsAndNullOptions_ThenThrows()
         {
             Query.Empty<TestEntity>()
@@ -18,7 +18,7 @@ namespace CarsDomain.UnitTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenWithSearchOptionsWithDefaultOptions_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()
@@ -26,12 +26,12 @@ namespace CarsDomain.UnitTests
 
             query.ResultOptions.Offset.Should().Be(ResultOptions.DefaultOffset);
             query.ResultOptions.Limit.Should().Be(SearchOptions.DefaultLimit);
-            query.ResultOptions.Order.By.Should().BeNull();
-            query.ResultOptions.Order.Direction.Should().Be(OrderDirection.Ascending);
+            query.ResultOptions.OrderBy.By.Should().BeNull();
+            query.ResultOptions.OrderBy.Direction.Should().Be(OrderDirection.Ascending);
             query.PrimaryEntity.Selects.Count.Should().Be(0);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenWithSearchOptionsWithOffset_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()
@@ -40,7 +40,7 @@ namespace CarsDomain.UnitTests
             query.ResultOptions.Offset.Should().Be(9);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenWithSearchOptionsWithLimit_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()
@@ -49,29 +49,29 @@ namespace CarsDomain.UnitTests
             query.ResultOptions.Limit.Should().Be(9);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenWithSearchOptionsWithUnknownSortProperty_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()
                 .WithSearchOptions(new SearchOptions
                     {Sort = new Sorting {By = "afieldname", Direction = SortDirection.Descending}});
 
-            query.ResultOptions.Order.By.Should().BeNull();
-            query.ResultOptions.Order.Direction.Should().Be(ResultOptions.DefaultOrderDirection);
+            query.ResultOptions.OrderBy.By.Should().BeNull();
+            query.ResultOptions.OrderBy.Direction.Should().Be(ResultOptions.DefaultOrderDirection);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenWithSearchOptionsWithSortDescending_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()
                 .WithSearchOptions(new SearchOptions
                     {Sort = new Sorting {By = nameof(TestEntity.APropertyName), Direction = SortDirection.Descending}});
 
-            query.ResultOptions.Order.By.Should().Be(nameof(TestEntity.APropertyName));
-            query.ResultOptions.Order.Direction.Should().Be(OrderDirection.Descending);
+            query.ResultOptions.OrderBy.By.Should().Be(nameof(TestEntity.APropertyName));
+            query.ResultOptions.OrderBy.Direction.Should().Be(OrderDirection.Descending);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenWithSearchOptionsWithUnknownFilterFields_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()
@@ -89,7 +89,29 @@ namespace CarsDomain.UnitTests
             query.PrimaryEntity.Selects.Count.Should().Be(0);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
+        public void WhenWithSearchOptionsWithLowerCaseFilterFields_ThenReturnsQuery()
+        {
+            var query = Query.Empty<TestEntity>()
+                .WithSearchOptions(new SearchOptions
+                {
+                    Filter = new Filtering
+                    {
+                        Fields = new List<string>
+                        {
+                            nameof(TestEntity.APropertyName).ToLower()
+                        }
+                    }
+                });
+
+            query.PrimaryEntity.Selects.Count.Should().Be(1);
+            query.PrimaryEntity.Selects[0].EntityName.Should().Be("Test");
+            query.PrimaryEntity.Selects[0].FieldName.Should().Be(nameof(TestEntity.APropertyName));
+            query.PrimaryEntity.Selects[0].JoinedEntityName.Should().BeNull();
+            query.PrimaryEntity.Selects[0].JoinedFieldName.Should().BeNull();
+        }
+
+        [TestMethod]
         public void WhenWithSearchOptionsWithFilterFields_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()

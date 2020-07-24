@@ -115,12 +115,12 @@ namespace QueryAny
             ResultOptions.SetOffset(offset);
         }
 
-        internal void SetOrdering<TPrimaryEntity>(Expression<Func<TPrimaryEntity, string>> by, OrderDirection direction)
+        internal void SetOrdering<TPrimaryEntity, TValue>(Expression<Func<TPrimaryEntity, TValue>> by, OrderDirection direction)
             where TPrimaryEntity : IQueryableEntity
         {
-            if (ResultOptions.Order.By.NotEqualsIgnoreCase(ResultOptions.DefaultOrder))
+            if (ResultOptions.OrderBy.By.NotEqualsIgnoreCase(ResultOptions.DefaultOrder))
             {
-                throw new InvalidOperationException(Resources.QueriedEntities_OrderAlreadySet);
+                throw new InvalidOperationException(Resources.QueriedEntities_OrderByAlreadySet);
             }
 
             var byPropertyName = Reflector<TPrimaryEntity>.IsValidPropertyName(by)

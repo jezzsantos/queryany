@@ -9,7 +9,7 @@ using ServiceStack.FluentValidation.Results;
 
 namespace CarsApi.UnitTests.Validators
 {
-    [TestClass]
+    [TestClass, TestCategory("Unit")]
     public class HasSearchOptionsValidatorSpec
     {
         private HasSearchOptionsDto dto;
@@ -33,13 +33,13 @@ namespace CarsApi.UnitTests.Validators
             };
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenAllPropertiesValid_ThenSucceeds()
         {
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenLimitIsNull_ThenSucceeds()
         {
             this.dto.Limit = null;
@@ -47,7 +47,7 @@ namespace CarsApi.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenLimitIsMin_ThenSucceeds()
         {
             this.dto.Limit = SearchOptions.NoLimit;
@@ -55,7 +55,7 @@ namespace CarsApi.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenLimitIsLessThanMax_ThenSucceeds()
         {
             this.dto.Limit = SearchOptions.MaxLimit - 1;
@@ -63,7 +63,7 @@ namespace CarsApi.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenLimitIsLessThanMin_ThenThrows()
         {
             this.dto.Limit = SearchOptions.NoLimit - 1;
@@ -72,7 +72,7 @@ namespace CarsApi.UnitTests.Validators
                 .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidLimit);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenLimitIsGreaterThanMax_ThenThrows()
         {
             this.dto.Limit = SearchOptions.MaxLimit + 1;
@@ -81,7 +81,7 @@ namespace CarsApi.UnitTests.Validators
                 .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidLimit);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenOffsetIsNull_ThenSucceeds()
         {
             this.dto.Offset = null;
@@ -89,7 +89,7 @@ namespace CarsApi.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenOffsetIsMin_ThenSucceeds()
         {
             this.dto.Offset = SearchOptions.NoOffset;
@@ -97,7 +97,7 @@ namespace CarsApi.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenOffsetIsLessThanMax_ThenSucceeds()
         {
             this.dto.Offset = SearchOptions.MaxLimit - 1;
@@ -105,7 +105,7 @@ namespace CarsApi.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenOffsetIsLessThanMin_ThenThrows()
         {
             this.dto.Offset = SearchOptions.NoOffset - 1;
@@ -114,7 +114,7 @@ namespace CarsApi.UnitTests.Validators
                 .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidOffset);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenOffsetIsGreaterThanMax_ThenThrows()
         {
             this.dto.Offset = SearchOptions.MaxLimit + 1;
@@ -123,7 +123,7 @@ namespace CarsApi.UnitTests.Validators
                 .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidOffset);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenSortIsNull_ThenSucceeds()
         {
             this.dto.Sort = null;
@@ -131,7 +131,7 @@ namespace CarsApi.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenSortIsInvalid_ThenThrows()
         {
             this.dto.Sort = "*";
@@ -140,7 +140,7 @@ namespace CarsApi.UnitTests.Validators
                 .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidSort);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenFilterIsNull_ThenSucceeds()
         {
             this.dto.Filter = null;
@@ -148,7 +148,7 @@ namespace CarsApi.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenFilterIsInvalid_ThenThrows()
         {
             this.dto.Filter = "*";
@@ -157,7 +157,7 @@ namespace CarsApi.UnitTests.Validators
                 .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidFilter);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenDistinctIsNull_ThenSucceeds()
         {
             this.dto.Distinct = null;
@@ -165,7 +165,7 @@ namespace CarsApi.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenDistinctIsInvalid_ThenThrows()
         {
             this.dto.Distinct = "*";

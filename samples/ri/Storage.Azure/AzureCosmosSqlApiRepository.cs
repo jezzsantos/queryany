@@ -120,9 +120,7 @@ namespace Storage.Azure
 
             try
             {
-                var containerQuery = new QueryDefinition(query.ToAzureCosmosSqlApiWhereClause(containerName, this));
-                var primaryResults = container.GetItemQueryIterator<object>(containerQuery)
-                    .ToList();
+                var primaryResults = QueryPrimaryResults(query, container, containerName);
 
                 var joinedTables = query.JoinedEntities
                     .Where(je => je.Join != null)
@@ -172,6 +170,15 @@ namespace Storage.Azure
             var container = EnsureContainer(containerName);
             container.DeleteContainerAsync().GetAwaiter().GetResult();
             this.containers.Remove(containerName);
+        }
+
+        private List<JObject> QueryPrimaryResults<TEntity>(QueryClause<TEntity> query, Container container,
+            string containerName)
+            where TEntity : IPersistableEntity
+        {
+            var containerQuery = new QueryDefinition(query.ToAzureCosmosSqlApiQueryClause(containerName, this));
+            return container.GetItemQueryIterator<object>(containerQuery)
+                .ToList();
         }
 
         private List<JObject> QueryJoiningContainer(QueriedEntity joinedEntity,
@@ -446,28 +453,13 @@ namespace Storage.Azure
         }
     }
 
-    public static class AzureCosmosSqlApiWhereExtensions
+    public static class AzureCosmosSqlApiQueryExtensions
     {
-        public static string ToAzureCosmosSqlApiWhereClause<TEntity>(this QueryClause<TEntity> query,
+        public static string ToAzureCosmosSqlApiQueryClause<TEntity>(this QueryClause<TEntity> query,
             string containerName, IRepository repository) where TEntity : IPersistableEntity
         {
             var builder = new StringBuilder();
-            builder.Append(@"SELECT ");
-
-            if (query.PrimaryEntity.Selects.Any())
-            {
-                builder.Append(
-                    $"{AzureCosmosSqlApiRepository.ContainerAlias}.{AzureCosmosSqlApiRepository.IdentifierPropertyName}");
-                foreach (var select in query.PrimaryEntity.Selects)
-                {
-                    builder.Append($", {AzureCosmosSqlApiRepository.ContainerAlias}.{select.FieldName}");
-                }
-            }
-            else
-            {
-                builder.Append(@"*");
-            }
-
+            builder.Append($"SELECT {query.ToAzureCosmosSqlApiSelectClause()}");
             builder.Append($" FROM {containerName} {AzureCosmosSqlApiRepository.ContainerAlias}");
 
             var wheres = query.Wheres.ToAzureCosmosSqlApiWhereClause();
@@ -489,16 +481,22 @@ namespace Storage.Azure
             return builder.ToString();
         }
 
-        private static string ToAzureCosmosSqlApiOrderByClause<TEntity>(this QueryClause<TEntity> query)
+        private static string ToAzureCosmosSqlApiSelectClause<TEntity>(this QueryClause<TEntity> query)
             where TEntity : IPersistableEntity
         {
-            var orderBy = query.ResultOptions.Order;
-            var direction = orderBy.Direction == OrderDirection.Ascending
-                ? "ASC"
-                : "DESC";
-            var by = query.GetDefaultOrdering();
-
-            return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{by} {direction}";
+            if (query.PrimaryEntity.Selects.Any())
+            {
+                builder.Append(
+                    $"{AzureCosmosSqlApiRepository.ContainerAlias}.{AzureCosmosSqlApiRepository.IdentifierPropertyName}");
+                foreach (var select in query.PrimaryEntity.Selects)
+                {
+                    builder.Append($", {AzureCosmosSqlApiRepository.ContainerAlias}.{select.FieldName}");
+                }
+            }
+            else
+            {
+                builder.Append(@"*");
+            }
         }
 
         public static string ToAzureCosmosSqlApiWhereClause(this IReadOnlyList<WhereExpression> wheres)
@@ -523,13 +521,13 @@ namespace Storage.Azure
             {
                 var condition = where.Condition;
                 return
-                    $"{where.Operator.ToAzureCosmosSqlApiWhereClause()}{condition.ToAzureCosmosSqlApiWhereClause()}";
+                    $"{where.Operator.ToAzureCosmosSqlApiOperatorClause()}{condition.ToAzureCosmosSqlApiConditionClause()}";
             }
 
             if (where.NestedWheres != null && where.NestedWheres.Any())
             {
                 var builder = new StringBuilder();
-                builder.Append($"{where.Operator.ToAzureCosmosSqlApiWhereClause()}");
+                builder.Append($"{where.Operator.ToAzureCosmosSqlApiOperatorClause()}");
                 builder.Append("(");
                 foreach (var nestedWhere in where.NestedWheres)
                 {
@@ -543,7 +541,7 @@ namespace Storage.Azure
             return string.Empty;
         }
 
-        private static string ToAzureCosmosSqlApiWhereClause(this LogicalOperator op)
+        private static string ToAzureCosmosSqlApiOperatorClause(this LogicalOperator op)
         {
             switch (op)
             {
@@ -558,7 +556,7 @@ namespace Storage.Azure
             }
         }
 
-        private static string ToAzureCosmosSqlApiWhereClause(this ConditionOperator op)
+        private static string ToAzureCosmosSqlApiConditionClause(this ConditionOperator op)
         {
             switch (op)
             {
@@ -579,7 +577,7 @@ namespace Storage.Azure
             }
         }
 
-        private static string ToAzureCosmosSqlApiWhereClause(this WhereCondition condition)
+        private static string ToAzureCosmosSqlApiConditionClause(this WhereCondition condition)
         {
             var fieldName = condition.FieldName;
             if (fieldName.EqualsOrdinal(nameof(IPersistableEntity.Id)))
@@ -587,7 +585,7 @@ namespace Storage.Azure
                 fieldName = AzureCosmosSqlApiRepository.IdentifierPropertyName;
             }
 
-            var @operator = condition.Operator.ToAzureCosmosSqlApiWhereClause();
+            var @operator = condition.Operator.ToAzureCosmosSqlApiConditionClause();
 
             var value = condition.Value;
             switch (value)
@@ -624,11 +622,11 @@ namespace Storage.Azure
                     return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} null";
 
                 default:
-                    return value.ToOtherString(fieldName, @operator);
+                    return value.ToOtherValueString(fieldName, @operator);
             }
         }
 
-        private static string ToOtherString(this object value, string fieldName, string @operator)
+        private static string ToOtherValueString(this object value, string fieldName, string @operator)
         {
             if (value == null)
             {

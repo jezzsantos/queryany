@@ -5,10 +5,10 @@ using QueryAny;
 
 namespace Storage.UnitTests
 {
-    [TestClass]
+    [TestClass, TestCategory("Unit")]
     public class DynamicLinqWhereExtensionsSpec
     {
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenToDynamicLinqWhereClauseAndSingleCondition_ThenReturnsLinq()
         {
             var wheres = new List<WhereExpression>
@@ -29,7 +29,7 @@ namespace Storage.UnitTests
             result.Should().Be("afield1 == \"astringvalue\"");
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenToDynamicLinqWhereClauseAndMultipleConditions_ThenReturnsLinq()
         {
             var wheres = new List<WhereExpression>
@@ -60,7 +60,7 @@ namespace Storage.UnitTests
             result.Should().Be("afield1 == \"astringvalue\" and afield2 >= \"astringvalue\"");
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenToDynamicLinqWhereClauseAndNestedConditions_ThenReturnsLinq()
         {
             var wheres = new List<WhereExpression>

@@ -5,10 +5,10 @@ using QueryAny.Properties;
 
 namespace QueryAny.UnitTests
 {
-    [TestClass]
+    [TestClass, TestCategory("Unit")]
     public class QuerySpec
     {
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenFromWithUnnamedEntityType_ThenCreatesADerivedNamedCollection()
         {
             var result = Query.From<UnnamedTestEntity>();
@@ -17,7 +17,7 @@ namespace QueryAny.UnitTests
             result.PrimaryEntity.EntityName.Should().Be("UnnamedTest");
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenFromWithNamedEntityType_ThenCreatesANamedCollection()
         {
             var result = Query.From<NamedTestEntity>();
@@ -25,7 +25,7 @@ namespace QueryAny.UnitTests
             result.PrimaryEntity.EntityName.Should().Be("aname");
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenFromWithUnnamedUnconventionallyNamedType_ThenCreatesDefaultNamedCollection()
         {
             var result = Query.From<UnnamedTestEntityUnconventionalNamed>();
@@ -33,7 +33,7 @@ namespace QueryAny.UnitTests
             result.PrimaryEntity.EntityName.Should().Be("unnamedtestentityunconventionalnamed");
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEmpty_ThenCreatesNoWheres()
         {
             var result = Query.Empty<NamedTestEntity>();
@@ -42,7 +42,7 @@ namespace QueryAny.UnitTests
             result.Wheres.Count.Should().Be(0);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenAndWhereOnEmpty_ThenThrows()
         {
             Query.Empty<NamedTestEntity>()
@@ -50,7 +50,7 @@ namespace QueryAny.UnitTests
                 .Should().Throw<InvalidOperationException>();
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenWhereAll_ThenCreatesAWhere()
         {
             var result = Query.From<NamedTestEntity>().WhereAll();
@@ -58,7 +58,7 @@ namespace QueryAny.UnitTests
             result.Wheres.Count.Should().Be(0);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenAndWhereAfterWhereAll_ThenThrows()
         {
             Query.From<NamedTestEntity>()
@@ -66,7 +66,7 @@ namespace QueryAny.UnitTests
                 .Should().Throw<InvalidOperationException>();
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenWhereWithStringProperty_ThenCreatesAWhere()
         {
             var result = Query.From<NamedTestEntity>().Where(e => e.AStringProperty, ConditionOperator.EqualTo, "1");
@@ -78,7 +78,7 @@ namespace QueryAny.UnitTests
             result.Wheres[0].Condition.Value.Should().Be("1");
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenWhereWithDateTimeProperty_ThenCreatesAWhere()
         {
             var datum = DateTime.UtcNow;
@@ -92,7 +92,7 @@ namespace QueryAny.UnitTests
             result.Wheres[0].Condition.Value.Should().Be(datum);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenAndWhereWithStringProperty_ThenCreatesAnAndedWhere()
         {
             var result = Query.From<NamedTestEntity>()
@@ -110,7 +110,7 @@ namespace QueryAny.UnitTests
             result.Wheres[1].Condition.Value.Should().Be("2");
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenAndWhereWithDateTimeProperty_ThenCreatesAnAndedWhere()
         {
             var datum = DateTime.UtcNow;
@@ -129,7 +129,7 @@ namespace QueryAny.UnitTests
             result.Wheres[1].Condition.Value.Should().Be(datum);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenOrWhereWithStringProperty_ThenCreatesAnOredWhere()
         {
             var result = Query.From<NamedTestEntity>()
@@ -147,7 +147,7 @@ namespace QueryAny.UnitTests
             result.Wheres[1].Condition.Value.Should().Be("2");
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenOrWhereWithDateTimeProperty_ThenCreatesAnOredWhere()
         {
             var datum = DateTime.UtcNow;
@@ -166,7 +166,7 @@ namespace QueryAny.UnitTests
             result.Wheres[1].Condition.Value.Should().Be(datum);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenAndWhereWithSubWhereClause_ThenCreatesAnAndedNestedWhere()
         {
             var result = Query.From<NamedTestEntity>()
@@ -186,7 +186,7 @@ namespace QueryAny.UnitTests
             result.Wheres[1].NestedWheres[0].Condition.Value.Should().Be("2");
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenAndWhereWithSubWhereClause_ThenCreatesAnOredNestedWhere()
         {
             var result = Query.From<NamedTestEntity>()
@@ -206,7 +206,7 @@ namespace QueryAny.UnitTests
             result.Wheres[1].NestedWheres[0].Condition.Value.Should().Be("2");
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenAndWhereWithSubWhereClauses_ThenCreatesAnAndedNestedWheres()
         {
             var result = Query.From<NamedTestEntity>()
@@ -232,7 +232,7 @@ namespace QueryAny.UnitTests
             result.Wheres[1].NestedWheres[1].Condition.Value.Should().Be("3");
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenJoin_ThenCreatesAnInnerJoin()
         {
             var result = Query.From<FirstTestEntity>()
@@ -248,7 +248,7 @@ namespace QueryAny.UnitTests
             result.AllEntities[1].Join.Type.Should().Be(JoinType.Inner);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenJoinMultipleEntities_ThenCreatesJoins()
         {
             var result = Query.From<FirstTestEntity>()
@@ -272,7 +272,7 @@ namespace QueryAny.UnitTests
             result.AllEntities[2].Join.Type.Should().Be(JoinType.Inner);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenJoinWithMultipleJoinsWithSameType_ThenThrows()
         {
             Query.From<FirstTestEntity>()
@@ -283,7 +283,7 @@ namespace QueryAny.UnitTests
                 .Should().Throw<InvalidOperationException>();
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenJoinWithMultipleJoinsOnSameProperty_ThenCreatesJoins()
         {
             var result = Query.From<FirstTestEntity>()
@@ -307,7 +307,7 @@ namespace QueryAny.UnitTests
             result.AllEntities[2].Join.Type.Should().Be(JoinType.Inner);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenNoSelect_ThenSelectsAllFields()
         {
             var result = Query.From<NamedTestEntity>()
@@ -316,7 +316,7 @@ namespace QueryAny.UnitTests
             result.PrimaryEntity.Selects.Count.Should().Be(0);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenSelectWithFromEntityField_ThenFieldSelected()
         {
             var result = Query.From<NamedTestEntity>()
@@ -330,7 +330,7 @@ namespace QueryAny.UnitTests
             result.PrimaryEntity.Selects[0].JoinedFieldName.Should().BeNull();
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenSelectWithFromEntityFields_ThenFieldsSelected()
         {
             var result = Query.From<NamedTestEntity>()
@@ -348,7 +348,7 @@ namespace QueryAny.UnitTests
             result.PrimaryEntity.Selects[1].JoinedFieldName.Should().BeNull();
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenSelectFromJoinAndNoJoins_ThenThrows()
         {
             Query.From<NamedTestEntity>()
@@ -359,7 +359,7 @@ namespace QueryAny.UnitTests
                 .WithMessageLike(Resources.QueryClause_SelectFromJoin_NoJoins);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenSelectFromJoinAndUnknownJoins_ThenThrows()
         {
             Query.From<NamedTestEntity>()
@@ -371,7 +371,7 @@ namespace QueryAny.UnitTests
                 .WithMessageLike(Resources.QueryClause_SelectFromJoin_UnknownJoin);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenSelectFromJoinAndExistingJoin_TheFieldSelected()
         {
             var result = Query.From<NamedTestEntity>()
@@ -387,7 +387,7 @@ namespace QueryAny.UnitTests
             result.AllEntities[1].Selects[0].JoinedFieldName.Should().Be("AStringProperty");
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenTakeAndEmpty_ThenLimitIsDefaultLimit()
         {
             var results = Query.Empty<NamedTestEntity>();
@@ -395,7 +395,7 @@ namespace QueryAny.UnitTests
             results.ResultOptions.Limit.Should().Be(ResultOptions.DefaultLimit);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenTakeWithNegativeNumber_ThenThrows()
         {
             Query.From<NamedTestEntity>()
@@ -403,7 +403,7 @@ namespace QueryAny.UnitTests
                 .Should().Throw<InvalidOperationException>();
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenTakeAndNoTake_ThenLimitIsDefaultLimit()
         {
             var results = Query.From<NamedTestEntity>();
@@ -411,7 +411,7 @@ namespace QueryAny.UnitTests
             results.ResultOptions.Limit.Should().Be(ResultOptions.DefaultLimit);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenTakeAndNoResults_ThenLimitIsSet()
         {
             var results = Query.From<NamedTestEntity>()
@@ -420,7 +420,7 @@ namespace QueryAny.UnitTests
             results.ResultOptions.Limit.Should().Be(10);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenTakeAgain_ThenThrows()
         {
             Query.From<NamedTestEntity>().Take(10)
@@ -429,7 +429,7 @@ namespace QueryAny.UnitTests
                 .WithMessageLike(Resources.QueriedEntities_LimitAlreadySet);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenSkipAndEmpty_ThenOffsetIsDefaultLimit()
         {
             var results = Query.Empty<NamedTestEntity>();
@@ -437,7 +437,7 @@ namespace QueryAny.UnitTests
             results.ResultOptions.Offset.Should().Be(ResultOptions.DefaultOffset);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenSkipWithNegativeNumber_ThenThrows()
         {
             Query.From<NamedTestEntity>()
@@ -445,7 +445,7 @@ namespace QueryAny.UnitTests
                 .Should().Throw<InvalidOperationException>();
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenSkipAndNoSkip_ThenOffsetIsDefaultLimit()
         {
             var results = Query.From<NamedTestEntity>();
@@ -453,7 +453,7 @@ namespace QueryAny.UnitTests
             results.ResultOptions.Offset.Should().Be(ResultOptions.DefaultOffset);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenSkipAndNoResults_ThenOffsetIsSet()
         {
             var results = Query.From<NamedTestEntity>()
@@ -462,7 +462,7 @@ namespace QueryAny.UnitTests
             results.ResultOptions.Offset.Should().Be(10);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenSkipAgain_ThenThrows()
         {
             Query.From<NamedTestEntity>().Skip(10)
@@ -471,49 +471,49 @@ namespace QueryAny.UnitTests
                 .WithMessageLike(Resources.QueriedEntities_OffsetAlreadySet);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenOrderByAndEmpty_ThenOrderIsDefaultOrder()
         {
             var results = Query.Empty<NamedTestEntity>();
 
-            results.ResultOptions.Order.By.Should().Be(ResultOptions.DefaultOrder);
-            results.ResultOptions.Order.Direction.Should().Be(ResultOptions.DefaultOrderDirection);
+            results.ResultOptions.OrderBy.By.Should().Be(ResultOptions.DefaultOrder);
+            results.ResultOptions.OrderBy.Direction.Should().Be(ResultOptions.DefaultOrderDirection);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenOrderByWithNull_ThenThrows()
         {
             Query.From<NamedTestEntity>()
-                .Invoking(x => x.OrderBy(e => null))
+                .Invoking(x => x.OrderBy<string>(e => null))
                 .Should().Throw<InvalidOperationException>();
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenOrderByAndNoOrderBy_ThenOrderIsDefaultOrderAndDirection()
         {
             var results = Query.From<NamedTestEntity>();
 
-            results.ResultOptions.Order.By.Should().Be(ResultOptions.DefaultOrder);
-            results.ResultOptions.Order.Direction.Should().Be(OrderDirection.Ascending);
+            results.ResultOptions.OrderBy.By.Should().Be(ResultOptions.DefaultOrder);
+            results.ResultOptions.OrderBy.Direction.Should().Be(OrderDirection.Ascending);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenOrderBy_ThenOrderIsSet()
         {
             var results = Query.From<NamedTestEntity>()
                 .OrderBy(e => e.AStringProperty);
 
-            results.ResultOptions.Order.By.Should().Be("AStringProperty");
-            results.ResultOptions.Order.Direction.Should().Be(OrderDirection.Ascending);
+            results.ResultOptions.OrderBy.By.Should().Be("AStringProperty");
+            results.ResultOptions.OrderBy.Direction.Should().Be(OrderDirection.Ascending);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenOrderByAgain_ThenThrows()
         {
             Query.From<NamedTestEntity>().OrderBy(e => e.AStringProperty)
                 .Invoking(x => x.OrderBy(e => e.AStringProperty))
                 .Should().Throw<InvalidOperationException>()
-                .WithMessageLike(Resources.QueriedEntities_OrderAlreadySet);
+                .WithMessageLike(Resources.QueriedEntities_OrderByAlreadySet);
         }
     }
 
