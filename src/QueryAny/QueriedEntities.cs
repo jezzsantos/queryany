@@ -127,7 +127,9 @@ namespace QueryAny
                 ? Reflector<TPrimaryEntity>.GetPropertyName(by)
                 : null;
 
-            ResultOptions.SetOrdering(byPropertyName, direction);
+            ResultOptions.SetOrdering(byPropertyName, byPropertyName == null
+                ? ResultOptions.DefaultOrderDirection
+                : direction);
         }
     }
 }

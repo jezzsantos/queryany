@@ -61,6 +61,7 @@ namespace CarsDomain
             var query = Query.From<CarEntity>()
                 .Where(e => e.OccupiedUntilUtc, ConditionOperator.LessThan, DateTime.UtcNow)
                 .WithSearchOptions(searchOptions);
+
             var cars = this.storage.Query(query, searchOptions)
                 .Results;
 

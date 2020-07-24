@@ -1,4 +1,8 @@
-﻿using QueryAny;
+﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using QueryAny;
 using QueryAny.Primitives;
 
 namespace Services.Interfaces
@@ -24,14 +28,45 @@ namespace Services.Interfaces
 
             if (options.Sort.By.HasValue())
             {
-                //TODO: how to know what the property name and type will be.
-                //TODO: Will need to query the TEntity for the named property 
-                query.OrderBy(e => options.Sort.By, options.Sort.Direction == SortDirection.Ascending
-                    ? OrderDirection.Ascending
-                    : OrderDirection.Descending);
+                var propertyName = options.Sort.By;
+                var propertyExpression = GetPropertyExpression<TEntity>(propertyName);
+                if (propertyExpression != null)
+                {
+                    query.OrderBy(propertyExpression, options.Sort.Direction == SortDirection.Ascending
+                        ? OrderDirection.Ascending
+                        : OrderDirection.Descending);
+                }
+            }
+
+            if (options.Filter.Fields.Any())
+            {
+                foreach (var field in options.Filter.Fields)
+                {
+                    var propertyExpression = GetPropertyExpression<TEntity>(field);
+                    if (propertyExpression != null)
+                    {
+                        query.Select(propertyExpression);
+                    }
+                }
             }
 
             return query;
+        }
+
+        private static Expression<Func<TEntity, string>> GetPropertyExpression<TEntity>(string propertyName)
+            where TEntity : IQueryableEntity
+        {
+            var propertyInfo = typeof(TEntity).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .FirstOrDefault(info => info.Name.EqualsIgnoreCase(propertyName));
+            if (propertyInfo == null)
+            {
+                return null;
+            }
+
+            var variable = Expression.Parameter(typeof(TEntity));
+            var propertySelector = Expression.Property(variable, propertyInfo);
+            var lambda = Expression.Lambda<Func<TEntity, string>>(propertySelector, variable);
+            return lambda;
         }
     }
 }

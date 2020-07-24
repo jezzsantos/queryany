@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
@@ -49,14 +50,65 @@ namespace CarsDomain.UnitTests
         }
 
         [TestMethod, TestCategory("Unit")]
-        public void WhenWithSearchOptionsWithSortDescending_ThenReturnsQuery()
+        public void WhenWithSearchOptionsWithUnknownSortProperty_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()
                 .WithSearchOptions(new SearchOptions
                     {Sort = new Sorting {By = "afieldname", Direction = SortDirection.Descending}});
 
-            query.ResultOptions.Order.By.Should().Be("afieldname");
+            query.ResultOptions.Order.By.Should().BeNull();
+            query.ResultOptions.Order.Direction.Should().Be(ResultOptions.DefaultOrderDirection);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenWithSearchOptionsWithSortDescending_ThenReturnsQuery()
+        {
+            var query = Query.Empty<TestEntity>()
+                .WithSearchOptions(new SearchOptions
+                    {Sort = new Sorting {By = nameof(TestEntity.APropertyName), Direction = SortDirection.Descending}});
+
+            query.ResultOptions.Order.By.Should().Be(nameof(TestEntity.APropertyName));
             query.ResultOptions.Order.Direction.Should().Be(OrderDirection.Descending);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenWithSearchOptionsWithUnknownFilterFields_ThenReturnsQuery()
+        {
+            var query = Query.Empty<TestEntity>()
+                .WithSearchOptions(new SearchOptions
+                {
+                    Filter = new Filtering
+                    {
+                        Fields = new List<string>
+                        {
+                            "afieldname"
+                        }
+                    }
+                });
+
+            query.PrimaryEntity.Selects.Count.Should().Be(0);
+        }
+
+        [TestMethod, TestCategory("Unit")]
+        public void WhenWithSearchOptionsWithFilterFields_ThenReturnsQuery()
+        {
+            var query = Query.Empty<TestEntity>()
+                .WithSearchOptions(new SearchOptions
+                {
+                    Filter = new Filtering
+                    {
+                        Fields = new List<string>
+                        {
+                            nameof(TestEntity.APropertyName)
+                        }
+                    }
+                });
+
+            query.PrimaryEntity.Selects.Count.Should().Be(1);
+            query.PrimaryEntity.Selects[0].EntityName.Should().Be("Test");
+            query.PrimaryEntity.Selects[0].FieldName.Should().Be(nameof(TestEntity.APropertyName));
+            query.PrimaryEntity.Selects[0].JoinedEntityName.Should().BeNull();
+            query.PrimaryEntity.Selects[0].JoinedFieldName.Should().BeNull();
         }
     }
 }
