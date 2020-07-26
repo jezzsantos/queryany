@@ -39,7 +39,11 @@ namespace Storage.Azure
             entity.Identify(id);
             Dictionary<string, object> sqlReadyDictionary = entity.ToSqlReadyDictionary();
             string columnNames = String.Join(",", sqlReadyDictionary.ToList().Select(x => x.Key));
+            
+            // todo (sdv) each column's value will need to be passed through a function which applied formatting according to it's datatype and sets its value to "" if not defined
             string values = String.Join(",", sqlReadyDictionary.ToList().Select(x => x.Value));
+            
+            
             string sql = $"INSERT INTO @containerName ({columnNames}) VALUES ({values})";
 
             // // todo (sdv) do I need this?
