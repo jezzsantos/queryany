@@ -486,17 +486,31 @@ namespace Storage.Azure
         {
             if (query.PrimaryEntity.Selects.Any())
             {
+                var builder = new StringBuilder();
+
                 builder.Append(
                     $"{AzureCosmosSqlApiRepository.ContainerAlias}.{AzureCosmosSqlApiRepository.IdentifierPropertyName}");
                 foreach (var select in query.PrimaryEntity.Selects)
                 {
                     builder.Append($", {AzureCosmosSqlApiRepository.ContainerAlias}.{select.FieldName}");
                 }
+
+                return builder.ToString();
             }
-            else
-            {
-                builder.Append(@"*");
-            }
+
+            return @"*";
+        }
+
+        private static string ToAzureCosmosSqlApiOrderByClause<TEntity>(this QueryClause<TEntity> query)
+            where TEntity : IPersistableEntity
+        {
+            var orderBy = query.ResultOptions.OrderBy;
+            var direction = orderBy.Direction == OrderDirection.Ascending
+                ? "ASC"
+                : "DESC";
+            var by = query.GetDefaultOrdering();
+
+            return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{by} {direction}";
         }
 
         public static string ToAzureCosmosSqlApiWhereClause(this IReadOnlyList<WhereExpression> wheres)
