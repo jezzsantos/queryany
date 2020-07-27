@@ -115,7 +115,8 @@ namespace QueryAny
             ResultOptions.SetOffset(offset);
         }
 
-        internal void SetOrdering<TPrimaryEntity, TValue>(Expression<Func<TPrimaryEntity, TValue>> by, OrderDirection direction)
+        internal void SetOrdering<TPrimaryEntity, TValue>(Expression<Func<TPrimaryEntity, TValue>> by,
+            OrderDirection direction)
             where TPrimaryEntity : IQueryableEntity
         {
             if (ResultOptions.OrderBy.By.NotEqualsIgnoreCase(ResultOptions.DefaultOrder))

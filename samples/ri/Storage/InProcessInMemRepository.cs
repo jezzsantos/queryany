@@ -139,11 +139,6 @@ namespace Storage
             }
         }
 
-        public void Dispose()
-        {
-            // No need to do anything here. IDisposable is used as a marker interface
-        }
-
         private List<TEntity> QueryPrimaryEntities<TEntity>(string containerName, QueryClause<TEntity> query,
             EntityFactory<TEntity> entityFactory)
             where TEntity : IPersistableEntity

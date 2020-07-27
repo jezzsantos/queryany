@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using QueryAny;
 using Services.Interfaces.Entities;
 using Storage.Interfaces;
 
 namespace Storage
 {
-    public interface IRepository : IDisposable
+    public interface IRepository
     {
         int MaxQueryResults { get; }
 

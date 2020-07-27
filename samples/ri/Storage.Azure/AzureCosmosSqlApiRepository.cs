@@ -36,11 +36,6 @@ namespace Storage.Azure
             this.idFactory = idFactory;
         }
 
-        public void Dispose()
-        {
-            // No need to do anything here. IDisposable is used as a marker interface
-        }
-
         public int MaxQueryResults => 1000;
 
         public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity

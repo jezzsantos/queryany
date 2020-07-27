@@ -6,11 +6,11 @@ using Storage.Interfaces;
 
 namespace Storage.Azure
 {
-    public class CarEntityAzureStorage : AzureStorage<CarEntity>
+    public class CarEntityAzureStorage : GenericStorage<CarEntity>
     {
         private CarEntityAzureStorage(ILogger logger,
             EntityFactory<CarEntity> entityFactory,
-            AzureStorageConnection connection) : base(logger, entityFactory, connection)
+            IRepository repository) : base(logger, entityFactory, repository)
         {
         }
 
@@ -27,9 +27,8 @@ namespace Storage.Azure
 
             return new CarEntityAzureStorage(logger,
                 CarEntity.GetFactory(logger),
-                new AzureStorageConnection(
-                    new AzureCosmosSqlApiRepository(localEmulatorConnectionString, "Production",
-                        identifierFactory)));
+                new AzureCosmosSqlApiRepository(localEmulatorConnectionString, "Production",
+                    identifierFactory));
         }
     }
 }
