@@ -2,42 +2,54 @@
 
 This folder contains a very close to real world example of a REST based API for managing Cars for a Car Sharing software product, that follows many of the principles of Domain Driven Design (DDD) and Clean Architecture/Onion Architecture/Hexagonal Architecture. This is not an implementation of strict DDD.
 
-It has tried not to be too strongly opinionated about the layout of files/folders/assemblies on disk, other than to assume that you would likely split your projects/components into logical, testable layers for maintainability, reuse and future scalability (scale out), as your product grows.
+This reference implementation is not part of the QueryAny library/package, just an example of using QueryAny in practice.
 
-The RI solution demonstrates strict discipline around decoupling and separation of concerns, both of which manage accidental complexity as things change and as the codebase grows.
+The RI has tried not to be too strongly opinionated about the layout and naming of files/folders/assemblies on disk, other than to assume that in a small to medium sized product you too would likely split your projects/components into logical, testable layers for maintainability, reuse and future scalability (scale out), as your product grows.
 
-The RI does does fully implement all patterns (in GET APIs) that allow clients to can have fine grained control the data returned on the wire. That would negate the need for GraphQL endpoints.
+> Note: Some of the naming conventions here are de-bateable and perhaps not to your liking. That's cool too. We have named them in the way we have, primarily so that you can at a glance understand the intention of them. We would chose a different naming convention in a real product too.
 
-> Design Choice: There are some pragmatic implementation patterns demonstrated within this RI. Remember that this RI has laid out just *one way* of doing things. There are *many ways* of doing the same kind of things, with various design trade offs, especially in the area of entity mapping and persistence. In the realm of building products, this RI demonstrates prioritization of maintainability over optimal performance. If you are looking for the *best* way to do things, then you haven't programmed long enough to learn that no such thing exists. Our advice to you is start with something small, and adapt it as you learn more, avoid over-engineering it at all costs. If in doubt, favor what you definitely know you have to work with now, rather than attempting to future proof it. KISS, DRY and YAGNI my friends.
+The RI solution demonstrates strict discipline around decoupling and separation of concerns, both of which manage _accidental complexity_ as things change and as the codebase grows. Which is the primary concern of yours.
 
-> Note: If you dont like what you see here. That's cool, just ignore it. But don't make the mistake of coupling your persistence to your domain.
+> Design Choice: The RI does does not quite fully implement all GET API patterns that allow clients to have fine grained enough control the data returned on the wire. So, the inclusion of a GraphQL endpoint is a reasonable thing to need to add to it.
+
+> Design Choice: There are some pragmatic implementation patterns demonstrated within this RI. Remember that this RI has laid out just *one way* of doing things. There are *many ways* of doing the same kind of things, with various design trade offs, especially in the area of entity mapping and entity persistence. In the realm of building products, this RI demonstrates prioritization of maintainability over optimal performance. If you are looking for the *best* way to do things, then you haven't programmed long enough to learn that no such thing exists. Our advice to you is start with something small, and adapt it as you learn more, avoid over-engineering it at all costs. If in doubt, favor what you definitely know you have to work with now, rather than attempting to future proof it. KISS, DRY and YAGNI my friends.
+
+> Note: If you don't like what you see here. That's cool, just ignore it. But don't make the mistake of coupling your persistence or your Web API to your domain entities. That's a fundamental rookie mistake in software engineering, that you are going to make without being very intentional about designing your way out of.
 
 # Structure
 
-The RI solution is structured as projects on disk, into two logical parts:
+The RI solution is structured into two logical parts:
 
-* Infrastructure - This contains all infrastructure and adapters to that infrastructure (eg. Web API adapters and Storage adapters)
-* Domain - core domain classes, unfettered by infrastructure.
+* Infrastructure - This contains all infrastructure and adapters to that infrastructure (eg. Web API adapters and Storage adapters to repositories)
+* Domain - core domain classes, and application services unfettered by infrastructure. 
 
 There should be no dependency from: classes in Domain -> to classes in Infrastructure. Ever!
 
 ## Domain
 
+The domain should be structured into two discrete layers:
+1. **Domain Entities:** Your smart, fully encapsulated, pure OO, 'domain entities' that have all your domain rules, logic, validation, etc encapsulated within them. THey aggregate other entities and are self-contained. What they lack is only when to do the things they do in response to the world around them. That comes from the next layer.
+2. **Transaction Scripts/Application Layer/Domain Services:** classes that co-ordinate/orchestrate/manage/script your domain entitites. These classes contain commands that essentially follow the same patter: (1) retrieve domain entities from persistence, (2) instruct the entities what they should do now (Tell-Dont-Ask), and then (3) persist the mutated entity state again. This layer represents your specific application. 
+
+> Note: Between your 'transaction scripts/application layer/domain services' and the Infrastructure layer there will always be a mapping (logical or physical) to and from DTO (Data Transfer Objects) or POCO objects. These are bare OO objects with no behaviour in them, that do not use encapsulation (ideally not inheritance), that are the only types that traverse the boundary between Domain<->Infrastructure.
+
 ### CarsDomain
 
-Essentially the core domain logic layer.
+Essentially the core domain logic layer (domain entities and application layers).
 
-> Note: In a real architecture, you would never actually name this layer (or the types within it) using the suffix "Domain". It is just here as a guide post for you. So you can tell what the layer is the core of the app.
+> Note: In a real architecture, you would never actually name this layer (or the types within it) using the suffix "Domain". It is just here as a guide post for you, so that you can tell what the layer is.
 
-It defines the domain logic classes, entities all domains specific rules, etc.
+It defines the domain entities with all domains specific rules, etc.
 
 It contains an 'application layer' (in DDD parlance) or 'Interactor' (in Clean Architecture parlance) used to coordinate the various domain functions on the various domain entities. This layer orchestrates the domain entities, and manages persistence of them, and all interactions with infrastructure layers (ie. The Web, Persistence, External Services).
 
 > Design Choice: In this case we have included the domain entities in this assembly for simplicity, but you may want to have a separate assembly for the entities of this domain to make your domain more portable.
 
-> The domain entities in this implementation are relatively simple in terms of functionality and rules (close to anemic - due to limited scope of the sample).
+> Design Choice: The domain entities in this implementation are relatively simple in terms of functionality and rules (close to anemic - due to limited scope of the sample). They also do not display much in the way of aggregation which is more common than not. Usually primary entities like a 'Car' would be an aggregate entity (DDD parlance), and all operations that the aggregated entities perform would be accessible through this _aggregate root_.
 
-> Design Choice: Domain entities are persistent "aware" for practicality. There are many ways to handle/decouple persistence between your entities and repositories, this is *one* pattern, you may desire another. You definitely don't want your entities to do their own persistence (like the ActiveRecord pattern does). Do could define a mapping layer to DTO's between entities and repositories (as ORM's do), but having the knowledge of what internal data an entity needs to be serialized (de-hydrated) and de-serialized (re-hydrated) is knowledge in-practice that an entity *could* legitimately have. YMMV, this pattern is absolutely flexible, scalable and simple to maintain.
+> Design Choice: Domain entities in this RI have been specifically designed to be persistent "aware" for practicality. We use the terms Hydrate/Dehydrate to associate them to persistence support, and we define `Dictionary<string, object>` to remove the need to specify explicit DTO classes for mapping. Which side-steps an additional mapping layer.
+ 
+> Design Choice: There are many ways to handle/decouple persistence between your entities and repositories, this is *one* pattern, you may desire another. You definitely don't want your entities to do their own persistence (like the ActiveRecord pattern does). Do could define a mapping layer to DTO's between entities and repositories (as ORM's do), but having the knowledge of what internal data an entity needs to be serialized (de-hydrated) and de-serialized (re-hydrated) is knowledge in-practice that an entity *could* legitimately have. YMMV, this pattern is absolutely flexible, scalable and simple to maintain.
 
 > We anticipate that there will be one of these assemblies for every major domain in the product.
 
