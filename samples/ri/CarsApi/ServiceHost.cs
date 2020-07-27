@@ -2,6 +2,7 @@
 using CarsApi.Validators;
 using CarsDomain;
 using CarsDomain.Entities;
+using CarsStorage;
 using Funq;
 using Microsoft.Extensions.Logging;
 using ServiceStack;
@@ -9,7 +10,6 @@ using ServiceStack.Configuration;
 using ServiceStack.Text;
 using ServiceStack.Validation;
 using Storage;
-using Storage.Azure;
 using Storage.Interfaces;
 
 namespace CarsApi

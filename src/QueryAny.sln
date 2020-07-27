@@ -58,6 +58,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B9AFDC89
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarsDomain.UnitTests", "..\samples\ri\CarsDomain.UnitTests\CarsDomain.UnitTests.csproj", "{3029E4C1-2634-46F2-B834-D19BECA690AA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarsStorage", "CarsStorage\CarsStorage.csproj", "{736FAD9F-34D6-40FC-B96A-421DAC4AA8E0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -128,6 +130,10 @@ Global
 		{3029E4C1-2634-46F2-B834-D19BECA690AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3029E4C1-2634-46F2-B834-D19BECA690AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3029E4C1-2634-46F2-B834-D19BECA690AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{736FAD9F-34D6-40FC-B96A-421DAC4AA8E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{736FAD9F-34D6-40FC-B96A-421DAC4AA8E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{736FAD9F-34D6-40FC-B96A-421DAC4AA8E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{736FAD9F-34D6-40FC-B96A-421DAC4AA8E0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -151,6 +157,7 @@ Global
 		{B9AFDC89-A403-402E-807C-22C4138FDAF5} = {08E8B670-C69E-4F8E-BEB8-26CA3FC9CA52}
 		{3029E4C1-2634-46F2-B834-D19BECA690AA} = {B9AFDC89-A403-402E-807C-22C4138FDAF5}
 		{5D40AABA-D31A-4D9F-B997-5FB8772D69EF} = {08E8B670-C69E-4F8E-BEB8-26CA3FC9CA52}
+		{736FAD9F-34D6-40FC-B96A-421DAC4AA8E0} = {E6711455-2661-4F8A-B4AD-9BC8D1B714E7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B441AF2E-2F75-434D-8F61-6DFE23D2935C}

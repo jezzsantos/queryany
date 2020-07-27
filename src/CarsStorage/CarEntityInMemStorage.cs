@@ -1,9 +1,10 @@
 ﻿using CarsDomain.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
+using Storage;
 using Storage.Interfaces;
 
-namespace Storage
+namespace CarsStorage
 {
     public class CarEntityInMemStorage : GenericStorage<CarEntity>
     {

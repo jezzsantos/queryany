@@ -2,9 +2,11 @@
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using ServiceStack.Configuration;
+using Storage;
+using Storage.Azure;
 using Storage.Interfaces;
 
-namespace Storage.Azure
+namespace CarsStorage
 {
     public class CarEntityAzureStorage : GenericStorage<CarEntity>
     {

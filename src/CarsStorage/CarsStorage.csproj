@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\samples\ri\Storage.Azure\Storage.Azure.csproj" />
+      <ProjectReference Include="..\..\samples\ri\Storage\Storage.csproj" />
+    </ItemGroup>
+
+</Project>

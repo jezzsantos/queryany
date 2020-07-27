@@ -1,5 +1,6 @@
 using System;
 using CarsDomain.Entities;
+using CarsStorage;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

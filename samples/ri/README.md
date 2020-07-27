@@ -21,21 +21,9 @@ The RI solution is structured as projects on disk, into two logical parts:
 
 There should be no dependency from: classes in Domain -> to classes in Infrastructure. Ever!
 
-## CarsApi
+## Domain
 
-This is the web host. In this case its ASP.NET Core running the [ServiceStack](http://www.servicestack.net) framework on Windows. It could be whatever web host you like.
-
-> Design Choice: We chose ServiceStack as the foundational web service framework for a few main reasons. (1) it makes defining and configuring services so much easier than Microsoft's WebApi (specifically in areas of extensibility), (2) it includes an `auto-mapper` essential for easily maintaining abstractions between service operations, domain entities and infrastructure layers, and (3) it has excellent reflection support for persisting .Net types that would otherwise be very difficult to persist, causing far more difficulty when it comes to pragmatic persistence.
-
-It defines the HTTP REST endpoints (service operations) and their contracts. 
-
-It handles the conversion between HTTP requests <-> Domain Logic. Including: wire-formats, exception mapping, routes, request validation etc.
-
-It contains the `ServiceHost` class (specific to ServiceStack) which loads all service endpoints, and uses dependency injection for all runtime dependencies.
-
-> A host like this one may contain the service operations of one, or more REST resources of any given API. The division of the API into deployment packages will need to remain flexible so that whole APIs can be factored out into separate hosts when the product needs to scale and be optimized.
-
-## CarsDomain
+### CarsDomain
 
 Essentially the core domain logic layer.
 
@@ -53,7 +41,7 @@ It contains an 'application layer' (in DDD parlance) or 'Interactor' (in Clean A
 
 > We anticipate that there will be one of these assemblies for every major domain in the product.
 
-## Services.Interfaces
+### Services.Interfaces
 
 Contains shared definitions for service operations, intended to be shared across all services.
 
@@ -61,13 +49,38 @@ Also intended to be shared to service client libraries (if any).
 
 > We anticipate that there will be one of these assemblies for all domains in the product.
 
-## Storage.Interfaces
+### Storage.Interfaces
 
 Contains the shared definitions of the consumers of the storage layer (i.e. the domain logic).
 
 Intended to define the interface for implementers of specific storage databases, and repositories.
 
-## Storage and Storage.???
+
+## Infrastructure
+
+Contains all ports & Adapters, all infrastructure classes and anything to do with interacting with the outside world (form domain perspective).
+
+### CarsApi
+
+This is the web host. In this case its ASP.NET Core running the [ServiceStack](http://www.servicestack.net) framework on Windows. It could be whatever web host you like.
+
+> Design Choice: We chose ServiceStack as the foundational web service framework for a few main reasons. (1) it makes defining and configuring services so much easier than Microsoft's WebApi (specifically in areas of extensibility), (2) it includes an `auto-mapper` essential for easily maintaining abstractions between service operations, domain entities and infrastructure layers, and (3) it has excellent reflection support for persisting .Net types that would otherwise be very difficult to persist, causing far more difficulty when it comes to pragmatic persistence.
+
+It defines the HTTP REST endpoints (service operations) and their contracts. 
+
+It handles the conversion between HTTP requests <-> Domain Logic. Including: wire-formats, exception mapping, routes, request validation etc.
+
+It contains the `ServiceHost` class (specific to ServiceStack) which loads all service endpoints, and uses dependency injection for all runtime dependencies.
+
+> A host like this one may contain the service operations of one, or more REST resources of any given API. The division of the API into deployment packages will need to remain flexible so that whole APIs can be factored out into separate hosts when the product needs to scale and be optimized.
+
+### CarsStorage
+
+This is a library of entity specific storage implementation classes used in both production code and during integration testing.
+
+> Typically, an implementation will have an in-memory class used in integration testing (to increase test speed), and one for (say a database) for use in a production environment - often injected in the ServiceHost of the CarsApi project.  
+
+### Storage and Storage.???
 
 Concrete implementations of `IStorage<TEntity>` for various storage technologies.
 
@@ -75,13 +88,13 @@ This is where all QueryAny storage implementations will exist for this sample.
 
 > We anticipate that there would probably be a separate project (and nuget package) for each implementation of the `IStorage<TEntity>` interface in your architecture. eg. one for SqlServer, one for Redis, one for CosmosDB, etc.. 
 
-## CarsApi.IntegrationTests
+### CarsApi.IntegrationTests
 
 Contains all integration tests for testing the API.
 
 > Design Choice: Here we demonstrate testing API's by pre-populating data through the API only. (In practice (not demonstrated here) you may need to have additional API's to load/delete resources for some domains, that would definitely not be shipped in your production distribution) Normally, we would populate the state of the domain through the API itself, and erase all data for each test through the repository we are using in testing. This removes the dependency to know how application data is actually persisted in any repository, since, given the fact that QueryAny is abstracting that knowledge from you in the first place! (since data could be spread across multiple repositories and accessed via various technologies).
 
-## Storage.IntegrationTests
+### Storage.IntegrationTests
 
 Contains integration tests for verifying various repository implementations, against their real repository technology. 
 
@@ -91,7 +104,7 @@ These tests have been templatized so that new implementations have a test suite 
 
 >Design Choice: We deliberately chose to use local installations of these repositories rather than cloud based instances. So at this point, you should be able to run all these tests offline.
 
-## ???.UnitTests projects
+### ???.UnitTests projects
 
 Contains all unit level tests for all components in the architecture, separated by component.
 
