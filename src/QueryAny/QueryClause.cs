@@ -43,6 +43,7 @@ namespace QueryAny
 
             var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
             this.entities.AddWhere(LogicalOperator.And, fieldName, condition, value);
+
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
@@ -59,6 +60,7 @@ namespace QueryAny
 
             var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
             this.entities.AddWhere(LogicalOperator.Or, fieldName, condition, value);
+
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
@@ -73,6 +75,7 @@ namespace QueryAny
             }
 
             this.entities.AddCondition(LogicalOperator.And, subWhere);
+
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
@@ -93,6 +96,7 @@ namespace QueryAny
             }
 
             this.entities.AddCondition(LogicalOperator.Or, subWhere);
+
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
@@ -102,6 +106,7 @@ namespace QueryAny
 
             var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
             PrimaryEntity.AddSelected(fieldName);
+
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
@@ -141,18 +146,21 @@ namespace QueryAny
             var joiningEntity = JoinedEntities.First(e => e.EntityName.EqualsOrdinal(joiningEntityName));
             var joinedEntity = PrimaryEntity.EntityName;
             joiningEntity.AddSelected(joiningFieldName, joinedEntity, joinedFieldName);
+
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
         public QueryClause<TPrimaryEntity> Take(int limit)
         {
             this.entities.SetLimit(limit);
+
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
         public QueryClause<TPrimaryEntity> Skip(int offset)
         {
             this.entities.SetOffset(offset);
+
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
@@ -160,6 +168,7 @@ namespace QueryAny
             OrderDirection direction = OrderDirection.Ascending)
         {
             this.entities.SetOrdering(by, direction);
+
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
     }

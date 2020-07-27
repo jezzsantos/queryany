@@ -22,6 +22,7 @@ namespace QueryAny
         public QueriedEntity PrimaryEntity => this.entities.PrimaryEntity;
 
         public IReadOnlyList<WhereExpression> Wheres => this.entities.Wheres;
+
         public ResultOptions ResultOptions => this.entities.ResultOptions;
 
         public QueryClause<TPrimaryEntity> Where<TValue>(Expression<Func<TPrimaryEntity, TValue>> propertyName,
@@ -32,6 +33,7 @@ namespace QueryAny
 
             var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
             this.entities.AddWhere(LogicalOperator.None, fieldName, condition, value);
+
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
@@ -64,12 +66,14 @@ namespace QueryAny
         public QueryClause<TPrimaryEntity> Take(int limit)
         {
             this.entities.SetLimit(limit);
+
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
         public QueryClause<TPrimaryEntity> Skip(int offset)
         {
             this.entities.SetOffset(offset);
+
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
@@ -77,6 +81,7 @@ namespace QueryAny
             OrderDirection direction = OrderDirection.Ascending)
         {
             this.entities.SetOrdering(by, direction);
+
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
     }

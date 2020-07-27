@@ -71,6 +71,7 @@ namespace Storage.Azure
             var table = EnsureTable(containerName);
 
             var tableEntity = RetrieveTableEntitySafe(table, id);
+
             return tableEntity != null
                 ? tableEntity.FromTableEntity(this.options, entityFactory)
                 : default;
@@ -158,6 +159,7 @@ namespace Storage.Azure
                         this.options.DefaultPartitionKey))
                     .Select(new List<string>
                         {TableConstants.PartitionKey, TableConstants.RowKey, TableConstants.Timestamp});
+
                 return table.ExecuteQuery(query).ToList();
             }
 
@@ -327,6 +329,7 @@ namespace Storage.Azure
             }
 
             this.tableExistenceChecks[containerName] = true;
+
             return false;
         }
 
@@ -337,6 +340,7 @@ namespace Storage.Azure
                 var entity = SafeExecute(table,
                     () => table.Execute(
                         TableOperation.Retrieve<DynamicTableEntity>(this.options.DefaultPartitionKey, id.Get())));
+
                 return entity.Result as DynamicTableEntity;
             }
             catch (Exception)
@@ -350,6 +354,7 @@ namespace Storage.Azure
             SafeExecute(table, () =>
             {
                 command();
+
                 return true;
             });
         }
@@ -422,6 +427,7 @@ namespace Storage.Azure
                         .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType, options));
 
             var id = tableEntity.RowKey;
+
             return propertyValues.CreateEntity(id, entityFactory);
         }
 
@@ -477,6 +483,7 @@ namespace Storage.Azure
             bool IsNotExcluded(string propertyName)
             {
                 var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id)};
+
                 return !excludedPropertyNames.Contains(propertyName);
             }
 
@@ -593,6 +600,7 @@ namespace Storage.Azure
             if (where.Condition != null)
             {
                 var condition = where.Condition;
+
                 return
                     $"{where.Operator.ToAzureTableStorageWhereClause()}{condition.ToAzureTableStorageWhereClause()}";
             }
@@ -608,6 +616,7 @@ namespace Storage.Azure
                 }
 
                 builder.Append(")");
+
                 return builder.ToString();
             }
 
@@ -682,6 +691,7 @@ namespace Storage.Azure
                 case null:
                     return TableQuery.GenerateFilterCondition(fieldName, conditionOperator,
                         AzureTableStorageRepository.NullValue);
+
                 default:
                     if (value is IPersistableValueType valueType)
                     {
@@ -719,6 +729,7 @@ namespace Storage.Azure
                 var additionalDetails = storageException.RequestInformation.ExtendedErrorInformation?.AdditionalDetails
                     ?.ToJson();
                 var statusCode = storageException.RequestInformation.HttpStatusCode;
+
                 return ToDetailedException(storageException, errorMessage, additionalDetails, statusCode);
             }
 

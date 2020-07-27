@@ -65,8 +65,8 @@ namespace Services.Interfaces
 
             var variable = Expression.Parameter(typeof(TEntity));
             var propertySelector = Expression.Property(variable, propertyInfo);
-            var lambda = Expression.Lambda<Func<TEntity, string>>(propertySelector, variable);
-            return lambda;
+
+            return Expression.Lambda<Func<TEntity, string>>(propertySelector, variable);
         }
     }
 }

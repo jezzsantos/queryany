@@ -25,8 +25,10 @@ namespace Services.Interfaces.Entities
             }
 
             var other = (ValueType<TValue>) obj;
+
             // ReSharper disable once GenericEnumeratorNotDisposed
             var thisValues = GetAtomicValues().GetEnumerator();
+
             // ReSharper disable once GenericEnumeratorNotDisposed
             var otherValues = other.GetAtomicValues().GetEnumerator();
             while (thisValues.MoveNext() && otherValues.MoveNext())

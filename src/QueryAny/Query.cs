@@ -16,6 +16,7 @@ namespace QueryAny
                 new QueriedEntity(typeof(TPrimaryEntity))
             });
             entities.UpdateOptions(true);
+
             return new QueryClause<TPrimaryEntity>(entities);
         }
     }

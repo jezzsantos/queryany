@@ -35,6 +35,7 @@ namespace Storage
             var id = this.idFactory.Create(entity);
             entity.Identify(id);
             this.containers[containerName].Add(entity.Id, entity.ToContainerProperties());
+
             return id;
         }
 
@@ -59,6 +60,7 @@ namespace Storage
                 {
                     var entityProperties = entity.ToContainerProperties();
                     this.containers[containerName][id] = entityProperties;
+
                     return entityProperties.FromContainerProperties(id, entityFactory);
                 }
             }
@@ -199,6 +201,7 @@ namespace Storage
         {
             var orderBy = query.GetDefaultOrdering();
             orderBy = $"{orderBy}{(query.ResultOptions.OrderBy.Direction == OrderDirection.Descending ? " DESC" : "")}";
+
             return orderBy;
         }
 
@@ -218,6 +221,7 @@ namespace Storage
             if (where.Condition != null)
             {
                 var condition = where.Condition;
+
                 return
                     $"{where.Operator.ToDynamicLinqWhereClause()}{condition.ToDynamicLinqWhereClause()}";
             }
@@ -233,6 +237,7 @@ namespace Storage
                 }
 
                 builder.Append(")");
+
                 return builder.ToString();
             }
 
@@ -280,7 +285,6 @@ namespace Storage
             var fieldName = condition.FieldName;
             var @operator = condition.Operator.ToDynamicLinqWhereClause();
             var value = condition.Value;
-
 
             if (value is bool boolean)
             {

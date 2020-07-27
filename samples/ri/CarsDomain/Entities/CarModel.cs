@@ -14,7 +14,9 @@ namespace CarsDomain.Entities
         }
 
         public int Year { get; private set; }
+
         public string Make { get; private set; }
+
         public string Model { get; private set; }
 
         public override string Dehydrate()

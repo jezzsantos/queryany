@@ -9,6 +9,7 @@
         }
 
         public string By { get; }
+
         public OrderDirection Direction { get; }
     }
 

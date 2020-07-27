@@ -21,19 +21,29 @@ namespace Storage.IntegrationTests
         }
 
         public string AStringValue { get; set; }
+
         public bool ABooleanValue { get; set; }
+
         public DateTime ADateTimeUtcValue { get; set; }
+
         public DateTimeOffset ADateTimeOffsetUtcValue { get; set; }
+
         public double ADoubleValue { get; set; }
+
         public Guid AGuidValue { get; set; }
+
         public int AIntValue { get; set; }
+
         public long ALongValue { get; set; }
+
         public byte[] ABinaryValue { get; set; }
+
         public ComplexNonValueType AComplexNonValueTypeValue { get; set; }
 
         public ComplexValueType AComplexValueTypeValue { get; set; }
 
         public DateTime CreatedAtUtc { get; set; }
+
         public DateTime LastModifiedAtUtc { get; set; }
 
         public Identifier Id { get; private set; }
@@ -63,10 +73,13 @@ namespace Storage.IntegrationTests
     public class FirstJoiningTestEntity : IPersistableEntity
     {
         public string AStringValue { get; set; }
+
         public int AIntValue { get; set; }
 
         public DateTime CreatedAtUtc { get; set; }
+
         public DateTime LastModifiedAtUtc { get; set; }
+
         public Identifier Id { get; private set; }
 
         public void Identify(Identifier id)
@@ -101,7 +114,9 @@ namespace Storage.IntegrationTests
         public long ALongValue { get; set; }
 
         public DateTime CreatedAtUtc { get; set; }
+
         public DateTime LastModifiedAtUtc { get; set; }
+
         public Identifier Id { get; private set; }
 
         public void Identify(Identifier id)
@@ -146,7 +161,9 @@ namespace Storage.IntegrationTests
         }
 
         public string AStringProperty { get; private set; }
+
         public int AnIntName { get; private set; }
+
         public bool ABooleanPropertyName { get; private set; }
 
         public static ComplexValueType Create(string @string, int integer, bool boolean)

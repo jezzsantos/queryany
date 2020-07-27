@@ -1154,6 +1154,7 @@ namespace Storage.IntegrationTests
                 var id = this.storage.Add(entity);
                 createdIdentifiers.Add(id);
             }, count);
+
             return createdIdentifiers;
         }
 

@@ -19,7 +19,9 @@ namespace QueryAny
         }
 
         public int Limit { get; private set; }
+
         public int Offset { get; private set; }
+
         public Ordering OrderBy { get; private set; }
 
         internal void SetLimit(int limit)

@@ -528,6 +528,7 @@ namespace QueryAny.UnitTests
     }
 
     [EntityName("aname")]
+
     // ReSharper disable once ClassNeverInstantiated.Global
     public class NamedTestEntity : IQueryableEntity
     {
@@ -537,26 +538,32 @@ namespace QueryAny.UnitTests
     }
 
     [EntityName("first")]
+
     // ReSharper disable once ClassNeverInstantiated.Global
     public class FirstTestEntity : IQueryableEntity
     {
         public string AFirstStringProperty => null;
+
         public DateTime AFirstDateTimeProperty => DateTime.MinValue;
     }
 
     [EntityName("second")]
+
     // ReSharper disable once ClassNeverInstantiated.Global
     public class SecondTestEntity : IQueryableEntity
     {
         public string ASecondStringProperty => null;
+
         public DateTime ASecondDateTimeProperty => DateTime.MinValue;
     }
 
     [EntityName("third")]
+
     // ReSharper disable once ClassNeverInstantiated.Global
     public class ThirdTestEntity : IQueryableEntity
     {
         public string AThirdStringProperty => null;
+
         public DateTime AThirdDateTimeProperty => DateTime.MinValue;
     }
 }

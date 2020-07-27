@@ -72,7 +72,6 @@ namespace CarsApi.UnitTests.Validators
         {
             this.dto.Embed = "^aresourceref";
 
-
             this.validator.Invoking(x => x.ValidateAndThrow(this.dto)).Should().Throw<ValidationException>()
                 .WithMessageLike(Resources.HasGetOptionsValidator_InvalidEmbed);
         }

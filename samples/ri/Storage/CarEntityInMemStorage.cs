@@ -18,6 +18,7 @@ namespace Storage
         {
             logger.GuardAgainstNull(nameof(logger));
             identifierFactory.GuardAgainstNull(nameof(identifierFactory));
+
             return new CarEntityInMemStorage(logger, CarEntity.GetFactory(logger),
                 new InProcessInMemRepository(identifierFactory));
         }

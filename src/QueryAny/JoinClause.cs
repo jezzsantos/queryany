@@ -25,6 +25,7 @@ namespace QueryAny
 
             var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
             this.entities.AddWhere(LogicalOperator.None, fieldName, condition, value);
+
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 

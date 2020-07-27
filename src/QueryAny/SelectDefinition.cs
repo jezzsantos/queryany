@@ -15,8 +15,11 @@ namespace QueryAny
         }
 
         public string EntityName { get; }
+
         public string FieldName { get; }
+
         public string JoinedEntityName { get; }
+
         public string JoinedFieldName { get; }
     }
 }

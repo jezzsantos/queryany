@@ -80,6 +80,7 @@ namespace Storage.Azure
             if (containerEntity != null)
             {
                 var thing = container.UpsertItemAsync<dynamic>(entity.ToContainerEntity()).GetAwaiter().GetResult();
+
                 return ((JObject) thing.Resource).FromContainerEntity(entityFactory);
             }
 
@@ -94,6 +95,7 @@ namespace Storage.Azure
             {
                 var query = new QueryDefinition(@"SELECT VALUE COUNT(1) FROM c");
                 var count = container.GetItemQueryIterator<int>(query);
+
                 return count.Count();
             }
             catch (CosmosException ex)
@@ -172,6 +174,7 @@ namespace Storage.Azure
             where TEntity : IPersistableEntity
         {
             var containerQuery = new QueryDefinition(query.ToAzureCosmosSqlApiQueryClause(containerName, this));
+
             return container.GetItemQueryIterator<object>(containerQuery)
                 .ToList();
         }
@@ -250,6 +253,7 @@ namespace Storage.Azure
             {
                 var entity = container.ReadItemAsync<object>(id.Get(), new PartitionKey(id.Get())).GetAwaiter()
                     .GetResult();
+
                 return entity != null;
             }
             catch (Exception)
@@ -375,6 +379,7 @@ namespace Storage.Azure
             bool IsNotExcluded(string propertyName)
             {
                 var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id)};
+
                 return !excludedPropertyNames.Contains(propertyName);
             }
 
@@ -529,6 +534,7 @@ namespace Storage.Azure
             if (where.Condition != null)
             {
                 var condition = where.Condition;
+
                 return
                     $"{where.Operator.ToAzureCosmosSqlApiOperatorClause()}{condition.ToAzureCosmosSqlApiConditionClause()}";
             }
@@ -544,6 +550,7 @@ namespace Storage.Azure
                 }
 
                 builder.Append(")");
+
                 return builder.ToString();
             }
 

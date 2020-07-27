@@ -59,6 +59,7 @@ namespace Storage.Redis
             var client = EnsureClient();
 
             var rowKey = CreateRowKey(containerName, id);
+
             return FromContainerEntity(client, rowKey, entityFactory);
         }
 
@@ -74,6 +75,7 @@ namespace Storage.Redis
                 var key = CreateRowKey(containerName, id);
                 client.Remove(key);
                 client.SetRangeInHash(key, keyValues);
+
                 return keyValues.FromContainerProperties(id.Get(), entityFactory);
             }
 
@@ -221,6 +223,7 @@ namespace Storage.Redis
                 }
 
                 var id = GetEntityIdFromRowKey(rowKey);
+
                 return containerEntityProperties.FromContainerProperties(id, properties => entityFactory(properties));
             }
             catch (Exception)
@@ -241,6 +244,7 @@ namespace Storage.Redis
                 }
 
                 var id = GetEntityIdFromRowKey(rowKey);
+
                 return containerEntityProperties.FromContainerProperties(id, entityType, entityFactory);
             }
             catch (Exception)
@@ -252,6 +256,7 @@ namespace Storage.Redis
         private static List<string> GetRowKeys(IRedisClient client, string containerName)
         {
             var pattern = "{0}*".Fmt(CreateContainerKey(containerName));
+
             return EnumerableExtensions.Safe(client.SearchKeys(pattern)).ToList();
         }
 
@@ -265,6 +270,7 @@ namespace Storage.Redis
         {
             var key = CreateRowKey(containerName, id);
             var count = client.GetHashKeys(key).Count;
+
             return count != 0;
         }
 
@@ -272,6 +278,7 @@ namespace Storage.Redis
         {
             var key = CreateRowKeyPattern(containerName, "*");
             var count = client.SearchKeys(key).Count;
+
             return count != 0;
         }
 
@@ -291,6 +298,7 @@ namespace Storage.Redis
             bool IsNotExcluded(string propertyName)
             {
                 var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id)};
+
                 return !excludedPropertyNames.Contains(propertyName);
             }
 
@@ -310,6 +318,7 @@ namespace Storage.Redis
                         }
 
                         value = dateTime.ToIso8601();
+
                         break;
 
                     case DateTimeOffset dateTimeOffset:
@@ -319,22 +328,27 @@ namespace Storage.Redis
                         }
 
                         value = dateTimeOffset.ToIso8601();
+
                         break;
 
                     case Guid guid:
                         value = guid.ToString("D");
+
                         break;
 
                     case byte[] bytes:
                         value = Convert.ToBase64String(bytes);
+
                         break;
 
                     case string text:
                         value = text;
+
                         break;
 
                     case null:
                         value = RedisInMemRepository.RedisHashNullToken;
+
                         break;
 
                     default:
@@ -342,10 +356,12 @@ namespace Storage.Redis
                             typeof(IPersistableValueType).IsAssignableFrom(propertyType))
                         {
                             value = ((IPersistableValueType) pair.Value).Dehydrate();
+
                             break;
                         }
 
                         value = pair.Value.ToString();
+
                         break;
                 }
 
@@ -370,6 +386,7 @@ namespace Storage.Redis
             where TEntity : IPersistableEntity
         {
             var targetType = typeof(TEntity);
+
             return (TEntity) containerProperties.FromContainerProperties(entityId, targetType,
                 properties => entityFactory(properties));
         }

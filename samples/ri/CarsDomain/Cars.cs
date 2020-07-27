@@ -36,6 +36,7 @@ namespace CarsDomain
             carEntity.Identify(id);
 
             this.logger.LogInformation("Car {Id} was created by {Caller}", id, caller.Id);
+
             return carEntity.ConvertTo<Car>();
         }
 
@@ -53,6 +54,7 @@ namespace CarsDomain
             this.storage.Update(car);
 
             this.logger.LogInformation("Car {Id} was occupied until {Until}, by {Caller}", id, untilUtc, caller.Id);
+
             return car.ConvertTo<Car>();
         }
 
@@ -66,6 +68,7 @@ namespace CarsDomain
                 .Results;
 
             this.logger.LogInformation("Available cars were retrieved by {Caller}", caller.Id);
+
             return cars
                 .ConvertAll(c => WithGetOptions(c.ConvertTo<Car>(), getOptions));
         }

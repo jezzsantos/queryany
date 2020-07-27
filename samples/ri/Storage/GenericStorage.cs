@@ -34,6 +34,7 @@ namespace Storage
             var id = this.repository.Add(ContainerName, entity);
 
             this.logger.LogDebug("Entity {Id} was added to repository", id);
+
             return id;
         }
 
@@ -52,6 +53,7 @@ namespace Storage
             var entity = this.repository.Retrieve(ContainerName, id, EntityFactory);
 
             this.logger.LogDebug("Entity {Id} was retrieved from repository", id);
+
             return entity;
         }
 
@@ -74,6 +76,7 @@ namespace Storage
             var updated = this.repository.Replace(ContainerName, entity.Id, latest, EntityFactory);
 
             this.logger.LogDebug("Entity {Id} was updated in repository", entity.Id);
+
             return updated;
         }
 
@@ -95,12 +98,14 @@ namespace Storage
             if (query == null || query.Options.IsEmpty)
             {
                 this.logger.LogDebug("No entities were retrieved from repository");
+
                 return new QueryResults<TEntity>(new List<TEntity>());
             }
 
             var resultEntities = this.repository.Query(ContainerName, query, EntityFactory);
 
             this.logger.LogDebug("Entities were retrieved from repository");
+
             return new QueryResults<TEntity>(resultEntities.ConvertAll(e => e));
         }
     }

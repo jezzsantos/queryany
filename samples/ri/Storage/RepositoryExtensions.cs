@@ -87,6 +87,7 @@ namespace Storage
                             into joined
                         from result in joined
                         select mapFunc?.Invoke(lefts, result) ?? lefts;
+
                     return innerJoin
                         .Select(e => e.Value.FromObjectDictionary<TEntity>())
                         .ToList();
@@ -98,6 +99,7 @@ namespace Storage
                             into joined
                         from result in joined.DefaultIfEmpty()
                         select mapFunc?.Invoke(lefts, result) ?? lefts;
+
                     return leftJoin
                         .Select(e => e.Value.FromObjectDictionary<TEntity>())
                         .ToList();
@@ -181,6 +183,7 @@ namespace Storage
                 var entity = entityFactory(propertyValues);
                 entity.Rehydrate(propertyValues);
                 entity.Identify(id);
+
                 return entity;
             }
             catch (Exception)
@@ -196,6 +199,7 @@ namespace Storage
             {
                 var valueType = (IPersistableValueType) targetPropertyType.CreateInstance();
                 valueType.Rehydrate(propertyValue);
+
                 return valueType;
             }
             catch (Exception)

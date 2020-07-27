@@ -16,6 +16,7 @@ namespace QueryAny
             }
 
             var name = entityType.Name;
+
             return name.EndsWith(EntityTypeNameConventionSuffix)
                 ? name.Substring(0, name.LastIndexOf(EntityTypeNameConventionSuffix, StringComparison.Ordinal))
                 : $"{name.ToLowerInvariant()}";

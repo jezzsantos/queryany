@@ -18,6 +18,7 @@ namespace QueryAny.Primitives
             }
 
             var info = GetMemberInfo(property) as PropertyInfo;
+
             return info != null;
         }
 
