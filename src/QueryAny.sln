@@ -36,14 +36,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarsApi.UnitTests", "..\sam
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{99D91965-EF25-4B2C-B176-133B8D47B399}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{C5F18BD2-DF36-40D6-9C9C-36291FA04147}"
-ProjectSection(SolutionItems) = preProject
-	..\README.md = ..\README.md
-	GlobalAssemblyInfo.cs = GlobalAssemblyInfo.cs
-	Directory.Build.props = Directory.Build.props
-	..\appveyor.yml = ..\appveyor.yml
-EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage.IntegrationTests", "..\samples\ri\Storage.IntegrationTests\Storage.IntegrationTests.csproj", "{E5C8214A-52F1-4F1C-BFEB-FCAF03113FA1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage.Azure", "..\samples\ri\Storage.Azure\Storage.Azure.csproj", "{CA7816F3-2999-4241-A496-64DC0592ABDF}"
@@ -59,6 +51,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarsDomain.UnitTests", "..\samples\ri\CarsDomain.UnitTests\CarsDomain.UnitTests.csproj", "{3029E4C1-2634-46F2-B834-D19BECA690AA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarsStorage", "CarsStorage\CarsStorage.csproj", "{736FAD9F-34D6-40FC-B96A-421DAC4AA8E0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Library", "Library", "{2DBACB3F-7FEC-4941-ADC8-9910228BD3C4}"
+ProjectSection(SolutionItems) = preProject
+	..\README.md = ..\README.md
+	GlobalAssemblyInfo.cs = GlobalAssemblyInfo.cs
+EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -158,6 +156,9 @@ Global
 		{3029E4C1-2634-46F2-B834-D19BECA690AA} = {B9AFDC89-A403-402E-807C-22C4138FDAF5}
 		{5D40AABA-D31A-4D9F-B997-5FB8772D69EF} = {08E8B670-C69E-4F8E-BEB8-26CA3FC9CA52}
 		{736FAD9F-34D6-40FC-B96A-421DAC4AA8E0} = {E6711455-2661-4F8A-B4AD-9BC8D1B714E7}
+		{99D91965-EF25-4B2C-B176-133B8D47B399} = {2DBACB3F-7FEC-4941-ADC8-9910228BD3C4}
+		{875F64B1-A821-45A7-BE41-432AF80051C2} = {2DBACB3F-7FEC-4941-ADC8-9910228BD3C4}
+		{559631D0-2556-40E6-9027-23EE38CC2C48} = {2DBACB3F-7FEC-4941-ADC8-9910228BD3C4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B441AF2E-2F75-434D-8F61-6DFE23D2935C}
