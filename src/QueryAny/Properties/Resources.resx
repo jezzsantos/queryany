@@ -33,6 +33,9 @@
     <data name="ResultOptions_InvalidOrderBy" xml:space="preserve">
         <value>You cannot 'OrderBy' null</value>
     </data>
+    <data name="ResultOptions_InvalidDistinctBy" xml:space="preserve">
+        <value>You cannot 'DistinctBy' with null</value>
+    </data>
     <data name="QueriedEntities_LimitAlreadySet" xml:space="preserve">
         <value>You cannot 'Take' more than once</value>
     </data>
@@ -41,5 +44,8 @@
     </data>
     <data name="QueriedEntities_OrderByAlreadySet" xml:space="preserve">
         <value>You cannot 'OrderBy' more than once</value>
+    </data>
+    <data name="QueriedEntities_DistinctByAlreadySet" xml:space="preserve">
+        <value>You cannot 'DistinctBy' more than once</value>
     </data>
 </root>

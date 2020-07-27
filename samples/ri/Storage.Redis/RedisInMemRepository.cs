@@ -157,7 +157,8 @@ namespace Storage.Redis
             var primaryEntitiesDynamic = primaryEntities.AsQueryable()
                 .OrderBy(orderByExpression)
                 .Skip(query.GetDefaultSkip())
-                .Take(query.GetDefaultTake(this));
+                .Take(query.GetDefaultTake(this))
+                .DistinctBy(query.GetDefaultDistinctBy());
 
             if (!query.Wheres.Any())
             {

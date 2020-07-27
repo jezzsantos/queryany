@@ -115,7 +115,8 @@ namespace QueryAny
             ResultOptions.SetOffset(offset);
         }
 
-        internal void SetOrdering<TPrimaryEntity, TValue>(Expression<Func<TPrimaryEntity, TValue>> by, OrderDirection direction)
+        internal void SetOrdering<TPrimaryEntity, TValue>(Expression<Func<TPrimaryEntity, TValue>> by,
+            OrderDirection direction)
             where TPrimaryEntity : IQueryableEntity
         {
             if (ResultOptions.OrderBy.By.NotEqualsIgnoreCase(ResultOptions.DefaultOrder))
@@ -130,6 +131,21 @@ namespace QueryAny
             ResultOptions.SetOrdering(byPropertyName, byPropertyName == null
                 ? ResultOptions.DefaultOrderDirection
                 : direction);
+        }
+
+        internal void SetDistinction<TPrimaryEntity, TValue>(Expression<Func<TPrimaryEntity, TValue>> by)
+            where TPrimaryEntity : IQueryableEntity
+        {
+            if (ResultOptions.DistinctBy.NotEqualsIgnoreCase(ResultOptions.DefaultDistinct))
+            {
+                throw new InvalidOperationException(Resources.QueriedEntities_DistinctByAlreadySet);
+            }
+
+            var byPropertyName = Reflector<TPrimaryEntity>.IsValidPropertyName(by)
+                ? Reflector<TPrimaryEntity>.GetPropertyName(by)
+                : null;
+
+            ResultOptions.SetDistinction(byPropertyName);
         }
     }
 }

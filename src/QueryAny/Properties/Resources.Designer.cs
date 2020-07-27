@@ -61,6 +61,15 @@ namespace QueryAny.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You cannot &apos;DistinctBy&apos; more than once.
+        /// </summary>
+        public static string QueriedEntities_DistinctByAlreadySet {
+            get {
+                return ResourceManager.GetString("QueriedEntities_DistinctByAlreadySet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You cannot &apos;Take&apos; more than once.
         /// </summary>
         public static string QueriedEntities_LimitAlreadySet {
@@ -102,6 +111,15 @@ namespace QueryAny.Properties {
         public static string QueryClause_SelectFromJoin_UnknownJoin {
             get {
                 return ResourceManager.GetString("QueryClause_SelectFromJoin_UnknownJoin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot &apos;DistinctBy&apos; with null.
+        /// </summary>
+        public static string ResultOptions_InvalidDistinctBy {
+            get {
+                return ResourceManager.GetString("ResultOptions_InvalidDistinctBy", resourceCulture);
             }
         }
         

@@ -12,6 +12,14 @@ namespace Storage
 {
     public static class RepositoryExtensions
     {
+        public static string GetDefaultDistinctBy<TEntity>(this QueryClause<TEntity> query)
+            where TEntity : IPersistableEntity
+        {
+            return query.IsDefaultDistinct()
+                ? ResultOptions.DefaultDistinct
+                : query.ResultOptions.DistinctBy;
+        }
+
         public static int GetDefaultSkip<TEntity>(this QueryClause<TEntity> query)
             where TEntity : IPersistableEntity
         {
@@ -46,6 +54,24 @@ namespace Storage
             }
 
             if (by.EqualsOrdinal(nameof(IModifiableEntity.CreatedAtUtc)))
+            {
+                return true;
+            }
+
+            var selectedFields = query.GetAllSelectedFields();
+            if (selectedFields.Any())
+            {
+                return !query.GetAllSelectedFields().Contains(by);
+            }
+
+            return false;
+        }
+
+        private static bool IsDefaultDistinct<TEntity>(this QueryClause<TEntity> query)
+            where TEntity : IQueryableEntity
+        {
+            var by = query.ResultOptions.DistinctBy;
+            if (!by.HasValue())
             {
                 return true;
             }

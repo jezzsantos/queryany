@@ -79,5 +79,11 @@ namespace QueryAny
             this.entities.SetOrdering(by, direction);
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
+
+        public QueryClause<TPrimaryEntity> DistinctBy<TValue>(Expression<Func<TPrimaryEntity, TValue>> by)
+        {
+            this.entities.SetDistinction(by);
+            return new QueryClause<TPrimaryEntity>(this.entities);
+        }
     }
 }

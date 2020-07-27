@@ -484,33 +484,78 @@ namespace Storage.Azure
         private static string ToAzureCosmosSqlApiSelectClause<TEntity>(this QueryClause<TEntity> query)
             where TEntity : IPersistableEntity
         {
+            var distinctBy = query.GetDefaultDistinctBy();
+
             if (query.PrimaryEntity.Selects.Any())
             {
                 var builder = new StringBuilder();
 
-                builder.Append(
-                    $"{AzureCosmosSqlApiRepository.ContainerAlias}.{AzureCosmosSqlApiRepository.IdentifierPropertyName}");
-                foreach (var select in query.PrimaryEntity.Selects)
+                var columns = query.PrimaryEntity.Selects
+                    .Select(select => select.FieldName)
+                    .ToList();
+                columns.Remove(nameof(IIdentifiableEntity.Id));
+
+                if (distinctBy.HasValue())
                 {
-                    builder.Append($", {AzureCosmosSqlApiRepository.ContainerAlias}.{select.FieldName}");
+                    columns.Remove(distinctBy);
+                    if (distinctBy.EqualsOrdinal(nameof(IIdentifiableEntity.Id)))
+                    {
+                        distinctBy = AzureCosmosSqlApiRepository.IdentifierPropertyName;
+                    }
+                    else
+                    {
+                        columns.Insert(0, AzureCosmosSqlApiRepository.IdentifierPropertyName);
+                    }
+
+                    builder.Append($"DISTINCT {AzureCosmosSqlApiRepository.ContainerAlias}.{distinctBy}");
+                }
+                else
+                {
+                    builder.Append(
+                        $"{AzureCosmosSqlApiRepository.ContainerAlias}.{AzureCosmosSqlApiRepository.IdentifierPropertyName}");
+                }
+
+                foreach (var column in columns)
+                {
+                    builder.Append($", {AzureCosmosSqlApiRepository.ContainerAlias}.{column}");
                 }
 
                 return builder.ToString();
             }
 
+            if (distinctBy.HasValue())
+            {
+                var properties = typeof(TEntity).GetProperties();
+                if (properties.Any(property => property.Name.EqualsOrdinal(distinctBy)))
+                {
+                    var builder = new StringBuilder();
+
+                    var columns = properties
+                        .Select(property => property.Name)
+                        .ToList();
+                    columns.Remove(nameof(IIdentifiableEntity.Id));
+                    columns.Remove(distinctBy);
+
+                    if (distinctBy.EqualsOrdinal(nameof(IIdentifiableEntity.Id)))
+                    {
+                        distinctBy = AzureCosmosSqlApiRepository.IdentifierPropertyName;
+                    }
+                    else
+                    {
+                        columns.Insert(0, AzureCosmosSqlApiRepository.IdentifierPropertyName);
+                    }
+
+                    builder.Append($"DISTINCT {AzureCosmosSqlApiRepository.ContainerAlias}.{distinctBy}");
+                    foreach (var column in columns)
+                    {
+                        builder.Append($", {AzureCosmosSqlApiRepository.ContainerAlias}.{column}");
+                    }
+
+                    return builder.ToString();
+                }
+            }
+
             return @"*";
-        }
-
-        private static string ToAzureCosmosSqlApiOrderByClause<TEntity>(this QueryClause<TEntity> query)
-            where TEntity : IPersistableEntity
-        {
-            var orderBy = query.ResultOptions.OrderBy;
-            var direction = orderBy.Direction == OrderDirection.Ascending
-                ? "ASC"
-                : "DESC";
-            var by = query.GetDefaultOrdering();
-
-            return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{by} {direction}";
         }
 
         public static string ToAzureCosmosSqlApiWhereClause(this IReadOnlyList<WhereExpression> wheres)
@@ -658,6 +703,18 @@ namespace Storage.Azure
                 .Replace("\"", "\\\"");
 
             return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{escapedValue}'";
+        }
+
+        private static string ToAzureCosmosSqlApiOrderByClause<TEntity>(this QueryClause<TEntity> query)
+            where TEntity : IPersistableEntity
+        {
+            var orderBy = query.ResultOptions.OrderBy;
+            var direction = orderBy.Direction == OrderDirection.Ascending
+                ? "ASC"
+                : "DESC";
+            var by = query.GetDefaultOrdering();
+
+            return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{by} {direction}";
         }
     }
 }

@@ -10,17 +10,20 @@ namespace QueryAny
         public const int DefaultOffset = 0;
         public const OrderDirection DefaultOrderDirection = OrderDirection.Ascending;
         public static readonly string DefaultOrder = null;
+        public static readonly string DefaultDistinct = null;
 
         public ResultOptions()
         {
             Limit = DefaultLimit;
             Offset = DefaultOffset;
             OrderBy = new Ordering(DefaultOrder, DefaultOrderDirection);
+            DistinctBy = null;
         }
 
         public int Limit { get; private set; }
         public int Offset { get; private set; }
         public Ordering OrderBy { get; private set; }
+        public string DistinctBy { get; private set; }
 
         internal void SetLimit(int limit)
         {
@@ -50,6 +53,16 @@ namespace QueryAny
             }
 
             OrderBy = new Ordering(by, direction);
+        }
+
+        public void SetDistinction(string by)
+        {
+            if (!by.HasValue())
+            {
+                throw new InvalidOperationException(Resources.ResultOptions_InvalidDistinctBy);
+            }
+
+            DistinctBy = by;
         }
     }
 }

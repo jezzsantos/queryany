@@ -56,5 +56,95 @@ namespace Storage.UnitTests
                 .Be(
                     "SELECT t.id, t.ABooleanValue, t.ADoubleValue FROM acontainername t ORDER BY t.CreatedAtUtc ASC OFFSET 0 LIMIT 99");
         }
+
+        [TestMethod]
+        public void WhenToAzureCosmosSqlApiQueryClauseAndDistinctByForUnknownSelect_ThenReturnsSqlExpression()
+        {
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .Select(e => e.ABooleanValue)
+                .DistinctBy(e => e.AStringValue);
+
+            var result = query.ToAzureCosmosSqlApiQueryClause("acontainername", this.repository.Object);
+
+            result.Should()
+                .Be(
+                    "SELECT t.id, t.ABooleanValue FROM acontainername t ORDER BY t.CreatedAtUtc ASC OFFSET 0 LIMIT 99");
+        }
+
+        [TestMethod]
+        public void WhenToAzureCosmosSqlApiQueryClauseAndDistinctByIdForSelect_ThenReturnsSqlExpression()
+        {
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .Select(e => e.Id)
+                .Select(e => e.ABooleanValue)
+                .DistinctBy(e => e.Id);
+
+            var result = query.ToAzureCosmosSqlApiQueryClause("acontainername", this.repository.Object);
+
+            result.Should()
+                .Be(
+                    "SELECT DISTINCT t.id, t.ABooleanValue FROM acontainername t ORDER BY t.CreatedAtUtc ASC OFFSET 0 LIMIT 99");
+        }
+
+        [TestMethod]
+        public void WhenToAzureCosmosSqlApiQueryClauseAndDistinctByForSelect_ThenReturnsSqlExpression()
+        {
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .Select(e => e.AStringValue)
+                .Select(e => e.ABooleanValue)
+                .DistinctBy(e => e.AStringValue);
+
+            var result = query.ToAzureCosmosSqlApiQueryClause("acontainername", this.repository.Object);
+
+            result.Should()
+                .Be(
+                    "SELECT DISTINCT t.AStringValue, t.id, t.ABooleanValue FROM acontainername t ORDER BY t.CreatedAtUtc ASC OFFSET 0 LIMIT 99");
+        }
+
+        [TestMethod]
+        public void WhenToAzureCosmosSqlApiQueryClauseAndUnknownDistinctByForNoSelects_ThenReturnsSqlExpression()
+        {
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .DistinctBy(e => e.AnInternalProperty);
+
+            var result = query.ToAzureCosmosSqlApiQueryClause("acontainername", this.repository.Object);
+
+            result.Should()
+                .Be(
+                    "SELECT * FROM acontainername t ORDER BY t.CreatedAtUtc ASC OFFSET 0 LIMIT 99");
+        }
+
+
+        [TestMethod]
+        public void WhenToAzureCosmosSqlApiQueryClauseAndDistinctByIdForNoSelects_ThenReturnsSqlExpression()
+        {
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .DistinctBy(e => e.Id);
+
+            var result = query.ToAzureCosmosSqlApiQueryClause("acontainername", this.repository.Object);
+
+            result.Should()
+                .Be(
+                    "SELECT DISTINCT t.id, t.AStringValue, t.ABooleanValue, t.ADoubleValue, t.CreatedAtUtc, t.LastModifiedAtUtc FROM acontainername t ORDER BY t.CreatedAtUtc ASC OFFSET 0 LIMIT 99");
+        }
+
+        [TestMethod]
+        public void WhenToAzureCosmosSqlApiQueryClauseAndDistinctByForNoSelects_ThenReturnsSqlExpression()
+        {
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .DistinctBy(e => e.AStringValue);
+
+            var result = query.ToAzureCosmosSqlApiQueryClause("acontainername", this.repository.Object);
+
+            result.Should()
+                .Be(
+                    "SELECT DISTINCT t.AStringValue, t.id, t.ABooleanValue, t.ADoubleValue, t.CreatedAtUtc, t.LastModifiedAtUtc FROM acontainername t ORDER BY t.CreatedAtUtc ASC OFFSET 0 LIMIT 99");
+        }
     }
 }

@@ -515,6 +515,48 @@ namespace QueryAny.UnitTests
                 .Should().Throw<InvalidOperationException>()
                 .WithMessageLike(Resources.QueriedEntities_OrderByAlreadySet);
         }
+
+        [TestMethod]
+        public void WhenDistinctByAndEmpty_ThenOrderIsDefaultOrder()
+        {
+            var results = Query.Empty<NamedTestEntity>();
+
+            results.ResultOptions.DistinctBy.Should().Be(ResultOptions.DefaultDistinct);
+        }
+
+        [TestMethod]
+        public void WhenDistinctByWithNull_ThenThrows()
+        {
+            Query.From<NamedTestEntity>()
+                .Invoking(x => x.DistinctBy<string>(e => null))
+                .Should().Throw<InvalidOperationException>();
+        }
+
+        [TestMethod]
+        public void WhenDistinctByAndNoDistinctBy_ThenOrderIsDefaultOrderAndDirection()
+        {
+            var results = Query.From<NamedTestEntity>();
+
+            results.ResultOptions.DistinctBy.Should().Be(ResultOptions.DefaultOrder);
+        }
+
+        [TestMethod]
+        public void WhenDistinctBy_ThenOrderIsSet()
+        {
+            var results = Query.From<NamedTestEntity>()
+                .DistinctBy(e => e.AStringProperty);
+
+            results.ResultOptions.DistinctBy.Should().Be("AStringProperty");
+        }
+
+        [TestMethod]
+        public void WhenDistinctByAgain_ThenThrows()
+        {
+            Query.From<NamedTestEntity>().DistinctBy(e => e.AStringProperty)
+                .Invoking(x => x.DistinctBy(e => e.AStringProperty))
+                .Should().Throw<InvalidOperationException>()
+                .WithMessageLike(Resources.QueriedEntities_DistinctByAlreadySet);
+        }
     }
 
     // ReSharper disable once ClassNeverInstantiated.Global

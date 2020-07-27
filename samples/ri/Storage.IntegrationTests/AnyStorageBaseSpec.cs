@@ -1144,6 +1144,51 @@ namespace Storage.IntegrationTests
             results.Results.Count.Should().Be(0);
         }
 
+        [TestMethod]
+        public void WhenQueryAndNoDistinctBy_ThenReturnsAllResults()
+        {
+            var entities = CreateMultipleEntities(100,
+                (counter, entity) => entity.AStringValue = "avalue");
+
+            var query = Query.From<TestEntity>()
+                .WhereAll();
+
+            var results = this.storage.Query(query, null);
+
+            VerifyOrderedResults(results, entities);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndDistinctByOnUnSelectedField_ThenReturnsAllResults()
+        {
+            var entities =
+                CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = "avalue");
+
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .Select(e => e.Id)
+                .DistinctBy(e => e.AStringValue);
+
+            var results = this.storage.Query(query, null);
+
+            VerifyOrderedResults(results, entities);
+        }
+
+        [TestMethod]
+        public void WhenQueryAndDistinctByProperty_ThenReturnsDistinctResult()
+        {
+            var entities =
+                CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = "avalue");
+
+            var query = Query.From<TestEntity>()
+                .WhereAll()
+                .DistinctBy(e => e.AStringValue);
+
+            var results = this.storage.Query(query, null);
+
+            VerifyOrderedResults(results, entities, 0, 1);
+        }
+
         private List<Identifier> CreateMultipleEntities(int count, Action<int, TestEntity> factory = null)
         {
             var createdIdentifiers = new List<Identifier>();
