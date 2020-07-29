@@ -6,10 +6,10 @@ using Services.Interfaces.Entities;
 
 namespace Services.Interfaces.UnitTests
 {
-    [TestClass]
+    [TestClass, TestCategory("Unit")]
     public class ValueTypeSpec
     {
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEqualsWithNull_ThenReturnsFalse()
         {
             var result = new TestSingleValueType("avalue").Equals(null);
@@ -17,7 +17,7 @@ namespace Services.Interfaces.UnitTests
             Assert.IsFalse(result);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEqualsWithDifferentValue_ThenReturnsFalse()
         {
             var result = new TestSingleValueType("avalue").Equals(new TestSingleValueType("anothervalue"));
@@ -25,7 +25,7 @@ namespace Services.Interfaces.UnitTests
             Assert.IsFalse(result);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEqualsWithSameValue_ThenReturnsTrue()
         {
             var result = new TestSingleValueType("avalue").Equals(new TestSingleValueType("avalue"));
@@ -33,7 +33,7 @@ namespace Services.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEqualsWithDifferentValueInMultiValueType_ThenReturnsFalse()
         {
             var result =
@@ -42,7 +42,7 @@ namespace Services.Interfaces.UnitTests
             Assert.IsFalse(result);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenEqualsWithSameValueInMultiValueType_ThenReturnsTrue()
         {
             var result =

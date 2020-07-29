@@ -28,8 +28,7 @@ namespace CarsApi.UnitTests.Validators
                 Limit = 0,
                 Offset = 0,
                 Sort = "+afield",
-                Filter = "afield1;afield2",
-                Distinct = "adistinct"
+                Filter = "afield1;afield2"
             };
         }
 
@@ -156,23 +155,6 @@ namespace CarsApi.UnitTests.Validators
             this.validator.Invoking(x => x.ValidateAndThrow(this.dto)).Should().Throw<ValidationException>()
                 .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidFilter);
         }
-
-        [TestMethod]
-        public void WhenDistinctIsNull_ThenSucceeds()
-        {
-            this.dto.Distinct = null;
-
-            this.validator.ValidateAndThrow(this.dto);
-        }
-
-        [TestMethod]
-        public void WhenDistinctIsInvalid_ThenThrows()
-        {
-            this.dto.Distinct = "*";
-
-            this.validator.Invoking(x => x.ValidateAndThrow(this.dto)).Should().Throw<ValidationException>()
-                .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidDistinct);
-        }
     }
 
     public class HasSearchOptionsDto : IHasSearchOptions
@@ -184,8 +166,6 @@ namespace CarsApi.UnitTests.Validators
         public string Sort { get; set; }
 
         public string Filter { get; set; }
-
-        public string Distinct { get; set; }
 
         public string Embed { get; set; }
     }

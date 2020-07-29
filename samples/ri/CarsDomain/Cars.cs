@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using CarsDomain.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny;
@@ -58,7 +57,8 @@ namespace CarsDomain
             return car.ConvertTo<Car>();
         }
 
-        public List<Car> SearchAvailable(ICurrentCaller caller, SearchOptions searchOptions, GetOptions getOptions)
+        public SearchResults<Car> SearchAvailable(ICurrentCaller caller, SearchOptions searchOptions,
+            GetOptions getOptions)
         {
             var query = Query.From<CarEntity>()
                 .Where(e => e.OccupiedUntilUtc, ConditionOperator.LessThan, DateTime.UtcNow)
@@ -69,8 +69,8 @@ namespace CarsDomain
 
             this.logger.LogInformation("Available cars were retrieved by {Caller}", caller.Id);
 
-            return cars
-                .ConvertAll(c => WithGetOptions(c.ConvertTo<Car>(), getOptions));
+            return searchOptions.ApplyWithMetadata(cars
+                .ConvertAll(c => WithGetOptions(c.ConvertTo<Car>(), getOptions)));
         }
 
         // ReSharper disable once UnusedParameter.Local

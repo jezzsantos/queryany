@@ -7,6 +7,8 @@
 
   <ItemGroup>
     <PackageReference Include="ServiceStack.Interfaces.Core" Version="5.8.0" />
+    <PackageReference Include="ServiceStack.Text.Core" Version="5.8.0" />
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.1.2" />
   </ItemGroup>
 
   <ItemGroup>

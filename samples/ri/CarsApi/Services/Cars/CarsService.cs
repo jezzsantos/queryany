@@ -1,6 +1,7 @@
 ﻿using CarsDomain;
 using QueryAny.Primitives;
 using Services.Interfaces;
+using Services.Interfaces.Resources;
 using Services.Interfaces.ServiceOperations;
 using ServiceStack;
 
@@ -19,9 +20,13 @@ namespace CarsApi.Services.Cars
 
         public SearchAvailableCarsResponse Get(SearchAvailableCarsRequest request)
         {
+            var available = this.cars.SearchAvailable(Request.ToCaller(),
+                request.ToSearchOptions(defaultSort: Reflector<Car>.GetPropertyName(c => c.OccupiedUntilUtc)),
+                request.ToGetOptions());
             return new SearchAvailableCarsResponse
             {
-                Cars = this.cars.SearchAvailable(Request.ToCaller(), request.ToSearchOptions(), request.ToGetOptions())
+                Cars = available.Results,
+                Metadata = available.Metadata
             };
         }
 

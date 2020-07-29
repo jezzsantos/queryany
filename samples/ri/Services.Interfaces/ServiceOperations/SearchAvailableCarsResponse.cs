@@ -3,7 +3,7 @@ using Services.Interfaces.Resources;
 
 namespace Services.Interfaces.ServiceOperations
 {
-    public class SearchAvailableCarsResponse
+    public class SearchAvailableCarsResponse : SearchOperationResponse
     {
         public List<Car> Cars { get; set; }
     }

@@ -1,16 +1,18 @@
 using System;
+using System.Collections.Generic;
 using CarsDomain.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using QueryAny;
 using Services.Interfaces;
 using Services.Interfaces.Entities;
 using Storage.Interfaces;
 
 namespace CarsDomain.UnitTests
 {
-    [TestClass]
+    [TestClass, TestCategory("Unit")]
     public class CarsSpec
     {
         private Mock<ICurrentCaller> caller;
@@ -27,7 +29,7 @@ namespace CarsDomain.UnitTests
             this.cars = new Cars(this.logger.Object, this.storage.Object);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenCreate_ThenReturnsCar()
         {
             this.storage.Setup(s =>
@@ -44,7 +46,7 @@ namespace CarsDomain.UnitTests
             result.OccupiedUntilUtc.Should().Be(DateTime.MinValue);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenOccupy_ThenOccupiesAndReturnsCar()
         {
             var untilUtc = DateTime.UtcNow;
@@ -56,6 +58,17 @@ namespace CarsDomain.UnitTests
             var result = this.cars.Occupy(this.caller.Object, "acarid", untilUtc);
 
             result.Should().NotBeNull();
+        }
+
+        [TestMethod]
+        public void WhenSearchAvailable_ThenReturnsAvailableCars()
+        {
+            this.storage.Setup(s => s.Query(It.IsAny<QueryClause<CarEntity>>(), It.IsAny<SearchOptions>()))
+                .Returns(new QueryResults<CarEntity>(new List<CarEntity> {new CarEntity(this.logger.Object)}));
+
+            var result = this.cars.SearchAvailable(this.caller.Object, new SearchOptions(), new GetOptions());
+
+            result.Results.Count.Should().Be(1);
         }
     }
 }

@@ -1,4 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Dynamic.Core;
+using System.Linq.Dynamic.Core.Exceptions;
+using QueryAny.Primitives;
 
 namespace Services.Interfaces
 {
@@ -42,7 +47,92 @@ namespace Services.Interfaces
 
         public Filtering Filter { get; set; }
 
-        public string Distinct { get; set; }
+        public SearchResults<TResult> ApplyWithMetadata<TResult>(IEnumerable<TResult> results)
+        {
+            return ApplyWithMetadata(results, SearchOptions<TResult>.DynamicOrderByFunc);
+        }
+
+        private SearchResults<TResult> ApplyWithMetadata<TResult>(IEnumerable<TResult> results,
+            Func<IEnumerable<TResult>, Sorting, IEnumerable<TResult>> orderByFunc)
+        {
+            var searchResults = new SearchResults<TResult>
+            {
+                Metadata = this.ToMetadataSafe()
+            };
+
+            IEnumerable<TResult> unsorted = results.ToList();
+            searchResults.Metadata.Total = unsorted.Count();
+
+            if (IsSorted())
+            {
+                unsorted = orderByFunc(unsorted, Sort);
+            }
+
+            IEnumerable<TResult> unPaged = unsorted.ToArray();
+
+            if (IsOffSet())
+            {
+                unPaged = unPaged.Skip(Offset);
+            }
+
+            if (IsLimited())
+            {
+                var limit = Math.Min(MaxLimit, Limit);
+                unPaged = unPaged.Take(limit);
+            }
+            else
+            {
+                unPaged = unPaged.Take(DefaultLimit);
+            }
+
+            searchResults.Results = unPaged.ToList();
+
+            return searchResults;
+        }
+
+        private bool IsLimited()
+        {
+            return Limit > NoLimit;
+        }
+
+        private bool IsOffSet()
+        {
+            return Offset > NoOffset;
+        }
+
+        private bool IsSorted()
+        {
+            return Sort?.By != null && Sort.By.HasValue();
+        }
+    }
+
+    public static class SearchOptions<TResult>
+    {
+        public static Func<IEnumerable<TResult>, Sorting, IEnumerable<TResult>> DynamicOrderByFunc = (items, sorting) =>
+        {
+            var by = sorting.By;
+
+            string expression = null;
+            if (sorting.Direction == SortDirection.Ascending)
+            {
+                expression = $"{by} ascending";
+            }
+
+            if (sorting.Direction == SortDirection.Descending)
+            {
+                expression = $"{by} descending";
+            }
+
+            try
+            {
+                return items.AsQueryable().OrderBy(expression);
+            }
+            catch (ParseException)
+            {
+                // Ignore exception. Possibly an invalid sorting expression?
+                return items;
+            }
+        };
     }
 
     public class Sorting

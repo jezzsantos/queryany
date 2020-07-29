@@ -11,9 +11,8 @@ namespace CarsApi.Validators
 
     public class HasSearchOptionsValidator : AbstractValidator<IHasSearchOptions>, IHasSearchOptionsValidator
     {
-        public const string SortExpression = @"^((([\;\,]{0,1})([\+\-]{0,1})([\d\w\._]{1,25})){1,5})$";
-        public const string FilterExpression = @"^((([\;\,]{0,1})([\d\w\._]{1,25})){1,25})$";
-        public const string DistinctExpression = @"^[\d\w\._]{1,25}$";
+        private const string SortExpression = @"^((([\;\,]{0,1})([\+\-]{0,1})([\d\w\._]{1,25})){1,5})$";
+        private const string FilterExpression = @"^((([\;\,]{0,1})([\d\w\._]{1,25})){1,25})$";
 
         public HasSearchOptionsValidator(IHasGetOptionsValidator hasGetOptionsValidator)
         {
@@ -38,11 +37,6 @@ namespace CarsApi.Validators
             {
                 RuleFor(dto => dto.Filter).Matches(FilterExpression)
                     .WithMessage(Resources.HasSearchOptionsValidator_InvalidFilter);
-            });
-            When(dto => dto.Distinct.HasValue(), () =>
-            {
-                RuleFor(dto => dto.Distinct).Matches(DistinctExpression)
-                    .WithMessage(Resources.HasSearchOptionsValidator_InvalidDistinct);
             });
             When(dto => dto.Embed.HasValue(), () => { RuleFor(dto => dto).SetValidator(hasGetOptionsValidator); });
         }

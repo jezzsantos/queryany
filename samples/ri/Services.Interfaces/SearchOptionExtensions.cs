@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using QueryAny.Primitives;
+using ServiceStack;
 
 namespace Services.Interfaces
 {
@@ -8,7 +9,7 @@ namespace Services.Interfaces
     {
         public static SearchOptions ToSearchOptions(this IHasSearchOptions options, int? defaultLimit = null,
             int? defaultOffset = null, string defaultSort = null,
-            string defaultFilter = null, string defaultDistinct = null)
+            string defaultFilter = null)
         {
             if (options == null)
             {
@@ -55,19 +56,20 @@ namespace Services.Interfaces
                 }
             }
 
-            if (options.Distinct.HasValue())
+            return result;
+        }
+
+        public static SearchMetadata ToMetadataSafe(this SearchOptions options, int total = 0)
+        {
+            if (options == null)
             {
-                result.Distinct = options.Distinct;
-            }
-            else
-            {
-                if (defaultDistinct.HasValue())
-                {
-                    result.Distinct = defaultDistinct;
-                }
+                return ToMetadataSafe(new SearchOptions(), total);
             }
 
-            return result;
+            var metadata = options.ConvertTo<SearchMetadata>();
+            metadata.Total = total;
+
+            return metadata;
         }
 
         private static string ParseSortBy(string sortBy)

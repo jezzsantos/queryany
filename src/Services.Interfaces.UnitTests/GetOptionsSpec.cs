@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Services.Interfaces.UnitTests
 {
-    [TestClass]
+    [TestClass, TestCategory("Unit")]
     public class GetOptionsSpec
     {
         [TestInitialize]
@@ -12,7 +12,7 @@ namespace Services.Interfaces.UnitTests
         {
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenAll_ThenReturnsAll()
         {
             var result = HasGetOptions.All.ToGetOptions();
@@ -20,7 +20,7 @@ namespace Services.Interfaces.UnitTests
             result.Expand.Should().Be(ExpandOptions.All);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenNone_ThenReturnsNone()
         {
             var result = HasGetOptions.None.ToGetOptions();
@@ -28,7 +28,7 @@ namespace Services.Interfaces.UnitTests
             result.Expand.Should().Be(ExpandOptions.None);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenCustomWithSingleResourceReference_ThenReturnsChildResources()
         {
             var result = HasGetOptions.Custom<TestResource>(x => x.AProperty1).ToGetOptions();
@@ -38,7 +38,7 @@ namespace Services.Interfaces.UnitTests
             Assert.AreEqual("testresource.aproperty1", result.ResourceReferences.ToList()[0]);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenCustomWithMultipleResourceReferences_ThenReturnsChildResources()
         {
             var result = HasGetOptions.Custom<TestResource>(x => x.AProperty1, x => x.AProperty2).ToGetOptions();
@@ -50,7 +50,7 @@ namespace Services.Interfaces.UnitTests
         }
     }
 
-    [TestClass]
+    [TestClass, TestCategory("Unit")]
     public class HasGetOptionsExtensionsSpec
     {
         private GetOptionsDto hasGetOptions;
@@ -61,7 +61,7 @@ namespace Services.Interfaces.UnitTests
             this.hasGetOptions = new GetOptionsDto();
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenToGetOptionsAndNullOptions_ThenReturnsNull()
         {
             var result = ((GetOptionsDto) null).ToGetOptions();
@@ -69,7 +69,7 @@ namespace Services.Interfaces.UnitTests
             Assert.IsNull(result);
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenToGetOptionsAndEmbedIsUndefined_ThenReturnsEnabled()
         {
             this.hasGetOptions.Embed = null;
@@ -80,7 +80,7 @@ namespace Services.Interfaces.UnitTests
             Assert.AreEqual(0, result.ResourceReferences.Count());
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenToGetOptionsAndEmbedIsOff_ThenReturnsDisabled()
         {
             this.hasGetOptions.Embed = HasGetOptions.EmbedNone;
@@ -91,7 +91,7 @@ namespace Services.Interfaces.UnitTests
             Assert.AreEqual(0, result.ResourceReferences.Count());
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenToGetOptionsAndEmbedIsAll_ThenReturnsEnabled()
         {
             this.hasGetOptions.Embed = HasGetOptions.EmbedAll;
@@ -102,7 +102,7 @@ namespace Services.Interfaces.UnitTests
             Assert.AreEqual(0, result.ResourceReferences.Count());
         }
 
-        [TestMethod, TestCategory("Unit")]
+        [TestMethod]
         public void WhenToGetOptionsAndEmbedIsCommaDelimitedResourceReferences_ThenReturnsChildResources()
         {
             this.hasGetOptions.Embed = "aresourceref1, aresourceref2, aresourceref3,,,";
