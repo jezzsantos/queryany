@@ -32,17 +32,20 @@ namespace CarsDomain.UnitTests
         [TestMethod]
         public void WhenCreate_ThenReturnsCar()
         {
+            var make = Manufacturer.Makes[0];
+            var model = Manufacturer.Models[0];
             this.storage.Setup(s =>
                     s.Add(It.Is<CarEntity>(e =>
-                        e.Model.Year == 2010 && e.Model.Make == "amake" && e.Model.Model == "amodel")))
+                        e.Manufacturer.Year == 2010 && e.Manufacturer.Make == make &&
+                        e.Manufacturer.Model == model)))
                 .Returns(Identifier.Create("acarid"));
 
-            var result = this.cars.Create(this.caller.Object, 2010, "amake", "amodel");
+            var result = this.cars.Create(this.caller.Object, 2010, make, model);
 
             result.Id.Should().Be("acarid");
-            result.Model.Year.Should().Be(2010);
-            result.Model.Make.Should().Be("amake");
-            result.Model.Model.Should().Be("amodel");
+            result.Manufacturer.Year.Should().Be(2010);
+            result.Manufacturer.Make.Should().Be(make);
+            result.Manufacturer.Model.Should().Be(model);
             result.OccupiedUntilUtc.Should().Be(DateTime.MinValue);
         }
 

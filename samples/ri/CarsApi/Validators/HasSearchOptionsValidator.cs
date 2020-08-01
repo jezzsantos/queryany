@@ -1,4 +1,5 @@
-﻿using CarsApi.Properties;
+﻿using Api.Interfaces;
+using CarsApi.Properties;
 using QueryAny.Primitives;
 using Services.Interfaces;
 using ServiceStack.FluentValidation;

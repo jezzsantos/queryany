@@ -29,12 +29,11 @@ namespace CarsDomain
         public Car Create(ICurrentCaller caller, int year, string make, string model)
         {
             var carEntity = new CarEntity(this.logger);
-            carEntity.SetModel(year, make, model);
+            carEntity.SetManufacturer(year, make, model);
 
-            var id = this.storage.Add(carEntity);
-            carEntity.Identify(id);
+            this.storage.Add(carEntity);
 
-            this.logger.LogInformation("Car {Id} was created by {Caller}", id, caller.Id);
+            this.logger.LogInformation("Car {Id} was created by {Caller}", carEntity.Id, caller.Id);
 
             return carEntity.ConvertTo<Car>();
         }

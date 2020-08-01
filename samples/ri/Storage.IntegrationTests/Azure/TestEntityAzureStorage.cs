@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
+using Services.Interfaces.Entities;
 using Storage.Interfaces;
 
 namespace Storage.IntegrationTests.Azure

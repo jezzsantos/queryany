@@ -2,7 +2,17 @@
 
 This folder contains a very close to real world example of a REST based API for managing Cars for a Car Sharing software product, that follows many of the principles of Domain Driven Design (DDD) and Clean Architecture/Onion Architecture/Hexagonal Architecture. This is not an implementation of strict DDD.
 
-This reference implementation is not part of the QueryAny library/package, just an example of using QueryAny in practice.
+We user these terms and uphold these layers in the architecture: API (REST API), Service Operations, DTO (Data Transfer Objects), REST Resources, Service Layer (DDD Service Layer), Entities (DDD Entities), ValueType (DD ValueType), Repositories
+
+In terms of data flow to and from a REST API:
+
+* Messages come in over the wire on HTTP in Service Operations of the API. The API deserializes the HTTP request into DTO's that define a REST Resource.
+* The API Service Operations, grouped by REST resource type, then validate the inbound DTO, and delegate execution to a Domain Service Layer. (In this scheme DTO's are deconstructed to component properties). 
+* The Service Layer takes the deconstructed DTO properties, and instantiates and dehydrates entities from persistence, co-ordinates and instructs entities to do things, and then if necessary dehydrates the change in Entity state back to persistence.
+* The Service Layer then converts the entities to DTOs, and hands them back to the API.
+* The API layer then serializes the DTO over the wire, and handles the conversion of exceptions to HTTP status codes and descriptions.
+
+> Important: This reference implementation is not part of the QueryAny library/package, just an example of using QueryAny used in practice.
 
 The RI has tried not to be too strongly opinionated about the layout and naming of files/folders/assemblies on disk, other than to assume that in a small to medium sized product you too would likely split your projects/components into logical, testable layers for maintainability, reuse and future scalability (scale out), as your product grows.
 
@@ -53,9 +63,15 @@ It contains an 'application layer' (in DDD parlance) or 'Interactor' (in Clean A
 
 > We anticipate that there will be one of these assemblies for every major domain in the product.
 
-### Services.Interfaces
+### Api.Interfaces
 
-Contains shared definitions for service operations, intended to be shared across all services.
+Contains shared definitions for use by apis, intended to be shared across all apis.
+
+> We anticipate that there will be one of these assemblies for all apis in the product.
+
+### Domain.Interfaces
+
+Contains shared definitions for use by domain classes, intended to be shared across all domains.
 
 Also intended to be shared to service client libraries (if any).
 
@@ -63,7 +79,7 @@ Also intended to be shared to service client libraries (if any).
 
 ### Storage.Interfaces
 
-Contains the shared definitions of the consumers of the storage layer (i.e. the domain logic).
+Contains the shared definitions of the consumers of the storage layer (i.e. the domain application layer).
 
 Intended to define the interface for implementers of specific storage databases, and repositories.
 

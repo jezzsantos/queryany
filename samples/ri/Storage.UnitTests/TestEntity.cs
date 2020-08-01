@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using QueryAny;
 using Services.Interfaces.Entities;
 using ServiceStack;
-using Storage.Interfaces;
 
 namespace Storage.UnitTests
 {

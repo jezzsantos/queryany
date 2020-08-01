@@ -79,7 +79,7 @@ namespace CarsApi.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Model of the car must be {0}.
+        ///   Looks up a localized string similar to The Manufacturer of the car must be {0}.
         /// </summary>
         public static string CreateCarRequestValidator_InvalidModel {
             get {

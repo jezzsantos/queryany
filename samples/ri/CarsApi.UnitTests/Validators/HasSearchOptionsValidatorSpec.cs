@@ -1,3 +1,4 @@
+using Api.Interfaces;
 using CarsApi.Properties;
 using CarsApi.Validators;
 using FluentAssertions;

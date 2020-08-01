@@ -14,9 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\CarsStorage\CarsStorage.csproj" />
-    <ProjectReference Include="..\Storage.Azure\Storage.Azure.csproj" />
-    <ProjectReference Include="..\Storage\Storage.csproj" />
+    <ProjectReference Include="..\CarsStorage\CarsStorage.csproj" />
+    <ProjectReference Include="..\Api.Interfaces\Api.Interfaces.csproj" />
   </ItemGroup>
 
   <ItemGroup>

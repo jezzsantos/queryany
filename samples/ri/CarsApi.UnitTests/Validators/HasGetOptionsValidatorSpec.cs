@@ -1,8 +1,8 @@
-﻿using CarsApi.Properties;
+﻿using Api.Interfaces;
+using CarsApi.Properties;
 using CarsApi.Validators;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Services.Interfaces;
 using ServiceStack.FluentValidation;
 
 namespace CarsApi.UnitTests.Validators

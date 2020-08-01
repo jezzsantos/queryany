@@ -1,10 +1,14 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Reflection;
 using CarsApi.Validators;
 using CarsDomain;
 using CarsDomain.Entities;
 using CarsStorage;
 using Funq;
 using Microsoft.Extensions.Logging;
+using Services.Interfaces;
 using ServiceStack;
 using ServiceStack.Configuration;
 using ServiceStack.Text;
@@ -36,10 +40,31 @@ namespace CarsApi
             SetConfig(new HostConfig
             {
                 DebugMode = debugEnabled,
-                DefaultRedirectPath = "/metadata"
+                DefaultRedirectPath = "/metadata",
+                MapExceptionToStatusCode = SetupExceptionToStatusCodeMap()
             });
 
             SetupJsonResponses();
+        }
+
+        private static Dictionary<Type, int> SetupExceptionToStatusCodeMap()
+        {
+            return new Dictionary<Type, int>
+            {
+                {typeof(ValidationError), (int) HttpStatusCode.BadRequest},
+                {typeof(ArgumentException), (int) HttpStatusCode.BadRequest},
+                {typeof(ArgumentNullException), (int) HttpStatusCode.BadRequest},
+                {typeof(ArgumentOutOfRangeException), (int) HttpStatusCode.BadRequest},
+                {typeof(InvalidOperationException), (int) HttpStatusCode.BadRequest},
+                {typeof(RuleViolationException), (int) HttpStatusCode.BadRequest},
+                {typeof(AuthenticationException), (int) HttpStatusCode.Unauthorized},
+                {typeof(UnauthorizedAccessException), (int) HttpStatusCode.Unauthorized},
+                {typeof(ForbiddenException), (int) HttpStatusCode.Forbidden},
+                {typeof(ResourceNotFoundException), (int) HttpStatusCode.NotFound},
+                {typeof(RoleViolationException), (int) HttpStatusCode.NotFound},
+                {typeof(MethodNotAllowedException), (int) HttpStatusCode.MethodNotAllowed},
+                {typeof(ResourceConflictException), (int) HttpStatusCode.Conflict}
+            };
         }
 
         private static void SetupJsonResponses()

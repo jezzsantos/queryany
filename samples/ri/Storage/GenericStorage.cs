@@ -32,6 +32,10 @@ namespace Storage
         {
             entity.GuardAgainstNull(nameof(entity));
             var id = this.repository.Add(ContainerName, entity);
+            if (!entity.Id.HasValue())
+            {
+                entity.Identify(id);
+            }
 
             this.logger.LogDebug("Entity {Id} was added to repository", id);
 

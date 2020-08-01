@@ -1,6 +1,5 @@
 ﻿using System;
 using Services.Interfaces.Entities;
-using Storage.Interfaces;
 
 namespace Storage
 {

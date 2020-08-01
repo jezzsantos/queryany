@@ -1,8 +1,8 @@
-﻿using CarsDomain;
+﻿using Api.Interfaces;
+using Api.Interfaces.ServiceOperations;
+using CarsDomain;
 using QueryAny.Primitives;
-using Services.Interfaces;
 using Services.Interfaces.Resources;
-using Services.Interfaces.ServiceOperations;
 using ServiceStack;
 
 namespace CarsApi.Services.Cars

@@ -1,18 +1,18 @@
 using System;
+using Api.Interfaces.ServiceOperations;
 using CarsDomain.Entities;
 using CarsStorage;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Services.Interfaces.ServiceOperations;
 using ServiceStack;
 using Storage;
 using Storage.Interfaces;
 
 namespace CarsApi.IntegrationTests
 {
-    [TestClass]
+    [TestClass, TestCategory("Integration.NOCI")]
     public class CarsApiSpec
     {
         private const string ServiceUrl = "http://localhost:2000/";
@@ -39,7 +39,7 @@ namespace CarsApi.IntegrationTests
             this.appHost.Dispose();
         }
 
-        [TestMethod, TestCategory("Integration")]
+        [TestMethod]
         public void WhenGetAvailableAndNoCars_ThenReturnsNone()
         {
             var client = new JsonServiceClient(ServiceUrl);
@@ -49,7 +49,7 @@ namespace CarsApi.IntegrationTests
             cars.Cars.Count.Should().Be(0);
         }
 
-        [TestMethod, TestCategory("Integration")]
+        [TestMethod]
         public void WhenGetAvailableAndCars_ThenReturnsNone()
         {
             var client = new JsonServiceClient(ServiceUrl);
