@@ -2,16 +2,26 @@
 
 This folder contains a very close to real world example of a REST based API for managing Cars for a Car Sharing software product, that follows many of the principles of Domain Driven Design (DDD) and Clean Architecture/Onion Architecture/Hexagonal Architecture. This is not an implementation of strict DDD.
 
-W describe the major boundaries of this RI as either: Infrastructure, Application or Domain.
+We describe the major boundaries of this RI as either: Infrastructure, Application or Domain.
 
-We use these terms and uphold these layers in the architecture: API (REST API), Service Operations, DTO (Data Transfer Objects), REST Resources, Service Layer (DDD Service Layer), Entities (DDD Entities), ValueType (DD ValueType), Repositories
+![Architecture](https://raw.githubusercontent.com/wiki/jezzsantos/queryany/Images/Architecture.png)
 
-In terms of data flow to and from a REST API:
+We use these kinds of terms in the architecture: 
 
-* Messages come in over the wire on HTTP into Service Operations of the API. The API deserializes the HTTP request into DTO's that define a REST Resource.
-* The API Service Operations, grouped by REST resource type, then validate the inbound DTO, and delegate execution to a Domain Service Layer. (In this scheme DTO's are deconstructed to component properties). 
-* The Service Layer takes the deconstructed DTO properties, and instantiates and dehydrates entities from persistence, co-ordinates and instructs entities to do things, and then if necessary dehydrates the change in Entity state back to persistence.
-* The Service Layer then converts the entities to DTOs, and hands them back to the API.
+* API (REST API), 
+* Service Operations, 
+* DTO (Data Transfer Objects), 
+* REST Resources, 
+* Application Layer (DDD Application Layer), 
+* Entities (DDD Entities), ValueType (DDD ValueType), 
+* Repositories
+
+In terms of data flow, a typical REST API call results in an interaction like this:
+
+* Messages come in over the wire on HTTP into Service Operations of the API. The API de-serializes the HTTP request into DTO's that define a REST command.
+* The API Service Operations, grouped by REST resource type, then validate the inbound DTO command, and delegate execution to a Application  Layer. (In this scheme, DTO's are deconstructed to component properties - to save on mapping to another layer of DTO's). 
+* The Application Layer takes the deconstructed DTO properties, and instantiates and/or dehydrates entities from repositories, co-ordinates and instructs entities to do things (Tell-Dont-Ask), and then if necessary dehydrates the change in Entity state back to persistence.
+* The Application Layer then converts the entities to DTOs, and hands them back to the API.
 * The API layer then serializes the DTO over the wire, and handles the conversion of exceptions to HTTP status codes and descriptions.
 
 > Important: This reference implementation is not part of the QueryAny library/package, just an example of using QueryAny used in practice.
@@ -60,16 +70,10 @@ It contains an 'application layer' (in DDD parlance) or 'Interactor' (in Clean A
 > Design Choice: The domain entities in this implementation are relatively simple in terms of functionality and rules (close to anemic - due to limited scope of the sample). They also do not display much in the way of aggregation which is more common than not. Usually primary entities like a 'Car' would be an aggregate entity (DDD parlance), and all operations that the aggregated entities perform would be accessible through this _aggregate root_.
 
 > Design Choice: Domain entities in this RI have been specifically designed to be persistent "aware" for practicality. We use the terms Hydrate/Dehydrate to associate them to persistence support, and we define `Dictionary<string, object>` to remove the need to specify explicit DTO classes for mapping. Which side-steps an additional mapping layer.
- 
+
 > Design Choice: There are many ways to handle/decouple persistence between your entities and repositories, this is *one* pattern, you may desire another. You definitely don't want your entities to do their own persistence (like the ActiveRecord pattern does). Do could define a mapping layer to DTO's between entities and repositories (as ORM's do), but having the knowledge of what internal data an entity needs to be serialized (de-hydrated) and de-serialized (re-hydrated) is knowledge in-practice that an entity *could* legitimately have. YMMV, this pattern is absolutely flexible, scalable and simple to maintain.
 
 > We anticipate that there will be one of these assemblies for every major domain in the product.
-
-### Api.Interfaces
-
-Contains shared definitions for use by apis, intended to be shared across all apis.
-
-> We anticipate that there will be one of these assemblies for all apis in the product.
 
 ### Domain.Interfaces
 
@@ -79,11 +83,37 @@ Also intended to be shared to service client libraries (if any).
 
 > We anticipate that there will be one of these assemblies for all domains in the product.
 
+### ???.UnitTests projects
+
+Contains all unit level tests for all components in the architecture, separated by component.
+
+> We anticipate that there would probably be a separate test project per assembly to test.
+
+## Application
+
+### CarsApplication
+
+Contains the application layer consisting of services that instruct the domain entities to do things, using the Ask-Dont-Tell pattern.
+
+> We anticipate that there will be one of these assemblies for each service you have in your domain.
+
+### Api.Interfaces
+
+Contains shared definitions for use by consuming APIs, intended to be shared across all APIs.
+
+> We anticipate that there will be one of these assemblies for all APIs in the product.
+
 ### Storage.Interfaces
 
-Contains the shared definitions of the consumers of the storage layer (i.e. the domain application layer).
+Contains shared definitions for access to persistence/storage (i.e. the domain application layer).
 
 Intended to define the interface for implementers of specific storage databases, and repositories.
+
+### ???.UnitTests projects
+
+Contains all unit level tests for all components in the architecture, separated by component.
+
+> We anticipate that there would probably be a separate test project per assembly to test.
 
 
 ## Infrastructure
@@ -142,8 +172,7 @@ Contains all unit level tests for all components in the architecture, separated 
 
 # Design Notes
 
-In this RI we have a number of shortcuts in design for practical purposes, that reduce the overhead on developers for keeping strictly to pure design principles. 
-These design decisions aim to make the code easy to work with while at the same time maintain high levels of maintainability. 
+In this RI we have a number of shortcuts in design for practical purposes, that reduce the overhead on developers for keeping strictly to pure design principles. These design decisions aim to make the code easy to work with while at the same time maintain high levels of maintainability. 
 
 ## Persistence
 
@@ -168,17 +197,17 @@ For those reasons, the following sub-optimizations on specific repository implem
 * In memory joining of joined entities, in: `InProcessInMemRepository`, `RedisInMemRepository`, `AzureTableStorageRepository`, `AzureCosmosSqlApiRepository`.
 * In memory ordering, limiting, offsetting, in: `InProcessInMemRepository`, `RedisInMemRepository`, `AzureTableStorageRepository`.
 
-### Mapping Shortcut
+### Mapping Shortcuts
 
-Ideally, there would be a mapping between domain entities and DTO's whenever entities transfer over any boundaries outside the domain. 
+Ideally, there would be a mapping between domain entities and DTO's whenever entities transfer over any Application boundary. 
 
-For example 1: When HTTP requests invoke domain entities to perform activities, the data passed into entities would be in the form of DTO's coming over the wire as JSON. That requires mapping DTO -> Entity and visa versa.
+**For example 1**: When HTTP requests in a REST API invoke domain entities to perform work, the data passed into entities would be in the form of DTO's coming over the wire as JSON. That requires mapping DTO -> Entity and visa versa.
 
-For example 2: When domain entities are persisted to storage, the entity would be mapped to a DTO and then passed to a physical repository for persisting to that store. That requires mapping Entity -> DTO and visa versa.
+**For example 2**: When domain entities are persisted to storage, the entity would be mapped to a DTO and then passed to a physical repository for persisting to that store. That requires mapping Entity -> DTO and visa versa.
 
 * All these mappings (entity <-> DTO and visa-versa)  require knowledge of those mappings codified somewhere in the code. 
-* Typically, in the case of inbound invocation (eg. HTTP requests/responses), this mapping is codified outside the entity in a service contract.
-* Typically, in the case of an outbound invocation (eg. Persistence), this mapping is codified inside the entity itself.
+* Typically, in the case of inbound invocation (eg. HTTP requests/responses), this mapping is codified outside the entity in a service operation type.
+* Typically, in the case of an outbound invocation (eg. Persistence), this mapping is codified inside the entity itself or in the Application Layer.
 * The mapping code may be complex (depending on the entity's complexity), and this code may also be hard to maintain correctly. It is often tedious to maintain, difficult to type check and difficult to make cohesive.
 
 For these reasons and some others, we have taken a design shortcut in persistence mapping by making the entities opt into supporting persistency in a generic way. 
@@ -188,9 +217,9 @@ Each domain entity is required to:
  1. Define a set of properties (object dictionary) that represents the internal state of the entity (See: [Dehydrate](https://github.com/jezzsantos/queryany/blob/master/samples/ri/CarsDomain/Entities/EntityBase.cs)).
  1. Define a function that can restore the internal state of the entity from a set of properties (See: [Rehydrate](https://github.com/jezzsantos/queryany/blob/master/samples/ri/CarsDomain/Entities/EntityBase.cs)).
  1. Define an entity factory function that can be called to construct a new instance of the entity (See: [EntityFactory](https://github.com/jezzsantos/queryany/blob/master/samples/ri/Storage.Interfaces/IStorage.cs#L13)).
- 
+
  With this entity policy in effect, domain entities can maintain their full OO behaviors and encapsulation whilst participating in persistence schemes, like the one implemented in this RI. Which is typically very hard to design for most developers. 
- 
+
  > Note: Again, this is one strategy, there are many.
 
 # Local Development and Manual Testing
@@ -203,7 +232,7 @@ Each domain entity is required to:
 To manually test everything is working, or debug the code:
 
 1. Navigate to: [GET https://localhost:5001/cars/available](https://localhost:5001/cars/available) (you should get an empty array of cars in response)
-1. Using a tool ike PostMan or other REST client, create a new car by calling: `POST /cars` with a JSON body like this: `{"Year": 2020,"Make": "Honda","Model": "Civic"}`
+1. Using a tool like PostMan or other REST client, create a new car by calling: `POST /cars` with a JSON body like this: `{"Year": 2020,"Make": "Honda","Model": "Civic"}`
 
 # Automated Testing
 
