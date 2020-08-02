@@ -2,9 +2,9 @@
 using Services.Interfaces;
 using Services.Interfaces.Resources;
 
-namespace CarsDomain
+namespace CarsApplication
 {
-    public interface ICars
+    public interface ICarsApplication
     {
         Car Create(ICurrentCaller caller, int year, string make, string model);
 

@@ -6,7 +6,7 @@ using QueryAny.Primitives;
 using Services.Interfaces.Entities;
 using Storage.Interfaces;
 
-namespace CarsDomain.Entities
+namespace CarsDomain
 {
     [EntityName("Car")]
     public class CarEntity : EntityBase

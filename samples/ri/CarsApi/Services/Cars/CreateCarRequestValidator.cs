@@ -1,6 +1,6 @@
 ﻿using Api.Interfaces.ServiceOperations;
 using CarsApi.Properties;
-using CarsDomain.Entities;
+using CarsDomain;
 using QueryAny.Primitives;
 using ServiceStack.FluentValidation;
 

@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CarsApplication\CarsApplication.csproj" />
     <ProjectReference Include="..\CarsStorage\CarsStorage.csproj" />
     <ProjectReference Include="..\Api.Interfaces\Api.Interfaces.csproj" />
   </ItemGroup>

@@ -1,4 +1,4 @@
-﻿using CarsDomain.Entities;
+﻿using CarsDomain;
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using Storage;

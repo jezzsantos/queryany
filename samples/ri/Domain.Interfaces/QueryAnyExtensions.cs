@@ -53,7 +53,7 @@ namespace Services.Interfaces
             return query;
         }
 
-        private static Expression<Func<TEntity, string>> GetPropertyExpression<TEntity>(string propertyName)
+        private static Expression<Func<TEntity, object>> GetPropertyExpression<TEntity>(string propertyName)
             where TEntity : IQueryableEntity
         {
             var propertyInfo = typeof(TEntity).GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -65,8 +65,9 @@ namespace Services.Interfaces
 
             var variable = Expression.Parameter(typeof(TEntity));
             var propertySelector = Expression.Property(variable, propertyInfo);
+            var thing = Expression.Convert(propertySelector, typeof(object));
 
-            return Expression.Lambda<Func<TEntity, string>>(propertySelector, variable);
+            return Expression.Lambda<Func<TEntity, object>>(thing, variable);
         }
     }
 }

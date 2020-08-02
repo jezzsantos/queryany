@@ -1,6 +1,6 @@
 ﻿using Api.Interfaces;
 using Api.Interfaces.ServiceOperations;
-using CarsDomain;
+using CarsApplication;
 using QueryAny.Primitives;
 using Services.Interfaces.Resources;
 using ServiceStack;
@@ -9,18 +9,18 @@ namespace CarsApi.Services.Cars
 {
     internal class CarsService : Service
     {
-        private readonly ICars cars;
+        private readonly ICarsApplication carsApplication;
 
-        public CarsService(ICars cars)
+        public CarsService(ICarsApplication carsApplication)
         {
-            cars.GuardAgainstNull(nameof(cars));
+            carsApplication.GuardAgainstNull(nameof(carsApplication));
 
-            this.cars = cars;
+            this.carsApplication = carsApplication;
         }
 
         public SearchAvailableCarsResponse Get(SearchAvailableCarsRequest request)
         {
-            var available = this.cars.SearchAvailable(Request.ToCaller(),
+            var available = this.carsApplication.SearchAvailable(Request.ToCaller(),
                 request.ToSearchOptions(defaultSort: Reflector<Car>.GetPropertyName(c => c.OccupiedUntilUtc)),
                 request.ToGetOptions());
             return new SearchAvailableCarsResponse
@@ -34,7 +34,7 @@ namespace CarsApi.Services.Cars
         {
             return new CreateCarResponse
             {
-                Car = this.cars.Create(Request.ToCaller(), request.Year, request.Make, request.Model)
+                Car = this.carsApplication.Create(Request.ToCaller(), request.Year, request.Make, request.Model)
             };
         }
 
@@ -42,7 +42,7 @@ namespace CarsApi.Services.Cars
         {
             return new OccupyCarResponse
             {
-                Car = this.cars.Occupy(Request.ToCaller(), request.Id, request.UntilUtc)
+                Car = this.carsApplication.Occupy(Request.ToCaller(), request.Id, request.UntilUtc)
             };
         }
     }

@@ -1,6 +1,6 @@
 using System;
 using Api.Interfaces.ServiceOperations;
-using CarsDomain.Entities;
+using CarsDomain;
 using CarsStorage;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -12,7 +12,7 @@ using Storage.Interfaces;
 
 namespace CarsApi.IntegrationTests
 {
-    [TestClass, TestCategory("Integration.NOCI")]
+    [TestClass, TestCategory("Integration")]
     public class CarsApiSpec
     {
         private const string ServiceUrl = "http://localhost:2000/";
@@ -23,10 +23,10 @@ namespace CarsApi.IntegrationTests
         [TestInitialize]
         public void Initialize()
         {
-            this.logger = new Logger<CarsApiSpec>(new NullLoggerFactory());
+            this.appHost = new TestServiceHost();
+            this.logger = new Logger<TestServiceHost>(new NullLoggerFactory());
             this.store = CarEntityInMemStorage.Create(this.logger, new GuidIdentifierFactory());
-
-            this.appHost = new TestAppHost();
+            this.appHost.Container.AddSingleton(this.logger);
             this.appHost.Container.AddSingleton<IStorage<CarEntity>>(this.store);
 
             this.appHost.Init()
@@ -57,8 +57,8 @@ namespace CarsApi.IntegrationTests
             var car = client.Post(new CreateCarRequest
             {
                 Year = 2010,
-                Make = "Honda",
-                Model = "Civic"
+                Make = Manufacturer.Makes[0],
+                Model = Manufacturer.Models[0]
             }).Car;
             client.Put(new OccupyCarRequest
             {

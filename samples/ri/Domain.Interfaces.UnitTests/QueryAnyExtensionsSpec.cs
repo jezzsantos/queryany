@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
-using Services.Interfaces;
 
-namespace CarsDomain.UnitTests
+namespace Services.Interfaces.UnitTests
 {
     [TestClass, TestCategory("Unit")]
     public class QueryAnyExtensionsSpec

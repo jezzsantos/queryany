@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using CarsApi.Validators;
+using CarsApplication;
 using CarsDomain;
-using CarsDomain.Entities;
 using CarsStorage;
 using Funq;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services.Interfaces;
+using Services.Interfaces.Entities;
 using ServiceStack;
 using ServiceStack.Configuration;
 using ServiceStack.Text;
@@ -76,10 +78,12 @@ namespace CarsApi
 
         private static void RegisterDependencies(Container container)
         {
+            container.AddSingleton<ILogger>(c => new Logger<ServiceHost>(new NullLoggerFactory()));
+            container.AddSingleton<IIdentifierFactory, GuidIdentifierFactory>();
             container.AddSingleton<IStorage<CarEntity>>(c =>
                 CarEntityAzureStorage.Create(c.Resolve<ILogger>(), container.Resolve<IAppSettings>(),
-                    new GuidIdentifierFactory()));
-            container.AddSingleton<ICars, Cars>();
+                    c.Resolve<IIdentifierFactory>()));
+            container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
         }
 
         private void RegisterValidators(Container container)

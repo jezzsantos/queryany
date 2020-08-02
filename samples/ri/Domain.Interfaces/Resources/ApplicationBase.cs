@@ -1,6 +1,6 @@
 ﻿namespace Services.Interfaces.Resources
 {
-    public abstract class DomainObject
+    public abstract class ApplicationBase
     {
     }
 }

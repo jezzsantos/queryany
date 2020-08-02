@@ -2,11 +2,13 @@
 
 This folder contains a very close to real world example of a REST based API for managing Cars for a Car Sharing software product, that follows many of the principles of Domain Driven Design (DDD) and Clean Architecture/Onion Architecture/Hexagonal Architecture. This is not an implementation of strict DDD.
 
-We user these terms and uphold these layers in the architecture: API (REST API), Service Operations, DTO (Data Transfer Objects), REST Resources, Service Layer (DDD Service Layer), Entities (DDD Entities), ValueType (DD ValueType), Repositories
+W describe the major boundaries of this RI as either: Infrastructure, Application or Domain.
+
+We use these terms and uphold these layers in the architecture: API (REST API), Service Operations, DTO (Data Transfer Objects), REST Resources, Service Layer (DDD Service Layer), Entities (DDD Entities), ValueType (DD ValueType), Repositories
 
 In terms of data flow to and from a REST API:
 
-* Messages come in over the wire on HTTP in Service Operations of the API. The API deserializes the HTTP request into DTO's that define a REST Resource.
+* Messages come in over the wire on HTTP into Service Operations of the API. The API deserializes the HTTP request into DTO's that define a REST Resource.
 * The API Service Operations, grouped by REST resource type, then validate the inbound DTO, and delegate execution to a Domain Service Layer. (In this scheme DTO's are deconstructed to component properties). 
 * The Service Layer takes the deconstructed DTO properties, and instantiates and dehydrates entities from persistence, co-ordinates and instructs entities to do things, and then if necessary dehydrates the change in Entity state back to persistence.
 * The Service Layer then converts the entities to DTOs, and hands them back to the API.
@@ -195,7 +197,8 @@ Each domain entity is required to:
 
 1. First: [Getting Started](https://github.com/jezzsantos/queryany/wiki/Getting-Started) for details on what you need installed on your machine.
 1. Start the `CarsApi` project locally with F5. (A browser should open to API documentation site).
-1. You will need to start the Azure CosmosDB emulator on your machine (from the Start Menu), and ensure that you have manually created a new cosmos database called: "Production".
+1. You will need to start the Azure CosmosDB emulator on your machine (from the Start Menu).
+1. Ensure that you have manually created a new cosmos database called: "Production" in CosmosDB.
 
 To manually test everything is working, or debug the code:
 

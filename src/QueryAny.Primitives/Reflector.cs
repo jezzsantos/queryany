@@ -12,12 +12,18 @@ namespace QueryAny.Primitives
         /// </summary>
         public static bool IsValidPropertyName<TResult>(Expression<Func<TTarget, TResult>> property)
         {
-            if (property.Body.NodeType != ExpressionType.MemberAccess)
+            LambdaExpression expression = property;
+            if (property.Body.NodeType == ExpressionType.Convert && property.Body.Type == typeof(object))
+            {
+                expression = Expression.Lambda(((UnaryExpression) property.Body).Operand, property.Parameters);
+            }
+
+            if (expression.Body.NodeType != ExpressionType.MemberAccess)
             {
                 return false;
             }
 
-            var info = GetMemberInfo(property) as PropertyInfo;
+            var info = GetMemberInfo(expression) as PropertyInfo;
 
             return info != null;
         }
@@ -37,17 +43,7 @@ namespace QueryAny.Primitives
             return GetProperty(property).Name;
         }
 
-        /// <summary>
-        ///     Gets the property represented by the lambda expression.
-        /// </summary>
-        /// <param name="property"> An expression that accesses a property. </param>
-        /// <exception cref="ArgumentNullException"> The <paramref name="property" /> is null. </exception>
-        /// <exception cref="ArgumentException">
-        ///     The <paramref name="property" /> is not a lambda expression or it does not
-        ///     represent a property access.
-        /// </exception>
-        /// <returns> The property info. </returns>
-        public static PropertyInfo GetProperty<TResult>(Expression<Func<TTarget, TResult>> property)
+        private static PropertyInfo GetProperty<TResult>(Expression<Func<TTarget, TResult>> property)
         {
             var info = GetMemberInfo(property) as PropertyInfo;
             if (info == null)
@@ -61,6 +57,15 @@ namespace QueryAny.Primitives
         private static MemberInfo GetMemberInfo(LambdaExpression lambda)
         {
             lambda.GuardAgainstNull(nameof(lambda));
+
+            if (lambda.Body.NodeType == ExpressionType.Convert && lambda.Body.Type == typeof(object))
+            {
+                var expression = Expression.Lambda(((UnaryExpression) lambda.Body).Operand, lambda.Parameters);
+                if (expression.NodeType == ExpressionType.Lambda)
+                {
+                    return ((MemberExpression) expression.Body).Member;
+                }
+            }
 
             if (lambda.Body.NodeType == ExpressionType.MemberAccess)
             {

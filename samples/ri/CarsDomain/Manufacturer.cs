@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using QueryAny.Primitives;
 using Services.Interfaces.Entities;
 
-namespace CarsDomain.Entities
+namespace CarsDomain
 {
     public class Manufacturer : ValueType<Manufacturer>
     {

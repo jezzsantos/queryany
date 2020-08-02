@@ -1,22 +1,22 @@
 ﻿using System.Reflection;
-using CarsDomain;
+using CarsApplication;
 using Funq;
 using ServiceStack;
 
 namespace CarsApi.IntegrationTests
 {
-    public class TestAppHost : AppSelfHostBase
+    public class TestServiceHost : AppSelfHostBase
     {
         private static readonly Assembly[] AssembliesContainingServicesAndDependencies =
             {typeof(CarsApi.Startup).Assembly};
 
-        public TestAppHost() : base("MyCarsApi Testing Service", AssembliesContainingServicesAndDependencies)
+        public TestServiceHost() : base("CarsApi Testing Service", AssembliesContainingServicesAndDependencies)
         {
         }
 
         public override void Configure(Container container)
         {
-            container.AddSingleton<ICars, Cars>();
+            container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
         }
     }
 }

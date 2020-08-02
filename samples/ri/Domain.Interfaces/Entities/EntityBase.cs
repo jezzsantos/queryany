@@ -38,7 +38,7 @@ namespace Services.Interfaces.Entities
         {
             return new Dictionary<string, object>
             {
-                {nameof(Id), Id.Dehydrate()},
+                {nameof(Id), Id?.Dehydrate()},
                 {nameof(CreatedAtUtc), CreatedAtUtc},
                 {nameof(LastModifiedAtUtc), LastModifiedAtUtc}
             };
@@ -46,10 +46,6 @@ namespace Services.Interfaces.Entities
 
         public virtual void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
-            var id = properties.GetValueOrDefault<string>(nameof(Id));
-            Id = id.HasValue()
-                ? Identifier.Create(id)
-                : null;
             CreatedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(CreatedAtUtc));
             LastModifiedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(LastModifiedAtUtc));
         }
@@ -76,7 +72,10 @@ namespace Services.Interfaces.Entities
 
         public override int GetHashCode()
         {
+            // ReSharper disable once NonReadonlyMemberInGetHashCode
             return Id != null
+
+                // ReSharper disable once NonReadonlyMemberInGetHashCode
                 ? Id.GetHashCode()
                 : 0;
         }

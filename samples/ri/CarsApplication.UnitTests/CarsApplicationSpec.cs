@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using CarsDomain.Entities;
+using CarsDomain;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,23 +10,23 @@ using Services.Interfaces;
 using Services.Interfaces.Entities;
 using Storage.Interfaces;
 
-namespace CarsDomain.UnitTests
+namespace CarsApplication.UnitTests
 {
     [TestClass, TestCategory("Unit")]
-    public class CarsSpec
+    public class CarsApplicationSpec
     {
         private Mock<ICurrentCaller> caller;
-        private Cars cars;
-        private Mock<ILogger<Cars>> logger;
+        private CarsApplication carsApplication;
+        private Mock<ILogger> logger;
         private Mock<IStorage<CarEntity>> storage;
 
         [TestInitialize]
         public void Initialize()
         {
-            this.logger = new Mock<ILogger<Cars>>();
+            this.logger = new Mock<ILogger>();
             this.storage = new Mock<IStorage<CarEntity>>();
             this.caller = new Mock<ICurrentCaller>();
-            this.cars = new Cars(this.logger.Object, this.storage.Object);
+            this.carsApplication = new CarsApplication(this.logger.Object, this.storage.Object);
         }
 
         [TestMethod]
@@ -38,9 +38,9 @@ namespace CarsDomain.UnitTests
                     s.Add(It.Is<CarEntity>(e =>
                         e.Manufacturer.Year == 2010 && e.Manufacturer.Make == make &&
                         e.Manufacturer.Model == model)))
-                .Returns(Identifier.Create("acarid"));
+                .Callback((CarEntity entity) => { entity.Identify(Identifier.Create("acarid")); });
 
-            var result = this.cars.Create(this.caller.Object, 2010, make, model);
+            var result = this.carsApplication.Create(this.caller.Object, 2010, make, model);
 
             result.Id.Should().Be("acarid");
             result.Manufacturer.Year.Should().Be(2010);
@@ -58,7 +58,7 @@ namespace CarsDomain.UnitTests
                 .Returns(entity);
             this.storage.Setup(s => s.Update(It.Is<CarEntity>(e => e.OccupiedUntilUtc == untilUtc)));
 
-            var result = this.cars.Occupy(this.caller.Object, "acarid", untilUtc);
+            var result = this.carsApplication.Occupy(this.caller.Object, "acarid", untilUtc);
 
             result.Should().NotBeNull();
         }
@@ -69,7 +69,8 @@ namespace CarsDomain.UnitTests
             this.storage.Setup(s => s.Query(It.IsAny<QueryClause<CarEntity>>(), It.IsAny<SearchOptions>()))
                 .Returns(new QueryResults<CarEntity>(new List<CarEntity> {new CarEntity(this.logger.Object)}));
 
-            var result = this.cars.SearchAvailable(this.caller.Object, new SearchOptions(), new GetOptions());
+            var result =
+                this.carsApplication.SearchAvailable(this.caller.Object, new SearchOptions(), new GetOptions());
 
             result.Results.Count.Should().Be(1);
         }

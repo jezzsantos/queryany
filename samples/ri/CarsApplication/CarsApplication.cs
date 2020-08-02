@@ -1,5 +1,5 @@
 ﻿using System;
-using CarsDomain.Entities;
+using CarsDomain;
 using Microsoft.Extensions.Logging;
 using QueryAny;
 using QueryAny.Primitives;
@@ -9,14 +9,14 @@ using Services.Interfaces.Resources;
 using ServiceStack;
 using Storage.Interfaces;
 
-namespace CarsDomain
+namespace CarsApplication
 {
-    public class Cars : DomainObject, ICars
+    public class CarsApplication : ApplicationBase, ICarsApplication
     {
         private readonly ILogger logger;
         private readonly IStorage<CarEntity> storage;
 
-        public Cars(ILogger<Cars> logger, IStorage<CarEntity> storage)
+        public CarsApplication(ILogger logger, IStorage<CarEntity> storage)
         {
             logger.GuardAgainstNull(nameof(logger));
             storage.GuardAgainstNull(nameof(storage));
@@ -28,6 +28,8 @@ namespace CarsDomain
 
         public Car Create(ICurrentCaller caller, int year, string make, string model)
         {
+            caller.GuardAgainstNull(nameof(caller));
+
             var carEntity = new CarEntity(this.logger);
             carEntity.SetManufacturer(year, make, model);
 
@@ -40,6 +42,7 @@ namespace CarsDomain
 
         public Car Occupy(ICurrentCaller caller, string id, in DateTime untilUtc)
         {
+            caller.GuardAgainstNull(nameof(caller));
             id.GuardAgainstNullOrEmpty(nameof(id));
 
             var car = this.storage.Get(Identifier.Create(id));
@@ -59,6 +62,8 @@ namespace CarsDomain
         public SearchResults<Car> SearchAvailable(ICurrentCaller caller, SearchOptions searchOptions,
             GetOptions getOptions)
         {
+            caller.GuardAgainstNull(nameof(caller));
+
             var query = Query.From<CarEntity>()
                 .Where(e => e.OccupiedUntilUtc, ConditionOperator.LessThan, DateTime.UtcNow)
                 .WithSearchOptions(searchOptions);
@@ -66,7 +71,7 @@ namespace CarsDomain
             var cars = this.storage.Query(query, searchOptions)
                 .Results;
 
-            this.logger.LogInformation("Available cars were retrieved by {Caller}", caller.Id);
+            this.logger.LogInformation("Available carsApplication were retrieved by {Caller}", caller.Id);
 
             return searchOptions.ApplyWithMetadata(cars
                 .ConvertAll(c => WithGetOptions(c.ConvertTo<Car>(), getOptions)));

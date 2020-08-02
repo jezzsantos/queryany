@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Services.Interfaces.Entities;
@@ -6,7 +7,7 @@ using Services.Interfaces.Entities;
 namespace Services.Interfaces.UnitTests
 {
     [TestClass, TestCategory("Unit")]
-    public class EntitySpec
+    public class EntityBaseSpec
     {
         private TestEntity entity;
 
@@ -109,6 +110,51 @@ namespace Services.Interfaces.UnitTests
             var result = this.entity.Equals(this.entity);
 
             result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void WhenDehydrateAndNoIdentifier_ThenReturnsBaseProperties()
+        {
+            var now = DateTime.UtcNow;
+
+            var result = this.entity.Dehydrate();
+
+            result.Count.Should().Be(3);
+            result[nameof(EntityBase.Id)].Should().BeNull();
+            ((DateTime) result[nameof(EntityBase.CreatedAtUtc)]).Should().BeCloseTo(now, 500);
+            ((DateTime) result[nameof(EntityBase.LastModifiedAtUtc)]).Should().BeCloseTo(now, 500);
+        }
+
+        [TestMethod]
+        public void WhenDehydrate_ThenReturnsBaseProperties()
+        {
+            var now = DateTime.UtcNow;
+            this.entity.Identify(Identifier.Create("anid"));
+
+            var result = this.entity.Dehydrate();
+
+            result.Count.Should().Be(3);
+            result[nameof(EntityBase.Id)].Should().Be("anid");
+            ((DateTime) result[nameof(EntityBase.CreatedAtUtc)]).Should().BeCloseTo(now, 500);
+            ((DateTime) result[nameof(EntityBase.LastModifiedAtUtc)]).Should().BeCloseTo(now, 500);
+        }
+
+        [TestMethod]
+        public void WhenRehydrate_ThenBasePropertiesLessIdentifierHydrated()
+        {
+            var datum = DateTime.UtcNow.AddYears(1);
+            var properties = new Dictionary<string, object>
+            {
+                {nameof(EntityBase.Id), "anid"},
+                {nameof(EntityBase.CreatedAtUtc), datum},
+                {nameof(EntityBase.LastModifiedAtUtc), datum}
+            };
+
+            this.entity.Rehydrate(properties);
+
+            this.entity.Id.Should().BeNull();
+            this.entity.CreatedAtUtc.Should().Be(datum);
+            this.entity.LastModifiedAtUtc.Should().Be(datum);
         }
     }
 }
