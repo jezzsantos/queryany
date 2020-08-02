@@ -140,7 +140,7 @@ namespace Services.Interfaces.UnitTests
         }
 
         [TestMethod]
-        public void WhenRehydrate_ThenBasePropertiesLessIdentifierHydrated()
+        public void WhenRehydrate_ThenBasePropertiesHydrated()
         {
             var datum = DateTime.UtcNow.AddYears(1);
             var properties = new Dictionary<string, object>
@@ -152,7 +152,7 @@ namespace Services.Interfaces.UnitTests
 
             this.entity.Rehydrate(properties);
 
-            this.entity.Id.Should().BeNull();
+            this.entity.Id.Should().Be(Identifier.Create("anid"));
             this.entity.CreatedAtUtc.Should().Be(datum);
             this.entity.LastModifiedAtUtc.Should().Be(datum);
         }

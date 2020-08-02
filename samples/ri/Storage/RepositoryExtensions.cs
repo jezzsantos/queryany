@@ -163,26 +163,31 @@ namespace Storage
                 .ToList();
         }
 
-        public static TEntity CreateEntity<TEntity>(this IReadOnlyDictionary<string, object> propertyValues,
+        public static TEntity CreateEntity<TEntity>(this IDictionary<string, object> propertyValues,
             Identifier id, EntityFactory<TEntity> entityFactory) where TEntity : IPersistableEntity
         {
             return (TEntity) CreateEntityInternal(propertyValues, id, properties => entityFactory(properties));
         }
 
-        public static IPersistableEntity CreateEntity(this IReadOnlyDictionary<string, object> propertyValues,
+        public static IPersistableEntity CreateEntity(this IDictionary<string, object> propertyValues,
             string id, EntityFactory<IPersistableEntity> entityFactory)
         {
             return CreateEntityInternal(propertyValues, Identifier.Create(id), entityFactory);
         }
 
-        private static IPersistableEntity CreateEntityInternal(this IReadOnlyDictionary<string, object> propertyValues,
+        private static IPersistableEntity CreateEntityInternal(this IDictionary<string, object> propertyValues,
             Identifier id, EntityFactory<IPersistableEntity> entityFactory)
         {
             try
             {
-                var entity = entityFactory(propertyValues);
-                entity.Rehydrate(propertyValues);
-                entity.Identify(id);
+                var propertiesWithIdentifier = new Dictionary<string, object>(propertyValues);
+                if (!propertiesWithIdentifier.ContainsKey(nameof(IIdentifiableEntity.Id)))
+                {
+                    propertiesWithIdentifier.Add(nameof(IIdentifiableEntity.Id), id);
+                }
+
+                var entity = entityFactory(propertiesWithIdentifier);
+                entity.Rehydrate(propertiesWithIdentifier);
 
                 return entity;
             }
