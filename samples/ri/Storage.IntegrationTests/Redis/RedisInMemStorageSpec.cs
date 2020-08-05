@@ -48,7 +48,7 @@ namespace Storage.IntegrationTests.Redis
             where TEntity : IPersistableEntity
         {
             public TestEntityInMemStorage(ILogger logger, EntityFactory<TEntity> entityFactory,
-                RedisInMemRepository repository, string containerName) : base(
+                IRepository repository, string containerName) : base(
                 logger, entityFactory, repository)
             {
                 containerName.GuardAgainstNullOrEmpty(nameof(containerName));
