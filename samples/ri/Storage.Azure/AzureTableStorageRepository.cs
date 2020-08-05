@@ -83,17 +83,11 @@ namespace Storage.Azure
         {
             var table = EnsureTable(containerName);
 
-            var tableEntity = RetrieveTableEntitySafe(table, id);
-            if (tableEntity != null)
-            {
-                var result = SafeExecute(table,
-                        () => table.Execute(TableOperation.InsertOrReplace(entity.ToTableEntity(this.options))))
-                    .Result as DynamicTableEntity;
+            var result = SafeExecute(table,
+                    () => table.Execute(TableOperation.InsertOrReplace(entity.ToTableEntity(this.options))))
+                .Result as DynamicTableEntity;
 
-                return result.FromTableEntity(this.options, entityFactory);
-            }
-
-            return default;
+            return result.FromTableEntity(this.options, entityFactory);
         }
 
         public long Count(string containerName)

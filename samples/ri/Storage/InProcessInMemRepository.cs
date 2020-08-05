@@ -54,18 +54,10 @@ namespace Storage
             EntityFactory<TEntity> entityFactory)
             where TEntity : IPersistableEntity
         {
-            if (this.containers.ContainsKey(containerName))
-            {
-                if (this.containers[containerName].ContainsKey(id))
-                {
-                    var entityProperties = entity.ToContainerProperties();
-                    this.containers[containerName][id] = entityProperties;
+            var entityProperties = entity.ToContainerProperties();
+            this.containers[containerName][id] = entityProperties;
 
-                    return entityProperties.FromContainerProperties(id, entityFactory);
-                }
-            }
-
-            return default;
+            return entityProperties.FromContainerProperties(id, entityFactory);
         }
 
         public TEntity Retrieve<TEntity>(string containerName, Identifier id, EntityFactory<TEntity> entityFactory)

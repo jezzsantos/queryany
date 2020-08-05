@@ -69,17 +69,12 @@ namespace Storage.Redis
         {
             var client = EnsureClient();
 
-            if (Exists(client, containerName, id))
-            {
-                var keyValues = entity.ToContainerEntity();
-                var key = CreateRowKey(containerName, id);
-                client.Remove(key);
-                client.SetRangeInHash(key, keyValues);
+            var keyValues = entity.ToContainerEntity();
+            var key = CreateRowKey(containerName, id);
+            client.Remove(key);
+            client.SetRangeInHash(key, keyValues);
 
-                return keyValues.FromContainerProperties(id.Get(), entityFactory);
-            }
-
-            return default;
+            return keyValues.FromContainerProperties(id.Get(), entityFactory);
         }
 
         public long Count(string containerName)

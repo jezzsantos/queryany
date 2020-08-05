@@ -76,15 +76,9 @@ namespace Storage.Azure
         {
             var container = EnsureContainer(containerName);
 
-            var containerEntity = RetrieveContainerEntitySafe(container, id, entityFactory);
-            if (containerEntity != null)
-            {
-                var thing = container.UpsertItemAsync<dynamic>(entity.ToContainerEntity()).GetAwaiter().GetResult();
+            var result = container.UpsertItemAsync<dynamic>(entity.ToContainerEntity()).GetAwaiter().GetResult();
 
-                return ((JObject) thing.Resource).FromContainerEntity(entityFactory);
-            }
-
-            return default;
+            return ((JObject) result.Resource).FromContainerEntity(entityFactory);
         }
 
         public long Count(string containerName)

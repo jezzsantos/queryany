@@ -65,9 +65,9 @@ namespace Services.Interfaces
 
             var variable = Expression.Parameter(typeof(TEntity));
             var propertySelector = Expression.Property(variable, propertyInfo);
-            var thing = Expression.Convert(propertySelector, typeof(object));
+            var conversion = Expression.Convert(propertySelector, typeof(object));
 
-            return Expression.Lambda<Func<TEntity, object>>(thing, variable);
+            return Expression.Lambda<Func<TEntity, object>>(conversion, variable);
         }
     }
 }
