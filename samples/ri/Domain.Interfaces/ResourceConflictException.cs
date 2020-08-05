@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Services.Interfaces
+namespace Domain.Interfaces
 {
     [Serializable]
     public class ResourceConflictException : Exception

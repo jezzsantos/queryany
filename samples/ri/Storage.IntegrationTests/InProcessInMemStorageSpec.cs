@@ -1,7 +1,7 @@
+using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny.Primitives;
-using Services.Interfaces.Entities;
 using Storage.Interfaces;
 
 namespace Storage.IntegrationTests

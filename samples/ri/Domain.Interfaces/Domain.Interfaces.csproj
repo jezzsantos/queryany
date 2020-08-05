@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <RootNamespace>Services.Interfaces</RootNamespace>
+    <RootNamespace>Domain.Interfaces</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

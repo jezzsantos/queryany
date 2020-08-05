@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Domain.Interfaces;
 using QueryAny.Primitives;
-using Services.Interfaces;
 
 namespace Api.Interfaces
 {

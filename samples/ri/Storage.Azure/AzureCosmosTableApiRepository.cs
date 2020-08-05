@@ -1,4 +1,4 @@
-﻿using Services.Interfaces.Entities;
+﻿using Domain.Interfaces.Entities;
 
 namespace Storage.Azure
 {

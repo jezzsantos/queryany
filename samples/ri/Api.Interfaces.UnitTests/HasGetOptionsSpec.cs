@@ -1,7 +1,7 @@
 ﻿using System.Linq;
+using Domain.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Services.Interfaces;
 
 namespace Api.Interfaces.UnitTests
 {

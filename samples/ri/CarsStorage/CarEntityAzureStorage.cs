@@ -1,11 +1,10 @@
 ﻿using CarsDomain;
+using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
-using Services.Interfaces.Entities;
 using ServiceStack.Configuration;
 using Storage;
 using Storage.Azure;
-using Storage.Interfaces;
 
 namespace CarsStorage
 {

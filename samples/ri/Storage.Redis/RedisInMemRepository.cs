@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
+using Domain.Interfaces.Entities;
 using QueryAny;
 using QueryAny.Primitives;
-using Services.Interfaces.Entities;
 using ServiceStack;
 using ServiceStack.Redis;
-using Storage.Interfaces;
 using StringExtensions = ServiceStack.StringExtensions;
 
 namespace Storage.Redis

@@ -5,7 +5,7 @@ using System.Reflection;
 using QueryAny;
 using QueryAny.Primitives;
 
-namespace Services.Interfaces
+namespace Domain.Interfaces
 {
     public static class QueryAnyExtensions
     {

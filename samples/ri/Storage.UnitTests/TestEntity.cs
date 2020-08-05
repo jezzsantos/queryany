@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Domain.Interfaces.Entities;
 using QueryAny;
-using Services.Interfaces.Entities;
 using ServiceStack;
 
 namespace Storage.UnitTests

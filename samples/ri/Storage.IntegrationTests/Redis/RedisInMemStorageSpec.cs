@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
+using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny.Primitives;
-using Services.Interfaces.Entities;
 using Storage.Interfaces;
 using Storage.Redis;
 

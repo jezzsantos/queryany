@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Services.Interfaces.Resources;
+using Domain.Interfaces.Resources;
 
 namespace Api.Interfaces.ServiceOperations
 {

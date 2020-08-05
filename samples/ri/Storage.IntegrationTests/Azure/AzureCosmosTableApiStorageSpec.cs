@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Storage.Azure;

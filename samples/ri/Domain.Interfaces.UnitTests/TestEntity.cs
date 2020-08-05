@@ -1,6 +1,6 @@
-﻿using Services.Interfaces.Entities;
+﻿using Domain.Interfaces.Entities;
 
-namespace Services.Interfaces.UnitTests
+namespace Domain.Interfaces.UnitTests
 {
     public class TestEntity : EntityBase
     {

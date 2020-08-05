@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Domain.Interfaces;
+using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
-using Services.Interfaces;
-using Services.Interfaces.Entities;
 using ServiceStack;
 using Storage.Interfaces;
 

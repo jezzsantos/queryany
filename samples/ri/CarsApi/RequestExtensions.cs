@@ -1,5 +1,5 @@
 ﻿using CarsApi.Auth;
-using Services.Interfaces;
+using Domain.Interfaces;
 using ServiceStack.Web;
 
 namespace CarsApi

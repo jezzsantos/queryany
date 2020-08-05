@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Services.Interfaces.Resources
+namespace Domain.Interfaces.Resources
 {
     public class Car : IIdentifiableResource
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Services.Interfaces.Entities
+namespace Domain.Interfaces.Entities
 {
     /// <summary>
     ///     Defines an immutable DDD value type.

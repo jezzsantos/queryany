@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using CarsDomain;
+using Domain.Interfaces;
+using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using QueryAny;
-using Services.Interfaces;
-using Services.Interfaces.Entities;
 using Storage.Interfaces;
 
 namespace CarsApplication.UnitTests

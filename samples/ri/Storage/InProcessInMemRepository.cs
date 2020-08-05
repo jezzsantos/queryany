@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Text;
+using Domain.Interfaces.Entities;
 using QueryAny;
 using QueryAny.Primitives;
-using Services.Interfaces.Entities;
-using Storage.Interfaces;
 
 namespace Storage
 {

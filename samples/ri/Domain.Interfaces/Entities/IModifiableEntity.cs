@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Services.Interfaces.Entities
+namespace Domain.Interfaces.Entities
 {
     public interface IModifiableEntity
     {

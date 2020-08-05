@@ -1,6 +1,6 @@
 ﻿using ServiceStack;
 
-namespace Services.Interfaces
+namespace Domain.Interfaces
 {
     public static class SearchOptionExtensions
     {

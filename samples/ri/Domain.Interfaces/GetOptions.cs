@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace Services.Interfaces
+namespace Domain.Interfaces
 {
     public class GetOptions
     {

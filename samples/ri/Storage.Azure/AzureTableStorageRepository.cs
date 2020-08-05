@@ -4,14 +4,13 @@ using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Net;
 using System.Text;
+using Domain.Interfaces;
+using Domain.Interfaces.Entities;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.Cosmos.Table.Protocol;
 using QueryAny;
 using QueryAny.Primitives;
-using Services.Interfaces;
-using Services.Interfaces.Entities;
 using ServiceStack;
-using Storage.Interfaces;
 
 namespace Storage.Azure
 {

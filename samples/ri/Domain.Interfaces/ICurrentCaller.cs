@@ -1,4 +1,4 @@
-﻿namespace Services.Interfaces
+﻿namespace Domain.Interfaces
 {
     public interface ICurrentCaller
     {

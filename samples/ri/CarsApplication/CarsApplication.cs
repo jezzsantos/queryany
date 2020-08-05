@@ -1,11 +1,11 @@
 ﻿using System;
 using CarsDomain;
+using Domain.Interfaces;
+using Domain.Interfaces.Entities;
+using Domain.Interfaces.Resources;
 using Microsoft.Extensions.Logging;
 using QueryAny;
 using QueryAny.Primitives;
-using Services.Interfaces;
-using Services.Interfaces.Entities;
-using Services.Interfaces.Resources;
 using ServiceStack;
 using Storage.Interfaces;
 

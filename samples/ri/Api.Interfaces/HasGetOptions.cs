@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
-using Services.Interfaces;
+using Domain.Interfaces;
 
 namespace Api.Interfaces
 {

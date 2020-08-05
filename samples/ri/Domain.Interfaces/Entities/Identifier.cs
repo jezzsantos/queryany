@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using QueryAny.Primitives;
 
-namespace Services.Interfaces.Entities
+namespace Domain.Interfaces.Entities
 {
     public class Identifier : ValueType<Identifier>
     {

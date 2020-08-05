@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
+using Domain.Interfaces.Entities;
 using QueryAny;
-using Services.Interfaces.Entities;
-using Storage.Interfaces;
 
 namespace Storage
 {

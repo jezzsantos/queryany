@@ -1,4 +1,4 @@
-﻿using Services.Interfaces;
+﻿using Domain.Interfaces;
 
 namespace CarsApi.Auth
 {

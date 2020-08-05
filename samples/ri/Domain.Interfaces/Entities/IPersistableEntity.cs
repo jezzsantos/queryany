@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using QueryAny;
 
-namespace Services.Interfaces.Entities
+namespace Domain.Interfaces.Entities
 {
     public interface IPersistableEntity : IModifiableEntity, IIdentifiableEntity, IQueryableEntity
     {

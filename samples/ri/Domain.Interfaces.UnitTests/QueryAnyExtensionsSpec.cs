@@ -4,7 +4,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 
-namespace Services.Interfaces.UnitTests
+namespace Domain.Interfaces.UnitTests
 {
     [TestClass, TestCategory("Unit")]
     public class QueryAnyExtensionsSpec

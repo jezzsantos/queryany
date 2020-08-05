@@ -1,10 +1,10 @@
 using Api.Interfaces;
 using CarsApi.Properties;
 using CarsApi.Validators;
+using Domain.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Services.Interfaces;
 using ServiceStack.FluentValidation;
 using ServiceStack.FluentValidation.Results;
 

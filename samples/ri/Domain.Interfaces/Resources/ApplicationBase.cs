@@ -1,4 +1,4 @@
-﻿namespace Services.Interfaces.Resources
+﻿namespace Domain.Interfaces.Resources
 {
     public abstract class ApplicationBase
     {

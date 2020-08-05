@@ -5,7 +5,7 @@ using System.Linq.Dynamic.Core;
 using System.Linq.Dynamic.Core.Exceptions;
 using QueryAny.Primitives;
 
-namespace Services.Interfaces
+namespace Domain.Interfaces
 {
     public class SearchOptions
     {

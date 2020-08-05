@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
+using Domain.Interfaces;
+using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny;
 using QueryAny.Primitives;
-using Services.Interfaces;
-using Services.Interfaces.Entities;
 using ServiceStack;
 using Storage.Interfaces;
 

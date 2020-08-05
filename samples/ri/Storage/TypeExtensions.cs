@@ -1,5 +1,5 @@
 ﻿using System;
-using Services.Interfaces.Entities;
+using Domain.Interfaces.Entities;
 
 namespace Storage
 {

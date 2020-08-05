@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Services.Interfaces.Entities;
 
-namespace Services.Interfaces.UnitTests
+namespace Domain.Interfaces.UnitTests
 {
     [TestClass, TestCategory("Unit")]
     public class EntityBaseSpec

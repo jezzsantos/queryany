@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
-    <RootNamespace>Services.Interfaces.UnitTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,8 +1,8 @@
 ﻿using CarsDomain;
+using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using Storage;
-using Storage.Interfaces;
 
 namespace CarsStorage
 {

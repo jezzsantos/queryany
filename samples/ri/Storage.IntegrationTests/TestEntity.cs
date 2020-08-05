@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Domain.Interfaces.Entities;
 using QueryAny;
 using QueryAny.Primitives;
-using Services.Interfaces.Entities;
 using ServiceStack;
-using Storage.Interfaces;
 
 namespace Storage.IntegrationTests
 {

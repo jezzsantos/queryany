@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using QueryAny.Primitives;
 
-namespace Services.Interfaces
+namespace Domain.Interfaces
 {
     public static class GetOptionsExtensions
     {
