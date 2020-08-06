@@ -5,31 +5,33 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny.Primitives;
 using Storage.Interfaces;
-using Storage.Redis;
+using Storage.Sql;
 
-namespace Storage.IntegrationTests.Redis
+namespace Storage.IntegrationTests.Sql
 {
-    [TestClass, TestCategory("Integration")]
-    public class RedisInMemStorageSpec : RedisInMemStorageBaseSpec
+    [TestClass, TestCategory("Integration.NOCI")]
+    public class SqlServerStorageSpec : SqlServerStorageBaseSpec
     {
-        private static RedisInMemRepository repository;
+        private static SqlServerRepository repository;
         private readonly Dictionary<string, object> stores = new Dictionary<string, object>();
 
-
         [ClassInitialize]
-        public new static void InitializeAllTests(TestContext context)
+        public static void InitializeAllTests(TestContext context)
         {
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
-            var localServerConnectionString = config["RedisConnectionString"];
+            var hostName = config["AzureSqlServerDbHostName"];
+            var databaseName = "TestDatabase";
             repository =
-                new RedisInMemRepository(localServerConnectionString, new GuidIdentifierFactory());
-            RedisInMemStorageBaseSpec.InitializeAllTests(context);
+                new SqlServerRepository(
+                    $"Persist Security Info=False;Integrated Security=true;Initial Catalog={databaseName};Server={hostName}",
+                    new GuidIdentifierFactory());
+            InitializeAllTests(context, databaseName);
         }
 
         [ClassCleanup]
         public new static void CleanupAllTests()
         {
-            RedisInMemStorageBaseSpec.CleanupAllTests();
+            SqlServerStorageBaseSpec.CleanupAllTests();
         }
 
         protected override IStorage<TEntity> GetStore<TEntity>(string containerName,
@@ -38,16 +40,16 @@ namespace Storage.IntegrationTests.Redis
             if (!this.stores.ContainsKey(containerName))
             {
                 this.stores.Add(containerName,
-                    new TestEntityInMemStorage<TEntity>(Logger, entityFactory, repository, containerName));
+                    new TestEntitySqlStorage<TEntity>(Logger, entityFactory, repository, containerName));
             }
 
             return (IStorage<TEntity>) this.stores[containerName];
         }
 
-        private class TestEntityInMemStorage<TEntity> : GenericStorage<TEntity>
+        private class TestEntitySqlStorage<TEntity> : GenericStorage<TEntity>
             where TEntity : IPersistableEntity
         {
-            public TestEntityInMemStorage(ILogger logger, EntityFactory<TEntity> entityFactory,
+            public TestEntitySqlStorage(ILogger logger, EntityFactory<TEntity> entityFactory,
                 IRepository repository, string containerName) : base(
                 logger, entityFactory, repository)
             {

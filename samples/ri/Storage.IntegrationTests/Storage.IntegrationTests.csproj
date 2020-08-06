@@ -19,11 +19,16 @@
     <ItemGroup>
       <ProjectReference Include="..\Storage.Azure\Storage.Azure.csproj" />
       <ProjectReference Include="..\Storage.Redis\Storage.Redis.csproj" />
+      <ProjectReference Include="..\Storage.Sql\Storage.Sql.csproj" />
       <ProjectReference Include="..\Storage\Storage.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <Content Include="appsettings.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="Sql\RegenerateDatabase.sql" />
+      <Content Include="Sql\RegenerateDatabase.sql">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
     </ItemGroup>

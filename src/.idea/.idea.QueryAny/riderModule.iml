@@ -2,6 +2,7 @@
 <module type="RIDER_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$/../../../README.md" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.Sql" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Api.Interfaces" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Api.Interfaces.UnitTests" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/CarsApi" />

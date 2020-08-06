@@ -9,7 +9,7 @@ namespace Storage.IntegrationTests.Redis
     {
         private const string RedisServerServiceName = @"redis";
 
-        protected static void InitializeAllTests(TestContext context, string startupArguments)
+        protected static void InitializeAllTests(TestContext context)
         {
             EnsureRedisServerIsStarted();
         }

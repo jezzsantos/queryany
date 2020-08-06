@@ -15,7 +15,7 @@ namespace Storage.Azure
     public class AzureCosmosSqlApiRepository : IRepository
     {
         internal const string IdentifierPropertyName = @"id";
-        internal const string ContainerAlias = @"t";
+        internal const string PrimaryContainerAlias = @"t";
         private const int DefaultThroughput = 400;
         private static readonly string DefaultPartitionKeyPath = $"/{IdentifierPropertyName}";
         private readonly string connectionString;
@@ -199,9 +199,9 @@ namespace Storage.Azure
                 .Concat(new[] {joinedEntity.Join.Right.JoinedFieldName, IdentifierPropertyName});
             var selectedFields = string.Join(", ",
                 selectedPropertyNames
-                    .Select(name => $"{ContainerAlias}.{name}"));
+                    .Select(name => $"{PrimaryContainerAlias}.{name}"));
 
-            var filter = $"SELECT {selectedFields} FROM {containerName} {ContainerAlias} WHERE ({query})";
+            var filter = $"SELECT {selectedFields} FROM {containerName} {PrimaryContainerAlias} WHERE ({query})";
             var containerQuery = new QueryDefinition(filter);
 
             return container.GetItemQueryIterator<object>(containerQuery)
@@ -453,7 +453,7 @@ namespace Storage.Azure
         {
             var builder = new StringBuilder();
             builder.Append($"SELECT {query.ToAzureCosmosSqlApiSelectClause()}");
-            builder.Append($" FROM {containerName} {AzureCosmosSqlApiRepository.ContainerAlias}");
+            builder.Append($" FROM {containerName} {AzureCosmosSqlApiRepository.PrimaryContainerAlias}");
 
             var wheres = query.Wheres.ToAzureCosmosSqlApiWhereClause();
             if (wheres.HasValue())
@@ -482,10 +482,10 @@ namespace Storage.Azure
                 var builder = new StringBuilder();
 
                 builder.Append(
-                    $"{AzureCosmosSqlApiRepository.ContainerAlias}.{AzureCosmosSqlApiRepository.IdentifierPropertyName}");
+                    $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{AzureCosmosSqlApiRepository.IdentifierPropertyName}");
                 foreach (var select in query.PrimaryEntity.Selects)
                 {
-                    builder.Append($", {AzureCosmosSqlApiRepository.ContainerAlias}.{select.FieldName}");
+                    builder.Append($", {AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{select.FieldName}");
                 }
 
                 return builder.ToString();
@@ -503,7 +503,7 @@ namespace Storage.Azure
                 : "DESC";
             var by = query.GetDefaultOrdering();
 
-            return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{by} {direction}";
+            return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{by} {direction}";
         }
 
         public static string ToAzureCosmosSqlApiWhereClause(this IReadOnlyList<WhereExpression> wheres)
@@ -600,35 +600,35 @@ namespace Storage.Azure
             switch (value)
             {
                 case string text:
-                    return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{text}'";
+                    return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{text}'";
 
                 case DateTime dateTime:
                     return dateTime.HasValue()
-                        ? $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ss.fffffffZ}'"
-                        : $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ssZ}'";
+                        ? $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ss.fffffffZ}'"
+                        : $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ssZ}'";
 
                 case DateTimeOffset dateTimeOffset:
                     return
-                        $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{dateTimeOffset:O}'";
+                        $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTimeOffset:O}'";
 
                 case bool _:
                     return
-                        $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} {value.ToString().ToLowerInvariant()}";
+                        $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} {value.ToString().ToLowerInvariant()}";
 
                 case double _:
                 case int _:
                 case long _:
-                    return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} {value}";
+                    return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} {value}";
 
                 case byte[] bytes:
                     return
-                        $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{Convert.ToBase64String(bytes)}'";
+                        $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{Convert.ToBase64String(bytes)}'";
 
                 case Guid guid:
-                    return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{guid:D}'";
+                    return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{guid:D}'";
 
                 case null:
-                    return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} null";
+                    return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} null";
 
                 default:
                     return value.ToOtherValueString(fieldName, @operator);
@@ -639,20 +639,20 @@ namespace Storage.Azure
         {
             if (value == null)
             {
-                return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} null";
+                return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} null";
             }
 
             if (value is IPersistableValueType valueType)
             {
                 return
-                    $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{valueType.Dehydrate()}'";
+                    $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{valueType.Dehydrate()}'";
             }
 
             var escapedValue = value
                 .ToString()
                 .Replace("\"", "\\\"");
 
-            return $"{AzureCosmosSqlApiRepository.ContainerAlias}.{fieldName} {@operator} '{escapedValue}'";
+            return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{escapedValue}'";
         }
     }
 }
