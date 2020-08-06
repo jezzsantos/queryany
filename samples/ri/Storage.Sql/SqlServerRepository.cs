@@ -96,21 +96,21 @@ namespace Storage.Sql
         {
             static void OverwriteJoinedSelects(IDictionary<string, object> result)
             {
-                var updated = new Dictionary<string, object>();
+                var overwrites = new Dictionary<string, object>();
                 foreach (var (key, value) in result)
                 {
                     if (key.StartsWith(JoinedEntityFieldAliasPrefix))
                     {
                         var primaryFieldName = key.Remove(0, JoinedEntityFieldAliasPrefix.Length);
-                        if (value.IsDbNull())
+                        if (!value.IsDbNull())
                         {
-                            updated.Add(primaryFieldName, value);
+                            overwrites.Add(primaryFieldName, value);
                         }
                     }
                 }
-                if (updated.Any())
+                if (overwrites.Any())
                 {
-                    foreach (var (key, value) in updated)
+                    foreach (var (key, value) in overwrites)
                     {
                         result[key] = value;
                     }
