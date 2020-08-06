@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
@@ -1146,6 +1147,11 @@ namespace Storage.IntegrationTests
 
         private List<Identifier> CreateMultipleEntities(int count, Action<int, TestEntity> factory = null)
         {
+            static void IntroduceTimeDelayForSortingDates()
+            {
+                Thread.Sleep(20);
+            }
+
             var createdIdentifiers = new List<Identifier>();
             Repeat.Times(counter =>
             {
@@ -1153,10 +1159,12 @@ namespace Storage.IntegrationTests
                 factory?.Invoke(counter, entity);
                 var id = this.storage.Add(entity);
                 createdIdentifiers.Add(id);
+                IntroduceTimeDelayForSortingDates();
             }, count);
 
             return createdIdentifiers;
         }
+
 
         private static void VerifyOrderedResultsInReverse(QueryResults<TestEntity> results, List<Identifier> entities,
             int? offset = null, int? limit = null)
