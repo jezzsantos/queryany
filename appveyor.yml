@@ -22,7 +22,7 @@ install:
 - ps: redis-64\tools\redis-server.exe --service-start
 before_build:
 - cmd: nuget restore src\QueryAny.sln
-- cmd: xcopy "samples\ri\Storage.IntegrationTests\appsettings.CI.json" "samples\ri\Storage.IntegrationTests\appsettings.json" /R
+- cmd: xcopy "samples\ri\Storage.IntegrationTests\appsettings.CI.json" "samples\ri\Storage.IntegrationTests\appsettings.json" /R /Y
 build:
   project: src\QueryAny.sln
   verbosity: minimal
