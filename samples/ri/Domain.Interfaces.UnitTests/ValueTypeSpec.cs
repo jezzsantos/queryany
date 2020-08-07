@@ -90,7 +90,6 @@ namespace Domain.Interfaces.UnitTests
             this.boolean = boolean;
         }
 
-
         public override string Dehydrate()
         {
             throw new NotImplementedException();

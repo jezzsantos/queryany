@@ -54,7 +54,6 @@ namespace CarsDomain
             this.logger.LogDebug("Car was occupied until {Until}", untilUtc);
         }
 
-
         public static EntityFactory<CarEntity> GetFactory(ILogger logger)
         {
             return properties => new CarEntity(logger);

@@ -15,7 +15,6 @@ namespace Storage.IntegrationTests.Redis
         private static RedisInMemRepository repository;
         private readonly Dictionary<string, object> stores = new Dictionary<string, object>();
 
-
         [ClassInitialize]
         public new static void InitializeAllTests(TestContext context)
         {

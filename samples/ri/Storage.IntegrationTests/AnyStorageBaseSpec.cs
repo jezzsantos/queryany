@@ -1165,7 +1165,6 @@ namespace Storage.IntegrationTests
             return createdIdentifiers;
         }
 
-
         private static void VerifyOrderedResultsInReverse(QueryResults<TestEntity> results, List<Identifier> entities,
             int? offset = null, int? limit = null)
         {
