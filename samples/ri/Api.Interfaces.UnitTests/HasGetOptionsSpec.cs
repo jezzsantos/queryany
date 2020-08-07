@@ -35,8 +35,8 @@ namespace Api.Interfaces.UnitTests
             var result = HasGetOptions.Custom<TestResource>(x => x.AProperty1).ToGetOptions();
 
             result.Expand.Should().Be(ExpandOptions.Custom);
-            Assert.AreEqual(1, result.ResourceReferences.Count());
-            Assert.AreEqual("testresource.aproperty1", result.ResourceReferences.ToList()[0]);
+            result.ResourceReferences.Count().Should().Be(1);
+            result.ResourceReferences.ToList()[0].Should().Be("testresource.aproperty1");
         }
 
         [TestMethod]
@@ -45,9 +45,9 @@ namespace Api.Interfaces.UnitTests
             var result = HasGetOptions.Custom<TestResource>(x => x.AProperty1, x => x.AProperty2).ToGetOptions();
 
             result.Expand.Should().Be(ExpandOptions.Custom);
-            Assert.AreEqual(2, result.ResourceReferences.Count());
-            Assert.AreEqual("testresource.aproperty1", result.ResourceReferences.ToList()[0]);
-            Assert.AreEqual("testresource.aproperty2", result.ResourceReferences.ToList()[1]);
+            result.ResourceReferences.Count().Should().Be(2);
+            result.ResourceReferences.ToList()[0].Should().Be("testresource.aproperty1");
+            result.ResourceReferences.ToList()[1].Should().Be("testresource.aproperty2");
         }
     }
 
@@ -67,7 +67,7 @@ namespace Api.Interfaces.UnitTests
         {
             var result = ((GetOptionsDto) null).ToGetOptions();
 
-            Assert.IsNull(result);
+            result.Should().BeNull();
         }
 
         [TestMethod]
@@ -78,7 +78,7 @@ namespace Api.Interfaces.UnitTests
             var result = this.hasGetOptions.ToGetOptions();
 
             result.Expand.Should().Be(ExpandOptions.All);
-            Assert.AreEqual(0, result.ResourceReferences.Count());
+            result.ResourceReferences.Count().Should().Be(0);
         }
 
         [TestMethod]
@@ -89,7 +89,7 @@ namespace Api.Interfaces.UnitTests
             var result = this.hasGetOptions.ToGetOptions();
 
             result.Expand.Should().Be(ExpandOptions.None);
-            Assert.AreEqual(0, result.ResourceReferences.Count());
+            result.ResourceReferences.Count().Should().Be(0);
         }
 
         [TestMethod]
@@ -100,7 +100,7 @@ namespace Api.Interfaces.UnitTests
             var result = this.hasGetOptions.ToGetOptions();
 
             result.Expand.Should().Be(ExpandOptions.All);
-            Assert.AreEqual(0, result.ResourceReferences.Count());
+            result.ResourceReferences.Count().Should().Be(0);
         }
 
         [TestMethod]
@@ -111,10 +111,10 @@ namespace Api.Interfaces.UnitTests
             var result = this.hasGetOptions.ToGetOptions();
 
             result.Expand.Should().Be(ExpandOptions.Custom);
-            Assert.AreEqual(3, result.ResourceReferences.Count());
-            Assert.AreEqual("aresourceref1", result.ResourceReferences.ToList()[0]);
-            Assert.AreEqual("aresourceref2", result.ResourceReferences.ToList()[1]);
-            Assert.AreEqual("aresourceref3", result.ResourceReferences.ToList()[2]);
+            result.ResourceReferences.Count().Should().Be(3);
+            result.ResourceReferences.ToList()[0].Should().Be("aresourceref1");
+            result.ResourceReferences.ToList()[1].Should().Be("aresourceref2");
+            result.ResourceReferences.ToList()[2].Should().Be("aresourceref3");
         }
     }
 

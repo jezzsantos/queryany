@@ -22,7 +22,7 @@ namespace Api.Interfaces.UnitTests
         {
             var result = ((SearchOptionsDto) null).ToSearchOptions();
 
-            Assert.IsNull(result);
+            result.Should().BeNull();
         }
 
         [TestMethod]
@@ -32,7 +32,7 @@ namespace Api.Interfaces.UnitTests
 
             result.Limit.Should().Be(SearchOptions.DefaultLimit);
             result.Offset.Should().Be(SearchOptions.NoOffset);
-            Assert.IsNull(result.Sort.By);
+            result.Sort.By.Should().BeNull();
             result.Sort.Direction.Should().Be(SortDirection.Ascending);
             result.Filter.Fields.Count.Should().Be(0);
         }
@@ -47,7 +47,7 @@ namespace Api.Interfaces.UnitTests
 
             result.Limit.Should().Be(9);
             result.Offset.Should().Be(99);
-            Assert.IsNull(result.Sort.By);
+            result.Sort.By.Should().BeNull();
             result.Sort.Direction.Should().Be(SortDirection.Ascending);
             result.Filter.Fields.Count.Should().Be(0);
         }
@@ -62,7 +62,7 @@ namespace Api.Interfaces.UnitTests
 
             result.Limit.Should().Be(SearchOptions.DefaultLimit);
             result.Offset.Should().Be(99);
-            Assert.IsNull(result.Sort.By);
+            result.Sort.By.Should().BeNull();
             result.Sort.Direction.Should().Be(SortDirection.Ascending);
             result.Filter.Fields.Count.Should().Be(0);
         }
