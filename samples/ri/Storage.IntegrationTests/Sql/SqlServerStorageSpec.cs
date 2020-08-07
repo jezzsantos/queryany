@@ -19,11 +19,12 @@ namespace Storage.IntegrationTests.Sql
         public static void InitializeAllTests(TestContext context)
         {
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
-            var hostName = config["AzureSqlServerDbHostName"];
+            var serverName = config["AzureSqlServerDbServerName"];
+            var credentials = config["AzureSqlServerDbCredentials"];
             var databaseName = "TestDatabase";
             repository =
                 new SqlServerRepository(
-                    $"Persist Security Info=False;Integrated Security=true;Initial Catalog={databaseName};Server={hostName}",
+                    $"Persist Security Info=False;Integrated Security=true;Initial Catalog={databaseName};Server={serverName}{(credentials.HasValue()? ";" +credentials : "")}",
                     new GuidIdentifierFactory());
             InitializeAllTests(context, databaseName);
         }
