@@ -9,26 +9,26 @@ namespace Storage.IntegrationTests.Sql
 {
     public abstract class SqlServerStorageBaseSpec : AnyStorageBaseSpec
     {
-        private const string SqlServerServerServiceName = @"MSSQLSERVER";
         private const string SqlCommandLineTool = @"SQLCMD";
         private const string CreateDatabaseCommandArgs = "-Q \"CREATE DATABASE {0}\"";
         private const string RegenerateScriptCommandArgs = "-i \"{0}\\Sql\\RegenerateDatabase.sql\"";
 
-        protected static void InitializeAllTests(TestContext context, string databaseName)
+        protected static void InitializeAllTests(TestContext context, string serviceName, string databaseName)
         {
-            EnsureSqlServerServerIsStarted(context.DeploymentDirectory, databaseName);
+            EnsureSqlServerServerIsStarted(context.DeploymentDirectory, serviceName, databaseName);
         }
 
-        protected static void CleanupAllTests()
+        protected static void CleanupAllTests(string serviceName)
         {
-            ShutdownSqlServerServer(false);
+            ShutdownSqlServerServer(serviceName, false);
         }
 
-        private static void EnsureSqlServerServerIsStarted(string deploymentDirectory, string databaseName)
+        private static void EnsureSqlServerServerIsStarted(string deploymentDirectory, string serviceName,
+            string databaseName)
         {
-            if (!IsServerRunning())
+            if (!IsServerRunning(serviceName))
             {
-                StartSqlServerServer();
+                StartSqlServerServer(serviceName);
                 Thread.Sleep(TimeSpan.FromSeconds(10));
             }
 
@@ -41,9 +41,9 @@ namespace Storage.IntegrationTests.Sql
             ExecuteSqlCommand(SqlCommandLineTool, RegenerateScriptCommandArgs.Format(scriptPath));
         }
 
-        private static void StartSqlServerServer()
+        private static void StartSqlServerServer(string serviceName)
         {
-            using (var controller = new ServiceController(SqlServerServerServiceName))
+            using (var controller = new ServiceController(serviceName))
             {
                 if (controller.Status == ServiceControllerStatus.Stopped)
                 {
@@ -53,9 +53,9 @@ namespace Storage.IntegrationTests.Sql
             }
         }
 
-        private static void ShutdownSqlServerServer(bool forceShutdown)
+        private static void ShutdownSqlServerServer(string serviceName, bool forceShutdown)
         {
-            using (var controller = new ServiceController(SqlServerServerServiceName))
+            using (var controller = new ServiceController(serviceName))
             {
                 if (controller.Status == ServiceControllerStatus.Running)
                 {
@@ -68,9 +68,9 @@ namespace Storage.IntegrationTests.Sql
             }
         }
 
-        private static bool IsServerRunning()
+        private static bool IsServerRunning(string serviceName)
         {
-            using (var controller = new ServiceController(SqlServerServerServiceName))
+            using (var controller = new ServiceController(serviceName))
             {
                 return controller.Status == ServiceControllerStatus.Running;
             }

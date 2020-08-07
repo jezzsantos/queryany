@@ -19,20 +19,23 @@ namespace Storage.IntegrationTests.Sql
         public static void InitializeAllTests(TestContext context)
         {
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
-            var serverName = config["AzureSqlServerDbServerName"];
-            var credentials = config["AzureSqlServerDbCredentials"];
+            var serverName = config["SqlServerDbServerName"];
+            var credentials = config["SqlServerDbCredentials"];
+            var serviceName = config["SqlServerServiceName"];
             var databaseName = "TestDatabase";
             repository =
                 new SqlServerRepository(
-                    $"Persist Security Info=False;Integrated Security=true;Initial Catalog={databaseName};Server={serverName}{(credentials.HasValue()? ";" +credentials : "")}",
+                    $"Persist Security Info=False;Integrated Security=true;Initial Catalog={databaseName};Server={serverName}{(credentials.HasValue() ? ";" + credentials : "")}",
                     new GuidIdentifierFactory());
-            InitializeAllTests(context, databaseName);
+            InitializeAllTests(context, serviceName, databaseName);
         }
 
         [ClassCleanup]
-        public new static void CleanupAllTests()
+        public static void CleanupAllTests()
         {
-            SqlServerStorageBaseSpec.CleanupAllTests();
+            var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
+            var serviceName = config["SqlServerServiceName"];
+            CleanupAllTests(serviceName);
         }
 
         protected override IStorage<TEntity> GetStore<TEntity>(string containerName,
