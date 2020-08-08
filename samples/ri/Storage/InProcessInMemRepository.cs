@@ -165,16 +165,31 @@ namespace Storage
     {
         public static Dictionary<string, object> ToContainerProperties(this IPersistableEntity entity)
         {
-            var nowUtc = DateTime.UtcNow;
+            var containerEntityProperties = new Dictionary<string, object>();
             var entityProperties = entity.Dehydrate();
-            if (!entity.CreatedAtUtc.HasValue())
+            foreach (var entityProperty in entityProperties)
             {
-                entityProperties[nameof(IModifiableEntity.CreatedAtUtc)] = nowUtc;
+                var value = entityProperty.Value;
+
+                if (value is DateTime dateTime)
+                {
+                    value = dateTime.HasValue()
+                        ? dateTime.ToUniversalTime()
+                        : DateTime.MinValue;
+                }
+
+                containerEntityProperties.Add(entityProperty.Key, value);
             }
 
-            entityProperties[nameof(IModifiableEntity.LastModifiedAtUtc)] = nowUtc;
+            var nowUtc = DateTime.UtcNow;
+            if (!entity.CreatedAtUtc.HasValue())
+            {
+                containerEntityProperties[nameof(IModifiableEntity.CreatedAtUtc)] = nowUtc;
+            }
 
-            return entityProperties;
+            containerEntityProperties[nameof(IModifiableEntity.LastModifiedAtUtc)] = nowUtc;
+
+            return containerEntityProperties;
         }
 
         public static TEntity FromContainerProperties<TEntity>(this Dictionary<string, object> entityProperties,

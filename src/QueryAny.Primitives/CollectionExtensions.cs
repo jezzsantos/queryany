@@ -17,14 +17,14 @@ namespace QueryAny.Primitives
             return values.Join(",");
         }
 
-        public static string Join<T>(this IEnumerable<T> values, string seperator)
+        public static string Join<T>(this IEnumerable<T> values, string separator)
         {
             var stringBuilder = new StringBuilder();
             foreach (var value in values)
             {
                 if (stringBuilder.Length > 0)
                 {
-                    stringBuilder.Append(seperator);
+                    stringBuilder.Append(separator);
                 }
 
                 stringBuilder.Append(value);

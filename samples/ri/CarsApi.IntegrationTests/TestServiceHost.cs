@@ -16,6 +16,7 @@ namespace CarsApi.IntegrationTests
 
         public override void Configure(Container container)
         {
+            this.ConfigureServiceHost(true);
             container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
         }
     }

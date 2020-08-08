@@ -115,7 +115,9 @@ namespace Storage.IntegrationTests
 
             result.Id.Should().Be(id);
             result.CreatedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            result.CreatedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
             result.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            result.LastModifiedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
             result.ABinaryValue.SequenceEqual(new byte[] {0x01}).Should().BeTrue();
             result.ABooleanValue.Should().Be(true);
             result.AGuidValue.Should().Be(Guid.Empty);
@@ -124,10 +126,52 @@ namespace Storage.IntegrationTests
             result.ADoubleValue.Should().Be(0.1);
             result.AStringValue.Should().Be("astringvalue");
             result.ADateTimeUtcValue.Should().Be(DateTime.Today.ToUniversalTime());
+            result.ADateTimeUtcValue.Kind.Should().Be(DateTimeKind.Utc);
             result.ADateTimeOffsetUtcValue.Should().Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
             result.AComplexNonValueTypeValue.ToString().Should()
                 .Be(new ComplexNonValueType {APropertyValue = "avalue"}.ToString());
             result.AComplexValueTypeValue.Should().Be(ComplexValueType.Create("avalue", 25, true));
+        }
+
+        [TestMethod]
+        public void WhenGetAndExistsWithDefaultValues_ThenReturnsEntity()
+        {
+            var entity = new TestEntity
+            {
+                ABinaryValue = default,
+                ABooleanValue = default,
+                ADoubleValue = default,
+                AGuidValue = default,
+                AIntValue = default,
+                ALongValue = default,
+                AStringValue = default,
+                ADateTimeUtcValue = default,
+                ADateTimeOffsetUtcValue = default,
+                AComplexNonValueTypeValue = default,
+                AComplexValueTypeValue = default
+            };
+
+            var id = this.storage.Add(entity);
+
+            var result = this.storage.Get(id);
+
+            result.Id.Should().Be(id);
+            result.CreatedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            result.CreatedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
+            result.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            result.LastModifiedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
+            result.ABinaryValue.Should().BeNull();
+            result.ABooleanValue.Should().Be(default);
+            result.AGuidValue.Should().Be(Guid.Empty);
+            result.AIntValue.Should().Be(default);
+            result.ALongValue.Should().Be(default);
+            result.ADoubleValue.Should().Be(default);
+            result.AStringValue.Should().Be(default);
+            result.ADateTimeUtcValue.Should().Be(DateTime.MinValue);
+            result.ADateTimeUtcValue.Kind.Should().Be(DateTimeKind.Unspecified);
+            result.ADateTimeOffsetUtcValue.Should().Be(default);
+            result.AComplexNonValueTypeValue.Should().Be(default);
+            result.AComplexValueTypeValue.Should().Be(default);
         }
 
         [TestMethod]

@@ -238,8 +238,7 @@ namespace Storage.Azure
             // HACK: so we have to fetch all data and do Skip, OrderBy in memory
             return SafeExecute(table, () => table.ExecuteQuery(tableQuery))
                 .Select(e => e.FromTableEntity(this.options, entityFactory))
-                .AsQueryable()
-                .OrderBy(query.ToDynamicLinqOrderByClause())
+                .AsQueryable().OrderBy(query.ToDynamicLinqOrderByClause())
                 .Skip(query.GetDefaultSkip())
                 .Take(take)
                 .ToList();
@@ -449,8 +448,10 @@ namespace Storage.Azure
                     return text;
 
                 case DateTime dateTime:
-                    return dateTime.IsMinimumAllowableDate(options)
-                        ? DateTime.MinValue.ToUniversalTime()
+                    return !dateTime.HasValue() || dateTime.IsMinimumAllowableDate(options)
+                        ? targetPropertyType == typeof(DateTimeOffset)
+                            ? DateTimeOffset.MinValue.UtcDateTime
+                            : DateTime.MinValue
                         : dateTime;
 
                 case bool _:
@@ -488,8 +489,7 @@ namespace Storage.Azure
             };
 
             var utcNow = DateTime.UtcNow;
-            if (tableEntity.Properties[nameof(IModifiableEntity.CreatedAtUtc)].DateTime
-                .GetValueOrDefault(DateTime.MinValue).IsMinimumAllowableDate(options))
+            if (!entity.CreatedAtUtc.HasValue())
             {
                 tableEntity.Properties[nameof(IModifiableEntity.CreatedAtUtc)].DateTime = utcNow;
             }

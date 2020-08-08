@@ -15,15 +15,13 @@ namespace QueryAny.Primitives
         /// </remarks>
         public static bool HasValue(this DateTime current)
         {
-            if ((current.Kind == DateTimeKind.Local
-                 || current.Kind == DateTimeKind.Unspecified)
-                && current.Equals(DateTime.MinValue))
+            if (current.Kind == DateTimeKind.Local)
             {
-                return false;
+                return current != DateTime.MinValue.ToLocalTime()
+                       && current != DateTime.MinValue;
             }
 
-            return !(current.Equals(DateTime.MinValue.ToUniversalTime())
-                     || current.Equals(DateTime.MinValue));
+            return current != DateTime.MinValue;
         }
 
         /// <summary>
@@ -55,10 +53,14 @@ namespace QueryAny.Primitives
         {
             if (!value.HasValue())
             {
-                return DateTime.MinValue.ToUniversalTime();
+                return DateTime.MinValue;
             }
 
-            return DateTime.ParseExact(value, "O", null).ToUniversalTime();
+            var dateTime = DateTime.ParseExact(value, "O", null);
+
+            return dateTime.HasValue()
+                ? dateTime.ToUniversalTime()
+                : DateTime.MinValue;
         }
     }
 }

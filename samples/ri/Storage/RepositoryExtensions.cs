@@ -177,23 +177,16 @@ namespace Storage
         private static IPersistableEntity CreateEntityInternal(this IDictionary<string, object> propertyValues,
             Identifier id, EntityFactory<IPersistableEntity> entityFactory)
         {
-            try
+            var propertiesWithIdentifier = new Dictionary<string, object>(propertyValues);
+            if (!propertiesWithIdentifier.ContainsKey(nameof(IIdentifiableEntity.Id)))
             {
-                var propertiesWithIdentifier = new Dictionary<string, object>(propertyValues);
-                if (!propertiesWithIdentifier.ContainsKey(nameof(IIdentifiableEntity.Id)))
-                {
-                    propertiesWithIdentifier.Add(nameof(IIdentifiableEntity.Id), id);
-                }
-
-                var entity = entityFactory(propertiesWithIdentifier);
-                entity.Rehydrate(propertiesWithIdentifier);
-
-                return entity;
+                propertiesWithIdentifier.Add(nameof(IIdentifiableEntity.Id), id);
             }
-            catch (Exception)
-            {
-                return default;
-            }
+
+            var entity = entityFactory(propertiesWithIdentifier);
+            entity.Rehydrate(propertiesWithIdentifier);
+
+            return entity;
         }
 
         public static IPersistableValueType ValueTypeFromContainerProperty(this string propertyValue,

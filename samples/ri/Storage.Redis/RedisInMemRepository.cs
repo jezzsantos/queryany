@@ -308,7 +308,7 @@ namespace Storage.Redis
                     case DateTime dateTime:
                         if (!dateTime.HasValue())
                         {
-                            dateTime = DateTime.MinValue.ToUniversalTime();
+                            dateTime = DateTime.MinValue;
                         }
 
                         value = dateTime.ToIso8601();
@@ -363,9 +363,7 @@ namespace Storage.Redis
             }
 
             var nowUtc = DateTime.UtcNow.ToIso8601();
-            var createdAtUtc = (DateTime) containerEntityProperties[nameof(IModifiableEntity.CreatedAtUtc)]
-                .FromContainerProperty(typeof(DateTime));
-            if (!createdAtUtc.HasValue())
+            if (!entity.CreatedAtUtc.HasValue())
             {
                 containerEntityProperties[nameof(IModifiableEntity.CreatedAtUtc)] = nowUtc;
             }

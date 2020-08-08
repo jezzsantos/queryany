@@ -400,7 +400,7 @@ namespace Storage.Azure
                 {
                     if (dateTime == DateTime.MinValue)
                     {
-                        value = DateTime.MinValue.ToUniversalTime();
+                        value = DateTime.MinValue;
                     }
                 }
 
@@ -410,8 +410,7 @@ namespace Storage.Azure
             containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id.Get());
 
             var utcNow = DateTime.UtcNow;
-            var createdDate = (DateTime) containerEntityProperties[nameof(IPersistableEntity.CreatedAtUtc)];
-            if (!createdDate.HasValue())
+            if (!entity.CreatedAtUtc.HasValue())
             {
                 containerEntityProperties[nameof(IPersistableEntity.CreatedAtUtc)] = utcNow;
             }
@@ -605,7 +604,7 @@ namespace Storage.Azure
                 case DateTime dateTime:
                     return dateTime.HasValue()
                         ? $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ss.fffffffZ}'"
-                        : $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ssZ}'";
+                        : $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ss}'";
 
                 case DateTimeOffset dateTimeOffset:
                     return

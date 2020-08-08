@@ -332,9 +332,16 @@ namespace Storage.Sql
 
                 if (value is DateTime dateTime)
                 {
-                    value = dateTime.IsMinimumAllowableDate()
-                        ? SqlServerRepository.MinimumAllowableDate
-                        : dateTime.ToUniversalTime();
+                    if (dateTime.HasValue())
+                    {
+                        value = dateTime.IsNotAllowableDate()
+                            ? SqlServerRepository.MinimumAllowableDate
+                            : dateTime.ToUniversalTime();
+                    }
+                    else
+                    {
+                        value = DBNull.Value;
+                    }
                 }
 
                 if (value is Guid guid)
@@ -358,8 +365,7 @@ namespace Storage.Sql
             }
 
             var utcNow = DateTime.UtcNow;
-            var createdDateUtc = (DateTime) tableEntityProperties[nameof(IModifiableEntity.CreatedAtUtc)];
-            if (createdDateUtc.IsMinimumAllowableDate())
+            if (!entity.CreatedAtUtc.HasValue())
             {
                 tableEntityProperties[nameof(IModifiableEntity.CreatedAtUtc)] = utcNow;
             }
@@ -385,13 +391,6 @@ namespace Storage.Sql
 
             var id = Identifier.Create(tableProperties[nameof(IIdentifiableEntity.Id)].ToString());
             return propertyValues.CreateEntity(id, entityFactory);
-        }
-
-        public static bool IsDbNull(this object value)
-        {
-            return value == null
-                   || value == DBNull.Value
-                   || value is SqlBinary binary && binary.IsNull;
         }
 
         private static object FromTableEntityProperty(this KeyValuePair<string, object> property,
@@ -421,8 +420,8 @@ namespace Storage.Sql
 
                 case DateTime dateTime:
                     return dateTime.IsMinimumAllowableDate()
-                        ? DateTime.MinValue.ToUniversalTime()
-                        : dateTime;
+                        ? DateTime.MinValue
+                        : DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
 
                 case DateTimeOffset _:
                 case bool _:
@@ -440,15 +439,36 @@ namespace Storage.Sql
                 default:
                     if (value is DBNull)
                     {
+                        if (targetPropertyType == typeof(DateTime))
+                        {
+                            return DateTime.MinValue;
+                        }
                         return null;
                     }
                     throw new ArgumentOutOfRangeException(nameof(property));
             }
         }
 
+        public static bool IsDbNull(this object value)
+        {
+            return value == null
+                   || value == DBNull.Value
+                   || value is SqlBinary binary && binary.IsNull;
+        }
+
         private static bool IsMinimumAllowableDate(this DateTime dateTime)
         {
-            return dateTime <= SqlServerRepository.MinimumAllowableDate;
+            return dateTime == SqlServerRepository.MinimumAllowableDate;
+        }
+
+        private static bool IsNotAllowableDate(this DateTime dateTime)
+        {
+            if (dateTime.HasValue())
+            {
+                return dateTime.ToUniversalTime() <= SqlServerRepository.MinimumAllowableDate;
+            }
+
+            return true;
         }
     }
 
@@ -722,7 +742,7 @@ namespace Storage.Sql
                 case DateTime dateTime:
                     return dateTime.HasValue()
                         ? $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-dd HH:mm:ss.fff}'"
-                        : $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{SqlServerRepository.MinimumAllowableDate:yyyy-MM-dd HH:mm:ss.fff}'";
+                        : $"({SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{SqlServerRepository.MinimumAllowableDate:yyyy-MM-dd HH:mm:ss.fff}' OR {SqlServerRepository.PrimaryTableAlias}.{fieldName} {(condition.Operator == ConditionOperator.EqualTo ? "IS" : @operator)} NULL)";
 
                 case DateTimeOffset dateTimeOffset:
                     return
