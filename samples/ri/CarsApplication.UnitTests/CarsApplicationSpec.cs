@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using CarsDomain;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
@@ -26,6 +27,7 @@ namespace CarsApplication.UnitTests
             this.logger = new Mock<ILogger>();
             this.storage = new Mock<IStorage<CarEntity>>();
             this.caller = new Mock<ICurrentCaller>();
+            this.caller.Setup(c => c.Id).Returns("acallerid");
             this.carsApplication = new CarsApplication(this.logger.Object, this.storage.Object);
         }
 
@@ -36,27 +38,27 @@ namespace CarsApplication.UnitTests
             var model = Manufacturer.Models[0];
             this.storage.Setup(s =>
                     s.Add(It.Is<CarEntity>(e =>
-                        e.Manufacturer.Year == 2010 && e.Manufacturer.Make == make &&
-                        e.Manufacturer.Model == model)))
+                        e.Manufacturer.Year == 2010
+                        && e.Manufacturer.Make == make
+                        && e.Manufacturer.Model == model
+                        && e.Owner.Id.Get() == "acallerid"
+                        && e.Managers.ManagerIds.Single().Get() == "acallerid"
+                        && e.OccupiedUntilUtc == DateTime.MinValue)))
                 .Callback((CarEntity entity) => { entity.Identify(Identifier.Create("acarid")); });
+            this.storage.Setup(s => s.Get(It.IsAny<Identifier>()))
+                .Returns(new CarEntity(this.logger.Object));
 
-            var result = this.carsApplication.Create(this.caller.Object, 2010, make, model);
-
-            result.Id.Should().Be("acarid");
-            result.Manufacturer.Year.Should().Be(2010);
-            result.Manufacturer.Make.Should().Be(make);
-            result.Manufacturer.Model.Should().Be(model);
-            result.OccupiedUntilUtc.Should().Be(DateTime.MinValue);
+            this.carsApplication.Create(this.caller.Object, 2010, make, model);
         }
 
         [TestMethod]
         public void WhenOccupy_ThenOccupiesAndReturnsCar()
         {
             var untilUtc = DateTime.UtcNow;
-            var entity = new CarEntity(this.logger.Object);
             this.storage.Setup(s => s.Get(It.Is<Identifier>(i => i.Get() == "acarid")))
-                .Returns(entity);
-            this.storage.Setup(s => s.Update(It.Is<CarEntity>(e => e.OccupiedUntilUtc == untilUtc)));
+                .Returns(new CarEntity(this.logger.Object));
+            this.storage.Setup(s => s.Update(It.Is<CarEntity>(e => e.OccupiedUntilUtc == untilUtc)))
+                .Returns(new CarEntity(this.logger.Object));
 
             var result = this.carsApplication.Occupy(this.caller.Object, "acarid", untilUtc);
 

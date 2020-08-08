@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using CarsDomain;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
@@ -22,22 +24,22 @@ namespace CarsApplication
             storage.GuardAgainstNull(nameof(storage));
             this.logger = logger;
             this.storage = storage;
-
-            AutoMapping.RegisterPopulator((Car car, CarEntity entity) => { car.Id = entity.Id?.Get(); });
         }
 
         public Car Create(ICurrentCaller caller, int year, string make, string model)
         {
             caller.GuardAgainstNull(nameof(caller));
 
-            var carEntity = new CarEntity(this.logger);
-            carEntity.SetManufacturer(year, make, model);
+            var car = new CarEntity(this.logger);
+            car.SetOwnership(Identifier.Create(caller.Id));
+            car.SetManufacturer(year, make, model);
 
-            this.storage.Add(carEntity);
+            this.storage.Add(car);
 
-            this.logger.LogInformation("Car {Id} was created by {Caller}", carEntity.Id, caller.Id);
+            this.logger.LogInformation("Car {Id} was created by {Caller}", car.Id, caller.Id);
 
-            return carEntity.ConvertTo<Car>();
+            var created = this.storage.Get(car.Id);
+            return created.ToCar();
         }
 
         public Car Occupy(ICurrentCaller caller, string id, in DateTime untilUtc)
@@ -52,11 +54,11 @@ namespace CarsApplication
             }
 
             car.Occupy(untilUtc);
-            this.storage.Update(car);
+            var updated = this.storage.Update(car);
 
             this.logger.LogInformation("Car {Id} was occupied until {Until}, by {Caller}", id, untilUtc, caller.Id);
 
-            return car.ConvertTo<Car>();
+            return updated.ToCar();
         }
 
         public SearchResults<Car> SearchAvailable(ICurrentCaller caller, SearchOptions searchOptions,
@@ -74,7 +76,7 @@ namespace CarsApplication
             this.logger.LogInformation("Available carsApplication were retrieved by {Caller}", caller.Id);
 
             return searchOptions.ApplyWithMetadata(cars
-                .ConvertAll(c => WithGetOptions(c.ConvertTo<Car>(), getOptions)));
+                .ConvertAll(c => WithGetOptions(c.ToCar(), getOptions)));
         }
 
         // ReSharper disable once UnusedParameter.Local
@@ -82,6 +84,22 @@ namespace CarsApplication
         {
             // TODO: expand embedded resources, etc
             return car;
+        }
+    }
+
+    public static class CarConversionExtensions
+    {
+        public static Car ToCar(this CarEntity entity)
+        {
+            var dto = entity.ConvertTo<Car>();
+            dto.Id = entity.Id?.Get();
+            dto.Owner = new CarOwner {Id = entity.Owner?.Id?.Get()};
+            dto.Managers =
+                new List<CarManager>(entity.Managers != null
+                    ? entity.Managers.ManagerIds.Select(mi => new CarManager {Id = mi.Get()})
+                    : Enumerable.Empty<CarManager>());
+
+            return dto;
         }
     }
 }

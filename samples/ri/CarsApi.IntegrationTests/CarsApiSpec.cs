@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Api.Interfaces.ServiceOperations;
 using CarsDomain;
 using CarsStorage;
@@ -37,6 +38,26 @@ namespace CarsApi.IntegrationTests
         public void Cleanup()
         {
             this.appHost.Dispose();
+        }
+
+        [TestMethod]
+        public void WhenCreateCar_ThenReturnsCar()
+        {
+            var client = new JsonServiceClient(ServiceUrl);
+
+            var car = client.Post(new CreateCarRequest
+            {
+                Year = 2010,
+                Make = Manufacturer.Makes[0],
+                Model = Manufacturer.Models[0]
+            }).Car;
+
+            car.Manufacturer.Year.Should().Be(2010);
+            car.Manufacturer.Make.Should().Be(Manufacturer.Makes[0]);
+            car.Manufacturer.Model.Should().Be(Manufacturer.Models[0]);
+            car.OccupiedUntilUtc.Should().Be(DateTime.MinValue);
+            car.Owner.Id.Should().Be("anonymous");
+            car.Managers.Single().Id.Should().Be("anonymous");
         }
 
         [TestMethod]
