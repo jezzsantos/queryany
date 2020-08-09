@@ -95,7 +95,7 @@ namespace Storage
             this.logger.LogDebug("All entities were deleted from repository");
         }
 
-        public QueryResults<TEntity> Query(QueryClause<TEntity> query, SearchOptions options)
+        public QueryResults<TEntity> Query(QueryClause<TEntity> query)
         {
             query.GuardAgainstNull(nameof(query));
 

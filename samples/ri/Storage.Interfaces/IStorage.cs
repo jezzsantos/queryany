@@ -1,5 +1,4 @@
-﻿using Domain.Interfaces;
-using Domain.Interfaces.Entities;
+﻿using Domain.Interfaces.Entities;
 using QueryAny;
 
 namespace Storage.Interfaces
@@ -16,7 +15,7 @@ namespace Storage.Interfaces
 
         TEntity Get(Identifier id);
 
-        QueryResults<TEntity> Query(QueryClause<TEntity> query, SearchOptions options);
+        QueryResults<TEntity> Query(QueryClause<TEntity> query);
 
         long Count();
 

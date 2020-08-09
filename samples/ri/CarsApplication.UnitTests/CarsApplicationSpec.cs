@@ -68,7 +68,7 @@ namespace CarsApplication.UnitTests
         [TestMethod]
         public void WhenSearchAvailable_ThenReturnsAvailableCars()
         {
-            this.storage.Setup(s => s.Query(It.IsAny<QueryClause<CarEntity>>(), It.IsAny<SearchOptions>()))
+            this.storage.Setup(s => s.Query(It.IsAny<QueryClause<CarEntity>>()))
                 .Returns(new QueryResults<CarEntity>(new List<CarEntity> {new CarEntity(this.logger.Object)}));
 
             var result =

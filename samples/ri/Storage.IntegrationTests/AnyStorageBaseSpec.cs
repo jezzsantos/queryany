@@ -240,7 +240,7 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryAndQueryIsNull_ThenThrows()
         {
-            this.storage.Invoking(x => x.Query(null, null))
+            this.storage.Invoking(x => x.Query(null))
                 .Should().Throw<ArgumentNullException>();
         }
 
@@ -253,7 +253,7 @@ namespace Storage.IntegrationTests
                 AStringValue = "avalue"
             });
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(0);
         }
@@ -268,7 +268,7 @@ namespace Storage.IntegrationTests
                 AStringValue = "avalue"
             });
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id);
@@ -279,7 +279,7 @@ namespace Storage.IntegrationTests
         {
             var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue");
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(0);
         }
@@ -293,7 +293,7 @@ namespace Storage.IntegrationTests
                 AStringValue = "avalue"
             });
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(0);
         }
@@ -307,7 +307,7 @@ namespace Storage.IntegrationTests
                 AStringValue = "avalue"
             });
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id);
@@ -326,7 +326,7 @@ namespace Storage.IntegrationTests
                 AStringValue = "avalue"
             });
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(2);
             results.Results[0].Id.Should().Be(id1);
@@ -340,7 +340,7 @@ namespace Storage.IntegrationTests
             var id2 = this.storage.Add(new TestEntity {AStringValue = "avalue2"});
             var query = Query.From<TestEntity>().Where(e => e.Id, ConditionOperator.EqualTo, id2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -353,7 +353,7 @@ namespace Storage.IntegrationTests
             var id2 = this.storage.Add(new TestEntity {AStringValue = "avalue2"});
             var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue2");
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -366,7 +366,7 @@ namespace Storage.IntegrationTests
             var id2 = this.storage.Add(new TestEntity {AStringValue = null});
             var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, null);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -379,7 +379,7 @@ namespace Storage.IntegrationTests
             this.storage.Add(new TestEntity {AStringValue = null});
             var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.NotEqualTo, null);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id1);
@@ -394,7 +394,7 @@ namespace Storage.IntegrationTests
             var id2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
             var query = Query.From<TestEntity>().Where(e => e.ADateTimeUtcValue, ConditionOperator.EqualTo, dateTime2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -410,7 +410,7 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeOffsetUtcValue, ConditionOperator.EqualTo, dateTime2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -425,7 +425,7 @@ namespace Storage.IntegrationTests
             var id2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
             var query = Query.From<TestEntity>().Where(e => e.ADateTimeUtcValue, ConditionOperator.EqualTo, dateTime2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -441,7 +441,7 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeUtcValue, ConditionOperator.GreaterThan, dateTime1);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -457,7 +457,7 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeUtcValue, ConditionOperator.GreaterThanEqualTo, dateTime1);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(2);
             results.Results[0].Id.Should().Be(id1);
@@ -473,7 +473,7 @@ namespace Storage.IntegrationTests
             this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
             var query = Query.From<TestEntity>().Where(e => e.ADateTimeUtcValue, ConditionOperator.LessThan, dateTime2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id1);
@@ -489,7 +489,7 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeUtcValue, ConditionOperator.LessThanEqualTo, dateTime2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(2);
             results.Results[0].Id.Should().Be(id1);
@@ -506,7 +506,7 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeUtcValue, ConditionOperator.NotEqualTo, dateTime2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id1);
@@ -519,7 +519,7 @@ namespace Storage.IntegrationTests
             var id2 = this.storage.Add(new TestEntity {ABooleanValue = true});
             var query = Query.From<TestEntity>().Where(e => e.ABooleanValue, ConditionOperator.EqualTo, true);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -532,7 +532,7 @@ namespace Storage.IntegrationTests
             var id2 = this.storage.Add(new TestEntity {AIntValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.EqualTo, 2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -545,7 +545,7 @@ namespace Storage.IntegrationTests
             var id2 = this.storage.Add(new TestEntity {AIntValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.GreaterThan, 1);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -558,7 +558,7 @@ namespace Storage.IntegrationTests
             var id2 = this.storage.Add(new TestEntity {AIntValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.GreaterThanEqualTo, 1);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(2);
             results.Results[0].Id.Should().Be(id1);
@@ -572,7 +572,7 @@ namespace Storage.IntegrationTests
             this.storage.Add(new TestEntity {AIntValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.LessThan, 2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id1);
@@ -585,7 +585,7 @@ namespace Storage.IntegrationTests
             var id2 = this.storage.Add(new TestEntity {AIntValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.LessThanEqualTo, 2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(2);
             results.Results[0].Id.Should().Be(id1);
@@ -599,7 +599,7 @@ namespace Storage.IntegrationTests
             this.storage.Add(new TestEntity {AIntValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.NotEqualTo, 2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id1);
@@ -612,7 +612,7 @@ namespace Storage.IntegrationTests
             var id2 = this.storage.Add(new TestEntity {ALongValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.ALongValue, ConditionOperator.EqualTo, 2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -625,7 +625,7 @@ namespace Storage.IntegrationTests
             var id2 = this.storage.Add(new TestEntity {ADoubleValue = 2.0});
             var query = Query.From<TestEntity>().Where(e => e.ADoubleValue, ConditionOperator.EqualTo, 2.0);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -640,7 +640,7 @@ namespace Storage.IntegrationTests
             var id2 = this.storage.Add(new TestEntity {AGuidValue = guid2});
             var query = Query.From<TestEntity>().Where(e => e.AGuidValue, ConditionOperator.EqualTo, guid2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -655,7 +655,7 @@ namespace Storage.IntegrationTests
             var id2 = this.storage.Add(new TestEntity {ABinaryValue = binary2});
             var query = Query.From<TestEntity>().Where(e => e.ABinaryValue, ConditionOperator.EqualTo, binary2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -671,7 +671,7 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexNonValueTypeValue, ConditionOperator.EqualTo, complex2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -687,7 +687,7 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexNonValueTypeValue, ConditionOperator.EqualTo, null);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -703,7 +703,7 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexNonValueTypeValue, ConditionOperator.NotEqualTo, null);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id1);
@@ -720,7 +720,7 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexValueTypeValue, ConditionOperator.EqualTo, complex2);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -736,7 +736,7 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexValueTypeValue, ConditionOperator.EqualTo, null);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id2);
@@ -752,7 +752,7 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexValueTypeValue, ConditionOperator.NotEqualTo, null);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id1);
@@ -783,7 +783,7 @@ namespace Storage.IntegrationTests
             var id = this.storage.Add(entity);
             var query = Query.From<TestEntity>().WhereAll();
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             var result = results.Results[0];
@@ -827,7 +827,7 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>().WhereAll()
                 .Select(e => e.ABinaryValue);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             var result = results.Results[0];
@@ -853,7 +853,7 @@ namespace Storage.IntegrationTests
                 .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue)
                 .WhereAll();
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(0);
         }
@@ -869,7 +869,7 @@ namespace Storage.IntegrationTests
                 .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue)
                 .WhereAll();
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id1);
@@ -883,7 +883,7 @@ namespace Storage.IntegrationTests
                 .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
                 .WhereAll();
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id1);
@@ -901,7 +901,7 @@ namespace Storage.IntegrationTests
                 .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
                 .WhereAll();
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(3);
             results.Results[0].Id.Should().Be(id1);
@@ -918,7 +918,7 @@ namespace Storage.IntegrationTests
                 .WhereAll()
                 .SelectFromJoin<FirstJoiningTestEntity, int>(e => e.AIntValue, je => je.AIntValue);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(0);
         }
@@ -935,7 +935,7 @@ namespace Storage.IntegrationTests
                 .WhereAll()
                 .SelectFromJoin<FirstJoiningTestEntity, int>(e => e.AIntValue, je => je.AIntValue);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id1);
@@ -951,7 +951,7 @@ namespace Storage.IntegrationTests
                 .WhereAll()
                 .SelectFromJoin<FirstJoiningTestEntity, int>(e => e.AIntValue, je => je.AIntValue);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id1);
@@ -971,7 +971,7 @@ namespace Storage.IntegrationTests
                 .WhereAll()
                 .SelectFromJoin<FirstJoiningTestEntity, int>(e => e.AIntValue, je => je.AIntValue);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(3);
             results.Results[0].Id.Should().Be(id1);
@@ -999,7 +999,7 @@ namespace Storage.IntegrationTests
                 .SelectFromJoin<FirstJoiningTestEntity, int>(e => e.AIntValue, je => je.AIntValue)
                 .SelectFromJoin<SecondJoiningTestEntity, long>(e => e.ALongValue, je => je.ALongValue);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(id1);
@@ -1015,7 +1015,7 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>()
                 .WhereAll();
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             VerifyOrderedResults(results, entities);
         }
@@ -1031,7 +1031,7 @@ namespace Storage.IntegrationTests
                 .Select(e => e.Id)
                 .OrderBy(e => e.AStringValue);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             VerifyOrderedResults(results, entities);
         }
@@ -1046,7 +1046,7 @@ namespace Storage.IntegrationTests
                 .WhereAll()
                 .OrderBy(e => e.AStringValue);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             VerifyOrderedResultsInReverse(results, entities);
         }
@@ -1061,7 +1061,7 @@ namespace Storage.IntegrationTests
                 .WhereAll()
                 .OrderBy(e => e.AStringValue, OrderDirection.Descending);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             VerifyOrderedResultsInReverse(results, entities);
         }
@@ -1075,7 +1075,7 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>()
                 .WhereAll();
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             VerifyOrderedResults(results, entities);
         }
@@ -1089,7 +1089,7 @@ namespace Storage.IntegrationTests
                 .WhereAll()
                 .Take(0);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(0);
         }
@@ -1104,7 +1104,7 @@ namespace Storage.IntegrationTests
                 .WhereAll()
                 .Take(10);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             VerifyOrderedResults(results, entities, 0, 10);
         }
@@ -1119,7 +1119,7 @@ namespace Storage.IntegrationTests
                 .WhereAll()
                 .Take(100);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             VerifyOrderedResults(results, entities, 0, 10);
         }
@@ -1135,7 +1135,7 @@ namespace Storage.IntegrationTests
                 .OrderBy(e => e.AStringValue, OrderDirection.Descending)
                 .Take(10);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             VerifyOrderedResultsInReverse(results, entities, 0, 10);
         }
@@ -1151,7 +1151,7 @@ namespace Storage.IntegrationTests
                 .OrderBy(e => e.AStringValue, OrderDirection.Descending)
                 .Take(10);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             VerifyOrderedResultsInReverse(results, entities, 0, 10);
         }
@@ -1168,7 +1168,7 @@ namespace Storage.IntegrationTests
                 .Skip(10)
                 .Take(10);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             VerifyOrderedResultsInReverse(results, entities, 10, 10);
         }
@@ -1184,7 +1184,7 @@ namespace Storage.IntegrationTests
                 .Skip(100)
                 .Take(10);
 
-            var results = this.storage.Query(query, null);
+            var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(0);
         }

@@ -70,7 +70,7 @@ namespace CarsApplication
                 .Where(e => e.OccupiedUntilUtc, ConditionOperator.LessThan, DateTime.UtcNow)
                 .WithSearchOptions(searchOptions);
 
-            var cars = this.storage.Query(query, searchOptions)
+            var cars = this.storage.Query(query)
                 .Results;
 
             this.logger.LogInformation("Available carsApplication were retrieved by {Caller}", caller.Id);
