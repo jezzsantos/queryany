@@ -10,7 +10,7 @@ namespace CarsApi.Services.Cars
     {
         public OccupyCarRequestValidator(IIdentifierFactory identifierFactory)
         {
-            RuleFor(dto => dto.Id).Must(dto => identifierFactory.IsValid(Identifier.Create(dto)))
+            RuleFor(dto => dto.Id).Must(dto => identifierFactory.IsValid(dto.ToIdentifier()))
                 .WithMessage(Resources.AnyValidator_InvalidId);
             RuleFor(dto => dto.UntilUtc).Must(dto => dto.HasValue())
                 .WithMessage(Resources.OccupyCarRequestValidator_InvalidUntilUtc);

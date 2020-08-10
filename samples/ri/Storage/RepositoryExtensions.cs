@@ -175,7 +175,7 @@ namespace Storage
         public static IPersistableEntity EntityFromContainerProperties(this IDictionary<string, object> propertyValues,
             string id, EntityFactory<IPersistableEntity> entityFactory)
         {
-            return CreateEntityInternal(propertyValues, Identifier.Create(id), entityFactory);
+            return CreateEntityInternal(propertyValues, id.ToIdentifier(), entityFactory);
         }
 
         private static IPersistableEntity CreateEntityInternal(this IDictionary<string, object> propertyValues,

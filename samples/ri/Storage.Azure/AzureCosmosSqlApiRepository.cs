@@ -47,7 +47,8 @@ namespace Storage.Azure
 
             if (Exists(container, id))
             {
-                container.DeleteItemAsync<object>(id.Get(), new PartitionKey(id.Get())).GetAwaiter().GetResult();
+                container.DeleteItemAsync<object>(id.ToString(), new PartitionKey(id.ToString())).GetAwaiter()
+                    .GetResult();
             }
         }
 
@@ -124,7 +125,7 @@ namespace Storage.Azure
                         var join = joinedEntity.Join;
                         var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.Dehydrate());
                         var rightEntities = joinedTable.Value.Collection.ToDictionary(
-                            e => Identifier.Create(e[IdentifierPropertyName].Value<string>()),
+                            e => e[IdentifierPropertyName].Value<string>().ToIdentifier(),
                             e => e.FromContainerEntity(join.Right.EntityType, properties => entityFactory(properties))
                                 .Dehydrate());
 
@@ -240,7 +241,8 @@ namespace Storage.Azure
         {
             try
             {
-                var entity = container.ReadItemAsync<object>(id.Get(), new PartitionKey(id.Get())).GetAwaiter()
+                var entity = container.ReadItemAsync<object>(id.ToString(), new PartitionKey(id.ToString()))
+                    .GetAwaiter()
                     .GetResult();
 
                 return entity != null;
@@ -257,7 +259,8 @@ namespace Storage.Azure
         {
             try
             {
-                var entity = container.ReadItemAsync<object>(id.Get(), new PartitionKey(id.Get())).GetAwaiter()
+                var entity = container.ReadItemAsync<object>(id.ToString(), new PartitionKey(id.ToString()))
+                    .GetAwaiter()
                     .GetResult();
                 if (entity != null)
                 {
@@ -426,7 +429,7 @@ namespace Storage.Azure
                 containerEntityProperties.Add(pair.Key, value);
             }
 
-            containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id.Get());
+            containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id.ToString());
 
             var utcNow = DateTime.UtcNow;
             if (!entity.CreatedAtUtc.HasValue())

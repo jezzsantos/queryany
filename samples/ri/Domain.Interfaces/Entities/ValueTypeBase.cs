@@ -88,6 +88,21 @@ namespace Domain.Interfaces.Entities
             return !thisValues.MoveNext() && !otherValues.MoveNext();
         }
 
+        public static bool operator ==(ValueTypeBase<TValue> obj1, string obj2)
+        {
+            if ((object) obj1 == null)
+            {
+                return obj2 == null;
+            }
+
+            return obj1.Equals(obj2);
+        }
+
+        public static bool operator !=(ValueTypeBase<TValue> obj1, string obj2)
+        {
+            return !(obj1 == obj2);
+        }
+
         public override int GetHashCode()
         {
             return GetAtomicValues()
@@ -99,8 +114,7 @@ namespace Domain.Interfaces.Entities
 
         public override string ToString()
         {
-            return string.Join(DefaultHydrationDelimiter, GetAtomicValues()
-                .Select(x => x.ToString()));
+            return Dehydrate();
         }
     }
 

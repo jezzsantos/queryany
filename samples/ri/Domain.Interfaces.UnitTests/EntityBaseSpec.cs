@@ -21,7 +21,7 @@ namespace Domain.Interfaces.UnitTests
             this.logger = new Mock<ILogger>();
             this.idFactory = new Mock<IIdentifierFactory>();
             this.idFactory.Setup(idf => idf.Create(It.IsAny<TestEntity>()))
-                .Returns(Identifier.Create("anid"));
+                .Returns("anid".ToIdentifier());
 
             this.entity = new TestEntity(this.logger.Object, this.idFactory.Object);
         }
@@ -29,7 +29,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenConstructed_ThenIdentifierIsAssigned()
         {
-            this.entity.Id.Should().Be(Identifier.Create("anid"));
+            this.entity.Id.Should().Be("anid".ToIdentifier());
         }
 
         [TestMethod]
@@ -48,10 +48,10 @@ namespace Domain.Interfaces.UnitTests
 
             var result = factory(new Dictionary<string, object>
             {
-                {nameof(IIdentifiableEntity.Id), Identifier.Create("anid")}
+                {nameof(IIdentifiableEntity.Id), "anid".ToIdentifier()}
             });
 
-            result.Id.Should().Be(Identifier.Create("anid"));
+            result.Id.Should().Be("anid".ToIdentifier());
         }
 
         [TestMethod]
@@ -62,7 +62,7 @@ namespace Domain.Interfaces.UnitTests
             var result = this.entity.Dehydrate();
 
             result.Count.Should().Be(3);
-            result[nameof(EntityBase.Id)].Should().Be(Identifier.Create("anid"));
+            result[nameof(EntityBase.Id)].Should().Be("anid".ToIdentifier());
             ((DateTime) result[nameof(EntityBase.CreatedAtUtc)]).Should().BeCloseTo(now, 500);
             ((DateTime) result[nameof(EntityBase.LastModifiedAtUtc)]).Should().BeCloseTo(now, 500);
         }
@@ -73,14 +73,14 @@ namespace Domain.Interfaces.UnitTests
             var datum = DateTime.UtcNow.AddYears(1);
             var properties = new Dictionary<string, object>
             {
-                {nameof(EntityBase.Id), Identifier.Create("anid")},
+                {nameof(EntityBase.Id), "anid".ToIdentifier()},
                 {nameof(EntityBase.CreatedAtUtc), datum},
                 {nameof(EntityBase.LastModifiedAtUtc), datum}
             };
 
             this.entity.Rehydrate(properties);
 
-            this.entity.Id.Should().Be(Identifier.Create("anid"));
+            this.entity.Id.Should().Be("anid".ToIdentifier());
             this.entity.CreatedAtUtc.Should().Be(datum);
             this.entity.LastModifiedAtUtc.Should().Be(datum);
         }

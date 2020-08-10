@@ -28,7 +28,7 @@ namespace CarsApplication.UnitTests
             this.logger = new Mock<ILogger>();
             this.idFactory = new Mock<IIdentifierFactory>();
             this.idFactory.Setup(idf => idf.Create(It.IsAny<IIdentifiableEntity>()))
-                .Returns(Identifier.Create("anid"));
+                .Returns("anid".ToIdentifier());
             this.storage = new Mock<IStorage<CarEntity>>();
             this.caller = new Mock<ICurrentCaller>();
             this.caller.Setup(c => c.Id).Returns("acallerid");
@@ -46,8 +46,8 @@ namespace CarsApplication.UnitTests
                         e.Manufacturer.Year == 2010
                         && e.Manufacturer.Make == make
                         && e.Manufacturer.Model == model
-                        && e.Owner.Id.Get() == "acallerid"
-                        && e.Managers.ManagerIds.Single().Get() == "acallerid"
+                        && e.Owner.Id == "acallerid"
+                        && e.Managers.ManagerIds.Single() == "acallerid"
                         && e.OccupiedUntilUtc == DateTime.MinValue)))
                 .Returns(entity);
 
@@ -60,7 +60,7 @@ namespace CarsApplication.UnitTests
         public void WhenOccupy_ThenOccupiesAndReturnsCar()
         {
             var untilUtc = DateTime.UtcNow;
-            this.storage.Setup(s => s.Get(It.Is<Identifier>(i => i.Get() == "acarid")))
+            this.storage.Setup(s => s.Get(It.Is<Identifier>(i => i == "acarid")))
                 .Returns(new CarEntity(this.logger.Object, this.idFactory.Object));
             this.storage.Setup(s => s.Update(It.Is<CarEntity>(e => e.OccupiedUntilUtc == untilUtc)))
                 .Returns(new CarEntity(this.logger.Object, this.idFactory.Object));

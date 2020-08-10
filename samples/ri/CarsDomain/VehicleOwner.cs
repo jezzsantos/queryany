@@ -17,14 +17,14 @@ namespace CarsDomain
 
         public override string Dehydrate()
         {
-            return $"{Id.Get()}";
+            return $"{Id}";
         }
 
         public override void Rehydrate(string value)
         {
             if (value.HasValue())
             {
-                Id = Identifier.Create(value);
+                Id = value.ToIdentifier();
             }
         }
 

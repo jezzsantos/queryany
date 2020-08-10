@@ -34,7 +34,7 @@ namespace CarsApplication
             caller.GuardAgainstNull(nameof(caller));
 
             var car = new CarEntity(this.logger, this.idFactory);
-            car.SetOwnership(Identifier.Create(caller.Id));
+            car.SetOwnership(caller.Id.ToIdentifier());
             car.SetManufacturer(year, make, model);
 
             var created = this.storage.Add(car);
@@ -49,7 +49,7 @@ namespace CarsApplication
             caller.GuardAgainstNull(nameof(caller));
             id.GuardAgainstNullOrEmpty(nameof(id));
 
-            var car = this.storage.Get(Identifier.Create(id));
+            var car = this.storage.Get(id.ToIdentifier());
             if (id == null)
             {
                 throw new ResourceNotFoundException();
@@ -94,12 +94,11 @@ namespace CarsApplication
         public static Car ToCar(this CarEntity entity)
         {
             var dto = entity.ConvertTo<Car>();
-            dto.Id = entity.Id?.Get();
-            dto.Owner = new CarOwner {Id = entity.Owner?.Id?.Get()};
-            dto.Managers =
-                new List<CarManager>(entity.Managers != null
-                    ? entity.Managers.ManagerIds.Select(mi => new CarManager {Id = mi.Get()})
-                    : Enumerable.Empty<CarManager>());
+            dto.Id = entity.Id.ToString();
+            dto.Owner = new CarOwner {Id = entity.Owner?.Id.ToString()};
+            dto.Managers = entity.Managers != null
+                ? new List<CarManager>(entity.Managers?.ManagerIds.Select(mi => new CarManager {Id = mi.ToString()}))
+                : new List<CarManager>();
 
             return dto;
         }

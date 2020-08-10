@@ -70,7 +70,7 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenDeleteAndEntityNotExists_ThenReturns()
         {
-            this.storage.Delete(Identifier.Create("anid"));
+            this.storage.Delete("anid".ToIdentifier());
 
             this.storage.Count().Should().Be(0);
         }
@@ -85,7 +85,7 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenGetAndNotExists_ThenReturnsNull()
         {
-            var entity = this.storage.Get(Identifier.Create("anid"));
+            var entity = this.storage.Get("anid".ToIdentifier());
 
             entity.Should().BeNull();
         }

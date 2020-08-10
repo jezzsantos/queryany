@@ -119,7 +119,7 @@ namespace Storage.Azure
                     var joinedEntity = joinedTable.Value.JoinedEntity;
                     var join = joinedEntity.Join;
                     var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.Dehydrate());
-                    var rightEntities = joinedTable.Value.Collection.ToDictionary(e => Identifier.Create(e.RowKey),
+                    var rightEntities = joinedTable.Value.Collection.ToDictionary(e => e.RowKey.ToIdentifier(),
                         e => e.FromTableEntity(join.Right.EntityType, this.options,
                             properties => entityFactory(properties)).Dehydrate());
 
@@ -323,7 +323,7 @@ namespace Storage.Azure
             {
                 var entity = SafeExecute(table,
                     () => table.Execute(
-                        TableOperation.Retrieve<DynamicTableEntity>(this.options.DefaultPartitionKey, id.Get())));
+                        TableOperation.Retrieve<DynamicTableEntity>(this.options.DefaultPartitionKey, id.ToString())));
 
                 return entity.Result as DynamicTableEntity;
             }
@@ -484,7 +484,7 @@ namespace Storage.Azure
 
             var entityProperties = entity.Dehydrate()
                 .Where(pair => IsNotExcluded(pair.Key));
-            var tableEntity = new DynamicTableEntity(options.DefaultPartitionKey, entity.Id.Get())
+            var tableEntity = new DynamicTableEntity(options.DefaultPartitionKey, entity.Id.ToString())
             {
                 Properties = entityProperties.ToTableEntityProperties(options)
             };

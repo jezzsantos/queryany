@@ -65,7 +65,7 @@ namespace Storage.Redis
             client.Remove(key);
             client.SetRangeInHash(key, keyValues);
 
-            return keyValues.FromContainerProperties(id.Get(), entityFactory);
+            return keyValues.FromContainerProperties(id.ToString(), entityFactory);
         }
 
         public long Count(string containerName)
@@ -105,7 +105,7 @@ namespace Storage.Redis
                     var leftEntities = primaryEntities
                         .ToDictionary(e => e.Id, e => e.Dehydrate());
                     var rightEntities = joinedContainer.Value.Collection
-                        .ToDictionary(e => Identifier.Create(e.Key), e => e.Value.Dehydrate());
+                        .ToDictionary(e => e.Key.ToIdentifier(), e => e.Value.Dehydrate());
 
                     primaryEntities = join
                         .JoinResults(leftEntities, rightEntities, entityFactory,
@@ -178,7 +178,7 @@ namespace Storage.Redis
 
         private static string CreateRowKey(string containerName, Identifier id)
         {
-            return $"{CreateContainerKey(containerName)}{id.Get()}";
+            return $"{CreateContainerKey(containerName)}{id}";
         }
 
         private static string CreateRowKeyPattern(string containerName, string pattern)
@@ -401,7 +401,7 @@ namespace Storage.Redis
 
             if (targetPropertyType == typeof(Identifier))
             {
-                return Identifier.Create(propertyValue);
+                return propertyValue.ToIdentifier();
             }
 
             if (targetPropertyType == typeof(bool))

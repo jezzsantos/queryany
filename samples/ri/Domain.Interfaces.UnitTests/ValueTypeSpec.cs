@@ -101,6 +101,60 @@ namespace Domain.Interfaces.UnitTests
 
             result.Should().BeTrue();
         }
+
+        [TestMethod]
+        public void WhenOperatorEqualsWithNullString_ThenReturnsFalse()
+        {
+            var valueType = new TestMultiValueType("avalue", 25, true);
+
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            var result = valueType == null;
+
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void WhenNotOperatorEqualsWithNullString_ThenReturnsTrue()
+        {
+            var valueType = new TestMultiValueType("avalue", 25, true);
+
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            var result = valueType != null;
+
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void WhenOperatorEqualsWithNullInstanceAndNullString_ThenReturnsTrue()
+        {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            var result = (TestMultiValueType) null == null;
+
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void WhenOperatorEqualsWithDifferentString_ThenReturnsFalse()
+        {
+            var valueType = new TestMultiValueType("avalue", 25, true);
+
+            var result = valueType == "adifferentvalue";
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void WhenOperatorEqualsWithSameString_ThenReturnsTrue()
+        {
+            var valueType = new TestMultiValueType("avalue", 25, true);
+
+            var result = valueType == "avalue::25::True";
+
+            result.Should().BeTrue();
+        }
     }
 
     public class TestSingleValueType : ValueTypeBase<TestSingleValueType>

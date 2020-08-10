@@ -29,7 +29,7 @@ namespace CarsDomain
         public override string Dehydrate()
         {
             return this.managerIds
-                .Select(man => man.Get())
+                .Select(man => man)
                 .Join(";");
         }
 

@@ -381,7 +381,7 @@ namespace Storage.Sql
                     pair => pair.FromTableEntityProperty(entityPropertyTypeInfo
                         .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType));
 
-            var id = Identifier.Create(tableProperties[nameof(IIdentifiableEntity.Id)].ToString());
+            var id = tableProperties[nameof(IIdentifiableEntity.Id)].ToString().ToIdentifier();
             return propertyValues.EntityFromContainerProperties(id, entityFactory);
         }
 

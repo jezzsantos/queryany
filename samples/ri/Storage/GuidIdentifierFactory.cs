@@ -7,7 +7,7 @@ namespace Storage
     {
         public Identifier Create(IIdentifiableEntity entity)
         {
-            return Identifier.Create(Guid.NewGuid().ToString("D"));
+            return Guid.NewGuid().ToString("D").ToIdentifier();
         }
 
         public bool IsValid(Identifier value)
@@ -17,7 +17,7 @@ namespace Storage
                 return false;
             }
 
-            if (!Guid.TryParse(value.Get(), out var result))
+            if (!Guid.TryParse(value.ToString(), out var result))
             {
                 return false;
             }

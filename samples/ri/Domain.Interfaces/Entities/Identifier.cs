@@ -23,11 +23,6 @@ namespace Domain.Interfaces.Entities
             this.identifier = value;
         }
 
-        public string Get()
-        {
-            return Dehydrate();
-        }
-
         protected override IEnumerable<object> GetAtomicValues()
         {
             return new[] {this.identifier};
@@ -36,6 +31,14 @@ namespace Domain.Interfaces.Entities
         public static Identifier Create(string value)
         {
             return new Identifier(value);
+        }
+    }
+
+    public static class IdentifierExtensions
+    {
+        public static Identifier ToIdentifier(this string id)
+        {
+            return Identifier.Create(id);
         }
     }
 }
