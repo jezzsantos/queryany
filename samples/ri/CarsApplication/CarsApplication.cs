@@ -96,8 +96,8 @@ namespace CarsApplication
             var dto = entity.ConvertTo<Car>();
             dto.Id = entity.Id.ToString();
             dto.Owner = new CarOwner {Id = entity.Owner?.Id.ToString()};
-            dto.Managers = entity.Managers != null
-                ? new List<CarManager>(entity.Managers?.ManagerIds.Select(mi => new CarManager {Id = mi.ToString()}))
+            dto.Managers = entity.Managers.HasValue()
+                ? new List<CarManager>(entity.Managers.ManagerIds.Select(mi => new CarManager {Id = mi.ToString()}))
                 : new List<CarManager>();
 
             return dto;

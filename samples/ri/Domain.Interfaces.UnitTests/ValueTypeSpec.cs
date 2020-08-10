@@ -89,6 +89,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenEqualsWithDifferentStringValue_ThenReturnsFalse()
         {
+            // ReSharper disable once SuspiciousTypeConversion.Global
             var result = new TestMultiValueType("avalue", 25, true).Equals("adifferentvalue");
 
             result.Should().BeFalse();
@@ -97,6 +98,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenEqualsWithSameStringValue_ThenReturnsTrue()
         {
+            // ReSharper disable once SuspiciousTypeConversion.Global
             var result = new TestMultiValueType("avalue", 25, true).Equals("avalue::25::True");
 
             result.Should().BeTrue();
@@ -108,7 +110,7 @@ namespace Domain.Interfaces.UnitTests
             var valueType = new TestMultiValueType("avalue", 25, true);
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            var result = valueType == null;
+            var result = valueType == (string) null;
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             result.Should().BeFalse();
@@ -120,7 +122,7 @@ namespace Domain.Interfaces.UnitTests
             var valueType = new TestMultiValueType("avalue", 25, true);
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            var result = valueType != null;
+            var result = valueType != (string) null;
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             result.Should().BeTrue();
@@ -130,7 +132,7 @@ namespace Domain.Interfaces.UnitTests
         public void WhenOperatorEqualsWithNullInstanceAndNullString_ThenReturnsTrue()
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            var result = (TestMultiValueType) null == null;
+            var result = (TestMultiValueType) null == (string) null;
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             result.Should().BeTrue();
@@ -152,6 +154,57 @@ namespace Domain.Interfaces.UnitTests
             var valueType = new TestMultiValueType("avalue", 25, true);
 
             var result = valueType == "avalue::25::True";
+
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void WhenOperatorEqualsWithNullValue_ThenReturnsFalse()
+        {
+            var valueType = new TestMultiValueType("avalue", 25, true);
+
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            var result = valueType == (TestMultiValueType) null;
+
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void WhenNotOperatorEqualsWithNullValue_ThenReturnsTrue()
+        {
+            var valueType = new TestMultiValueType("avalue", 25, true);
+
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            var result = valueType != (TestMultiValueType) null;
+
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void WhenOperatorEqualsWithNullInstanceAndNullValue_ThenReturnsTrue()
+        {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            var result = null == (TestMultiValueType) null;
+
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void WhenOperatorEqualsWithDifferentValue_ThenReturnsFalse()
+        {
+            var result = new TestMultiValueType("avalue1", 25, true) == new TestMultiValueType("avalue2", 25, true);
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void WhenOperatorEqualsWithSameValue_ThenReturnsTrue()
+        {
+            // ReSharper disable once EqualExpressionComparison
+            var result = new TestMultiValueType("avalue1", 25, true) == new TestMultiValueType("avalue1", 25, true);
 
             result.Should().BeTrue();
         }
@@ -203,6 +256,26 @@ namespace Domain.Interfaces.UnitTests
         protected override IEnumerable<object> GetAtomicValues()
         {
             return new object[] {this.@string, this.integer, this.boolean};
+        }
+    }
+
+    [TestClass, TestCategory("Unit")]
+    public class ValueTypeExtensionsSpec
+    {
+        [TestMethod]
+        public void WhenHasValueAndValueIsNull_ThenReturnsFalse()
+        {
+            var result = ((TestSingleValueType) null).HasValue();
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void WhenHasValueAndValueIsNotNull_ThenReturnsTrue()
+        {
+            var result = new TestSingleValueType("avalue").HasValue();
+
+            result.Should().BeTrue();
         }
     }
 }

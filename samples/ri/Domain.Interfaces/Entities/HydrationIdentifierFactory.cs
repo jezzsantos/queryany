@@ -17,7 +17,7 @@ namespace Domain.Interfaces.Entities
         public Identifier Create(IIdentifiableEntity entity)
         {
             var id = this.hydratingProperties.GetValueOrDefault<Identifier>(nameof(IIdentifiableEntity.Id));
-            if (id == null)
+            if (!id.HasValue())
             {
                 throw new ResourceConflictException("The hydrating properties does not contain an Identifier");
             }

@@ -45,15 +45,34 @@ namespace Domain.Interfaces.Entities
 
         protected abstract IEnumerable<object> GetAtomicValues();
 
-        public bool Equals(string other)
+        public static bool operator ==(ValueTypeBase<TValue> obj1, ValueTypeBase<TValue> obj2)
         {
-            if (other == null || other.GetType() != typeof(string))
+            if ((object) obj1 == null)
             {
-                return false;
+                return (object) obj2 == null;
             }
 
-            var value = Dehydrate();
-            return value.EqualsOrdinal(other);
+            return obj1.Equals(obj2);
+        }
+
+        public static bool operator !=(ValueTypeBase<TValue> obj1, ValueTypeBase<TValue> obj2)
+        {
+            return !(obj1 == obj2);
+        }
+
+        public static bool operator ==(ValueTypeBase<TValue> obj1, string obj2)
+        {
+            if ((object) obj1 == null)
+            {
+                return obj2 == null;
+            }
+
+            return obj1.Equals(obj2);
+        }
+
+        public static bool operator !=(ValueTypeBase<TValue> obj1, string obj2)
+        {
+            return !(obj1 == obj2);
         }
 
         public override bool Equals(object obj)
@@ -88,19 +107,15 @@ namespace Domain.Interfaces.Entities
             return !thisValues.MoveNext() && !otherValues.MoveNext();
         }
 
-        public static bool operator ==(ValueTypeBase<TValue> obj1, string obj2)
+        public bool Equals(string other)
         {
-            if ((object) obj1 == null)
+            if (other == null || other.GetType() != typeof(string))
             {
-                return obj2 == null;
+                return false;
             }
 
-            return obj1.Equals(obj2);
-        }
-
-        public static bool operator !=(ValueTypeBase<TValue> obj1, string obj2)
-        {
-            return !(obj1 == obj2);
+            var value = Dehydrate();
+            return value.EqualsOrdinal(other);
         }
 
         public override int GetHashCode()
@@ -122,7 +137,7 @@ namespace Domain.Interfaces.Entities
     {
         public static bool HasValue<TValue>(this ValueTypeBase<TValue> valueType)
         {
-            return valueType != null;
+            return valueType != (ValueTypeBase<TValue>) null;
         }
     }
 }

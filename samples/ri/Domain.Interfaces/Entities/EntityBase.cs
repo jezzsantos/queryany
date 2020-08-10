@@ -75,7 +75,7 @@ namespace Domain.Interfaces.Entities
         public override int GetHashCode()
         {
             // ReSharper disable once NonReadonlyMemberInGetHashCode
-            return Id != null
+            return Id.HasValue()
 
                 // ReSharper disable once NonReadonlyMemberInGetHashCode
                 ? Id.GetHashCode()
