@@ -15,14 +15,17 @@ namespace CarsApplication
 {
     public class CarsApplication : ApplicationBase, ICarsApplication
     {
+        private readonly IIdentifierFactory idFactory;
         private readonly ILogger logger;
         private readonly IStorage<CarEntity> storage;
 
-        public CarsApplication(ILogger logger, IStorage<CarEntity> storage)
+        public CarsApplication(ILogger logger, IIdentifierFactory idFactory, IStorage<CarEntity> storage)
         {
             logger.GuardAgainstNull(nameof(logger));
+            idFactory.GuardAgainstNull(nameof(idFactory));
             storage.GuardAgainstNull(nameof(storage));
             this.logger = logger;
+            this.idFactory = idFactory;
             this.storage = storage;
         }
 
@@ -30,15 +33,14 @@ namespace CarsApplication
         {
             caller.GuardAgainstNull(nameof(caller));
 
-            var car = new CarEntity(this.logger);
+            var car = new CarEntity(this.logger, this.idFactory);
             car.SetOwnership(Identifier.Create(caller.Id));
             car.SetManufacturer(year, make, model);
 
-            this.storage.Add(car);
+            var created = this.storage.Add(car);
 
-            this.logger.LogInformation("Car {Id} was created by {Caller}", car.Id, caller.Id);
+            this.logger.LogInformation("Car {Id} was created by {Caller}", created.Id, caller.Id);
 
-            var created = this.storage.Get(car.Id);
             return created.ToCar();
         }
 

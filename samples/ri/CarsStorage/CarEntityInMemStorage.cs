@@ -15,13 +15,12 @@ namespace CarsStorage
 
         protected override string ContainerName => "Car";
 
-        public static CarEntityInMemStorage Create(ILogger logger, GuidIdentifierFactory identifierFactory)
+        public static CarEntityInMemStorage Create(ILogger logger)
         {
             logger.GuardAgainstNull(nameof(logger));
-            identifierFactory.GuardAgainstNull(nameof(identifierFactory));
 
             return new CarEntityInMemStorage(logger, CarEntity.GetFactory(logger),
-                new InProcessInMemRepository(identifierFactory));
+                new InProcessInMemRepository());
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using ServiceStack;
 
 namespace Domain.Interfaces.UnitTests
 {
@@ -10,9 +11,35 @@ namespace Domain.Interfaces.UnitTests
     public class ValueTypeSpec
     {
         [TestMethod]
+        public void WhenDeserialized_ThenReturnsInstance()
+        {
+            var result = typeof(TestSingleValueType).CreateInstance();
+
+            result.Should().NotBeNull();
+        }
+
+        [TestMethod]
+        public void WhenHydrate_ThenReturnsProperties()
+        {
+            var valueType = new TestSingleValueType("avalue");
+            var result = valueType.Dehydrate();
+
+            result.Should().Be("avalue");
+        }
+
+        [TestMethod]
+        public void WhenDehydrate_ThenReturnsInstance()
+        {
+            var valueType = new TestSingleValueType(null);
+            valueType.Rehydrate("avalue");
+
+            valueType.StringValue.Should().Be("avalue");
+        }
+
+        [TestMethod]
         public void WhenEqualsWithNull_ThenReturnsFalse()
         {
-            var result = new TestSingleValueType("avalue").Equals(null);
+            var result = new TestSingleValueType("avalue").Equals((TestSingleValueType) null);
 
             Assert.IsFalse(result);
         }
@@ -50,34 +77,58 @@ namespace Domain.Interfaces.UnitTests
 
             result.Should().BeTrue();
         }
+
+        [TestMethod]
+        public void WhenEqualsWithNullStringValue_ThenReturnsFalse()
+        {
+            var result = new TestMultiValueType("avalue", 25, true).Equals((string) null);
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void WhenEqualsWithDifferentStringValue_ThenReturnsFalse()
+        {
+            var result = new TestMultiValueType("avalue", 25, true).Equals("adifferentvalue");
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void WhenEqualsWithSameStringValue_ThenReturnsTrue()
+        {
+            var result = new TestMultiValueType("avalue", 25, true).Equals("avalue::25::True");
+
+            result.Should().BeTrue();
+        }
     }
 
-    public class TestSingleValueType : ValueType<TestSingleValueType>
+    public class TestSingleValueType : ValueTypeBase<TestSingleValueType>
     {
-        private readonly string stringValue;
-
         public TestSingleValueType(string value)
         {
-            this.stringValue = value;
+            StringValue = value;
         }
+
+        public string StringValue { get; private set; }
 
         public override string Dehydrate()
         {
-            throw new NotImplementedException();
+            return StringValue;
         }
 
         public override void Rehydrate(string value)
         {
-            throw new NotImplementedException();
+            StringValue = value;
         }
 
         protected override IEnumerable<object> GetAtomicValues()
         {
-            return new[] {this.stringValue};
+            return new[] {StringValue};
         }
     }
 
-    public class TestMultiValueType : ValueType<TestMultiValueType>
+    public class TestMultiValueType : ValueTypeBase<TestMultiValueType>
     {
         private readonly bool boolean;
         private readonly int integer;
@@ -88,11 +139,6 @@ namespace Domain.Interfaces.UnitTests
             this.@string = @string;
             this.integer = integer;
             this.boolean = boolean;
-        }
-
-        public override string Dehydrate()
-        {
-            throw new NotImplementedException();
         }
 
         public override void Rehydrate(string value)

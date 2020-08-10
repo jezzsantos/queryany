@@ -26,12 +26,8 @@ namespace Storage.UnitTests
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         public DateTime LastModifiedAtUtc { get; }
 
-        public Identifier Id { get; set; }
-
-        public void Identify(Identifier id)
-        {
-            Id = id;
-        }
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
+        public Identifier Id { get; }
 
         public Dictionary<string, object> Dehydrate()
         {
@@ -40,7 +36,7 @@ namespace Storage.UnitTests
 
         public void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
-            this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
+            this.PopulateWith(properties);
         }
     }
 }

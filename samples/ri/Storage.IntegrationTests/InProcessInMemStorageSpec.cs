@@ -13,7 +13,7 @@ namespace Storage.IntegrationTests
 
         public InProcessInMemStorageSpec()
         {
-            this.repository = new InProcessInMemRepository(new GuidIdentifierFactory());
+            this.repository = new InProcessInMemRepository();
         }
 
         protected override IStorage<TEntity> GetStore<TEntity>(string containerName,

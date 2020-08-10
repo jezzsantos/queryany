@@ -18,6 +18,7 @@ namespace CarsApplication.UnitTests
     {
         private Mock<ICurrentCaller> caller;
         private CarsApplication carsApplication;
+        private Mock<IIdentifierFactory> idFactory;
         private Mock<ILogger> logger;
         private Mock<IStorage<CarEntity>> storage;
 
@@ -25,10 +26,13 @@ namespace CarsApplication.UnitTests
         public void Initialize()
         {
             this.logger = new Mock<ILogger>();
+            this.idFactory = new Mock<IIdentifierFactory>();
+            this.idFactory.Setup(idf => idf.Create(It.IsAny<IIdentifiableEntity>()))
+                .Returns(Identifier.Create("anid"));
             this.storage = new Mock<IStorage<CarEntity>>();
             this.caller = new Mock<ICurrentCaller>();
             this.caller.Setup(c => c.Id).Returns("acallerid");
-            this.carsApplication = new CarsApplication(this.logger.Object, this.storage.Object);
+            this.carsApplication = new CarsApplication(this.logger.Object, this.idFactory.Object, this.storage.Object);
         }
 
         [TestMethod]
@@ -36,6 +40,7 @@ namespace CarsApplication.UnitTests
         {
             var make = Manufacturer.Makes[0];
             var model = Manufacturer.Models[0];
+            var entity = new CarEntity(this.logger.Object, this.idFactory.Object);
             this.storage.Setup(s =>
                     s.Add(It.Is<CarEntity>(e =>
                         e.Manufacturer.Year == 2010
@@ -44,11 +49,11 @@ namespace CarsApplication.UnitTests
                         && e.Owner.Id.Get() == "acallerid"
                         && e.Managers.ManagerIds.Single().Get() == "acallerid"
                         && e.OccupiedUntilUtc == DateTime.MinValue)))
-                .Callback((CarEntity entity) => { entity.Identify(Identifier.Create("acarid")); });
-            this.storage.Setup(s => s.Get(It.IsAny<Identifier>()))
-                .Returns(new CarEntity(this.logger.Object));
+                .Returns(entity);
 
-            this.carsApplication.Create(this.caller.Object, 2010, make, model);
+            var result = this.carsApplication.Create(this.caller.Object, 2010, make, model);
+
+            result.Id.Should().Be("anid");
         }
 
         [TestMethod]
@@ -56,9 +61,9 @@ namespace CarsApplication.UnitTests
         {
             var untilUtc = DateTime.UtcNow;
             this.storage.Setup(s => s.Get(It.Is<Identifier>(i => i.Get() == "acarid")))
-                .Returns(new CarEntity(this.logger.Object));
+                .Returns(new CarEntity(this.logger.Object, this.idFactory.Object));
             this.storage.Setup(s => s.Update(It.Is<CarEntity>(e => e.OccupiedUntilUtc == untilUtc)))
-                .Returns(new CarEntity(this.logger.Object));
+                .Returns(new CarEntity(this.logger.Object, this.idFactory.Object));
 
             var result = this.carsApplication.Occupy(this.caller.Object, "acarid", untilUtc);
 
@@ -69,7 +74,8 @@ namespace CarsApplication.UnitTests
         public void WhenSearchAvailable_ThenReturnsAvailableCars()
         {
             this.storage.Setup(s => s.Query(It.IsAny<QueryClause<CarEntity>>()))
-                .Returns(new QueryResults<CarEntity>(new List<CarEntity> {new CarEntity(this.logger.Object)}));
+                .Returns(new QueryResults<CarEntity>(new List<CarEntity>
+                    {new CarEntity(this.logger.Object, this.idFactory.Object)}));
 
             var result =
                 this.carsApplication.SearchAvailable(this.caller.Object, new SearchOptions(), new GetOptions());

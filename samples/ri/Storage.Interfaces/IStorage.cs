@@ -7,7 +7,7 @@ namespace Storage.Interfaces
     {
         EntityFactory<TEntity> EntityFactory { get; }
 
-        Identifier Add(TEntity entity);
+        TEntity Add(TEntity entity);
 
         TEntity Update(TEntity entity);
 

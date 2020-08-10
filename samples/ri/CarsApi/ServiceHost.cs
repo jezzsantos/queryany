@@ -37,8 +37,7 @@ namespace CarsApi
             container.AddSingleton<ILogger>(c => new Logger<ServiceHost>(new NullLoggerFactory()));
             container.AddSingleton<IIdentifierFactory, GuidIdentifierFactory>();
             container.AddSingleton<IStorage<CarEntity>>(c =>
-                CarEntityAzureStorage.Create(c.Resolve<ILogger>(), container.Resolve<IAppSettings>(),
-                    c.Resolve<IIdentifierFactory>()));
+                CarEntityAzureStorage.Create(c.Resolve<ILogger>(), container.Resolve<IAppSettings>()));
             container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
         }
 

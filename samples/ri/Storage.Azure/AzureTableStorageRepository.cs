@@ -18,39 +18,31 @@ namespace Storage.Azure
     {
         internal const string NullValue = "null";
         private readonly string connectionString;
-        private readonly IIdentifierFactory idFactory;
         private readonly TableStorageApiOptions options;
         private readonly Dictionary<string, bool> tableExistenceChecks = new Dictionary<string, bool>();
         private CloudTableClient client;
 
-        public AzureTableStorageRepository(string connectionString, IIdentifierFactory idFactory) : this(
-            connectionString, idFactory, TableStorageApiOptions.AzureTableStorage)
+        public AzureTableStorageRepository(string connectionString) : this(
+            connectionString, TableStorageApiOptions.AzureTableStorage)
         {
         }
 
-        protected AzureTableStorageRepository(string connectionString, IIdentifierFactory idFactory,
+        protected AzureTableStorageRepository(string connectionString,
             TableStorageApiOptions options)
         {
             connectionString.GuardAgainstNullOrEmpty(nameof(connectionString));
-            idFactory.GuardAgainstNull(nameof(idFactory));
             options.GuardAgainstNull(nameof(options));
             this.connectionString = connectionString;
-            this.idFactory = idFactory;
             this.options = options;
         }
 
         public int MaxQueryResults => TableConstants.TableServiceMaxResults;
 
-        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
+        public void Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
         {
             var table = EnsureTable(containerName);
 
-            var id = this.idFactory.Create(entity);
-            entity.Identify(id);
-
             SafeExecute(table, () => { table.Execute(TableOperation.Insert(entity.ToTableEntity(this.options))); });
-
-            return id;
         }
 
         public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity
@@ -132,12 +124,12 @@ namespace Storage.Azure
                             properties => entityFactory(properties)).Dehydrate());
 
                     primaryEntities = join
-                        .JoinResults<TEntity>(leftEntities, rightEntities,
+                        .JoinResults(leftEntities, rightEntities, entityFactory,
                             joinedEntity.Selects.ProjectSelectedJoinedProperties());
                 }
             }
 
-            return primaryEntities.CherryPickSelectedProperties(query);
+            return primaryEntities.CherryPickSelectedProperties(query, entityFactory);
         }
 
         public void DestroyAll(string containerName)
@@ -420,7 +412,7 @@ namespace Storage.Azure
 
             var id = tableEntity.RowKey;
 
-            return propertyValues.CreateEntity(id, entityFactory);
+            return propertyValues.EntityFromContainerProperties(id, entityFactory);
         }
 
         private static object FromTableEntityProperty(this EntityProperty property, Type targetPropertyType,
@@ -448,11 +440,20 @@ namespace Storage.Azure
                     return text;
 
                 case DateTime dateTime:
-                    return !dateTime.HasValue() || dateTime.IsMinimumAllowableDate(options)
-                        ? targetPropertyType == typeof(DateTimeOffset)
+                    if (targetPropertyType == typeof(DateTimeOffset))
+                    {
+                        var dateTimeOffset = property.DateTimeOffsetValue.GetValueOrDefault(DateTimeOffset.MinValue);
+                        return !dateTimeOffset.DateTime.HasValue() ||
+                               dateTimeOffset.DateTime.IsMinimumAllowableDate(options)
                             ? DateTimeOffset.MinValue.UtcDateTime
-                            : DateTime.MinValue
-                        : dateTime;
+                            : dateTimeOffset;
+                    }
+                    else
+                    {
+                        return !dateTime.HasValue() || dateTime.IsMinimumAllowableDate(options)
+                            ? DateTime.MinValue
+                            : dateTime;
+                    }
 
                 case bool _:
                 case int _:

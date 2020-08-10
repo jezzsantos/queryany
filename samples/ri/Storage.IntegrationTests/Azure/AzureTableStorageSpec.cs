@@ -23,7 +23,7 @@ namespace Storage.IntegrationTests.Azure
             var localEmulatorConnectionString = accountKey.HasValue()
                 ? $"DefaultEndpointsProtocol=https;AccountName={hostName};AccountKey={accountKey};EndpointSuffix=core.windows.net"
                 : "UseDevelopmentStorage=true";
-            repository = new AzureTableStorageRepository(localEmulatorConnectionString, new GuidIdentifierFactory());
+            repository = new AzureTableStorageRepository(localEmulatorConnectionString);
             AzureStorageAccountBaseSpec.InitializeAllTests(context);
         }
 

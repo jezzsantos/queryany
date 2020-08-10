@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Domain.Interfaces.Entities;
 using Newtonsoft.Json;
@@ -73,9 +74,10 @@ namespace Storage
         public static List<TEntity> JoinResults<TEntity>(this JoinDefinition joinDefinition,
             Dictionary<Identifier, Dictionary<string, object>> leftEntities,
             Dictionary<Identifier, Dictionary<string, object>> rightEntities,
+            EntityFactory<TEntity> entityFactory,
             Func<KeyValuePair<Identifier, Dictionary<string, object>>,
                 KeyValuePair<Identifier, Dictionary<string, object>>,
-                KeyValuePair<Identifier, Dictionary<string, object>>> mapFunc = null)
+                KeyValuePair<Identifier, Dictionary<string, object>>> mapFunc = null) where TEntity : IPersistableEntity
         {
             switch (joinDefinition.Type)
             {
@@ -88,7 +90,7 @@ namespace Storage
                         select mapFunc?.Invoke(lefts, result) ?? lefts;
 
                     return innerJoin
-                        .Select(e => e.Value.FromObjectDictionary<TEntity>())
+                        .Select(e => EntityFromContainerProperties(e.Value, entityFactory))
                         .ToList();
 
                 case JoinType.Left:
@@ -100,7 +102,7 @@ namespace Storage
                         select mapFunc?.Invoke(lefts, result) ?? lefts;
 
                     return leftJoin
-                        .Select(e => e.Value.FromObjectDictionary<TEntity>())
+                        .Select(e => EntityFromContainerProperties(e.Value, entityFactory))
                         .ToList();
 
                 default:
@@ -141,7 +143,8 @@ namespace Storage
         }
 
         public static List<TEntity> CherryPickSelectedProperties<TEntity>(this IEnumerable<TEntity> entities,
-            QueryClause<TEntity> query, IEnumerable<string> includeAdditionalProperties = null)
+            QueryClause<TEntity> query, EntityFactory<TEntity> entityFactory,
+            IEnumerable<string> includeAdditionalProperties = null)
             where TEntity : IPersistableEntity
         {
             var selectedPropertyNames = query.GetAllSelectedFields();
@@ -156,19 +159,20 @@ namespace Storage
                 .ToList();
 
             return entities
-                .Select(resultEntity => resultEntity.ToObjectDictionary()
+                .Select(resultEntity => resultEntity.Dehydrate()
                     .Where(resultEntityProperty => selectedPropertyNames.Contains(resultEntityProperty.Key)))
-                .Select(selectedProperties => selectedProperties.FromObjectDictionary<TEntity>())
+                .Select(selectedProperties =>
+                    EntityFromContainerProperties(selectedProperties.ToObjectDictionary(), entityFactory))
                 .ToList();
         }
 
-        public static TEntity CreateEntity<TEntity>(this IDictionary<string, object> propertyValues,
+        public static TEntity EntityFromContainerProperties<TEntity>(this IDictionary<string, object> propertyValues,
             Identifier id, EntityFactory<TEntity> entityFactory) where TEntity : IPersistableEntity
         {
             return (TEntity) CreateEntityInternal(propertyValues, id, properties => entityFactory(properties));
         }
 
-        public static IPersistableEntity CreateEntity(this IDictionary<string, object> propertyValues,
+        public static IPersistableEntity EntityFromContainerProperties(this IDictionary<string, object> propertyValues,
             string id, EntityFactory<IPersistableEntity> entityFactory)
         {
             return CreateEntityInternal(propertyValues, Identifier.Create(id), entityFactory);
@@ -177,14 +181,16 @@ namespace Storage
         private static IPersistableEntity CreateEntityInternal(this IDictionary<string, object> propertyValues,
             Identifier id, EntityFactory<IPersistableEntity> entityFactory)
         {
-            var propertiesWithIdentifier = new Dictionary<string, object>(propertyValues);
-            if (!propertiesWithIdentifier.ContainsKey(nameof(IIdentifiableEntity.Id)))
-            {
-                propertiesWithIdentifier.Add(nameof(IIdentifiableEntity.Id), id);
-            }
+            propertyValues[nameof(IIdentifiableEntity.Id)] = id;
+            return EntityFromContainerProperties(propertyValues, entityFactory);
+        }
 
-            var entity = entityFactory(propertiesWithIdentifier);
-            entity.Rehydrate(propertiesWithIdentifier);
+        private static TEntity EntityFromContainerProperties<TEntity>(this IDictionary<string, object> propertyValues,
+            EntityFactory<TEntity> entityFactory) where TEntity : IPersistableEntity
+        {
+            var properties = new ReadOnlyDictionary<string, object>(propertyValues);
+            var entity = entityFactory(properties);
+            entity.Rehydrate(properties);
 
             return entity;
         }
@@ -194,7 +200,7 @@ namespace Storage
         {
             try
             {
-                var valueType = (IPersistableValueType) targetPropertyType.CreateInstance();
+                var valueType = targetPropertyType.CreateInstance<IPersistableValueType>();
                 valueType.Rehydrate(propertyValue);
 
                 return valueType;

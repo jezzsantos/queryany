@@ -43,24 +43,26 @@ namespace Storage.IntegrationTests
         public void WhenAddAndEntityNotExists_ThenAddsNew()
         {
             this.storage.Count().Should().Be(0);
+            var entity = new TestEntity();
 
-            var id = this.storage.Add(new TestEntity());
+            this.storage.Add(entity);
 
             this.storage.Count().Should().Be(1);
 
-            var added = this.storage.Get(id);
-            added.Id.Should().Be(id);
+            var added = this.storage.Get(entity.Id);
+            added.Id.Should().Be(entity.Id);
             added.CreatedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
             added.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
-            added.CreatedAtUtc.Should().Be(added.LastModifiedAtUtc);
+            added.LastModifiedAtUtc.Should().BeAfter(added.CreatedAtUtc);
         }
 
         [TestMethod]
         public void WhenDeleteAndEntityExists_ThenDeletesEntity()
         {
-            var id = this.storage.Add(new TestEntity());
+            var entity = new TestEntity();
+            this.storage.Add(entity);
 
-            this.storage.Delete(id);
+            this.storage.Delete(entity.Id);
 
             this.storage.Count().Should().Be(0);
         }
@@ -109,11 +111,11 @@ namespace Storage.IntegrationTests
                 AComplexValueTypeValue = ComplexValueType.Create("avalue", 25, true)
             };
 
-            var id = this.storage.Add(entity);
+            this.storage.Add(entity);
 
-            var result = this.storage.Get(id);
+            var result = this.storage.Get(entity.Id);
 
-            result.Id.Should().Be(id);
+            result.Id.Should().Be(entity.Id);
             result.CreatedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
             result.CreatedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
             result.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
@@ -151,11 +153,11 @@ namespace Storage.IntegrationTests
                 AComplexValueTypeValue = default
             };
 
-            var id = this.storage.Add(entity);
+            this.storage.Add(entity);
 
-            var result = this.storage.Get(id);
+            var result = this.storage.Get(entity.Id);
 
-            result.Id.Should().Be(id);
+            result.Id.Should().Be(entity.Id);
             result.CreatedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
             result.CreatedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
             result.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
@@ -185,12 +187,12 @@ namespace Storage.IntegrationTests
         public void WhenUpdateAndExists_ThenReturnsUpdated()
         {
             var entity = new TestEntity();
-            var id = this.storage.Add(entity);
+            this.storage.Add(entity);
 
             entity.AStringValue = "updated";
             var updated = this.storage.Update(entity);
 
-            updated.Id.Should().Be(id);
+            updated.Id.Should().Be(entity.Id);
             updated.AStringValue.Should().Be("updated");
             updated.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
             updated.LastModifiedAtUtc.Should().BeAfter(updated.CreatedAtUtc,
@@ -200,7 +202,7 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenUpdateAndNotExists_ThenThrows()
         {
-            var entity = new TestEntity(Identifier.Create("anid"))
+            var entity = new TestEntity
             {
                 AStringValue = "updated"
             };
@@ -263,7 +265,7 @@ namespace Storage.IntegrationTests
         {
             var query = Query.From<TestEntity>()
                 .WhereAll();
-            var id = this.storage.Add(new TestEntity
+            var entity = this.storage.Add(new TestEntity
             {
                 AStringValue = "avalue"
             });
@@ -271,7 +273,7 @@ namespace Storage.IntegrationTests
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id);
+            results.Results[0].Id.Should().Be(entity.Id);
         }
 
         [TestMethod]
@@ -302,26 +304,27 @@ namespace Storage.IntegrationTests
         public void WhenQueryAndMatchOne_ThenReturnsResult()
         {
             var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue");
-            var id = this.storage.Add(new TestEntity
+            var entity = new TestEntity
             {
                 AStringValue = "avalue"
-            });
+            };
+            this.storage.Add(entity);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id);
+            results.Results[0].Id.Should().Be(entity.Id);
         }
 
         [TestMethod]
         public void WhenQueryAndMatchMany_ThenReturnsResults()
         {
             var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue");
-            var id1 = this.storage.Add(new TestEntity
+            var entity1 = this.storage.Add(new TestEntity
             {
                 AStringValue = "avalue"
             });
-            var id2 = this.storage.Add(new TestEntity
+            var entity2 = this.storage.Add(new TestEntity
             {
                 AStringValue = "avalue"
             });
@@ -329,60 +332,61 @@ namespace Storage.IntegrationTests
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(2);
-            results.Results[0].Id.Should().Be(id1);
-            results.Results[1].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity1.Id);
+            results.Results[1].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
         public void WhenQueryWithId_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {AStringValue = "avalue1"});
-            var id2 = this.storage.Add(new TestEntity {AStringValue = "avalue2"});
-            var query = Query.From<TestEntity>().Where(e => e.Id, ConditionOperator.EqualTo, id2);
+            var entity2 = new TestEntity {AStringValue = "avalue2"};
+            this.storage.Add(entity2);
+            var query = Query.From<TestEntity>().Where(e => e.Id, ConditionOperator.EqualTo, entity2.Id);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
         public void WhenQueryForStringValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {AStringValue = "avalue1"});
-            var id2 = this.storage.Add(new TestEntity {AStringValue = "avalue2"});
+            var entity2 = this.storage.Add(new TestEntity {AStringValue = "avalue2"});
             var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue2");
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
         public void WhenQueryForNullStringValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {AStringValue = "avalue1"});
-            var id2 = this.storage.Add(new TestEntity {AStringValue = null});
+            var entity2 = this.storage.Add(new TestEntity {AStringValue = null});
             var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, null);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
         public void WhenQueryForNotNullStringValue_ThenReturnsResult()
         {
-            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
+            var entity1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
             this.storage.Add(new TestEntity {AStringValue = null});
             var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.NotEqualTo, null);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].Id.Should().Be(entity1.Id);
         }
 
         [TestMethod]
@@ -391,13 +395,13 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
             this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
-            var id2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
+            var entity2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
             var query = Query.From<TestEntity>().Where(e => e.ADateTimeUtcValue, ConditionOperator.EqualTo, dateTime2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
@@ -406,14 +410,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTimeOffset.UtcNow;
             var dateTime2 = DateTimeOffset.UtcNow.AddDays(1);
             this.storage.Add(new TestEntity {ADateTimeOffsetUtcValue = dateTime1});
-            var id2 = this.storage.Add(new TestEntity {ADateTimeOffsetUtcValue = dateTime2});
+            var entity2 = this.storage.Add(new TestEntity {ADateTimeOffsetUtcValue = dateTime2});
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeOffsetUtcValue, ConditionOperator.EqualTo, dateTime2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
@@ -422,13 +426,13 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.MinValue;
             this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
-            var id2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
+            var entity2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
             var query = Query.From<TestEntity>().Where(e => e.ADateTimeUtcValue, ConditionOperator.EqualTo, dateTime2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
@@ -437,14 +441,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
             this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
-            var id2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
+            var entity2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeUtcValue, ConditionOperator.GreaterThan, dateTime1);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
@@ -452,16 +456,16 @@ namespace Storage.IntegrationTests
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
-            var id1 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
-            var id2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
+            var entity1 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
+            var entity2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeUtcValue, ConditionOperator.GreaterThanEqualTo, dateTime1);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(2);
-            results.Results[0].Id.Should().Be(id1);
-            results.Results[1].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity1.Id);
+            results.Results[1].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
@@ -469,14 +473,14 @@ namespace Storage.IntegrationTests
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
-            var id1 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
+            var entity1 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
             this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
             var query = Query.From<TestEntity>().Where(e => e.ADateTimeUtcValue, ConditionOperator.LessThan, dateTime2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].Id.Should().Be(entity1.Id);
         }
 
         [TestMethod]
@@ -484,16 +488,16 @@ namespace Storage.IntegrationTests
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
-            var id1 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
-            var id2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
+            var entity1 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
+            var entity2 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeUtcValue, ConditionOperator.LessThanEqualTo, dateTime2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(2);
-            results.Results[0].Id.Should().Be(id1);
-            results.Results[1].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity1.Id);
+            results.Results[1].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
@@ -501,7 +505,7 @@ namespace Storage.IntegrationTests
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
-            var id1 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
+            var entity1 = this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime1});
             this.storage.Add(new TestEntity {ADateTimeUtcValue = dateTime2});
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeUtcValue, ConditionOperator.NotEqualTo, dateTime2);
@@ -509,126 +513,126 @@ namespace Storage.IntegrationTests
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].Id.Should().Be(entity1.Id);
         }
 
         [TestMethod]
         public void WhenQueryForBoolValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {ABooleanValue = false});
-            var id2 = this.storage.Add(new TestEntity {ABooleanValue = true});
+            var entity2 = this.storage.Add(new TestEntity {ABooleanValue = true});
             var query = Query.From<TestEntity>().Where(e => e.ABooleanValue, ConditionOperator.EqualTo, true);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
         public void WhenQueryForIntValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {AIntValue = 1});
-            var id2 = this.storage.Add(new TestEntity {AIntValue = 2});
+            var entity2 = this.storage.Add(new TestEntity {AIntValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.EqualTo, 2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
         public void WhenQueryForIntValueGreaterThan_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {AIntValue = 1});
-            var id2 = this.storage.Add(new TestEntity {AIntValue = 2});
+            var entity2 = this.storage.Add(new TestEntity {AIntValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.GreaterThan, 1);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
         public void WhenQueryForIntValueGreaterThanOrEqualTo_ThenReturnsResult()
         {
-            var id1 = this.storage.Add(new TestEntity {AIntValue = 1});
-            var id2 = this.storage.Add(new TestEntity {AIntValue = 2});
+            var entity1 = this.storage.Add(new TestEntity {AIntValue = 1});
+            var entity2 = this.storage.Add(new TestEntity {AIntValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.GreaterThanEqualTo, 1);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(2);
-            results.Results[0].Id.Should().Be(id1);
-            results.Results[1].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity1.Id);
+            results.Results[1].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
         public void WhenQueryForIntValueLessThan_ThenReturnsResult()
         {
-            var id1 = this.storage.Add(new TestEntity {AIntValue = 1});
+            var entity1 = this.storage.Add(new TestEntity {AIntValue = 1});
             this.storage.Add(new TestEntity {AIntValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.LessThan, 2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].Id.Should().Be(entity1.Id);
         }
 
         [TestMethod]
         public void WhenQueryForIntValueLessThanOrEqual_ThenReturnsResult()
         {
-            var id1 = this.storage.Add(new TestEntity {AIntValue = 1});
-            var id2 = this.storage.Add(new TestEntity {AIntValue = 2});
+            var entity1 = this.storage.Add(new TestEntity {AIntValue = 1});
+            var entity2 = this.storage.Add(new TestEntity {AIntValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.LessThanEqualTo, 2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(2);
-            results.Results[0].Id.Should().Be(id1);
-            results.Results[1].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity1.Id);
+            results.Results[1].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
         public void WhenQueryForIntValueNotEqual_ThenReturnsResult()
         {
-            var id1 = this.storage.Add(new TestEntity {AIntValue = 1});
+            var entity1 = this.storage.Add(new TestEntity {AIntValue = 1});
             this.storage.Add(new TestEntity {AIntValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.NotEqualTo, 2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].Id.Should().Be(entity1.Id);
         }
 
         [TestMethod]
         public void WhenQueryForLongValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {ALongValue = 1});
-            var id2 = this.storage.Add(new TestEntity {ALongValue = 2});
+            var entity2 = this.storage.Add(new TestEntity {ALongValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.ALongValue, ConditionOperator.EqualTo, 2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
         public void WhenQueryForDoubleValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {ADoubleValue = 1.0});
-            var id2 = this.storage.Add(new TestEntity {ADoubleValue = 2.0});
+            var entity2 = this.storage.Add(new TestEntity {ADoubleValue = 2.0});
             var query = Query.From<TestEntity>().Where(e => e.ADoubleValue, ConditionOperator.EqualTo, 2.0);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
@@ -637,13 +641,13 @@ namespace Storage.IntegrationTests
             var guid1 = Guid.NewGuid();
             var guid2 = Guid.NewGuid();
             this.storage.Add(new TestEntity {AGuidValue = guid1});
-            var id2 = this.storage.Add(new TestEntity {AGuidValue = guid2});
+            var entity2 = this.storage.Add(new TestEntity {AGuidValue = guid2});
             var query = Query.From<TestEntity>().Where(e => e.AGuidValue, ConditionOperator.EqualTo, guid2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
@@ -652,13 +656,13 @@ namespace Storage.IntegrationTests
             var binary1 = new byte[] {0x01};
             var binary2 = new byte[] {0x01, 0x02};
             this.storage.Add(new TestEntity {ABinaryValue = binary1});
-            var id2 = this.storage.Add(new TestEntity {ABinaryValue = binary2});
+            var entity2 = this.storage.Add(new TestEntity {ABinaryValue = binary2});
             var query = Query.From<TestEntity>().Where(e => e.ABinaryValue, ConditionOperator.EqualTo, binary2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]
@@ -667,14 +671,14 @@ namespace Storage.IntegrationTests
             var complex1 = new ComplexNonValueType {APropertyValue = "avalue1"};
             var complex2 = new ComplexNonValueType {APropertyValue = "avalue2"};
             this.storage.Add(new TestEntity {AComplexNonValueTypeValue = complex1});
-            var id2 = this.storage.Add(new TestEntity {AComplexNonValueTypeValue = complex2});
+            var entity2 = this.storage.Add(new TestEntity {AComplexNonValueTypeValue = complex2});
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexNonValueTypeValue, ConditionOperator.EqualTo, complex2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
             results.Results[0].AComplexNonValueTypeValue.ToString().Should().Be(complex2.ToString());
         }
 
@@ -683,14 +687,14 @@ namespace Storage.IntegrationTests
         {
             var complex1 = new ComplexNonValueType {APropertyValue = "avalue1"};
             this.storage.Add(new TestEntity {AComplexNonValueTypeValue = complex1});
-            var id2 = this.storage.Add(new TestEntity {AComplexNonValueTypeValue = null});
+            var entity2 = this.storage.Add(new TestEntity {AComplexNonValueTypeValue = null});
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexNonValueTypeValue, ConditionOperator.EqualTo, null);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
             results.Results[0].AComplexNonValueTypeValue.Should().Be(null);
         }
 
@@ -698,7 +702,7 @@ namespace Storage.IntegrationTests
         public void WhenQueryForNotEqualNullComplexNonValueTypeValue_ThenReturnsResult()
         {
             var complex1 = new ComplexNonValueType {APropertyValue = "avalue1"};
-            var id1 = this.storage.Add(new TestEntity {AComplexNonValueTypeValue = complex1});
+            var entity1 = this.storage.Add(new TestEntity {AComplexNonValueTypeValue = complex1});
             this.storage.Add(new TestEntity {AComplexNonValueTypeValue = null});
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexNonValueTypeValue, ConditionOperator.NotEqualTo, null);
@@ -706,7 +710,7 @@ namespace Storage.IntegrationTests
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].Id.Should().Be(entity1.Id);
             results.Results[0].AComplexNonValueTypeValue.ToString().Should().Be(complex1.ToString());
         }
 
@@ -716,14 +720,14 @@ namespace Storage.IntegrationTests
             var complex1 = ComplexValueType.Create("avalue1", 25, true);
             var complex2 = ComplexValueType.Create("avalue2", 50, false);
             this.storage.Add(new TestEntity {AComplexValueTypeValue = complex1});
-            var id2 = this.storage.Add(new TestEntity {AComplexValueTypeValue = complex2});
+            var entity2 = this.storage.Add(new TestEntity {AComplexValueTypeValue = complex2});
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexValueTypeValue, ConditionOperator.EqualTo, complex2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
             results.Results[0].AComplexValueTypeValue.Should().Be(complex2);
         }
 
@@ -732,14 +736,14 @@ namespace Storage.IntegrationTests
         {
             var complex1 = ComplexValueType.Create("avalue1", 25, true);
             this.storage.Add(new TestEntity {AComplexValueTypeValue = complex1});
-            var id2 = this.storage.Add(new TestEntity {AComplexValueTypeValue = null});
+            var entity2 = this.storage.Add(new TestEntity {AComplexValueTypeValue = null});
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexValueTypeValue, ConditionOperator.EqualTo, null);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id2);
+            results.Results[0].Id.Should().Be(entity2.Id);
             results.Results[0].AComplexValueTypeValue.Should().Be(null);
         }
 
@@ -747,7 +751,7 @@ namespace Storage.IntegrationTests
         public void WhenQueryForNotEqualNullComplexValueTypeValue_ThenReturnsResult()
         {
             var complex1 = ComplexValueType.Create("avalue1", 25, true);
-            var id1 = this.storage.Add(new TestEntity {AComplexValueTypeValue = complex1});
+            var entity1 = this.storage.Add(new TestEntity {AComplexValueTypeValue = complex1});
             this.storage.Add(new TestEntity {AComplexValueTypeValue = null});
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexValueTypeValue, ConditionOperator.NotEqualTo, null);
@@ -755,7 +759,7 @@ namespace Storage.IntegrationTests
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].Id.Should().Be(entity1.Id);
             results.Results[0].AComplexValueTypeValue.Should().Be(complex1);
         }
 
@@ -780,14 +784,14 @@ namespace Storage.IntegrationTests
                 AComplexValueTypeValue = ComplexValueType.Create("avalue", 25, true)
             };
 
-            var id = this.storage.Add(entity);
+            this.storage.Add(entity);
             var query = Query.From<TestEntity>().WhereAll();
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             var result = results.Results[0];
-            result.Id.Should().Be(id);
+            result.Id.Should().Be(entity.Id);
             result.ABinaryValue.SequenceEqual(new byte[] {0x01}).Should().BeTrue();
             result.ABooleanValue.Should().Be(true);
             result.AGuidValue.Should().Be(Guid.Empty);
@@ -823,7 +827,7 @@ namespace Storage.IntegrationTests
                 AComplexValueTypeValue = ComplexValueType.Create("avalue", 25, true)
             };
 
-            var id = this.storage.Add(entity);
+            this.storage.Add(entity);
             var query = Query.From<TestEntity>().WhereAll()
                 .Select(e => e.ABinaryValue);
 
@@ -831,7 +835,7 @@ namespace Storage.IntegrationTests
 
             results.Results.Count.Should().Be(1);
             var result = results.Results[0];
-            result.Id.Should().Be(id);
+            result.Id.Should().Be(entity.Id);
             result.ABinaryValue.SequenceEqual(new byte[] {0x01}).Should().BeTrue();
             result.ABooleanValue.Should().Be(false);
             result.AGuidValue.Should().Be(Guid.Empty);
@@ -861,7 +865,7 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryWithInnerJoinOnOtherCollection_ThenReturnsOnlyMatchedResults()
         {
-            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
+            var entity1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
             this.storage.Add(new TestEntity {AStringValue = "avalue2"});
             this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue1"});
             this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue3"});
@@ -872,13 +876,13 @@ namespace Storage.IntegrationTests
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].Id.Should().Be(entity1.Id);
         }
 
         [TestMethod]
         public void WhenQueryWithLeftJoinAndOtherCollectionNotExists_ThenReturnsAllPrimaryResults()
         {
-            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
+            var entity1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
             var query = Query.From<TestEntity>()
                 .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
                 .WhereAll();
@@ -886,15 +890,15 @@ namespace Storage.IntegrationTests
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].Id.Should().Be(entity1.Id);
         }
 
         [TestMethod]
         public void WhenQueryWithLeftJoinOnOtherCollection_ThenReturnsAllPrimaryResults()
         {
-            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
-            var id2 = this.storage.Add(new TestEntity {AStringValue = "avalue2"});
-            var id3 = this.storage.Add(new TestEntity {AStringValue = "avalue3"});
+            var entity1 = this.storage.Add(new TestEntity {AStringValue = "avalue1"});
+            var entity2 = this.storage.Add(new TestEntity {AStringValue = "avalue2"});
+            var entity3 = this.storage.Add(new TestEntity {AStringValue = "avalue3"});
             this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue1"});
             this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue5"});
             var query = Query.From<TestEntity>()
@@ -904,9 +908,9 @@ namespace Storage.IntegrationTests
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(3);
-            results.Results[0].Id.Should().Be(id1);
-            results.Results[1].Id.Should().Be(id2);
-            results.Results[2].Id.Should().Be(id3);
+            results.Results[0].Id.Should().Be(entity1.Id);
+            results.Results[1].Id.Should().Be(entity2.Id);
+            results.Results[2].Id.Should().Be(entity3.Id);
         }
 
         [TestMethod]
@@ -926,7 +930,7 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryWithSelectFromInnerJoinOnOtherCollection_ThenReturnsAggregatedResults()
         {
-            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1", AIntValue = 7});
+            var entity1 = this.storage.Add(new TestEntity {AStringValue = "avalue1", AIntValue = 7});
             this.storage.Add(new TestEntity {AStringValue = "avalue2"});
             this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue1", AIntValue = 9});
             this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue3"});
@@ -938,14 +942,14 @@ namespace Storage.IntegrationTests
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].Id.Should().Be(entity1.Id);
             results.Results[0].AIntValue.Should().Be(9);
         }
 
         [TestMethod]
         public void WhenQueryWithSelectFromLeftJoinAndOtherCollectionNotExists_ThenReturnsUnAggregatedResults()
         {
-            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1", AIntValue = 7});
+            var entity1 = this.storage.Add(new TestEntity {AStringValue = "avalue1", AIntValue = 7});
             var query = Query.From<TestEntity>()
                 .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
                 .WhereAll()
@@ -954,16 +958,16 @@ namespace Storage.IntegrationTests
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].Id.Should().Be(entity1.Id);
             results.Results[0].AIntValue.Should().Be(7);
         }
 
         [TestMethod]
         public void WhenQueryWithSelectFromLeftJoinOnOtherCollection_ThenReturnsPartiallyAggregatedResults()
         {
-            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1", AIntValue = 7});
-            var id2 = this.storage.Add(new TestEntity {AStringValue = "avalue2", AIntValue = 7});
-            var id3 = this.storage.Add(new TestEntity {AStringValue = "avalue3", AIntValue = 7});
+            var entity1 = this.storage.Add(new TestEntity {AStringValue = "avalue1", AIntValue = 7});
+            var entity2 = this.storage.Add(new TestEntity {AStringValue = "avalue2", AIntValue = 7});
+            var entity3 = this.storage.Add(new TestEntity {AStringValue = "avalue3", AIntValue = 7});
             this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue1", AIntValue = 9});
             this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue5"});
             var query = Query.From<TestEntity>()
@@ -974,18 +978,18 @@ namespace Storage.IntegrationTests
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(3);
-            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].Id.Should().Be(entity1.Id);
             results.Results[0].AIntValue.Should().Be(9);
-            results.Results[1].Id.Should().Be(id2);
+            results.Results[1].Id.Should().Be(entity2.Id);
             results.Results[1].AIntValue.Should().Be(7);
-            results.Results[2].Id.Should().Be(id3);
+            results.Results[2].Id.Should().Be(entity3.Id);
             results.Results[2].AIntValue.Should().Be(7);
         }
 
         [TestMethod]
         public void WhenQueryWithSelectFromInnerJoinOnMultipleOtherCollections_ThenReturnsAggregatedResults()
         {
-            var id1 = this.storage.Add(new TestEntity {AStringValue = "avalue1", AIntValue = 7, ALongValue = 7});
+            var entity1 = this.storage.Add(new TestEntity {AStringValue = "avalue1", AIntValue = 7, ALongValue = 7});
             this.storage.Add(new TestEntity {AStringValue = "avalue2"});
             this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue1", AIntValue = 9});
             this.firstJoiningStorage.Add(new FirstJoiningTestEntity {AStringValue = "avalue3"});
@@ -1002,7 +1006,7 @@ namespace Storage.IntegrationTests
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
-            results.Results[0].Id.Should().Be(id1);
+            results.Results[0].Id.Should().Be(entity1.Id);
             results.Results[0].AIntValue.Should().Be(9);
             results.Results[0].ALongValue.Should().Be(8);
         }
@@ -1201,8 +1205,8 @@ namespace Storage.IntegrationTests
             {
                 var entity = new TestEntity();
                 factory?.Invoke(counter, entity);
-                var id = this.storage.Add(entity);
-                createdIdentifiers.Add(id);
+                this.storage.Add(entity);
+                createdIdentifiers.Add(entity.Id);
                 IntroduceTimeDelayForSortingDates();
             }, count);
 

@@ -1,26 +1,60 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using QueryAny.Primitives;
 
 namespace Domain.Interfaces.Entities
 {
     /// <summary>
-    ///     Defines an immutable DDD value type.
+    ///     Defines a DDD value type.
+    ///     Value types are immutable, and their properties should be set at construction, and never altered.
     ///     Value types are equal when their internal data is the same.
     ///     Value types support being persisted
     /// </summary>
-    public abstract class ValueType<TValue> : IEquatable<TValue>, IPersistableValueType
+    public abstract class ValueTypeBase<TValue> : IEquatable<TValue>, IPersistableValueType
     {
+        protected const string DefaultHydrationDelimiter = "::";
+
+        /// <summary>
+        ///     Here so that type can be deserialized by persistence
+        /// </summary>
+
+        // ReSharper disable once EmptyConstructor
+        // ReSharper disable once PublicConstructorInAbstractClass
+        public ValueTypeBase()
+        {
+        }
+
         public bool Equals(TValue other)
         {
             return Equals((object) other);
         }
 
-        public abstract string Dehydrate();
+        public virtual string Dehydrate()
+        {
+            return GetAtomicValues()
+                .Select(val => val != null
+                    ? val.ToString()
+                    : string.Empty)
+                .Join(DefaultHydrationDelimiter);
+        }
 
-        public abstract void Rehydrate(string value);
+        public virtual void Rehydrate(string value)
+        {
+        }
 
         protected abstract IEnumerable<object> GetAtomicValues();
+
+        public bool Equals(string other)
+        {
+            if (other == null || other.GetType() != typeof(string))
+            {
+                return false;
+            }
+
+            var value = Dehydrate();
+            return value.EqualsOrdinal(other);
+        }
 
         public override bool Equals(object obj)
         {
@@ -29,7 +63,7 @@ namespace Domain.Interfaces.Entities
                 return false;
             }
 
-            var other = (ValueType<TValue>) obj;
+            var other = (ValueTypeBase<TValue>) obj;
 
             // ReSharper disable once GenericEnumeratorNotDisposed
             var thisValues = GetAtomicValues().GetEnumerator();
@@ -65,14 +99,14 @@ namespace Domain.Interfaces.Entities
 
         public override string ToString()
         {
-            return string.Join("::", GetAtomicValues()
+            return string.Join(DefaultHydrationDelimiter, GetAtomicValues()
                 .Select(x => x.ToString()));
         }
     }
 
     public static class ValueTypeExtensions
     {
-        public static bool HasValue<TValue>(this ValueType<TValue> valueType)
+        public static bool HasValue<TValue>(this ValueTypeBase<TValue> valueType)
         {
             return valueType != null;
         }

@@ -13,7 +13,7 @@ We use these kinds of terms in the architecture:
 * DTO (Data Transfer Objects), 
 * REST Resources, 
 * Application Layer (DDD Application Layer), 
-* Entities (DDD Entities), ValueType (DDD ValueType), 
+* Entities (DDD Entities), ValueType (DDD ValueType), Aggregates
 * Repositories
 
 In terms of data flow, a typical REST API call results in an interaction like this:
@@ -40,20 +40,21 @@ The RI solution demonstrates strict discipline around decoupling and separation 
 
 # Structure
 
-The RI solution is structured into two logical parts:
+The RI solution is structured into three logical parts:
 
 * Infrastructure - This contains all infrastructure and adapters to that infrastructure (eg. Web API adapters and Storage adapters to repositories)
-* Domain - core domain classes, and application services unfettered by infrastructure. 
+* Application - this contains you definition of your application. The application layer instantiates, coordinates the domain layer to do stuff. Thing commands and queries of CQRS. In the case of building stateless services, this layer would also be responsible for dehydrating and rehydrating domain entities to and from persistence.
+* Domain - core domain classes, and application services unfettered by infrastructure and the application. 
 
-There should be no dependency from: classes in Domain -> to classes in Infrastructure. Ever!
+There should be no dependency from: classes in Domain -> to classes in Application or from Application to Infrastructure. Ever!
 
 ## Domain
 
-The domain should be structured into two discrete layers:
-1. **Domain Entities:** Your smart, fully encapsulated, pure OO, 'domain entities' that have all your domain rules, logic, validation, etc encapsulated within them. THey aggregate other entities and are self-contained. What they lack is only when to do the things they do in response to the world around them. That comes from the next layer.
-2. **Transaction Scripts/Application Layer/Domain Services:** classes that co-ordinate/orchestrate/manage/script your domain entitites. These classes contain commands that essentially follow the same patter: (1) retrieve domain entities from persistence, (2) instruct the entities what they should do now (Tell-Dont-Ask), and then (3) persist the mutated entity state again. This layer represents your specific application. 
+The domain layer contains  **Domain Entities and Value Types and Aggregates:** Your smart, fully encapsulated, pure OO, 'domain classes' that have all your domain rules, logic, validation, etc encapsulated within them. 
 
-> Note: Between your 'transaction scripts/application layer/domain services' and the Infrastructure layer there will always be a mapping (logical or physical) to and from DTO (Data Transfer Objects) or POCO objects. These are bare OO objects with no behaviour in them, that do not use encapsulation (ideally not inheritance), that are the only types that traverse the boundary between Domain<->Infrastructure.
+They aggregate other entities and are self-contained. 
+
+What they lack is only when to do the things they do in response to the world around them. That comes from the Application Layer.
 
 ### CarsDomain
 
@@ -91,6 +92,12 @@ Contains all unit level tests for all components in the architecture, separated 
 
 ## Application
 
+This layer contains the **Transaction Scripts/Application Layer/Domain Services:** classes that co-ordinate/orchestrate/manage/script your domain entities. 
+
+These classes contain commands and queries that essentially follow the same patter: (1) retrieve domain entities from persistence, (2) instruct the entities what they should do now (Tell-Dont-Ask), and then (3) persist the mutated entity state again. This layer represents your specific application. 
+
+> Note: Between your 'transaction scripts/application layer/domain services' and the Infrastructure layer there will always be a mapping (logical or physical) to and from DTO (Data Transfer Objects) or POCO objects. These are bare OO objects with no behaviour in them, that do not use encapsulation (ideally not inheritance), that are the only types that traverse the boundary between Domain<->Infrastructure.
+
 ### CarsApplication
 
 Contains the application layer consisting of services that instruct the domain entities to do things, using the Ask-Dont-Tell pattern.
@@ -118,7 +125,7 @@ Contains all unit level tests for all components in the architecture, separated 
 
 ## Infrastructure
 
-Contains all ports & Adapters, all infrastructure classes and anything to do with interacting with the outside world (form domain perspective).
+Contains all ports & Adapters, all infrastructure classes and anything to do with interacting with the outside world (from the domain's perspective).
 
 ### CarsApi
 
@@ -172,7 +179,75 @@ Contains all unit level tests for all components in the architecture, separated 
 
 # Design Notes
 
-In this RI we have a number of shortcuts in design for practical purposes, that reduce the overhead on developers for keeping strictly to pure design principles. These design decisions aim to make the code easy to work with while at the same time maintain high levels of maintainability. 
+In this RI we have a number of intentional designs for practical purposes, that reduce the overhead on developers for keeping strictly to pure OO or DDD design principles. These design decisions aim to make the code easy to work with while at the same time maintain high levels of maintainability and decoupling. 
+
+## Design Principles
+
+This section calls out some of the design principles used behind this reference implementation.
+
+Many of these principles are informed by Domain Driven Design. Many are informed by writing clean testable code that changes frequently.
+
+## Application Layers
+
+The application you are choosing to build right now is a different thing than the domain you are choosing to model in software. This subtle distinction makes a large difference to how you design the over architecture. Whilst it is true that you are building both the domain and the application at the same time, it is not true that they are the same thing. For example: You may decide that there are a certain set of users that are going to use this application in a certain way, say a mobile application with limited functionality. Then you are are building a WebApp for another set of users to use a certain way, finally, you build a centralized API that serves both mobile app and web app. In fact you have built 3 applications, but at the heart of it is one logical domain, ideally in one central place to avoid duplication.
+
+For this reason, it is useful to maintain a separation between you domain and the application which is hosting it.
+We call this an "Application Layer", and it has responsibilities outside the domain for things like persisting stateless interactions, handing commands (like REST API commands), and responding to events in the domain by passing messages through adapters to the outside world.
+
+The Application Layer sits between the Infrastructure layer and the Domain layer. It brokers all interactions to the domain layer through DTO objects. Never exposing domain entities or their data or their inputs, outside the domain. The domain should never have any dependency on any Application or any Infrastructural component - ever!
+
+## Value Types
+
+Value types represent most of the things in a domain.
+
+They have the property that two instances with the same internal value are in fact equal. 
+(As opposed to Entities, which despite their value, are equal if their `Id` is equal).
+
+Like Entities, they contain data, and behavior.
+
+Like Entities, they must not exist in the domain in an invalid state.
+
+Unlike Entities, they do not have a unique identifier.
+
+Unlike Entities, they are _immutable_. That means, once they have been created, they cannot be changed. New instances of them must be created instead, especially if commands change their state.
+
+**In practice:**
+
+ * Value Types are often instantiated with their value in their constructor, where those values will be validated.
+ * Value Types will never allow their "value" to be changed, so must not have any public properties or methods to change their internal state. 
+ * Value Types will derive from `ValueType<T>` and they will implement the inherited methods that provide equality and persistence support.
+ * Commands that change the state of a ValueType must return a new instance of the Value Type, since they are immutable.
+ * You should not expect a caller to know how to change the state of an ValueType. You should provide a method that validates the value, and any constraints, that would mutate it. So, no public setters.
+* Value Types support persistence of their internal state through the `IPersisableValueType` interface, which is used by persistence layers. A Value Type never persists itself. Only Application Layers do that.
+* Value Types derive from `ValueTypeBase<T>`, and must have a public, parameter-less constructor used for instantiation by persistence layers
+
+## Entities
+
+Entities are not that common in a domain.
+
+They have the property that two instances of the _same type_ of entity are equal if their `Id` is equal. (Irrespective of whether their internal values are equal or not).
+
+Like ValueTypes, they contain data and behavior.
+
+Like ValueTypes, they must not exist in the domain in an invalid state.
+
+Unlike ValueTypes, they have a unique identifier (unique for that type across the whole domain).
+
+Unlike ValueTypes, they are _mutable_. That means, once they have been created, they can be changed.
+
+In practice:
+ * Entities are often instantiated with any values in their constructor, where those values will be validated.
+ * Entities will never allow their "value" to be changed, so must not have any public properties or methods to change their internal state. 
+ * Entities will derive from `EntityBase<T>` and they will implement the inherited methods that provide identification and persistence support.
+ * Commands that change the state of a Entities do not return an instance of the Entity, since they are mutable.
+ * You should not expect a caller to know how to change the state of an Entity. You should provide a method that validates the value, and any constraints, that mutates it. So, no public setters.
+ * Entities support persistence of their internal state through the `IPersisableEntity` interface, which is used by persistence layers. An Entity never persists itself. Only Application Layers do that.
+ * Entity identifiers are created by a `IIdentifierFactory` which generates the identity for the entity. This is expected to be generated when the entity is first created. 
+ * Entities derive from `EntityBase`, and must declare a `EntityFactory<TEntity>` using a `HydrationIdentifierFactory` used for instantiation by persistence layers.
+
+## Aggregates
+
+TBD
 
 ## Persistence
 
@@ -190,7 +265,7 @@ We also accept that at the time in the software products life when these optimiz
 
 For those reasons, the following sub-optimizations on specific repository implementations is acceptable:
 
-* A `1000` result limit on all queries, in: `InProcessInMemRepository`, `RedisInMemRepository`, `AzureTableStorageRepository`, `AzureCosmosSqlApiRepository`.
+* A `1000` result limit on all queries, in: `InProcessInMemRepository`, `RedisInMemRepository`, `AzureTableStorageRepository`, `AzureCosmosSqlApiRepository`, `SqlServerRepository`.
 * Loading all entities (into memory) from each container, in: `InProcessInMemRepository`, `RedisInMemRepository`.
 * In memory (Where clause) filtering, in: `InProcessInMemRepository`, `RedisInMemRepository`.
 * Multiple fetches of individual joined entities, in: `AzureTableStorageRepository`, `AzureCosmosSqlApiRepository`.
@@ -199,7 +274,7 @@ For those reasons, the following sub-optimizations on specific repository implem
 
 ### Mapping Shortcuts
 
-Ideally, there would be a mapping between domain entities and DTO's whenever entities transfer over any Application boundary. 
+Ideally, there would be a mapping between domain entities and DTO's whenever entities traverse over any boundary. Such as from Infrastructure to Application, and from Application to Domain, and visa-versa. 
 
 **For example 1**: When HTTP requests in a REST API invoke domain entities to perform work, the data passed into entities would be in the form of DTO's coming over the wire as JSON. That requires mapping DTO -> Entity and visa versa.
 

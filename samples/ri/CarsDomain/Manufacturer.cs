@@ -5,7 +5,7 @@ using QueryAny.Primitives;
 
 namespace CarsDomain
 {
-    public class Manufacturer : ValueType<Manufacturer>
+    public class Manufacturer : ValueTypeBase<Manufacturer>
     {
         public const int MinYear = 1917;
         public static readonly List<string> Makes = new List<string> {"Honda", "Toyota"};
@@ -38,16 +38,11 @@ namespace CarsDomain
 
         public string Model { get; private set; }
 
-        public override string Dehydrate()
-        {
-            return $"{Year}::{Make}::{Model}";
-        }
-
         public override void Rehydrate(string value)
         {
             if (value.HasValue())
             {
-                var parts = value.SafeSplit("::");
+                var parts = value.SafeSplit(DefaultHydrationDelimiter);
                 Year = parts[0].HasValue()
                     ? int.Parse(parts[0])
                     : 0;

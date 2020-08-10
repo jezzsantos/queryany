@@ -21,32 +21,24 @@ namespace Storage.Azure
         private readonly string connectionString;
         private readonly Dictionary<string, Container> containers = new Dictionary<string, Container>();
         private readonly string databaseName;
-        private readonly IIdentifierFactory idFactory;
         private CosmosClient client;
         private bool databaseExistenceHasBeenChecked;
 
-        public AzureCosmosSqlApiRepository(string connectionString, string databaseName, IIdentifierFactory idFactory)
+        public AzureCosmosSqlApiRepository(string connectionString, string databaseName)
         {
             connectionString.GuardAgainstNullOrEmpty(nameof(connectionString));
             databaseName.GuardAgainstNullOrEmpty(nameof(databaseName));
-            idFactory.GuardAgainstNull(nameof(idFactory));
             this.connectionString = connectionString;
             this.databaseName = databaseName;
-            this.idFactory = idFactory;
         }
 
         public int MaxQueryResults => 1000;
 
-        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
+        public void Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
         {
             var container = EnsureContainer(containerName);
 
-            var id = this.idFactory.Create(entity);
-            entity.Identify(id);
-
             container.CreateItemAsync<dynamic>(entity.ToContainerEntity()).GetAwaiter().GetResult();
-
-            return id;
         }
 
         public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity
@@ -137,12 +129,13 @@ namespace Storage.Azure
                                 .Dehydrate());
 
                         primaryEntities = join
-                            .JoinResults<TEntity>(leftEntities, rightEntities,
+                            .JoinResults(leftEntities, rightEntities, entityFactory,
                                 joinedEntity.Selects.ProjectSelectedJoinedProperties());
                     }
                 }
 
-                return primaryEntities.CherryPickSelectedProperties(query, new[] {IdentifierPropertyName});
+                return primaryEntities.CherryPickSelectedProperties(query, entityFactory,
+                    new[] {IdentifierPropertyName});
             }
             catch (CosmosException ex)
             {
@@ -212,7 +205,10 @@ namespace Storage.Azure
         {
             if (this.client == null)
             {
-                this.client = new CosmosClient(this.connectionString);
+                this.client = new CosmosClient(this.connectionString, new CosmosClientOptions
+                {
+                    Serializer = new CosmosJsonDotNetSerializer()
+                });
             }
 
             if (!this.databaseExistenceHasBeenChecked)
@@ -302,7 +298,7 @@ namespace Storage.Azure
 
             var id = containerEntity[AzureCosmosSqlApiRepository.IdentifierPropertyName].ToString();
 
-            return propertyValues.CreateEntity(id, entityFactory);
+            return propertyValues.EntityFromContainerProperties(id, entityFactory);
         }
 
         private static object FromContainerEntityProperty(this object property, Type targetPropertyType)
@@ -351,12 +347,35 @@ namespace Storage.Azure
 
                     return text;
 
-                case DateTime _:
-                case DateTimeOffset _:
+                case DateTimeOffset dateTimeOffset:
+                    if (targetPropertyType == typeof(DateTime))
+                    {
+                        var dateTime = dateTimeOffset.UtcDateTime;
+                        return !dateTime.HasValue()
+                            ? DateTime.MinValue
+                            : dateTime;
+                    }
+                    else
+                    {
+                        return dateTimeOffset;
+                    }
+
                 case bool _:
                 case int _:
                 case long _:
                 case double _:
+                    if (targetPropertyType == typeof(int))
+                    {
+                        return Convert.ToInt32(value);
+                    }
+                    if (targetPropertyType == typeof(long))
+                    {
+                        return Convert.ToInt64(value);
+                    }
+                    if (targetPropertyType == typeof(double))
+                    {
+                        return Convert.ToDouble(value);
+                    }
                     return value;
 
                 case null:
@@ -398,9 +417,9 @@ namespace Storage.Azure
 
                 if (value is DateTime dateTime)
                 {
-                    if (dateTime == DateTime.MinValue)
+                    if (!dateTime.HasValue())
                     {
-                        value = DateTime.MinValue;
+                        value = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
                     }
                 }
 
@@ -604,7 +623,7 @@ namespace Storage.Azure
                 case DateTime dateTime:
                     return dateTime.HasValue()
                         ? $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ss.fffffffZ}'"
-                        : $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ss}'";
+                        : $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ssZ}'";
 
                 case DateTimeOffset dateTimeOffset:
                     return

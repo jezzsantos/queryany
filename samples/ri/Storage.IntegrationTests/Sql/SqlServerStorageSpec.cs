@@ -25,8 +25,7 @@ namespace Storage.IntegrationTests.Sql
             var databaseName = "TestDatabase";
             repository =
                 new SqlServerRepository(
-                    $"Persist Security Info=False;Integrated Security=true;Initial Catalog={databaseName};Server={serverName}{(credentials.HasValue() ? ";" + credentials : "")}",
-                    new GuidIdentifierFactory());
+                    $"Persist Security Info=False;Integrated Security=true;Initial Catalog={databaseName};Server={serverName}{(credentials.HasValue() ? ";" + credentials : "")}");
             InitializeAllTests(context, serviceName, databaseName);
         }
 

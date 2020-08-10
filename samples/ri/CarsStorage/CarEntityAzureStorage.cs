@@ -18,8 +18,7 @@ namespace CarsStorage
 
         protected override string ContainerName => "Car";
 
-        public static CarEntityAzureStorage Create(ILogger logger, IAppSettings settings,
-            IIdentifierFactory identifierFactory)
+        public static CarEntityAzureStorage Create(ILogger logger, IAppSettings settings)
         {
             logger.GuardAgainstNull(nameof(logger));
             settings.GuardAgainstNull(nameof(settings));
@@ -29,8 +28,7 @@ namespace CarsStorage
 
             return new CarEntityAzureStorage(logger,
                 CarEntity.GetFactory(logger),
-                new AzureCosmosSqlApiRepository(localEmulatorConnectionString, "Production",
-                    identifierFactory));
+                new AzureCosmosSqlApiRepository(localEmulatorConnectionString, "Production"));
         }
     }
 }

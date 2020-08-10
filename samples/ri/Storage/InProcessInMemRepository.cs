@@ -14,28 +14,16 @@ namespace Storage
         private readonly Dictionary<string, Dictionary<Identifier, Dictionary<string, object>>> containers =
             new Dictionary<string, Dictionary<Identifier, Dictionary<string, object>>>();
 
-        private readonly IIdentifierFactory idFactory;
-
-        public InProcessInMemRepository(IIdentifierFactory idFactory)
-        {
-            idFactory.GuardAgainstNull(nameof(idFactory));
-            this.idFactory = idFactory;
-        }
-
         public int MaxQueryResults => 1000;
 
-        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
+        public void Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
         {
             if (!this.containers.ContainsKey(containerName))
             {
                 this.containers.Add(containerName, new Dictionary<Identifier, Dictionary<string, object>>());
             }
 
-            var id = this.idFactory.Create(entity);
-            entity.Identify(id);
             this.containers[containerName].Add(entity.Id, entity.ToContainerProperties());
-
-            return id;
         }
 
         public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity
@@ -116,12 +104,12 @@ namespace Storage
                         .ToDictionary(e => e.Key, e => e.Value);
 
                     primaryEntities = join
-                        .JoinResults<TEntity>(leftEntities, rightEntities,
+                        .JoinResults(leftEntities, rightEntities, entityFactory,
                             joinedEntity.Selects.ProjectSelectedJoinedProperties());
                 }
             }
 
-            return primaryEntities.CherryPickSelectedProperties(query);
+            return primaryEntities.CherryPickSelectedProperties(query, entityFactory);
         }
 
         public void DestroyAll(string containerName)
@@ -196,7 +184,7 @@ namespace Storage
             Identifier id, EntityFactory<TEntity> entityFactory)
             where TEntity : IPersistableEntity
         {
-            return entityProperties.CreateEntity(id, entityFactory);
+            return entityProperties.EntityFromContainerProperties(id, entityFactory);
         }
     }
 

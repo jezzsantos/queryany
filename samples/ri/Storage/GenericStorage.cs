@@ -28,18 +28,20 @@ namespace Storage
 
         public EntityFactory<TEntity> EntityFactory { get; }
 
-        public Identifier Add(TEntity entity)
+        public TEntity Add(TEntity entity)
         {
             entity.GuardAgainstNull(nameof(entity));
-            var id = this.repository.Add(ContainerName, entity);
+
             if (!entity.Id.HasValue())
             {
-                entity.Identify(id);
+                throw new ResourceConflictException("The entity does not have an Identifier");
             }
 
-            this.logger.LogDebug("Entity {Id} was added to repository", id);
+            this.repository.Add(ContainerName, entity);
 
-            return id;
+            this.logger.LogDebug("Entity {Id} was added to repository", entity.Id);
+
+            return this.repository.Retrieve(ContainerName, entity.Id, EntityFactory);
         }
 
         public void Delete(Identifier id)

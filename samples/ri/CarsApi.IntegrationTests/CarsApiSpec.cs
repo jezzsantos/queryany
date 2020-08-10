@@ -3,6 +3,7 @@ using System.Linq;
 using Api.Interfaces.ServiceOperations;
 using CarsDomain;
 using CarsStorage;
+using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -26,7 +27,8 @@ namespace CarsApi.IntegrationTests
         {
             this.appHost = new TestServiceHost();
             this.logger = new Logger<TestServiceHost>(new NullLoggerFactory());
-            this.store = CarEntityInMemStorage.Create(this.logger, new GuidIdentifierFactory());
+            this.store = CarEntityInMemStorage.Create(this.logger);
+            this.appHost.Container.AddSingleton<IIdentifierFactory, GuidIdentifierFactory>();
             this.appHost.Container.AddSingleton(this.logger);
             this.appHost.Container.AddSingleton<IStorage<CarEntity>>(this.store);
 

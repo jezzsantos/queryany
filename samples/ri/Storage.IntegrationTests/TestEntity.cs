@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Domain.Interfaces.Entities;
+using Microsoft.Extensions.Logging.Abstractions;
 using QueryAny;
 using QueryAny.Primitives;
 using ServiceStack;
@@ -8,15 +9,14 @@ using ServiceStack;
 namespace Storage.IntegrationTests
 {
     [EntityName("testentities")]
-    public class TestEntity : IPersistableEntity
+    public class TestEntity : EntityBase
     {
-        public TestEntity()
+        public TestEntity() : this(new GuidIdentifierFactory())
         {
         }
 
-        public TestEntity(Identifier id)
+        private TestEntity(IIdentifierFactory idFactory) : base(NullLogger.Instance, idFactory)
         {
-            Id = id;
         }
 
         public string AStringValue { get; set; }
@@ -41,101 +41,122 @@ namespace Storage.IntegrationTests
 
         public ComplexValueType AComplexValueTypeValue { get; set; }
 
-        public DateTime CreatedAtUtc { get; set; }
-
-        public DateTime LastModifiedAtUtc { get; set; }
-
-        public Identifier Id { get; private set; }
-
-        public void Identify(Identifier id)
+        public override Dictionary<string, object> Dehydrate()
         {
-            Id = id;
+            var properties = base.Dehydrate();
+            properties.Add(nameof(AStringValue), AStringValue);
+            properties.Add(nameof(ABooleanValue), ABooleanValue);
+            properties.Add(nameof(ADateTimeUtcValue), ADateTimeUtcValue);
+            properties.Add(nameof(ADateTimeOffsetUtcValue), ADateTimeOffsetUtcValue);
+            properties.Add(nameof(AGuidValue), AGuidValue);
+            properties.Add(nameof(ADoubleValue), ADoubleValue);
+            properties.Add(nameof(AIntValue), AIntValue);
+            properties.Add(nameof(ALongValue), ALongValue);
+            properties.Add(nameof(ABinaryValue), ABinaryValue);
+            properties.Add(nameof(AComplexNonValueTypeValue), AComplexNonValueTypeValue);
+            properties.Add(nameof(AComplexValueTypeValue), AComplexValueTypeValue);
+
+            return properties;
         }
 
-        public Dictionary<string, object> Dehydrate()
+        public override void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
-            return this.ToObjectDictionary();
-        }
-
-        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
+            base.Rehydrate(properties);
+            AStringValue = properties.GetValueOrDefault<string>(nameof(AStringValue));
+            ABooleanValue = properties.GetValueOrDefault<bool>(nameof(ABooleanValue));
+            ADateTimeUtcValue = properties.GetValueOrDefault<DateTime>(nameof(ADateTimeUtcValue));
+            ADateTimeOffsetUtcValue = properties.GetValueOrDefault<DateTimeOffset>(nameof(ADateTimeOffsetUtcValue));
+            AGuidValue = properties.GetValueOrDefault<Guid>(nameof(AGuidValue));
+            ADoubleValue = properties.GetValueOrDefault<double>(nameof(ADoubleValue));
+            AIntValue = properties.GetValueOrDefault<int>(nameof(AIntValue));
+            ALongValue = properties.GetValueOrDefault<long>(nameof(ALongValue));
+            ABinaryValue = properties.GetValueOrDefault<byte[]>(nameof(ABinaryValue));
+            AComplexNonValueTypeValue =
+                properties.GetValueOrDefault<ComplexNonValueType>(nameof(AComplexNonValueTypeValue));
+            AComplexValueTypeValue = properties.GetValueOrDefault<ComplexValueType>(nameof(AComplexValueTypeValue));
         }
 
         public static EntityFactory<TestEntity> GetFactory()
         {
-            return properties => new TestEntity();
+            return properties => new TestEntity(new HydrationIdentifierFactory(properties));
         }
     }
 
     [EntityName("firstjoiningtestentities")]
-    public class FirstJoiningTestEntity : IPersistableEntity
+    public class FirstJoiningTestEntity : EntityBase
     {
+        public FirstJoiningTestEntity() : this(new GuidIdentifierFactory())
+        {
+        }
+
+        private FirstJoiningTestEntity(IIdentifierFactory idFactory) : base(NullLogger.Instance, idFactory)
+        {
+        }
+
         public string AStringValue { get; set; }
 
         public int AIntValue { get; set; }
 
-        public DateTime CreatedAtUtc { get; set; }
-
-        public DateTime LastModifiedAtUtc { get; set; }
-
-        public Identifier Id { get; private set; }
-
-        public void Identify(Identifier id)
+        public override Dictionary<string, object> Dehydrate()
         {
-            Id = id;
+            var properties = base.Dehydrate();
+            properties.Add(nameof(AStringValue), AStringValue);
+            properties.Add(nameof(AIntValue), AIntValue);
+
+            return properties;
         }
 
-        public Dictionary<string, object> Dehydrate()
+        public override void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
-            return this.ToObjectDictionary();
-        }
-
-        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
+            base.Rehydrate(properties);
+            AStringValue = properties.GetValueOrDefault<string>(nameof(AStringValue));
+            AIntValue = properties.GetValueOrDefault<int>(nameof(AIntValue));
         }
 
         public static EntityFactory<FirstJoiningTestEntity> GetFactory()
         {
-            return properties => new FirstJoiningTestEntity();
+            return properties => new FirstJoiningTestEntity(new HydrationIdentifierFactory(properties));
         }
     }
 
     [EntityName("secondjoiningtestentities")]
-    public class SecondJoiningTestEntity : IPersistableEntity
+    public class SecondJoiningTestEntity : EntityBase
     {
+        public SecondJoiningTestEntity() : this(new GuidIdentifierFactory())
+        {
+        }
+
+        private SecondJoiningTestEntity(IIdentifierFactory idFactory) : base(NullLogger.Instance, idFactory)
+        {
+        }
+
         public string AStringValue { get; set; }
 
-        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public int AIntValue { get; set; }
 
         public long ALongValue { get; set; }
 
-        public DateTime CreatedAtUtc { get; set; }
-
-        public DateTime LastModifiedAtUtc { get; set; }
-
-        public Identifier Id { get; private set; }
-
-        public void Identify(Identifier id)
+        public override Dictionary<string, object> Dehydrate()
         {
-            Id = id;
+            var properties = base.Dehydrate();
+            properties.Add(nameof(AStringValue), AStringValue);
+            properties.Add(nameof(AIntValue), AIntValue);
+            properties.Add(nameof(ALongValue), ALongValue);
+
+            return properties;
         }
 
-        public Dictionary<string, object> Dehydrate()
+        public override void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
-            return this.ToObjectDictionary();
-        }
-
-        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            this.PopulateWith(properties.FromObjectDictionary<TestEntity>());
+            base.Rehydrate(properties);
+            AStringValue = properties.GetValueOrDefault<string>(nameof(AStringValue));
+            AIntValue = properties.GetValueOrDefault<int>(nameof(AIntValue));
+            ALongValue = properties.GetValueOrDefault<long>(nameof(ALongValue));
         }
 
         public static EntityFactory<SecondJoiningTestEntity> GetFactory()
         {
-            return properties => new SecondJoiningTestEntity();
+            return properties => new SecondJoiningTestEntity(new HydrationIdentifierFactory(properties));
         }
     }
 
@@ -150,7 +171,7 @@ namespace Storage.IntegrationTests
         }
     }
 
-    public class ComplexValueType : ValueType<ComplexValueType>
+    public class ComplexValueType : ValueTypeBase<ComplexValueType>
     {
         private ComplexValueType(string @string, int integer, bool boolean)
         {

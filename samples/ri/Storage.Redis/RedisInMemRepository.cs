@@ -16,30 +16,22 @@ namespace Storage.Redis
         private const string ContainerStorageKeyPrefix = @"in-mem:containers:";
         public const string RedisHashNullToken = @"null";
         private readonly string connectionString;
-        private readonly IIdentifierFactory idFactory;
         private IRedisClientsManager redisClient;
 
-        public RedisInMemRepository(string connectionString, IIdentifierFactory idFactory)
+        public RedisInMemRepository(string connectionString)
         {
             connectionString.GuardAgainstNullOrEmpty(nameof(connectionString));
-            idFactory.GuardAgainstNull(nameof(idFactory));
             this.connectionString = connectionString;
-            this.idFactory = idFactory;
         }
 
         public int MaxQueryResults => 1000;
 
-        public Identifier Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
+        public void Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
         {
             var client = EnsureClient();
 
-            var id = this.idFactory.Create(entity);
-            entity.Identify(id);
-
             var key = CreateRowKey(containerName, entity);
             client.SetRangeInHash(key, entity.ToContainerEntity());
-
-            return id;
         }
 
         public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity
@@ -116,12 +108,12 @@ namespace Storage.Redis
                         .ToDictionary(e => Identifier.Create(e.Key), e => e.Value.Dehydrate());
 
                     primaryEntities = join
-                        .JoinResults<TEntity>(leftEntities, rightEntities,
+                        .JoinResults(leftEntities, rightEntities, entityFactory,
                             joinedEntity.Selects.ProjectSelectedJoinedProperties());
                 }
             }
 
-            return primaryEntities.CherryPickSelectedProperties(query);
+            return primaryEntities.CherryPickSelectedProperties(query, entityFactory);
         }
 
         public void DestroyAll(string containerName)
@@ -396,7 +388,7 @@ namespace Storage.Redis
                     pair => pair.Value.FromContainerProperty(entityPropertyTypeInfo.First(info =>
                         StringExtensions.EqualsIgnoreCase(info.Name, pair.Key)).PropertyType));
 
-            return containerEntityProperties.CreateEntity(id, entityFactory);
+            return containerEntityProperties.EntityFromContainerProperties(id, entityFactory);
         }
 
         private static object FromContainerProperty(this string propertyValue, Type targetPropertyType)
@@ -430,6 +422,21 @@ namespace Storage.Redis
             if (targetPropertyType == typeof(Guid))
             {
                 return Guid.Parse(propertyValue);
+            }
+
+            if (targetPropertyType == typeof(double))
+            {
+                return double.Parse(propertyValue);
+            }
+
+            if (targetPropertyType == typeof(long))
+            {
+                return long.Parse(propertyValue);
+            }
+
+            if (targetPropertyType == typeof(int))
+            {
+                return int.Parse(propertyValue);
             }
 
             if (targetPropertyType == typeof(byte[]))

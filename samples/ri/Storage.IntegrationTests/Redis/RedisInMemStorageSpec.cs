@@ -21,7 +21,7 @@ namespace Storage.IntegrationTests.Redis
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var localServerConnectionString = config["RedisConnectionString"];
             repository =
-                new RedisInMemRepository(localServerConnectionString, new GuidIdentifierFactory());
+                new RedisInMemRepository(localServerConnectionString);
             RedisInMemStorageBaseSpec.InitializeAllTests(context);
         }
 

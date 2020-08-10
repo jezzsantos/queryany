@@ -20,8 +20,7 @@ namespace Storage.IntegrationTests.Azure
             var accountKey = config["AzureCosmosDbAccountKey"];
             var hostName = config["AzureCosmosDbHostName"];
             var localEmulatorConnectionString = $"AccountEndpoint=https://{hostName}:8081/;AccountKey={accountKey}";
-            repository = new AzureCosmosSqlApiRepository(localEmulatorConnectionString, "TestDatabase",
-                new GuidIdentifierFactory());
+            repository = new AzureCosmosSqlApiRepository(localEmulatorConnectionString, "TestDatabase");
             InitializeAllTests(context, null);
         }
 

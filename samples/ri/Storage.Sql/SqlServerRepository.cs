@@ -16,26 +16,18 @@ namespace Storage.Sql
         internal const string JoinedEntityFieldAliasPrefix = @"je_";
         public static readonly DateTime MinimumAllowableDate = SqlDateTime.MinValue.Value;
         private readonly string connectionString;
-        private readonly IIdentifierFactory idFactory;
 
-        public SqlServerRepository(string connectionString, IIdentifierFactory identifierFactory)
+        public SqlServerRepository(string connectionString)
         {
             connectionString.GuardAgainstNullOrEmpty(nameof(connectionString));
-            identifierFactory.GuardAgainstNull(nameof(identifierFactory));
             this.connectionString = connectionString;
-            this.idFactory = identifierFactory;
         }
 
         public int MaxQueryResults => 1000;
 
-        public Identifier Add<TEntity>(string tableName, TEntity entity) where TEntity : IPersistableEntity
+        public void Add<TEntity>(string tableName, TEntity entity) where TEntity : IPersistableEntity
         {
-            var id = this.idFactory.Create(entity);
-            entity.Identify(id);
-
             ExecuteInsert(tableName, entity.ToTableEntity());
-
-            return id;
         }
 
         public void Remove<TEntity>(string tableName, Identifier id) where TEntity : IPersistableEntity
@@ -390,7 +382,7 @@ namespace Storage.Sql
                         .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType));
 
             var id = Identifier.Create(tableProperties[nameof(IIdentifiableEntity.Id)].ToString());
-            return propertyValues.CreateEntity(id, entityFactory);
+            return propertyValues.EntityFromContainerProperties(id, entityFactory);
         }
 
         private static object FromTableEntityProperty(this KeyValuePair<string, object> property,

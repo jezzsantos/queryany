@@ -21,7 +21,7 @@ namespace Storage.IntegrationTests.Azure
             var hostName = config["AzureCosmosDbHostName"];
             var localEmulatorConnectionString =
                 $"DefaultEndpointsProtocol=http;AccountName={hostName};AccountKey={accountKey};TableEndpoint=http://localhost:8902/;";
-            repository = new AzureCosmosTableApiRepository(localEmulatorConnectionString, new GuidIdentifierFactory());
+            repository = new AzureCosmosTableApiRepository(localEmulatorConnectionString);
             InitializeAllTests(context, "/EnableTableEndpoint");
         }
 

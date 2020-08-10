@@ -10,12 +10,9 @@ namespace CarsDomain
     [EntityName("Car")]
     public class CarEntity : EntityBase
     {
-        private readonly ILogger logger;
-
-        public CarEntity(ILogger logger)
+        public CarEntity(ILogger logger, IIdentifierFactory idFactory) : base(logger, idFactory)
         {
             logger.GuardAgainstNull(nameof(logger));
-            this.logger = logger;
         }
 
         public Manufacturer Manufacturer { get; private set; }
@@ -66,12 +63,12 @@ namespace CarsDomain
             }
 
             OccupiedUntilUtc = untilUtc;
-            this.logger.LogDebug("Car was occupied until {Until}", untilUtc);
+            Logger.LogDebug("Car was occupied until {Until}", untilUtc);
         }
 
         public static EntityFactory<CarEntity> GetFactory(ILogger logger)
         {
-            return properties => new CarEntity(logger);
+            return properties => new CarEntity(logger, new HydrationIdentifierFactory(properties));
         }
     }
 }

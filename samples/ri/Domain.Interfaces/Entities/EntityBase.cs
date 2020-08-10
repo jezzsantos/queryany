@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 
 namespace Domain.Interfaces.Entities
@@ -11,11 +12,19 @@ namespace Domain.Interfaces.Entities
     /// </summary>
     public abstract class EntityBase : IPersistableEntity
     {
-        protected EntityBase()
+        protected EntityBase(ILogger logger, IIdentifierFactory idFactory)
         {
-            CreatedAtUtc = DateTime.UtcNow;
-            LastModifiedAtUtc = DateTime.UtcNow;
+            logger.GuardAgainstNull(nameof(logger));
+            idFactory.GuardAgainstNull(nameof(idFactory));
+            Logger = logger;
+
+            var now = DateTime.UtcNow;
+            CreatedAtUtc = now;
+            LastModifiedAtUtc = now;
+            Id = idFactory.Create(this);
         }
+
+        protected ILogger Logger { get; }
 
         public DateTime CreatedAtUtc { get; private set; }
 
@@ -23,22 +32,11 @@ namespace Domain.Interfaces.Entities
 
         public Identifier Id { get; private set; }
 
-        public void Identify(Identifier id)
-        {
-            id.GuardAgainstNull(nameof(id));
-
-            if (Id.HasValue())
-            {
-                throw new RuleViolationException(Properties.Resources.EntityBase_IdentifierExists);
-            }
-            Id = id;
-        }
-
         public virtual Dictionary<string, object> Dehydrate()
         {
             return new Dictionary<string, object>
             {
-                {nameof(Id), Id?.Dehydrate()},
+                {nameof(Id), Id},
                 {nameof(CreatedAtUtc), CreatedAtUtc},
                 {nameof(LastModifiedAtUtc), LastModifiedAtUtc}
             };
@@ -46,9 +44,9 @@ namespace Domain.Interfaces.Entities
 
         public virtual void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
-            var id = properties.GetValueOrDefault<string>(nameof(Id));
+            var id = properties.GetValueOrDefault<Identifier>(nameof(Id));
             Id = id.HasValue()
-                ? Identifier.Create(id)
+                ? id
                 : null;
             CreatedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(CreatedAtUtc));
             LastModifiedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(LastModifiedAtUtc));
