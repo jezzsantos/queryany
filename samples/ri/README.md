@@ -13,7 +13,7 @@ We use these kinds of terms in the architecture:
 * DTO (Data Transfer Objects), 
 * REST Resources, 
 * Application Layer (DDD Application Layer), 
-* Entities (DDD Entities), ValueType (DDD ValueType), Aggregates
+* Entities (DDD Entities), ValueObject (DDD ValueObject), Aggregates
 * Repositories
 
 In terms of data flow, a typical REST API call results in an interaction like this:
@@ -28,7 +28,7 @@ In terms of data flow, a typical REST API call results in an interaction like th
 
 The RI has tried not to be too strongly opinionated about the layout and naming of files/folders/assemblies on disk, other than to assume that in a small to medium sized product you too would likely split your projects/components into logical, testable layers for maintainability, reuse and future scalability (scale out), as your product grows.
 
-> Note: Some of the naming conventions here are de-bateable and perhaps not to your liking. That's cool too. We have named them in the way we have, primarily so that you can at a glance understand the intention of them. We would chose a different naming convention in a real product too.
+> Note: Some of the naming conventions here are debatable and perhaps not to your liking. That's cool too. We have named them in the way we have, primarily so that you can at a glance understand the intention of them. We would chose a different naming convention in a real product too.
 
 The RI solution demonstrates strict discipline around decoupling and separation of concerns, both of which manage _accidental complexity_ as things change and as the codebase grows. Which is the primary concern of yours.
 
@@ -50,7 +50,7 @@ There should be no dependency from: classes in Domain -> to classes in Applicati
 
 ## Domain
 
-The domain layer contains  **Domain Entities and Value Types and Aggregates:** Your smart, fully encapsulated, pure OO, 'domain classes' that have all your domain rules, logic, validation, etc encapsulated within them. 
+The domain layer contains  **Domain Entities and Value Objects and Aggregates:** Your smart, fully encapsulated, pure OO, 'domain classes' that have all your domain rules, logic, validation, etc encapsulated within them. 
 
 They aggregate other entities and are self-contained. 
 
@@ -196,9 +196,9 @@ We call this an "Application Layer", and it has responsibilities outside the dom
 
 The Application Layer sits between the Infrastructure layer and the Domain layer. It brokers all interactions to the domain layer through DTO objects. Never exposing domain entities or their data or their inputs, outside the domain. The domain should never have any dependency on any Application or any Infrastructural component - ever!
 
-## Value Types
+## Value Objects
 
-Value types represent most of the things in a domain.
+Value objects represent most of the things in a domain.
 
 They have the property that two instances with the same internal value are in fact equal. 
 (As opposed to Entities, which despite their value, are equal if their `Id` is equal).
@@ -213,27 +213,27 @@ Unlike Entities, they are _immutable_. That means, once they have been created, 
 
 **In practice:**
 
- * Value Types are often instantiated with their value in their constructor, where those values will be validated.
- * Value Types will never allow their "value" to be changed, so must not have any public properties or methods to change their internal state. 
- * Value Types will derive from `ValueType<T>` and they will implement the inherited methods that provide equality and persistence support.
- * Commands that change the state of a ValueType must return a new instance of the Value Type, since they are immutable.
- * You should not expect a caller to know how to change the state of an ValueType. You should provide a method that validates the value, and any constraints, that would mutate it. So, no public setters.
-* Value Types support persistence of their internal state through the `IPersisableValueType` interface, which is used by persistence layers. A Value Type never persists itself. Only Application Layers do that.
-* Value Types derive from `ValueTypeBase<T>`, and must have a public, parameter-less constructor used for instantiation by persistence layers
+ * Value Objects are often instantiated with their value in their constructor, where those values will be validated.
+ * Value Objects will never allow their "value" to be changed, so must not have any public properties or methods to change their internal state. 
+ * Value Objects will derive from `ValueObject<T>` and they will implement the inherited methods that provide equality and persistence support.
+ * Commands that change the state of a ValueObject must return a new instance of the ValueObject, since they are immutable.
+ * You should not expect a caller to know how to change the state of an ValueObject. You should provide a method that validates the value, and any constraints, that would mutate it. So, no public setters.
+* Value Objects support persistence of their internal state through the `IPersistableValueObject interface, which is used by persistence layers. A ValueObject never persists itself. Only Application Layers do that.
+* Value Objects derive from `ValueObjectBase<T>`, and must have a public, parameter-less constructor used for instantiation by persistence layers
 
 ## Entities
 
-Entities are not that common in a domain.
+>  Note: Entities are not that common in a domain, most domain concepts are represented as Value Objects.
 
 They have the property that two instances of the _same type_ of entity are equal if their `Id` is equal. (Irrespective of whether their internal values are equal or not).
 
-Like ValueTypes, they contain data and behavior.
+Like ValueObjects, they contain data and behavior.
 
-Like ValueTypes, they must not exist in the domain in an invalid state.
+Like ValueObjects, they must not exist in the domain in an invalid state.
 
-Unlike ValueTypes, they have a unique identifier (unique for that type across the whole domain).
+Unlike ValueObjects, they have a unique identifier (unique for that type across the whole domain).
 
-Unlike ValueTypes, they are _mutable_. That means, once they have been created, they can be changed.
+Unlike ValueObjects, they are _mutable_. That means, once they have been created, they can be changed.
 
 In practice:
  * Entities are often instantiated with any values in their constructor, where those values will be validated.
@@ -247,7 +247,22 @@ In practice:
 
 ## Aggregates
 
-TBD
+These are entities which have a hierarchy of other Entities and Value Objects. 
+
+The top most parent is called the *aggregate root*.
+
+Any action that you need to perform on child entity (or value type) must be performed on the aggregate root. Which means that you cannot access or instruct a child entity/value to do anything directly.
+
+In practice:
+
+* Aggregates are entities so are implemented in the same way.
+* Aggregates should not expose child entities as getter properties on the aggregate entity, as those child entities then become callable to do things without having to go through the aggregate root.
+*  Expose new methods on the aggregate root to execute methods on child entities/value objects.
+* Use domain services to do things that child entities and value objects don't/can't do
+
+## Domain Services
+
+Stateless services that perform services to entities that would not naturally fit inside of an entity.
 
 ## Persistence
 
