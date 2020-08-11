@@ -8,12 +8,12 @@ using ServiceStack;
 namespace Domain.Interfaces.UnitTests
 {
     [TestClass, TestCategory("Unit")]
-    public class ValueTypeSpec
+    public class ValueObjectSpec
     {
         [TestMethod]
         public void WhenDeserialized_ThenReturnsInstance()
         {
-            var result = typeof(TestSingleValueType).CreateInstance();
+            var result = typeof(TestSingleValueObject).CreateInstance();
 
             result.Should().NotBeNull();
         }
@@ -21,8 +21,8 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenHydrate_ThenReturnsProperties()
         {
-            var valueType = new TestSingleValueType("avalue");
-            var result = valueType.Dehydrate();
+            var valueObject = new TestSingleValueObject("avalue");
+            var result = valueObject.Dehydrate();
 
             result.Should().Be("avalue");
         }
@@ -30,16 +30,16 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenDehydrate_ThenReturnsInstance()
         {
-            var valueType = new TestSingleValueType(null);
-            valueType.Rehydrate("avalue");
+            var valueObject = new TestSingleValueObject(null);
+            valueObject.Rehydrate("avalue");
 
-            valueType.StringValue.Should().Be("avalue");
+            valueObject.StringValue.Should().Be("avalue");
         }
 
         [TestMethod]
         public void WhenEqualsWithNull_ThenReturnsFalse()
         {
-            var result = new TestSingleValueType("avalue").Equals((TestSingleValueType) null);
+            var result = new TestSingleValueObject("avalue").Equals((TestSingleValueObject) null);
 
             Assert.IsFalse(result);
         }
@@ -47,7 +47,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenEqualsWithDifferentValue_ThenReturnsFalse()
         {
-            var result = new TestSingleValueType("avalue").Equals(new TestSingleValueType("anothervalue"));
+            var result = new TestSingleValueObject("avalue").Equals(new TestSingleValueObject("anothervalue"));
 
             Assert.IsFalse(result);
         }
@@ -55,25 +55,25 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenEqualsWithSameValue_ThenReturnsTrue()
         {
-            var result = new TestSingleValueType("avalue").Equals(new TestSingleValueType("avalue"));
+            var result = new TestSingleValueObject("avalue").Equals(new TestSingleValueObject("avalue"));
 
             result.Should().BeTrue();
         }
 
         [TestMethod]
-        public void WhenEqualsWithDifferentValueInMultiValueType_ThenReturnsFalse()
+        public void WhenEqualsWithDifferentValueInMultivalueObject_ThenReturnsFalse()
         {
             var result =
-                new TestMultiValueType("avalue1", 25, true).Equals(new TestMultiValueType("avalue2", 50, false));
+                new TestMultiValueObject("avalue1", 25, true).Equals(new TestMultiValueObject("avalue2", 50, false));
 
             Assert.IsFalse(result);
         }
 
         [TestMethod]
-        public void WhenEqualsWithSameValueInMultiValueType_ThenReturnsTrue()
+        public void WhenEqualsWithSameValueInMultivalueObject_ThenReturnsTrue()
         {
             var result =
-                new TestMultiValueType("avalue1", 25, true).Equals(new TestMultiValueType("avalue1", 25, true));
+                new TestMultiValueObject("avalue1", 25, true).Equals(new TestMultiValueObject("avalue1", 25, true));
 
             result.Should().BeTrue();
         }
@@ -81,7 +81,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenEqualsWithNullStringValue_ThenReturnsFalse()
         {
-            var result = new TestMultiValueType("avalue", 25, true).Equals((string) null);
+            var result = new TestMultiValueObject("avalue", 25, true).Equals((string) null);
 
             result.Should().BeFalse();
         }
@@ -90,7 +90,7 @@ namespace Domain.Interfaces.UnitTests
         public void WhenEqualsWithDifferentStringValue_ThenReturnsFalse()
         {
             // ReSharper disable once SuspiciousTypeConversion.Global
-            var result = new TestMultiValueType("avalue", 25, true).Equals("adifferentvalue");
+            var result = new TestMultiValueObject("avalue", 25, true).Equals("adifferentvalue");
 
             result.Should().BeFalse();
         }
@@ -99,7 +99,7 @@ namespace Domain.Interfaces.UnitTests
         public void WhenEqualsWithSameStringValue_ThenReturnsTrue()
         {
             // ReSharper disable once SuspiciousTypeConversion.Global
-            var result = new TestMultiValueType("avalue", 25, true).Equals("avalue::25::True");
+            var result = new TestMultiValueObject("avalue", 25, true).Equals("avalue::25::True");
 
             result.Should().BeTrue();
         }
@@ -107,10 +107,10 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenOperatorEqualsWithNullString_ThenReturnsFalse()
         {
-            var valueType = new TestMultiValueType("avalue", 25, true);
+            var valueObject = new TestMultiValueObject("avalue", 25, true);
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            var result = valueType == (string) null;
+            var result = valueObject == (string) null;
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             result.Should().BeFalse();
@@ -119,10 +119,10 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenNotOperatorEqualsWithNullString_ThenReturnsTrue()
         {
-            var valueType = new TestMultiValueType("avalue", 25, true);
+            var valueObject = new TestMultiValueObject("avalue", 25, true);
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            var result = valueType != (string) null;
+            var result = valueObject != (string) null;
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             result.Should().BeTrue();
@@ -132,7 +132,7 @@ namespace Domain.Interfaces.UnitTests
         public void WhenOperatorEqualsWithNullInstanceAndNullString_ThenReturnsTrue()
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            var result = (TestMultiValueType) null == (string) null;
+            var result = (TestMultiValueObject) null == (string) null;
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             result.Should().BeTrue();
@@ -141,9 +141,9 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenOperatorEqualsWithDifferentString_ThenReturnsFalse()
         {
-            var valueType = new TestMultiValueType("avalue", 25, true);
+            var valueObject = new TestMultiValueObject("avalue", 25, true);
 
-            var result = valueType == "adifferentvalue";
+            var result = valueObject == "adifferentvalue";
 
             result.Should().BeFalse();
         }
@@ -151,9 +151,9 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenOperatorEqualsWithSameString_ThenReturnsTrue()
         {
-            var valueType = new TestMultiValueType("avalue", 25, true);
+            var valueObject = new TestMultiValueObject("avalue", 25, true);
 
-            var result = valueType == "avalue::25::True";
+            var result = valueObject == "avalue::25::True";
 
             result.Should().BeTrue();
         }
@@ -161,10 +161,10 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenOperatorEqualsWithNullValue_ThenReturnsFalse()
         {
-            var valueType = new TestMultiValueType("avalue", 25, true);
+            var valueObject = new TestMultiValueObject("avalue", 25, true);
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            var result = valueType == (TestMultiValueType) null;
+            var result = valueObject == (TestMultiValueObject) null;
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             result.Should().BeFalse();
@@ -173,10 +173,10 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenNotOperatorEqualsWithNullValue_ThenReturnsTrue()
         {
-            var valueType = new TestMultiValueType("avalue", 25, true);
+            var valueObject = new TestMultiValueObject("avalue", 25, true);
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            var result = valueType != (TestMultiValueType) null;
+            var result = valueObject != (TestMultiValueObject) null;
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             result.Should().BeTrue();
@@ -186,7 +186,7 @@ namespace Domain.Interfaces.UnitTests
         public void WhenOperatorEqualsWithNullInstanceAndNullValue_ThenReturnsTrue()
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            var result = null == (TestMultiValueType) null;
+            var result = null == (TestMultiValueObject) null;
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             result.Should().BeTrue();
@@ -195,7 +195,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenOperatorEqualsWithDifferentValue_ThenReturnsFalse()
         {
-            var result = new TestMultiValueType("avalue1", 25, true) == new TestMultiValueType("avalue2", 25, true);
+            var result = new TestMultiValueObject("avalue1", 25, true) == new TestMultiValueObject("avalue2", 25, true);
 
             result.Should().BeFalse();
         }
@@ -204,15 +204,15 @@ namespace Domain.Interfaces.UnitTests
         public void WhenOperatorEqualsWithSameValue_ThenReturnsTrue()
         {
             // ReSharper disable once EqualExpressionComparison
-            var result = new TestMultiValueType("avalue1", 25, true) == new TestMultiValueType("avalue1", 25, true);
+            var result = new TestMultiValueObject("avalue1", 25, true) == new TestMultiValueObject("avalue1", 25, true);
 
             result.Should().BeTrue();
         }
     }
 
-    public class TestSingleValueType : ValueTypeBase<TestSingleValueType>
+    public class TestSingleValueObject : ValueObjectBase<TestSingleValueObject>
     {
-        public TestSingleValueType(string value)
+        public TestSingleValueObject(string value)
         {
             StringValue = value;
         }
@@ -235,13 +235,13 @@ namespace Domain.Interfaces.UnitTests
         }
     }
 
-    public class TestMultiValueType : ValueTypeBase<TestMultiValueType>
+    public class TestMultiValueObject : ValueObjectBase<TestMultiValueObject>
     {
         private readonly bool boolean;
         private readonly int integer;
         private readonly string @string;
 
-        public TestMultiValueType(string @string, int integer, bool boolean)
+        public TestMultiValueObject(string @string, int integer, bool boolean)
         {
             this.@string = @string;
             this.integer = integer;
@@ -260,12 +260,12 @@ namespace Domain.Interfaces.UnitTests
     }
 
     [TestClass, TestCategory("Unit")]
-    public class ValueTypeExtensionsSpec
+    public class ValueObjectExtensionsSpec
     {
         [TestMethod]
         public void WhenHasValueAndValueIsNull_ThenReturnsFalse()
         {
-            var result = ((TestSingleValueType) null).HasValue();
+            var result = ((TestSingleValueObject) null).HasValue();
 
             result.Should().BeFalse();
         }
@@ -273,7 +273,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenHasValueAndValueIsNotNull_ThenReturnsTrue()
         {
-            var result = new TestSingleValueType("avalue").HasValue();
+            var result = new TestSingleValueObject("avalue").HasValue();
 
             result.Should().BeTrue();
         }

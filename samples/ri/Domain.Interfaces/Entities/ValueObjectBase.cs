@@ -6,12 +6,12 @@ using QueryAny.Primitives;
 namespace Domain.Interfaces.Entities
 {
     /// <summary>
-    ///     Defines a DDD value type.
-    ///     Value types are immutable, and their properties should be set at construction, and never altered.
-    ///     Value types are equal when their internal data is the same.
-    ///     Value types support being persisted
+    ///     Defines a DDD value object.
+    ///     Value objects are immutable, and their properties should be set at construction, and never altered.
+    ///     Value objects are equal when their internal data is the same.
+    ///     Value objects support being persisted
     /// </summary>
-    public abstract class ValueTypeBase<TValue> : IEquatable<TValue>, IPersistableValueType
+    public abstract class ValueObjectBase<TValueObject> : IEquatable<TValueObject>, IPersistableValueObject
     {
         protected const string DefaultHydrationDelimiter = "::";
 
@@ -21,11 +21,11 @@ namespace Domain.Interfaces.Entities
 
         // ReSharper disable once EmptyConstructor
         // ReSharper disable once PublicConstructorInAbstractClass
-        public ValueTypeBase()
+        public ValueObjectBase()
         {
         }
 
-        public bool Equals(TValue other)
+        public bool Equals(TValueObject other)
         {
             return Equals((object) other);
         }
@@ -45,7 +45,7 @@ namespace Domain.Interfaces.Entities
 
         protected abstract IEnumerable<object> GetAtomicValues();
 
-        public static bool operator ==(ValueTypeBase<TValue> obj1, ValueTypeBase<TValue> obj2)
+        public static bool operator ==(ValueObjectBase<TValueObject> obj1, ValueObjectBase<TValueObject> obj2)
         {
             if ((object) obj1 == null)
             {
@@ -55,12 +55,12 @@ namespace Domain.Interfaces.Entities
             return obj1.Equals(obj2);
         }
 
-        public static bool operator !=(ValueTypeBase<TValue> obj1, ValueTypeBase<TValue> obj2)
+        public static bool operator !=(ValueObjectBase<TValueObject> obj1, ValueObjectBase<TValueObject> obj2)
         {
             return !(obj1 == obj2);
         }
 
-        public static bool operator ==(ValueTypeBase<TValue> obj1, string obj2)
+        public static bool operator ==(ValueObjectBase<TValueObject> obj1, string obj2)
         {
             if ((object) obj1 == null)
             {
@@ -70,7 +70,7 @@ namespace Domain.Interfaces.Entities
             return obj1.Equals(obj2);
         }
 
-        public static bool operator !=(ValueTypeBase<TValue> obj1, string obj2)
+        public static bool operator !=(ValueObjectBase<TValueObject> obj1, string obj2)
         {
             return !(obj1 == obj2);
         }
@@ -82,7 +82,7 @@ namespace Domain.Interfaces.Entities
                 return false;
             }
 
-            var other = (ValueTypeBase<TValue>) obj;
+            var other = (ValueObjectBase<TValueObject>) obj;
 
             // ReSharper disable once GenericEnumeratorNotDisposed
             var thisValues = GetAtomicValues().GetEnumerator();
@@ -133,11 +133,11 @@ namespace Domain.Interfaces.Entities
         }
     }
 
-    public static class ValueTypeExtensions
+    public static class ValueObjectExtensions
     {
-        public static bool HasValue<TValue>(this ValueTypeBase<TValue> valueType)
+        public static bool HasValue<TValue>(this ValueObjectBase<TValue> valueObject)
         {
-            return valueType != (ValueTypeBase<TValue>) null;
+            return valueObject != (ValueObjectBase<TValue>) null;
         }
     }
 }

@@ -339,9 +339,9 @@ namespace Storage.Redis
 
                     default:
                         if (propertyType != null &&
-                            typeof(IPersistableValueType).IsAssignableFrom(propertyType))
+                            typeof(IPersistableValueObject).IsAssignableFrom(propertyType))
                         {
-                            value = ((IPersistableValueType) pair.Value).Dehydrate();
+                            value = ((IPersistableValueObject) pair.Value).Dehydrate();
 
                             break;
                         }
@@ -444,11 +444,11 @@ namespace Storage.Redis
                 return Convert.FromBase64String(propertyValue);
             }
 
-            if (typeof(IPersistableValueType).IsAssignableFrom(targetPropertyType))
+            if (typeof(IPersistableValueObject).IsAssignableFrom(targetPropertyType))
             {
                 if (propertyValue.HasValue())
                 {
-                    return propertyValue.ValueTypeFromContainerProperty(targetPropertyType);
+                    return propertyValue.ValueObjectFromContainerProperty(targetPropertyType);
                 }
             }
 

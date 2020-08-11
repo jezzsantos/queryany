@@ -104,11 +104,11 @@ namespace Storage.IntegrationTests
                 AStringValue = "astringvalue",
                 ADateTimeUtcValue = DateTime.Today.ToUniversalTime(),
                 ADateTimeOffsetUtcValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
-                AComplexNonValueTypeValue = new ComplexNonValueType
+                AComplexNonValueObjectValue = new ComplexNonValueObject
                 {
                     APropertyValue = "avalue"
                 },
-                AComplexValueTypeValue = ComplexValueType.Create("avalue", 25, true)
+                AComplexValueObjectValue = ComplexValueObject.Create("avalue", 25, true)
             };
 
             this.storage.Add(entity);
@@ -130,9 +130,9 @@ namespace Storage.IntegrationTests
             result.ADateTimeUtcValue.Should().Be(DateTime.Today.ToUniversalTime());
             result.ADateTimeUtcValue.Kind.Should().Be(DateTimeKind.Utc);
             result.ADateTimeOffsetUtcValue.Should().Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
-            result.AComplexNonValueTypeValue.ToString().Should()
-                .Be(new ComplexNonValueType {APropertyValue = "avalue"}.ToString());
-            result.AComplexValueTypeValue.Should().Be(ComplexValueType.Create("avalue", 25, true));
+            result.AComplexNonValueObjectValue.ToString().Should()
+                .Be(new ComplexNonValueObject {APropertyValue = "avalue"}.ToString());
+            result.AComplexValueObjectValue.Should().Be(ComplexValueObject.Create("avalue", 25, true));
         }
 
         [TestMethod]
@@ -149,8 +149,8 @@ namespace Storage.IntegrationTests
                 AStringValue = default,
                 ADateTimeUtcValue = default,
                 ADateTimeOffsetUtcValue = default,
-                AComplexNonValueTypeValue = default,
-                AComplexValueTypeValue = default
+                AComplexNonValueObjectValue = default,
+                AComplexValueObjectValue = default
             };
 
             this.storage.Add(entity);
@@ -172,8 +172,8 @@ namespace Storage.IntegrationTests
             result.ADateTimeUtcValue.Should().Be(DateTime.MinValue);
             result.ADateTimeUtcValue.Kind.Should().Be(DateTimeKind.Unspecified);
             result.ADateTimeOffsetUtcValue.Should().Be(default);
-            result.AComplexNonValueTypeValue.Should().Be(default);
-            result.AComplexValueTypeValue.Should().Be(default);
+            result.AComplexNonValueObjectValue.Should().Be(default);
+            result.AComplexValueObjectValue.Should().Be(default);
         }
 
         [TestMethod]
@@ -666,101 +666,101 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
-        public void WhenQueryForComplexNonValueTypeValue_ThenReturnsResult()
+        public void WhenQueryForComplexNonValueObjectValue_ThenReturnsResult()
         {
-            var complex1 = new ComplexNonValueType {APropertyValue = "avalue1"};
-            var complex2 = new ComplexNonValueType {APropertyValue = "avalue2"};
-            this.storage.Add(new TestEntity {AComplexNonValueTypeValue = complex1});
-            var entity2 = this.storage.Add(new TestEntity {AComplexNonValueTypeValue = complex2});
+            var complex1 = new ComplexNonValueObject {APropertyValue = "avalue1"};
+            var complex2 = new ComplexNonValueObject {APropertyValue = "avalue2"};
+            this.storage.Add(new TestEntity {AComplexNonValueObjectValue = complex1});
+            var entity2 = this.storage.Add(new TestEntity {AComplexNonValueObjectValue = complex2});
             var query = Query.From<TestEntity>()
-                .Where(e => e.AComplexNonValueTypeValue, ConditionOperator.EqualTo, complex2);
+                .Where(e => e.AComplexNonValueObjectValue, ConditionOperator.EqualTo, complex2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(entity2.Id);
-            results.Results[0].AComplexNonValueTypeValue.ToString().Should().Be(complex2.ToString());
+            results.Results[0].AComplexNonValueObjectValue.ToString().Should().Be(complex2.ToString());
         }
 
         [TestMethod]
-        public void WhenQueryForNullComplexNonValueTypeValue_ThenReturnsResult()
+        public void WhenQueryForNullComplexNonValueObjectValue_ThenReturnsResult()
         {
-            var complex1 = new ComplexNonValueType {APropertyValue = "avalue1"};
-            this.storage.Add(new TestEntity {AComplexNonValueTypeValue = complex1});
-            var entity2 = this.storage.Add(new TestEntity {AComplexNonValueTypeValue = null});
+            var complex1 = new ComplexNonValueObject {APropertyValue = "avalue1"};
+            this.storage.Add(new TestEntity {AComplexNonValueObjectValue = complex1});
+            var entity2 = this.storage.Add(new TestEntity {AComplexNonValueObjectValue = null});
             var query = Query.From<TestEntity>()
-                .Where(e => e.AComplexNonValueTypeValue, ConditionOperator.EqualTo, null);
+                .Where(e => e.AComplexNonValueObjectValue, ConditionOperator.EqualTo, null);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(entity2.Id);
-            results.Results[0].AComplexNonValueTypeValue.Should().Be(null);
+            results.Results[0].AComplexNonValueObjectValue.Should().Be(null);
         }
 
         [TestMethod]
-        public void WhenQueryForNotEqualNullComplexNonValueTypeValue_ThenReturnsResult()
+        public void WhenQueryForNotEqualNullComplexNonValueObjectValue_ThenReturnsResult()
         {
-            var complex1 = new ComplexNonValueType {APropertyValue = "avalue1"};
-            var entity1 = this.storage.Add(new TestEntity {AComplexNonValueTypeValue = complex1});
-            this.storage.Add(new TestEntity {AComplexNonValueTypeValue = null});
+            var complex1 = new ComplexNonValueObject {APropertyValue = "avalue1"};
+            var entity1 = this.storage.Add(new TestEntity {AComplexNonValueObjectValue = complex1});
+            this.storage.Add(new TestEntity {AComplexNonValueObjectValue = null});
             var query = Query.From<TestEntity>()
-                .Where(e => e.AComplexNonValueTypeValue, ConditionOperator.NotEqualTo, null);
+                .Where(e => e.AComplexNonValueObjectValue, ConditionOperator.NotEqualTo, null);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(entity1.Id);
-            results.Results[0].AComplexNonValueTypeValue.ToString().Should().Be(complex1.ToString());
+            results.Results[0].AComplexNonValueObjectValue.ToString().Should().Be(complex1.ToString());
         }
 
         [TestMethod]
-        public void WhenQueryForComplexValueTypeValue_ThenReturnsResult()
+        public void WhenQueryForComplexValueObjectValue_ThenReturnsResult()
         {
-            var complex1 = ComplexValueType.Create("avalue1", 25, true);
-            var complex2 = ComplexValueType.Create("avalue2", 50, false);
-            this.storage.Add(new TestEntity {AComplexValueTypeValue = complex1});
-            var entity2 = this.storage.Add(new TestEntity {AComplexValueTypeValue = complex2});
+            var complex1 = ComplexValueObject.Create("avalue1", 25, true);
+            var complex2 = ComplexValueObject.Create("avalue2", 50, false);
+            this.storage.Add(new TestEntity {AComplexValueObjectValue = complex1});
+            var entity2 = this.storage.Add(new TestEntity {AComplexValueObjectValue = complex2});
             var query = Query.From<TestEntity>()
-                .Where(e => e.AComplexValueTypeValue, ConditionOperator.EqualTo, complex2);
+                .Where(e => e.AComplexValueObjectValue, ConditionOperator.EqualTo, complex2);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(entity2.Id);
-            results.Results[0].AComplexValueTypeValue.Should().Be(complex2);
+            results.Results[0].AComplexValueObjectValue.Should().Be(complex2);
         }
 
         [TestMethod]
-        public void WhenQueryForNullComplexValueTypeValue_ThenReturnsResult()
+        public void WhenQueryForNullComplexValueObjectValue_ThenReturnsResult()
         {
-            var complex1 = ComplexValueType.Create("avalue1", 25, true);
-            this.storage.Add(new TestEntity {AComplexValueTypeValue = complex1});
-            var entity2 = this.storage.Add(new TestEntity {AComplexValueTypeValue = null});
+            var complex1 = ComplexValueObject.Create("avalue1", 25, true);
+            this.storage.Add(new TestEntity {AComplexValueObjectValue = complex1});
+            var entity2 = this.storage.Add(new TestEntity {AComplexValueObjectValue = null});
             var query = Query.From<TestEntity>()
-                .Where(e => e.AComplexValueTypeValue, ConditionOperator.EqualTo, null);
+                .Where(e => e.AComplexValueObjectValue, ConditionOperator.EqualTo, null);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(entity2.Id);
-            results.Results[0].AComplexValueTypeValue.Should().Be(null);
+            results.Results[0].AComplexValueObjectValue.Should().Be(null);
         }
 
         [TestMethod]
-        public void WhenQueryForNotEqualNullComplexValueTypeValue_ThenReturnsResult()
+        public void WhenQueryForNotEqualNullComplexValueObjectValue_ThenReturnsResult()
         {
-            var complex1 = ComplexValueType.Create("avalue1", 25, true);
-            var entity1 = this.storage.Add(new TestEntity {AComplexValueTypeValue = complex1});
-            this.storage.Add(new TestEntity {AComplexValueTypeValue = null});
+            var complex1 = ComplexValueObject.Create("avalue1", 25, true);
+            var entity1 = this.storage.Add(new TestEntity {AComplexValueObjectValue = complex1});
+            this.storage.Add(new TestEntity {AComplexValueObjectValue = null});
             var query = Query.From<TestEntity>()
-                .Where(e => e.AComplexValueTypeValue, ConditionOperator.NotEqualTo, null);
+                .Where(e => e.AComplexValueObjectValue, ConditionOperator.NotEqualTo, null);
 
             var results = this.storage.Query(query);
 
             results.Results.Count.Should().Be(1);
             results.Results[0].Id.Should().Be(entity1.Id);
-            results.Results[0].AComplexValueTypeValue.Should().Be(complex1);
+            results.Results[0].AComplexValueObjectValue.Should().Be(complex1);
         }
 
         [TestMethod]
@@ -777,11 +777,11 @@ namespace Storage.IntegrationTests
                 AStringValue = "astringvalue",
                 ADateTimeUtcValue = DateTime.Today.ToUniversalTime(),
                 ADateTimeOffsetUtcValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
-                AComplexNonValueTypeValue = new ComplexNonValueType
+                AComplexNonValueObjectValue = new ComplexNonValueObject
                 {
                     APropertyValue = "avalue"
                 },
-                AComplexValueTypeValue = ComplexValueType.Create("avalue", 25, true)
+                AComplexValueObjectValue = ComplexValueObject.Create("avalue", 25, true)
             };
 
             this.storage.Add(entity);
@@ -801,9 +801,9 @@ namespace Storage.IntegrationTests
             result.AStringValue.Should().Be("astringvalue");
             result.ADateTimeUtcValue.Should().Be(DateTime.Today.ToUniversalTime());
             result.ADateTimeOffsetUtcValue.Should().Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
-            result.AComplexNonValueTypeValue.ToJson().Should()
-                .Be(new ComplexNonValueType {APropertyValue = "avalue"}.ToJson());
-            result.AComplexValueTypeValue.Should().Be(ComplexValueType.Create("avalue", 25, true));
+            result.AComplexNonValueObjectValue.ToJson().Should()
+                .Be(new ComplexNonValueObject {APropertyValue = "avalue"}.ToJson());
+            result.AComplexValueObjectValue.Should().Be(ComplexValueObject.Create("avalue", 25, true));
         }
 
         [TestMethod]
@@ -820,11 +820,11 @@ namespace Storage.IntegrationTests
                 AStringValue = "astringvalue",
                 ADateTimeUtcValue = DateTime.Today.ToUniversalTime(),
                 ADateTimeOffsetUtcValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
-                AComplexNonValueTypeValue = new ComplexNonValueType
+                AComplexNonValueObjectValue = new ComplexNonValueObject
                 {
                     APropertyValue = "avalue"
                 },
-                AComplexValueTypeValue = ComplexValueType.Create("avalue", 25, true)
+                AComplexValueObjectValue = ComplexValueObject.Create("avalue", 25, true)
             };
 
             this.storage.Add(entity);
@@ -845,8 +845,8 @@ namespace Storage.IntegrationTests
             result.AStringValue.Should().Be(null);
             result.ADateTimeUtcValue.Should().Be(DateTime.MinValue);
             result.ADateTimeOffsetUtcValue.Should().Be(DateTimeOffset.MinValue);
-            result.AComplexNonValueTypeValue.Should().Be(null);
-            result.AComplexValueTypeValue.Should().Be(null);
+            result.AComplexNonValueObjectValue.Should().Be(null);
+            result.AComplexValueObjectValue.Should().Be(null);
         }
 
         [TestMethod]

@@ -251,7 +251,7 @@ These are entities which have a hierarchy of other Entities and Value Objects.
 
 The top most parent is called the *aggregate root*.
 
-Any action that you need to perform on child entity (or value type) must be performed on the aggregate root. Which means that you cannot access or instruct a child entity/value to do anything directly.
+Any action that you need to perform on child entity (or value object) must be performed on the aggregate root. Which means that you cannot access or instruct a child entity/value to do anything directly.
 
 In practice:
 

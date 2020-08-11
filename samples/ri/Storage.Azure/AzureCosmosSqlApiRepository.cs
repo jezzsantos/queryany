@@ -338,9 +338,9 @@ namespace Storage.Azure
                         return Guid.Empty;
                     }
 
-                    if (typeof(IPersistableValueType).IsAssignableFrom(targetPropertyType))
+                    if (typeof(IPersistableValueObject).IsAssignableFrom(targetPropertyType))
                     {
-                        return text.ValueTypeFromContainerProperty(targetPropertyType);
+                        return text.ValueObjectFromContainerProperty(targetPropertyType);
                     }
 
                     if (targetPropertyType.IsComplexStorageType())
@@ -407,9 +407,9 @@ namespace Storage.Azure
                 var value = pair.Value;
                 if (value != null)
                 {
-                    if (value is IPersistableValueType valueType)
+                    if (value is IPersistableValueObject valueObject)
                     {
-                        value = valueType.Dehydrate();
+                        value = valueObject.Dehydrate();
                     }
 
                     if (value.GetType().IsComplexStorageType())
@@ -663,10 +663,10 @@ namespace Storage.Azure
                 return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} null";
             }
 
-            if (value is IPersistableValueType valueType)
+            if (value is IPersistableValueObject valueObject)
             {
                 return
-                    $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{valueType.Dehydrate()}'";
+                    $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{valueObject.Dehydrate()}'";
             }
 
             var escapedValue = value

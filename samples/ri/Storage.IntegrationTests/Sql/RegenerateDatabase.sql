@@ -30,8 +30,8 @@ CREATE TABLE [dbo].[testentities](
 	[AIntValue] [int] NULL,
 	[ALongValue] [bigint] NULL,
 	[ABinaryValue] [varbinary](max) NULL,
-	[AComplexNonValueTypeValue] [nvarchar](max) NULL,
-	[AComplexValueTypeValue] [nvarchar](max) NULL,
+	[AComplexNonValueObjectValue] [nvarchar](max) NULL,
+	[AComplexValueObjectValue] [nvarchar](max) NULL,
 	[CreatedAtUtc] [datetime] NULL,
 	[LastModifiedAtUtc] [datetime] NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]

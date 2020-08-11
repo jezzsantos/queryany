@@ -3,7 +3,7 @@ using QueryAny.Primitives;
 
 namespace Domain.Interfaces.Entities
 {
-    public class Identifier : ValueTypeBase<Identifier>
+    public class Identifier : ValueObjectBase<Identifier>
     {
         private string identifier;
 

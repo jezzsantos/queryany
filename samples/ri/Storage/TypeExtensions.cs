@@ -16,7 +16,7 @@ namespace Storage
                 || type == typeof(double)
                 || type == typeof(byte[])
                 || type == typeof(Guid)
-                || typeof(IPersistableValueType).IsAssignableFrom(type)
+                || typeof(IPersistableValueObject).IsAssignableFrom(type)
             )
             {
                 return false;

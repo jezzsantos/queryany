@@ -195,15 +195,15 @@ namespace Storage
             return entity;
         }
 
-        public static IPersistableValueType ValueTypeFromContainerProperty(this string propertyValue,
+        public static IPersistableValueObject ValueObjectFromContainerProperty(this string propertyValue,
             Type targetPropertyType)
         {
             try
             {
-                var valueType = targetPropertyType.CreateInstance<IPersistableValueType>();
-                valueType.Rehydrate(propertyValue);
+                var valueObject = targetPropertyType.CreateInstance<IPersistableValueObject>();
+                valueObject.Rehydrate(propertyValue);
 
-                return valueType;
+                return valueObject;
             }
             catch (Exception)
             {

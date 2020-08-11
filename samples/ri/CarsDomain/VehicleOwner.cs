@@ -4,7 +4,7 @@ using QueryAny.Primitives;
 
 namespace CarsDomain
 {
-    public class VehicleOwner : ValueTypeBase<VehicleOwner>
+    public class VehicleOwner : ValueObjectBase<VehicleOwner>
     {
         public VehicleOwner(Identifier id)
         {

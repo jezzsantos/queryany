@@ -37,9 +37,9 @@ namespace Storage.IntegrationTests
 
         public byte[] ABinaryValue { get; set; }
 
-        public ComplexNonValueType AComplexNonValueTypeValue { get; set; }
+        public ComplexNonValueObject AComplexNonValueObjectValue { get; set; }
 
-        public ComplexValueType AComplexValueTypeValue { get; set; }
+        public ComplexValueObject AComplexValueObjectValue { get; set; }
 
         public override Dictionary<string, object> Dehydrate()
         {
@@ -53,8 +53,8 @@ namespace Storage.IntegrationTests
             properties.Add(nameof(AIntValue), AIntValue);
             properties.Add(nameof(ALongValue), ALongValue);
             properties.Add(nameof(ABinaryValue), ABinaryValue);
-            properties.Add(nameof(AComplexNonValueTypeValue), AComplexNonValueTypeValue);
-            properties.Add(nameof(AComplexValueTypeValue), AComplexValueTypeValue);
+            properties.Add(nameof(AComplexNonValueObjectValue), AComplexNonValueObjectValue);
+            properties.Add(nameof(AComplexValueObjectValue), AComplexValueObjectValue);
 
             return properties;
         }
@@ -71,9 +71,10 @@ namespace Storage.IntegrationTests
             AIntValue = properties.GetValueOrDefault<int>(nameof(AIntValue));
             ALongValue = properties.GetValueOrDefault<long>(nameof(ALongValue));
             ABinaryValue = properties.GetValueOrDefault<byte[]>(nameof(ABinaryValue));
-            AComplexNonValueTypeValue =
-                properties.GetValueOrDefault<ComplexNonValueType>(nameof(AComplexNonValueTypeValue));
-            AComplexValueTypeValue = properties.GetValueOrDefault<ComplexValueType>(nameof(AComplexValueTypeValue));
+            AComplexNonValueObjectValue =
+                properties.GetValueOrDefault<ComplexNonValueObject>(nameof(AComplexNonValueObjectValue));
+            AComplexValueObjectValue =
+                properties.GetValueOrDefault<ComplexValueObject>(nameof(AComplexValueObjectValue));
         }
 
         public static EntityFactory<TestEntity> GetFactory()
@@ -160,7 +161,7 @@ namespace Storage.IntegrationTests
         }
     }
 
-    public class ComplexNonValueType
+    public class ComplexNonValueObject
     {
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public string APropertyValue { get; set; }
@@ -171,9 +172,9 @@ namespace Storage.IntegrationTests
         }
     }
 
-    public class ComplexValueType : ValueTypeBase<ComplexValueType>
+    public class ComplexValueObject : ValueObjectBase<ComplexValueObject>
     {
-        private ComplexValueType(string @string, int integer, bool boolean)
+        private ComplexValueObject(string @string, int integer, bool boolean)
         {
             AStringProperty = @string;
             AnIntName = integer;
@@ -186,9 +187,9 @@ namespace Storage.IntegrationTests
 
         public bool ABooleanPropertyName { get; private set; }
 
-        public static ComplexValueType Create(string @string, int integer, bool boolean)
+        public static ComplexValueObject Create(string @string, int integer, bool boolean)
         {
-            return new ComplexValueType(@string, integer, boolean);
+            return new ComplexValueObject(@string, integer, boolean);
         }
 
         public override string Dehydrate()

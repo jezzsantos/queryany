@@ -311,9 +311,9 @@ namespace Storage.Sql
                 var value = pair.Value;
                 if (value != null)
                 {
-                    if (value is IPersistableValueType valueType)
+                    if (value is IPersistableValueObject valueObject)
                     {
-                        value = valueType.Dehydrate();
+                        value = valueObject.Dehydrate();
                     }
 
                     if (value.GetType().IsComplexStorageType())
@@ -398,9 +398,9 @@ namespace Storage.Sql
                         return Guid.Parse(text);
                     }
 
-                    if (typeof(IPersistableValueType).IsAssignableFrom(targetPropertyType))
+                    if (typeof(IPersistableValueObject).IsAssignableFrom(targetPropertyType))
                     {
-                        return text.ValueTypeFromContainerProperty(targetPropertyType);
+                        return text.ValueObjectFromContainerProperty(targetPropertyType);
                     }
 
                     if (targetPropertyType.IsComplexStorageType())
@@ -784,10 +784,10 @@ namespace Storage.Sql
                 return $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} NULL";
             }
 
-            if (value is IPersistableValueType valueType)
+            if (value is IPersistableValueObject valueObject)
             {
                 return
-                    $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{valueType.Dehydrate()}'";
+                    $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{valueObject.Dehydrate()}'";
             }
 
             return $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{value}'";

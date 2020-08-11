@@ -1,6 +1,6 @@
 ﻿namespace Domain.Interfaces.Entities
 {
-    public interface IPersistableValueType
+    public interface IPersistableValueObject
     {
         string Dehydrate();
 

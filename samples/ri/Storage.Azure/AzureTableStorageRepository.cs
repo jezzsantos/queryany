@@ -427,9 +427,9 @@ namespace Storage.Azure
                         return null;
                     }
 
-                    if (typeof(IPersistableValueType).IsAssignableFrom(targetPropertyType))
+                    if (typeof(IPersistableValueObject).IsAssignableFrom(targetPropertyType))
                     {
-                        return text.ValueTypeFromContainerProperty(targetPropertyType);
+                        return text.ValueObjectFromContainerProperty(targetPropertyType);
                     }
 
                     if (targetPropertyType.IsComplexStorageType())
@@ -538,9 +538,9 @@ namespace Storage.Azure
                     return EntityProperty.CreateEntityPropertyFromObject(AzureTableStorageRepository.NullValue);
 
                 default:
-                    if (property is IPersistableValueType valueType)
+                    if (property is IPersistableValueObject valueObject)
                     {
-                        return EntityProperty.GeneratePropertyForString(valueType.Dehydrate());
+                        return EntityProperty.GeneratePropertyForString(valueObject.Dehydrate());
                     }
 
                     return EntityProperty.GeneratePropertyForString(property.ToString());
@@ -687,9 +687,10 @@ namespace Storage.Azure
                         AzureTableStorageRepository.NullValue);
 
                 default:
-                    if (value is IPersistableValueType valueType)
+                    if (value is IPersistableValueObject valueObject)
                     {
-                        return TableQuery.GenerateFilterCondition(fieldName, conditionOperator, valueType.Dehydrate());
+                        return TableQuery.GenerateFilterCondition(fieldName, conditionOperator,
+                            valueObject.Dehydrate());
                     }
 
                     return TableQuery.GenerateFilterCondition(fieldName, conditionOperator, value.ToJson());

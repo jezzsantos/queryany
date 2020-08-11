@@ -5,7 +5,7 @@ using QueryAny.Primitives;
 
 namespace CarsDomain
 {
-    public class VehicleManagers : ValueTypeBase<VehicleManagers>
+    public class VehicleManagers : ValueObjectBase<VehicleManagers>
     {
         private List<Identifier> managerIds;
 

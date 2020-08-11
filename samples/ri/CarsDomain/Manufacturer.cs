@@ -5,7 +5,7 @@ using QueryAny.Primitives;
 
 namespace CarsDomain
 {
-    public class Manufacturer : ValueTypeBase<Manufacturer>
+    public class Manufacturer : ValueObjectBase<Manufacturer>
     {
         public const int MinYear = 1917;
         public static readonly List<string> Makes = new List<string> {"Honda", "Toyota"};

@@ -322,10 +322,10 @@ namespace Storage
                 return $"iif ({fieldName} != null, {fieldName}.ToString(), null) {@operator} null";
             }
 
-            if (value is IPersistableValueType valueType)
+            if (value is IPersistableValueObject valueObject)
             {
                 return
-                    $"iif ({fieldName} != null, {fieldName}.Dehydrate(), null) {@operator} \"{valueType.Dehydrate()}\"";
+                    $"iif ({fieldName} != null, {fieldName}.Dehydrate(), null) {@operator} \"{valueObject.Dehydrate()}\"";
             }
 
             var escapedValue = value
