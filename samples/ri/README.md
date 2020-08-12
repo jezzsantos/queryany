@@ -13,18 +13,17 @@ We use these kinds of terms in the architecture:
 * DTO (Data Transfer Objects), 
 * REST Resources, 
 * Application Layer (DDD Application Layer), 
-* Entities (DDD Entities), ValueObject (DDD ValueObject), Aggregates
-* Repositories
+* Entities (DDD Entities), ValueObjects (DDD ValueObject), Aggregates, Domain Services, Repositories and Events
 
 In terms of data flow, a typical REST API call results in an interaction like this:
 
-* Messages come in over the wire on HTTP into Service Operations of the API. The API de-serializes the HTTP request into DTO's that define a REST command.
-* The API Service Operations, grouped by REST resource type, then validate the inbound DTO command, and delegate execution to a Application  Layer. (In this scheme, DTO's are deconstructed to component properties - to save on mapping to another layer of DTO's). 
-* The Application Layer takes the deconstructed DTO properties, and instantiates and/or dehydrates entities from repositories, co-ordinates and instructs entities to do things (Tell-Dont-Ask), and then if necessary dehydrates the change in Entity state back to persistence.
+* Messages come in over the wire on HTTP into Service Operations of the API. The API de-serializes the HTTP request into DTO's that define an application *command*.
+* The API Service Operations, grouped by REST resource type, then validate the inbound DTO *command*, and delegate execution to an appropriate Application  Layer. (In this scheme, DTO's are deconstructed to component properties - to save on having another mapping layer). 
+* The "Application Layer" takes the deconstructed DTO properties, and instantiates and/or dehydrates entities from repositories, co-ordinates and instructs entities to do things (Tell-Dont-Ask), uses domain services if necessary, and then if necessary, dehydrates the change in Entity state back to persistence.
 * The Application Layer then converts the entities to DTOs, and hands them back to the API.
-* The API layer then serializes the DTO over the wire, and handles the conversion of exceptions to HTTP status codes and descriptions.
+* The API layer then serializes the DTO over the wire, and handles the conversion of exceptions to HTTP status codes and status descriptions.
 
-> Important: This reference implementation is not part of the QueryAny library/package, just an example of using QueryAny used in practice.
+> Important: This reference implementation is not part of the QueryAny library/package, just an example of integrating QueryAny in practice.
 
 The RI has tried not to be too strongly opinionated about the layout and naming of files/folders/assemblies on disk, other than to assume that in a small to medium sized product you too would likely split your projects/components into logical, testable layers for maintainability, reuse and future scalability (scale out), as your product grows.
 
@@ -32,9 +31,9 @@ The RI has tried not to be too strongly opinionated about the layout and naming 
 
 The RI solution demonstrates strict discipline around decoupling and separation of concerns, both of which manage _accidental complexity_ as things change and as the codebase grows. Which is the primary concern of yours.
 
-> Design Choice: The RI does does not quite fully implement all GET API patterns that allow clients to have fine grained enough control the data returned on the wire. So, the inclusion of a GraphQL endpoint is a reasonable thing to need to add to it.
+> Design Choice: The RI does does not quite fully implement all GET API patterns that allow clients to have fine grained enough control the data returned on the wire (i.e. embedded resources, filtering etc). So, the inclusion of a GraphQL endpoint is a reasonable thing to need to add to it.
 
-> Design Choice: There are some pragmatic implementation patterns demonstrated within this RI. Remember that this RI has laid out just *one way* of doing things. There are *many ways* of doing the same kind of things, with various design trade offs, especially in the area of entity mapping and entity persistence. In the realm of building products, this RI demonstrates prioritization of maintainability over optimal performance. If you are looking for the *best* way to do things, then you haven't programmed long enough to learn that no such thing exists. Our advice to you is start with something small, and adapt it as you learn more, avoid over-engineering it at all costs. If in doubt, favor what you definitely know you have to work with now, rather than attempting to future proof it. KISS, DRY and YAGNI my friends.
+> Design Choice: There are some pragmatic implementation patterns demonstrated within this RI. Remember that this RI has laid out just *one way* of doing things. There are *many ways* of doing the same kind of things, with various design trade offs, especially in the area of entity/valueobject mapping and entity persistence. In the realm of building products, this RI demonstrates prioritization of maintainability over optimal performance. If you are looking for the *best* way to do things, then you haven't programmed long enough to learn that no such thing exists. Our advice to you is start with something small, and adapt it as you learn more, avoid over-engineering it at all costs. If in doubt, favor what you definitely know you have to work with now, rather than attempting to future proof it. KISS, DRY and YAGNI my friends.
 
 > Note: If you don't like what you see here. That's cool, just ignore it. But don't make the mistake of coupling your persistence or your Web API to your domain entities. That's a fundamental rookie mistake in software engineering, that you are going to make without being very intentional about designing your way out of.
 
@@ -42,19 +41,17 @@ The RI solution demonstrates strict discipline around decoupling and separation 
 
 The RI solution is structured into three logical parts:
 
-* Infrastructure - This contains all infrastructure and adapters to that infrastructure (eg. Web API adapters and Storage adapters to repositories)
-* Application - this contains you definition of your application. The application layer instantiates, coordinates the domain layer to do stuff. Thing commands and queries of CQRS. In the case of building stateless services, this layer would also be responsible for dehydrating and rehydrating domain entities to and from persistence.
-* Domain - core domain classes, and application services unfettered by infrastructure and the application. 
+* **Infrastructure** - This contains all infrastructure and adapters to that infrastructure (eg. Web API adapters and Storage adapters to repositories)
+* **Application** - this contains you definition of your application. The application layer instantiates, coordinates the domain layer to do stuff. Thing commands and queries of CQRS. In the case of building stateless services, this layer would also be responsible for dehydrating and rehydrating domain entities to and from persistence.
+* **Domain** - core domain classes, and application services unfettered by infrastructure and the application. 
 
 There should be no dependency from: classes in Domain -> to classes in Application or from Application to Infrastructure. Ever!
 
 ## Domain
 
-The domain layer contains  **Domain Entities and Value Objects and Aggregates:** Your smart, fully encapsulated, pure OO, 'domain classes' that have all your domain rules, logic, validation, etc encapsulated within them. 
+The domain layer contains  **Domain Entities, Value Objects, Aggregates and Domain Services:** Your smart, fully encapsulated, pure OO, 'domain classes' that have all your domain rules, logic, validation, etc encapsulated within them. 
 
-They aggregate other entities and are self-contained. 
-
-What they lack is only when to do the things they do in response to the world around them. That comes from the Application Layer.
+What they lack is only *when* to do the things they do in response to the world around them, and who manages their lifecycle. That comes from the Application Layer.
 
 ### CarsDomain
 
@@ -70,9 +67,9 @@ It contains an 'application layer' (in DDD parlance) or 'Interactor' (in Clean A
 
 > Design Choice: The domain entities in this implementation are relatively simple in terms of functionality and rules (close to anemic - due to limited scope of the sample). They also do not display much in the way of aggregation which is more common than not. Usually primary entities like a 'Car' would be an aggregate entity (DDD parlance), and all operations that the aggregated entities perform would be accessible through this _aggregate root_.
 
-> Design Choice: Domain entities in this RI have been specifically designed to be persistent "aware" for practicality. We use the terms Hydrate/Dehydrate to associate them to persistence support, and we define `Dictionary<string, object>` to remove the need to specify explicit DTO classes for mapping. Which side-steps an additional mapping layer.
+> Design Choice: Domain entities in this RI have been specifically designed to be persistent "aware" for practicality. We use the terms Hydrate/Dehydrate to associate them to persistence support, and we define `Dictionary<string, object>` to remove the need to specify DTO classes for mapping. Which side-steps an additional mapping layer.
 
-> Design Choice: There are many ways to handle/decouple persistence between your entities and repositories, this is *one* pattern, you may desire another. You definitely don't want your entities to do their own persistence (like the ActiveRecord pattern does). Do could define a mapping layer to DTO's between entities and repositories (as ORM's do), but having the knowledge of what internal data an entity needs to be serialized (de-hydrated) and de-serialized (re-hydrated) is knowledge in-practice that an entity *could* legitimately have. YMMV, this pattern is absolutely flexible, scalable and simple to maintain.
+> Design Choice: There are many ways to handle/decouple persistence between your entities and repositories, this is *one* pattern, you may desire another. You definitely <u>don't</u> want your entities to do their own persistence (like the ActiveRecord pattern does). Do could define a mapping layer to DTO's between entities and repositories (as ORM's do), but having the knowledge of what internal data an entity needs to be serialized (de-hydrated) and de-serialized (re-hydrated) is knowledge in-practice that an entity/valueobject *could* legitimately have. YMMV, this pattern is absolutely flexible, scalable and simple to maintain.
 
 > We anticipate that there will be one of these assemblies for every major domain in the product.
 
@@ -84,6 +81,8 @@ Also intended to be shared to service client libraries (if any).
 
 > We anticipate that there will be one of these assemblies for all domains in the product.
 
+> If this sample got any larger we might have an assembly for shared code, like primitives etc.
+
 ### ???.UnitTests projects
 
 Contains all unit level tests for all components in the architecture, separated by component.
@@ -92,11 +91,20 @@ Contains all unit level tests for all components in the architecture, separated 
 
 ## Application
 
-This layer contains the **Transaction Scripts/Application Layer/Domain Services:** classes that co-ordinate/orchestrate/manage/script your domain entities. 
+This layer contains the **Transaction Scripts/Application Layer/Domain Services:** classes that co-ordinate/orchestrate/manage/script your domain entities/valueobjects. 
 
-These classes contain commands and queries that essentially follow the same patter: (1) retrieve domain entities from persistence, (2) instruct the entities what they should do now (Tell-Dont-Ask), and then (3) persist the mutated entity state again. This layer represents your specific application. 
+These classes contain commands and queries. 
 
-> Note: Between your 'transaction scripts/application layer/domain services' and the Infrastructure layer there will always be a mapping (logical or physical) to and from DTO (Data Transfer Objects) or POCO objects. These are bare OO objects with no behaviour in them, that do not use encapsulation (ideally not inheritance), that are the only types that traverse the boundary between Domain<->Infrastructure.
+Commands essentially follow the same pattern: 
+
+1. Retrieve domain entities from persistence
+
+2. Instruct the entities what they should do now (Tell-Dont-Ask)
+
+3. Persist the mutated entity state again. This layer represents your specific application. 
+
+> Note: Between your 'transaction scripts/application layer/domain services' and the Infrastructure layer there will always be a mapping (logical or physical) to and from DTO (Data Transfer Objects) or POCO objects. These are bare OO objects with no behaviour in them, that do not use encapsulation (ideally not inheritance), that are the only types that traverse the boundary between Domain<->Infrastructure. The assembly that defines them should contain NO implementation.
+
 
 ### CarsApplication
 
@@ -112,7 +120,7 @@ Contains shared definitions for use by consuming APIs, intended to be shared acr
 
 ### Storage.Interfaces
 
-Contains shared definitions for access to persistence/storage (i.e. the domain application layer).
+Contains shared definitions for access to persistence/storage.
 
 Intended to define the interface for implementers of specific storage databases, and repositories.
 
@@ -129,7 +137,7 @@ Contains all ports & Adapters, all infrastructure classes and anything to do wit
 
 ### CarsApi
 
-This is the web host. In this case its ASP.NET Core running the [ServiceStack](http://www.servicestack.net) framework on Windows. It could be whatever web host you like.
+This is the web API host. In this case its ASP.NET Core running the [ServiceStack](http://www.servicestack.net) framework on Windows. It could be whatever web host you like.
 
 > Design Choice: We chose ServiceStack as the foundational web service framework for a few main reasons. (1) it makes defining and configuring services so much easier than Microsoft's WebApi (specifically in areas of extensibility), (2) it includes an `auto-mapper` essential for easily maintaining abstractions between service operations, domain entities and infrastructure layers, and (3) it has excellent reflection support for persisting .Net types that would otherwise be very difficult to persist, causing far more difficulty when it comes to pragmatic persistence.
 
@@ -214,12 +222,31 @@ Unlike Entities, they are _immutable_. That means, once they have been created, 
 **In practice:**
 
  * Value Objects are often instantiated with their value in their constructor, where those values will be validated.
+
  * Value Objects will never allow their "value" to be changed, so must not have any public properties or methods to change their internal state. 
+
  * Value Objects will derive from `ValueObject<T>` and they will implement the inherited methods that provide equality and persistence support.
+
  * Commands that change the state of a ValueObject must return a new instance of the ValueObject, since they are immutable.
+
  * You should not expect a caller to know how to change the state of an ValueObject. You should provide a method that validates the value, and any constraints, that would mutate it. So, no public setters.
+
 * Value Objects support persistence of their internal state through the `IPersistableValueObject interface, which is used by persistence layers. A ValueObject never persists itself. Only Application Layers do that.
-* Value Objects derive from `ValueObjectBase<T>`, and must have a public, parameter-less constructor used for instantiation by persistence layers
+
+* Value Objects derive from `ValueObjectBase<TValue>`, they can have any constructor, they must implement Dehydration/Rehydration, and must have a static, public, parameter-less method called `Rehydrate` that returns a `ValueObjectFactory<ValueObjectBase<TValue>>` used for instantiation by persistence layers.
+
+Example of Rehydrate Method:
+
+  ```
+        public static ValueObjectFactory<Manufacturer> Rehydrate()
+        {
+            return (value, container) =>
+            {
+                var parts = RehydrateToList(value);
+                return new Manufacturer(parts[0].ToInt(0), parts[1], parts[2]);
+            };
+        }
+  ```
 
 ## Entities
 
@@ -243,7 +270,17 @@ In practice:
  * You should not expect a caller to know how to change the state of an Entity. You should provide a method that validates the value, and any constraints, that mutates it. So, no public setters.
  * Entities support persistence of their internal state through the `IPersisableEntity` interface, which is used by persistence layers. An Entity never persists itself. Only Application Layers do that.
  * Entity identifiers are created by a `IIdentifierFactory` which generates the identity for the entity. This is expected to be generated when the entity is first created. 
- * Entities derive from `EntityBase`, and must declare a `EntityFactory<TEntity>` using a `HydrationIdentifierFactory` used for instantiation by persistence layers.
+ * Entities derive from `EntityBase` they can have any constructor, they must implement Dehydration/Rehydration, and must have a static, public, parameter-less method called `Rehydrate` that returns a `EntityFactory<EntityBase<TValue>>` used for instantiation by persistence layers. 
+
+Example of Rehydrate Method:
+
+```
+        public static EntityFactory<CarEntity> Rehydrate()
+        {
+            return (hydratingProperties, container) => new CarEntity(container.Resolve<ILogger>(),
+                new HydrationIdentifierFactory(hydratingProperties));
+        }
+```
 
 ## Aggregates
 

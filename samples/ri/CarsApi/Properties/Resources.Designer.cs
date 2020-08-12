@@ -97,6 +97,69 @@ namespace CarsApi.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to register method: &apos;{0}.{1}()&apos; in DomainFactory. Entity: {0} has more than one declared definition of &apos;EntityFactory&lt;{0}&gt;&apos;.
+        /// </summary>
+        public static string DomainFactory_EntityFactoryMethodExists {
+            get {
+                return ResourceManager.GetString("DomainFactory_EntityFactoryMethodExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to register Entity: &apos;{0}&apos; in DomainFactory. This class must declare a factory method with signature &apos;public static EntityFactory&lt;{0}&gt; {1}()&apos;&apos;.
+        /// </summary>
+        public static string DomainFactory_EntityFactoryMethodNotFound {
+            get {
+                return ResourceManager.GetString("DomainFactory_EntityFactoryMethodNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No Entity factory is registered in the DomainFactory for type &apos;{0}&apos;.
+        /// </summary>
+        public static string DomainFactory_EntityTypeNotFound {
+            get {
+                return ResourceManager.GetString("DomainFactory_EntityTypeNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to register method: &apos;{0}.{1}()&apos; in DomainFactory. This method must be named &apos;{2}&apos; and declared with no parameters.
+        /// </summary>
+        public static string DomainFactory_FactoryMethodHasParameters {
+            get {
+                return ResourceManager.GetString("DomainFactory_FactoryMethodHasParameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to register method: &apos;{0}.{1}()&apos; in DomainFactory. ValueObject: {0} has more than one declared definition of &apos;ValueObjectFactory&lt;{0}&gt;&apos;.
+        /// </summary>
+        public static string DomainFactory_ValueObjectFactoryMethodExists {
+            get {
+                return ResourceManager.GetString("DomainFactory_ValueObjectFactoryMethodExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to register ValueObject: &apos;{0}&apos; in DomainFactory. This class must declare a factory method with signature &apos;public static ValueObjectFactory&lt;{0}&gt; {1}()&apos;&apos;.
+        /// </summary>
+        public static string DomainFactory_ValueObjectFactoryMethodNotFound {
+            get {
+                return ResourceManager.GetString("DomainFactory_ValueObjectFactoryMethodNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No ValueObject factory is registered in the DomainFactory for type &apos;{0}&apos;.
+        /// </summary>
+        public static string DomainFactory_ValueObjectTypeNotFound {
+            get {
+                return ResourceManager.GetString("DomainFactory_ValueObjectTypeNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The format of the Embed expression is invalid.
         /// </summary>
         public static string HasGetOptionsValidator_InvalidEmbed {
@@ -169,7 +232,7 @@ namespace CarsApi.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The UntilUtc must be a valid date adn time.
+        ///   Looks up a localized string similar to The UntilUtc must be a valid date and time.
         /// </summary>
         public static string OccupyCarRequestValidator_InvalidUntilUtc {
             get {

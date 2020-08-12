@@ -11,6 +11,7 @@ namespace Domain.Interfaces.UnitTests
     [TestClass, TestCategory("Unit")]
     public class EntityBaseSpec
     {
+        private Mock<IDependencyContainer> dependencyContainer;
         private TestEntity entity;
         private Mock<IIdentifierFactory> idFactory;
         private Mock<ILogger> logger;
@@ -22,6 +23,11 @@ namespace Domain.Interfaces.UnitTests
             this.idFactory = new Mock<IIdentifierFactory>();
             this.idFactory.Setup(idf => idf.Create(It.IsAny<TestEntity>()))
                 .Returns("anid".ToIdentifier());
+            this.dependencyContainer = new Mock<IDependencyContainer>();
+            this.dependencyContainer.Setup(dc => dc.Resolve<ILogger>())
+                .Returns(this.logger.Object);
+            this.dependencyContainer.Setup(dc => dc.Resolve<IIdentifierFactory>())
+                .Returns(this.idFactory.Object);
 
             this.entity = new TestEntity(this.logger.Object, this.idFactory.Object);
         }
@@ -44,12 +50,12 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenGetFactoryAndCreates_ThenReturnsIdentifiedInstance()
         {
-            var factory = TestEntity.GetFactory(this.logger.Object);
+            var factory = TestEntity.GetFactory();
 
             var result = factory(new Dictionary<string, object>
             {
                 {nameof(IIdentifiableEntity.Id), "anid".ToIdentifier()}
-            });
+            }, this.dependencyContainer.Object);
 
             result.Id.Should().Be("anid".ToIdentifier());
         }

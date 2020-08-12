@@ -31,11 +31,11 @@ namespace Storage.IntegrationTests.Azure
         }
 
         protected override IStorage<TEntity> GetStore<TEntity>(string containerName,
-            EntityFactory<TEntity> entityFactory)
+            IDomainFactory domainFactory)
         {
             if (!this.stores.ContainsKey(containerName))
             {
-                this.stores.Add(containerName, new TestEntityAzureStorage<TEntity>(Logger, entityFactory,
+                this.stores.Add(containerName, new TestEntityAzureStorage<TEntity>(Logger, domainFactory,
                     repository, containerName));
             }
 

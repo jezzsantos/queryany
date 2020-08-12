@@ -38,12 +38,12 @@ namespace Storage.IntegrationTests.Sql
         }
 
         protected override IStorage<TEntity> GetStore<TEntity>(string containerName,
-            EntityFactory<TEntity> entityFactory)
+            IDomainFactory domainFactory)
         {
             if (!this.stores.ContainsKey(containerName))
             {
                 this.stores.Add(containerName,
-                    new TestEntitySqlStorage<TEntity>(Logger, entityFactory, repository, containerName));
+                    new TestEntitySqlStorage<TEntity>(Logger, domainFactory, repository, containerName));
             }
 
             return (IStorage<TEntity>) this.stores[containerName];
@@ -52,9 +52,9 @@ namespace Storage.IntegrationTests.Sql
         private class TestEntitySqlStorage<TEntity> : GenericStorage<TEntity>
             where TEntity : IPersistableEntity
         {
-            public TestEntitySqlStorage(ILogger logger, EntityFactory<TEntity> entityFactory,
+            public TestEntitySqlStorage(ILogger logger, IDomainFactory domainFactory,
                 IRepository repository, string containerName) : base(
-                logger, entityFactory, repository)
+                logger, domainFactory, repository)
             {
                 containerName.GuardAgainstNullOrEmpty(nameof(containerName));
                 ContainerName = containerName;

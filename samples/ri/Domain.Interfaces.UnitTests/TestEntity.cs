@@ -18,9 +18,10 @@ namespace Domain.Interfaces.UnitTests
             APropertyName = properties.GetValueOrDefault<string>(nameof(APropertyName));
         }
 
-        public static EntityFactory<TestEntity> GetFactory(ILogger logger)
+        public static EntityFactory<TestEntity> GetFactory()
         {
-            return properties => new TestEntity(logger, new HydrationIdentifierFactory(properties));
+            return (hydratingProperties, container) => new TestEntity(container.Resolve<ILogger>(),
+                new HydrationIdentifierFactory(hydratingProperties));
         }
     }
 }

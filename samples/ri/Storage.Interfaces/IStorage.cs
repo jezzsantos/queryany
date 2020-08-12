@@ -5,7 +5,7 @@ namespace Storage.Interfaces
 {
     public interface IStorage<TEntity> where TEntity : IPersistableEntity
     {
-        EntityFactory<TEntity> EntityFactory { get; }
+        IDomainFactory DomainFactory { get; }
 
         TEntity Add(TEntity entity);
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using QueryAny.Primitives;
+using ServiceStack;
 
 namespace CarsDomain
 {
@@ -42,13 +43,20 @@ namespace CarsDomain
         {
             if (value.HasValue())
             {
-                var parts = value.SafeSplit(DefaultHydrationDelimiter);
-                Year = parts[0].HasValue()
-                    ? int.Parse(parts[0])
-                    : 0;
+                var parts = RehydrateToList(value);
+                Year = parts[0].ToInt(0);
                 Make = parts[1];
                 Model = parts[2];
             }
+        }
+
+        public static ValueObjectFactory<Manufacturer> Rehydrate()
+        {
+            return (value, container) =>
+            {
+                var parts = RehydrateToList(value);
+                return new Manufacturer(parts[0].ToInt(0), parts[1], parts[2]);
+            };
         }
 
         protected override IEnumerable<object> GetAtomicValues()

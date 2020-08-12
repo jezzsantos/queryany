@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using CarsApi;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
+using Funq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,6 +20,8 @@ namespace Storage.IntegrationTests
 
     {
         protected static readonly ILogger Logger = new Logger<AnyStorageBaseSpec>(new NullLoggerFactory());
+        private Container container;
+        private IDomainFactory domainFactory;
         private IStorage<FirstJoiningTestEntity> firstJoiningStorage;
         private IStorage<SecondJoiningTestEntity> secondJoiningStorage;
         private IStorage<TestEntity> storage;
@@ -25,18 +29,24 @@ namespace Storage.IntegrationTests
         [TestInitialize]
         public void Initialize()
         {
-            this.storage = GetStore(typeof(TestEntity).GetEntityNameSafe(), TestEntity.GetFactory());
+            this.container = new Container();
+            this.container.AddSingleton(Logger);
+            this.domainFactory = new DomainFactory(new FuncDependencyContainer(this.container));
+            this.domainFactory.RegisterTypesFromAssemblies(typeof(AnyStorageBaseSpec).Assembly);
+            this.storage = GetStore<TestEntity>(typeof(TestEntity).GetEntityNameSafe(), this.domainFactory);
             this.storage.DestroyAll();
             this.firstJoiningStorage =
-                GetStore(typeof(FirstJoiningTestEntity).GetEntityNameSafe(), FirstJoiningTestEntity.GetFactory());
+                GetStore<FirstJoiningTestEntity>(typeof(FirstJoiningTestEntity).GetEntityNameSafe(),
+                    this.domainFactory);
             this.firstJoiningStorage.DestroyAll();
-            this.secondJoiningStorage = GetStore(typeof(SecondJoiningTestEntity).GetEntityNameSafe(),
-                SecondJoiningTestEntity.GetFactory());
+            this.secondJoiningStorage =
+                GetStore<SecondJoiningTestEntity>(typeof(SecondJoiningTestEntity).GetEntityNameSafe(),
+                    this.domainFactory);
             this.secondJoiningStorage.DestroyAll();
         }
 
         protected abstract IStorage<TEntity> GetStore<TEntity>(string containerName,
-            EntityFactory<TEntity> entityFactory)
+            IDomainFactory domainFactory)
             where TEntity : IPersistableEntity;
 
         [TestMethod]

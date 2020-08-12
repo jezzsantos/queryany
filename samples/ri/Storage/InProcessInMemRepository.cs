@@ -37,30 +37,6 @@ namespace Storage
             }
         }
 
-        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity,
-            EntityFactory<TEntity> entityFactory)
-            where TEntity : IPersistableEntity
-        {
-            var entityProperties = entity.ToContainerProperties();
-            this.containers[containerName][id] = entityProperties;
-
-            return entityProperties.FromContainerProperties(id, entityFactory);
-        }
-
-        public TEntity Retrieve<TEntity>(string containerName, Identifier id, EntityFactory<TEntity> entityFactory)
-            where TEntity : IPersistableEntity
-        {
-            if (this.containers.ContainsKey(containerName))
-            {
-                if (this.containers[containerName].ContainsKey(id))
-                {
-                    return this.containers[containerName][id].FromContainerProperties(id, entityFactory);
-                }
-            }
-
-            return default;
-        }
-
         public long Count(string containerName)
         {
             if (this.containers.ContainsKey(containerName))
@@ -71,8 +47,40 @@ namespace Storage
             return 0;
         }
 
+        public void DestroyAll(string containerName)
+        {
+            if (this.containers.ContainsKey(containerName))
+            {
+                this.containers.Remove(containerName);
+            }
+        }
+
+        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity,
+            IDomainFactory domainFactory)
+            where TEntity : IPersistableEntity
+        {
+            var entityProperties = entity.ToContainerProperties();
+            this.containers[containerName][id] = entityProperties;
+
+            return entityProperties.FromContainerProperties<TEntity>(domainFactory);
+        }
+
+        public TEntity Retrieve<TEntity>(string containerName, Identifier id, IDomainFactory domainFactory)
+            where TEntity : IPersistableEntity
+        {
+            if (this.containers.ContainsKey(containerName))
+            {
+                if (this.containers[containerName].ContainsKey(id))
+                {
+                    return this.containers[containerName][id].FromContainerProperties<TEntity>(domainFactory);
+                }
+            }
+
+            return default;
+        }
+
         public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query,
-            EntityFactory<TEntity> entityFactory)
+            IDomainFactory domainFactory)
             where TEntity : IPersistableEntity
         {
             if (!this.containers.ContainsKey(containerName))
@@ -80,7 +88,7 @@ namespace Storage
                 return new List<TEntity>();
             }
 
-            var primaryEntities = QueryPrimaryEntities(containerName, query, entityFactory);
+            var primaryEntities = QueryPrimaryEntities(containerName, query, domainFactory);
 
             var joinedContainers = query.JoinedEntities
                 .Where(je => je.Join != null)
@@ -104,28 +112,20 @@ namespace Storage
                         .ToDictionary(e => e.Key, e => e.Value);
 
                     primaryEntities = join
-                        .JoinResults(leftEntities, rightEntities, entityFactory,
+                        .JoinResults<TEntity>(leftEntities, rightEntities, domainFactory,
                             joinedEntity.Selects.ProjectSelectedJoinedProperties());
                 }
             }
 
-            return primaryEntities.CherryPickSelectedProperties(query, entityFactory);
-        }
-
-        public void DestroyAll(string containerName)
-        {
-            if (this.containers.ContainsKey(containerName))
-            {
-                this.containers.Remove(containerName);
-            }
+            return primaryEntities.CherryPickSelectedProperties(query, domainFactory);
         }
 
         private List<TEntity> QueryPrimaryEntities<TEntity>(string containerName, QueryClause<TEntity> query,
-            EntityFactory<TEntity> entityFactory)
+            IDomainFactory domainFactory)
             where TEntity : IPersistableEntity
         {
             var primaryEntities = this.containers[containerName]
-                .Select(pair => pair.Value.FromContainerProperties(pair.Key, entityFactory))
+                .Select(pair => pair.Value.FromContainerProperties<TEntity>(domainFactory))
                 .ToList();
 
             var orderByExpression = query.ToDynamicLinqOrderByClause();
@@ -181,10 +181,10 @@ namespace Storage
         }
 
         public static TEntity FromContainerProperties<TEntity>(this Dictionary<string, object> entityProperties,
-            Identifier id, EntityFactory<TEntity> entityFactory)
+            IDomainFactory domainFactory)
             where TEntity : IPersistableEntity
         {
-            return entityProperties.EntityFromContainerProperties(id, entityFactory);
+            return entityProperties.EntityFromContainerProperties<TEntity>(domainFactory);
         }
     }
 

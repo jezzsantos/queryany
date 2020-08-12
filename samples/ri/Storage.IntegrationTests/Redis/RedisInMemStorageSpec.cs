@@ -32,12 +32,12 @@ namespace Storage.IntegrationTests.Redis
         }
 
         protected override IStorage<TEntity> GetStore<TEntity>(string containerName,
-            EntityFactory<TEntity> entityFactory)
+            IDomainFactory domainFactory)
         {
             if (!this.stores.ContainsKey(containerName))
             {
                 this.stores.Add(containerName,
-                    new TestEntityInMemStorage<TEntity>(Logger, entityFactory, repository, containerName));
+                    new TestEntityInMemStorage<TEntity>(Logger, domainFactory, repository, containerName));
             }
 
             return (IStorage<TEntity>) this.stores[containerName];
@@ -46,9 +46,9 @@ namespace Storage.IntegrationTests.Redis
         private class TestEntityInMemStorage<TEntity> : GenericStorage<TEntity>
             where TEntity : IPersistableEntity
         {
-            public TestEntityInMemStorage(ILogger logger, EntityFactory<TEntity> entityFactory,
+            public TestEntityInMemStorage(ILogger logger, IDomainFactory domainFactory,
                 IRepository repository, string containerName) : base(
-                logger, entityFactory, repository)
+                logger, domainFactory, repository)
             {
                 containerName.GuardAgainstNullOrEmpty(nameof(containerName));
                 ContainerName = containerName;

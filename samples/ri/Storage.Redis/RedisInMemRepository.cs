@@ -44,18 +44,18 @@ namespace Storage.Redis
             }
         }
 
-        public TEntity Retrieve<TEntity>(string containerName, Identifier id, EntityFactory<TEntity> entityFactory)
+        public TEntity Retrieve<TEntity>(string containerName, Identifier id, IDomainFactory domainFactory)
             where TEntity : IPersistableEntity
         {
             var client = EnsureClient();
 
             var rowKey = CreateRowKey(containerName, id);
 
-            return FromContainerEntity(client, rowKey, entityFactory);
+            return FromContainerEntity<TEntity>(client, rowKey, domainFactory);
         }
 
         public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity,
-            EntityFactory<TEntity> entityFactory)
+            IDomainFactory domainFactory)
             where TEntity : IPersistableEntity
         {
             var client = EnsureClient();
@@ -65,7 +65,7 @@ namespace Storage.Redis
             client.Remove(key);
             client.SetRangeInHash(key, keyValues);
 
-            return keyValues.FromContainerProperties(id.ToString(), entityFactory);
+            return keyValues.FromContainerProperties<TEntity>(id.ToString(), domainFactory);
         }
 
         public long Count(string containerName)
@@ -76,7 +76,7 @@ namespace Storage.Redis
         }
 
         public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query,
-            EntityFactory<TEntity> entityFactory)
+            IDomainFactory domainFactory)
             where TEntity : IPersistableEntity
         {
             var client = EnsureClient();
@@ -86,13 +86,13 @@ namespace Storage.Redis
                 return new List<TEntity>();
             }
 
-            var primaryEntities = QueryPrimaryEntities(client, containerName, query, entityFactory);
+            var primaryEntities = QueryPrimaryEntities(client, containerName, query, domainFactory);
 
             var joinedContainers = query.JoinedEntities
                 .Where(je => je.Join != null)
                 .ToDictionary(je => je.EntityName, je => new
                 {
-                    Collection = QueryJoiningContainer(client, je, properties => entityFactory(properties)),
+                    Collection = QueryJoiningContainer(client, je, domainFactory),
                     JoinedEntity = je
                 });
 
@@ -108,12 +108,12 @@ namespace Storage.Redis
                         .ToDictionary(e => e.Key.ToIdentifier(), e => e.Value.Dehydrate());
 
                     primaryEntities = join
-                        .JoinResults(leftEntities, rightEntities, entityFactory,
+                        .JoinResults<TEntity>(leftEntities, rightEntities, domainFactory,
                             joinedEntity.Selects.ProjectSelectedJoinedProperties());
                 }
             }
 
-            return primaryEntities.CherryPickSelectedProperties(query, entityFactory);
+            return primaryEntities.CherryPickSelectedProperties(query, domainFactory);
         }
 
         public void DestroyAll(string containerName)
@@ -128,11 +128,11 @@ namespace Storage.Redis
         }
 
         private List<TEntity> QueryPrimaryEntities<TEntity>(IRedisClient client, string containerName,
-            QueryClause<TEntity> query, EntityFactory<TEntity> entityFactory)
+            QueryClause<TEntity> query, IDomainFactory domainFactory)
             where TEntity : IPersistableEntity
         {
             var primaryEntities = GetRowKeys(client, containerName)
-                .Select(rowKey => FromContainerEntity(client, rowKey, entityFactory))
+                .Select(rowKey => FromContainerEntity<TEntity>(client, rowKey, domainFactory))
                 .OrderBy(e => e.CreatedAtUtc)
                 .ToList();
 
@@ -157,7 +157,7 @@ namespace Storage.Redis
         }
 
         private static Dictionary<string, IPersistableEntity> QueryJoiningContainer(IRedisClient client,
-            QueriedEntity joinedEntity, EntityFactory<IPersistableEntity> entityFactory)
+            QueriedEntity joinedEntity, IDomainFactory domainFactory)
         {
             var containerName = joinedEntity.EntityName;
             if (!Exists(client, containerName))
@@ -167,7 +167,7 @@ namespace Storage.Redis
 
             return GetRowKeys(client, containerName)
                 .ToDictionary(rowKey => rowKey,
-                    rowKey => FromContainerEntity(client, rowKey, joinedEntity.Join.Right.EntityType, entityFactory));
+                    rowKey => FromContainerEntity(client, rowKey, joinedEntity.Join.Right.EntityType, domainFactory));
         }
 
         private static string CreateRowKey<TEntity>(string containerName, TEntity entity)
@@ -197,7 +197,7 @@ namespace Storage.Redis
         }
 
         private static TEntity FromContainerEntity<TEntity>(IRedisClient client, string rowKey,
-            EntityFactory<TEntity> entityFactory)
+            IDomainFactory domainFactory)
             where TEntity : IPersistableEntity
         {
             try
@@ -210,7 +210,7 @@ namespace Storage.Redis
 
                 var id = GetEntityIdFromRowKey(rowKey);
 
-                return containerEntityProperties.FromContainerProperties(id, properties => entityFactory(properties));
+                return containerEntityProperties.FromContainerProperties<TEntity>(id, domainFactory);
             }
             catch (Exception)
             {
@@ -219,7 +219,7 @@ namespace Storage.Redis
         }
 
         private static IPersistableEntity FromContainerEntity(IRedisClient client,
-            string rowKey, Type entityType, EntityFactory<IPersistableEntity> entityFactory)
+            string rowKey, Type entityType, IDomainFactory domainFactory)
         {
             try
             {
@@ -231,7 +231,7 @@ namespace Storage.Redis
 
                 var id = GetEntityIdFromRowKey(rowKey);
 
-                return containerEntityProperties.FromContainerProperties(id, entityType, entityFactory);
+                return containerEntityProperties.FromContainerProperties(id, entityType, domainFactory);
             }
             catch (Exception)
             {
@@ -366,19 +366,18 @@ namespace Storage.Redis
         }
 
         public static TEntity FromContainerProperties<TEntity>(
-            this Dictionary<string, string> containerProperties, string entityId, EntityFactory<TEntity> entityFactory)
+            this Dictionary<string, string> containerProperties, string entityId, IDomainFactory domainFactory)
             where TEntity : IPersistableEntity
         {
             var targetType = typeof(TEntity);
 
-            return (TEntity) containerProperties.FromContainerProperties(entityId, targetType,
-                properties => entityFactory(properties));
+            return (TEntity) containerProperties.FromContainerProperties(entityId, targetType, domainFactory);
         }
 
         public static IPersistableEntity FromContainerProperties(
             this Dictionary<string, string> containerProperties, string id,
             Type entityType,
-            EntityFactory<IPersistableEntity> entityFactory)
+            IDomainFactory domainFactory)
         {
             var entityPropertyTypeInfo = entityType.GetProperties();
             var containerEntityProperties = containerProperties
@@ -386,12 +385,15 @@ namespace Storage.Redis
                     entityPropertyTypeInfo.Any(prop => prop.Name.EqualsOrdinal(pair.Key)) && pair.Value != null)
                 .ToDictionary(pair => pair.Key,
                     pair => pair.Value.FromContainerProperty(entityPropertyTypeInfo.First(info =>
-                        StringExtensions.EqualsIgnoreCase(info.Name, pair.Key)).PropertyType));
+                        StringExtensions.EqualsIgnoreCase(info.Name, pair.Key)).PropertyType, domainFactory));
 
-            return containerEntityProperties.EntityFromContainerProperties(id, entityFactory);
+            containerEntityProperties[nameof(IIdentifiableEntity.Id)] = id.ToIdentifier();
+
+            return containerEntityProperties.EntityFromContainerProperties(entityType, domainFactory);
         }
 
-        private static object FromContainerProperty(this string propertyValue, Type targetPropertyType)
+        private static object FromContainerProperty(this string propertyValue, Type targetPropertyType,
+            IDomainFactory domainFactory)
         {
             if (propertyValue == null
                 || propertyValue == RedisInMemRepository.RedisHashNullToken)
@@ -448,7 +450,7 @@ namespace Storage.Redis
             {
                 if (propertyValue.HasValue())
                 {
-                    return propertyValue.ValueObjectFromContainerProperty(targetPropertyType);
+                    return propertyValue.ValueObjectFromContainerProperty(targetPropertyType, domainFactory);
                 }
             }
 

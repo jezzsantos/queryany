@@ -28,6 +28,11 @@ namespace CarsDomain
             }
         }
 
+        public static ValueObjectFactory<VehicleOwner> Rehydrate()
+        {
+            return (value, container) => new VehicleOwner(value.ToIdentifier());
+        }
+
         protected override IEnumerable<object> GetAtomicValues()
         {
             return new object[] {Id};

@@ -3,6 +3,7 @@ using CarsApi.Validators;
 using CarsApplication;
 using CarsDomain;
 using CarsStorage;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Funq;
 using Microsoft.Extensions.Logging;
@@ -35,9 +36,12 @@ namespace CarsApi
         private static void RegisterDependencies(Container container)
         {
             container.AddSingleton<ILogger>(c => new Logger<ServiceHost>(new NullLoggerFactory()));
+            container.AddSingleton<IDependencyContainer>(new FuncDependencyContainer(container));
             container.AddSingleton<IIdentifierFactory, GuidIdentifierFactory>();
+            container.AddSingleton<IDomainFactory, DomainFactory>();
             container.AddSingleton<IStorage<CarEntity>>(c =>
-                CarEntityAzureStorage.Create(c.Resolve<ILogger>(), container.Resolve<IAppSettings>()));
+                CarEntityAzureStorage.Create(c.Resolve<ILogger>(), c.Resolve<IAppSettings>(),
+                    c.Resolve<IDomainFactory>()));
             container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
         }
 

@@ -14,19 +14,19 @@ namespace Storage
         private readonly ILogger logger;
         private readonly IRepository repository;
 
-        protected GenericStorage(ILogger logger, EntityFactory<TEntity> entityFactory, IRepository repository)
+        protected GenericStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
         {
             logger.GuardAgainstNull(nameof(logger));
             repository.GuardAgainstNull(nameof(repository));
-            entityFactory.GuardAgainstNull(nameof(entityFactory));
+            domainFactory.GuardAgainstNull(nameof(domainFactory));
             this.logger = logger;
             this.repository = repository;
-            EntityFactory = entityFactory;
+            DomainFactory = domainFactory;
         }
 
         protected abstract string ContainerName { get; }
 
-        public EntityFactory<TEntity> EntityFactory { get; }
+        public IDomainFactory DomainFactory { get; }
 
         public TEntity Add(TEntity entity)
         {
@@ -41,7 +41,7 @@ namespace Storage
 
             this.logger.LogDebug("Entity {Id} was added to repository", entity.Id);
 
-            return this.repository.Retrieve(ContainerName, entity.Id, EntityFactory);
+            return this.repository.Retrieve<TEntity>(ContainerName, entity.Id, DomainFactory);
         }
 
         public void Delete(Identifier id)
@@ -56,7 +56,7 @@ namespace Storage
         {
             id.GuardAgainstNull(nameof(id));
 
-            var entity = this.repository.Retrieve(ContainerName, id, EntityFactory);
+            var entity = this.repository.Retrieve<TEntity>(ContainerName, id, DomainFactory);
 
             this.logger.LogDebug("Entity {Id} was retrieved from repository", id);
 
@@ -79,7 +79,7 @@ namespace Storage
 
             latest.PopulateWithNonDefaultValues(entity);
 
-            var updated = this.repository.Replace(ContainerName, entity.Id, latest, EntityFactory);
+            var updated = this.repository.Replace(ContainerName, entity.Id, latest, DomainFactory);
 
             this.logger.LogDebug("Entity {Id} was updated in repository", entity.Id);
 
@@ -108,7 +108,7 @@ namespace Storage
                 return new QueryResults<TEntity>(new List<TEntity>());
             }
 
-            var resultEntities = this.repository.Query(ContainerName, query, EntityFactory);
+            var resultEntities = this.repository.Query(ContainerName, query, DomainFactory);
 
             this.logger.LogDebug("Entities were retrieved from repository");
 

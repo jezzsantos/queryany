@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging.Abstractions;
 using QueryAny;
@@ -77,9 +78,9 @@ namespace Storage.IntegrationTests
                 properties.GetValueOrDefault<ComplexValueObject>(nameof(AComplexValueObjectValue));
         }
 
-        public static EntityFactory<TestEntity> GetFactory()
+        public static EntityFactory<TestEntity> Rehydrate()
         {
-            return properties => new TestEntity(new HydrationIdentifierFactory(properties));
+            return (properties, container) => new TestEntity(new HydrationIdentifierFactory(properties));
         }
     }
 
@@ -114,9 +115,9 @@ namespace Storage.IntegrationTests
             AIntValue = properties.GetValueOrDefault<int>(nameof(AIntValue));
         }
 
-        public static EntityFactory<FirstJoiningTestEntity> GetFactory()
+        public static EntityFactory<FirstJoiningTestEntity> Rehydrate()
         {
-            return properties => new FirstJoiningTestEntity(new HydrationIdentifierFactory(properties));
+            return (properties, container) => new FirstJoiningTestEntity(new HydrationIdentifierFactory(properties));
         }
     }
 
@@ -155,9 +156,9 @@ namespace Storage.IntegrationTests
             ALongValue = properties.GetValueOrDefault<long>(nameof(ALongValue));
         }
 
-        public static EntityFactory<SecondJoiningTestEntity> GetFactory()
+        public static EntityFactory<SecondJoiningTestEntity> Rehydrate()
         {
-            return properties => new SecondJoiningTestEntity(new HydrationIdentifierFactory(properties));
+            return (properties, container) => new SecondJoiningTestEntity(new HydrationIdentifierFactory(properties));
         }
     }
 
@@ -210,6 +211,15 @@ namespace Storage.IntegrationTests
                     ? bool.Parse(parts[2])
                     : false;
             }
+        }
+
+        public static ValueObjectFactory<ComplexValueObject> Rehydrate()
+        {
+            return (value, container) =>
+            {
+                var parts = RehydrateToList(value);
+                return new ComplexValueObject(parts[0], parts[1].ToInt(), parts[2].ToBool());
+            };
         }
 
         protected override IEnumerable<object> GetAtomicValues()

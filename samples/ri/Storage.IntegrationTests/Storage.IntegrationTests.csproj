@@ -17,6 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\CarsApi\CarsApi.csproj" />
       <ProjectReference Include="..\Storage.Azure\Storage.Azure.csproj" />
       <ProjectReference Include="..\Storage.Redis\Storage.Redis.csproj" />
       <ProjectReference Include="..\Storage.Sql\Storage.Sql.csproj" />

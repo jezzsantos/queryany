@@ -74,7 +74,7 @@ namespace Storage
         public static List<TEntity> JoinResults<TEntity>(this JoinDefinition joinDefinition,
             Dictionary<Identifier, Dictionary<string, object>> leftEntities,
             Dictionary<Identifier, Dictionary<string, object>> rightEntities,
-            EntityFactory<TEntity> entityFactory,
+            IDomainFactory domainFactory,
             Func<KeyValuePair<Identifier, Dictionary<string, object>>,
                 KeyValuePair<Identifier, Dictionary<string, object>>,
                 KeyValuePair<Identifier, Dictionary<string, object>>> mapFunc = null) where TEntity : IPersistableEntity
@@ -90,7 +90,7 @@ namespace Storage
                         select mapFunc?.Invoke(lefts, result) ?? lefts;
 
                     return innerJoin
-                        .Select(e => EntityFromContainerProperties(e.Value, entityFactory))
+                        .Select(e => EntityFromContainerProperties<TEntity>(e.Value, domainFactory))
                         .ToList();
 
                 case JoinType.Left:
@@ -102,7 +102,7 @@ namespace Storage
                         select mapFunc?.Invoke(lefts, result) ?? lefts;
 
                     return leftJoin
-                        .Select(e => EntityFromContainerProperties(e.Value, entityFactory))
+                        .Select(e => EntityFromContainerProperties<TEntity>(e.Value, domainFactory))
                         .ToList();
 
                 default:
@@ -143,7 +143,7 @@ namespace Storage
         }
 
         public static List<TEntity> CherryPickSelectedProperties<TEntity>(this IEnumerable<TEntity> entities,
-            QueryClause<TEntity> query, EntityFactory<TEntity> entityFactory,
+            QueryClause<TEntity> query, IDomainFactory domainFactory,
             IEnumerable<string> includeAdditionalProperties = null)
             where TEntity : IPersistableEntity
         {
@@ -162,48 +162,30 @@ namespace Storage
                 .Select(resultEntity => resultEntity.Dehydrate()
                     .Where(resultEntityProperty => selectedPropertyNames.Contains(resultEntityProperty.Key)))
                 .Select(selectedProperties =>
-                    EntityFromContainerProperties(selectedProperties.ToObjectDictionary(), entityFactory))
+                    EntityFromContainerProperties<TEntity>(selectedProperties.ToObjectDictionary(), domainFactory))
                 .ToList();
         }
 
         public static TEntity EntityFromContainerProperties<TEntity>(this IDictionary<string, object> propertyValues,
-            Identifier id, EntityFactory<TEntity> entityFactory) where TEntity : IPersistableEntity
+            IDomainFactory domainFactory) where TEntity : IPersistableEntity
         {
-            return (TEntity) CreateEntityInternal(propertyValues, id, properties => entityFactory(properties));
+            var properties = new ReadOnlyDictionary<string, object>(propertyValues);
+            return (TEntity) domainFactory.RehydrateEntity(typeof(TEntity), properties);
         }
 
         public static IPersistableEntity EntityFromContainerProperties(this IDictionary<string, object> propertyValues,
-            string id, EntityFactory<IPersistableEntity> entityFactory)
-        {
-            return CreateEntityInternal(propertyValues, id.ToIdentifier(), entityFactory);
-        }
-
-        private static IPersistableEntity CreateEntityInternal(this IDictionary<string, object> propertyValues,
-            Identifier id, EntityFactory<IPersistableEntity> entityFactory)
-        {
-            propertyValues[nameof(IIdentifiableEntity.Id)] = id;
-            return EntityFromContainerProperties(propertyValues, entityFactory);
-        }
-
-        private static TEntity EntityFromContainerProperties<TEntity>(this IDictionary<string, object> propertyValues,
-            EntityFactory<TEntity> entityFactory) where TEntity : IPersistableEntity
+            Type entityType, IDomainFactory domainFactory)
         {
             var properties = new ReadOnlyDictionary<string, object>(propertyValues);
-            var entity = entityFactory(properties);
-            entity.Rehydrate(properties);
-
-            return entity;
+            return domainFactory.RehydrateEntity(entityType, properties);
         }
 
         public static IPersistableValueObject ValueObjectFromContainerProperty(this string propertyValue,
-            Type targetPropertyType)
+            Type valueObjectType, IDomainFactory domainFactory)
         {
             try
             {
-                var valueObject = targetPropertyType.CreateInstance<IPersistableValueObject>();
-                valueObject.Rehydrate(propertyValue);
-
-                return valueObject;
+                return domainFactory.RehydrateValueObject(valueObjectType, propertyValue);
             }
             catch (Exception)
             {

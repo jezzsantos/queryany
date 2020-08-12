@@ -6,9 +6,9 @@ namespace Storage.IntegrationTests.Azure
 {
     public class TestEntityAzureStorage<TEntity> : GenericStorage<TEntity> where TEntity : IPersistableEntity
     {
-        public TestEntityAzureStorage(ILogger logger, EntityFactory<TEntity> entityFactory,
+        public TestEntityAzureStorage(ILogger logger, IDomainFactory domainFactory,
             IRepository repository, string containerName) : base(
-            logger, entityFactory, repository)
+            logger, domainFactory, repository)
         {
             containerName.GuardAgainstNullOrEmpty(nameof(containerName));
             ContainerName = containerName;

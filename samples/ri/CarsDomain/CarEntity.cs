@@ -66,9 +66,10 @@ namespace CarsDomain
             Logger.LogDebug("Car was occupied until {Until}", untilUtc);
         }
 
-        public static EntityFactory<CarEntity> GetFactory(ILogger logger)
+        public static EntityFactory<CarEntity> Rehydrate()
         {
-            return properties => new CarEntity(logger, new HydrationIdentifierFactory(properties));
+            return (hydratingProperties, container) => new CarEntity(container.Resolve<ILogger>(),
+                new HydrationIdentifierFactory(hydratingProperties));
         }
     }
 }

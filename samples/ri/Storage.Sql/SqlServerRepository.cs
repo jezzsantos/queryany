@@ -35,26 +35,26 @@ namespace Storage.Sql
             ExecuteCommand($"DELETE FROM {tableName} WHERE {nameof(IIdentifiableEntity.Id)}='{id}'");
         }
 
-        public TEntity Retrieve<TEntity>(string tableName, Identifier id, EntityFactory<TEntity> entityFactory)
+        public TEntity Retrieve<TEntity>(string tableName, Identifier id, IDomainFactory domainFactory)
             where TEntity : IPersistableEntity
         {
             var tableEntity =
                 ExecuteSingleSelect($"SELECT * FROM {tableName} WHERE {nameof(IIdentifiableEntity.Id)}='{id}'");
             if (tableEntity != null)
             {
-                return tableEntity.FromTableEntity(entityFactory);
+                return tableEntity.FromTableEntity<TEntity>(domainFactory);
             }
 
             return default;
         }
 
         public TEntity Replace<TEntity>(string tableName, Identifier id, TEntity entity,
-            EntityFactory<TEntity> entityFactory) where TEntity : IPersistableEntity
+            IDomainFactory domainFactory) where TEntity : IPersistableEntity
         {
             var updatedEntity = entity.ToTableEntity();
             ExecuteUpdate(tableName, updatedEntity);
 
-            return updatedEntity.FromTableEntity(entityFactory);
+            return updatedEntity.FromTableEntity<TEntity>(domainFactory);
         }
 
         public long Count(string tableName)
@@ -63,7 +63,7 @@ namespace Storage.Sql
         }
 
         public List<TEntity> Query<TEntity>(string tableName, QueryClause<TEntity> query,
-            EntityFactory<TEntity> entityFactory) where TEntity : IPersistableEntity
+            IDomainFactory domainFactory) where TEntity : IPersistableEntity
         {
             var take = query.GetDefaultTake(this);
             if (take == 0)
@@ -75,7 +75,7 @@ namespace Storage.Sql
             var results = ExecuteMultiSelect(select);
 
             return results
-                .Select(r => r.FromTableEntity(entityFactory))
+                .Select(r => r.FromTableEntity<TEntity>(domainFactory))
                 .ToList();
         }
 
@@ -368,7 +368,7 @@ namespace Storage.Sql
         }
 
         public static TEntity FromTableEntity<TEntity>(this Dictionary<string, object> tableProperties,
-            EntityFactory<TEntity> entityFactory)
+            IDomainFactory domainFactory)
             where TEntity : IPersistableEntity
         {
             var entityType = typeof(TEntity);
@@ -379,14 +379,16 @@ namespace Storage.Sql
                     pair.Value != null)
                 .ToDictionary(pair => pair.Key,
                     pair => pair.FromTableEntityProperty(entityPropertyTypeInfo
-                        .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType));
+                        .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType, domainFactory));
 
             var id = tableProperties[nameof(IIdentifiableEntity.Id)].ToString().ToIdentifier();
-            return propertyValues.EntityFromContainerProperties(id, entityFactory);
+            propertyValues[nameof(IIdentifiableEntity.Id)] = id;
+
+            return propertyValues.EntityFromContainerProperties<TEntity>(domainFactory);
         }
 
         private static object FromTableEntityProperty(this KeyValuePair<string, object> property,
-            Type targetPropertyType)
+            Type targetPropertyType, IDomainFactory domainFactory)
         {
             var value = property.Value;
             switch (value)
@@ -400,7 +402,7 @@ namespace Storage.Sql
 
                     if (typeof(IPersistableValueObject).IsAssignableFrom(targetPropertyType))
                     {
-                        return text.ValueObjectFromContainerProperty(targetPropertyType);
+                        return text.ValueObjectFromContainerProperty(targetPropertyType, domainFactory);
                     }
 
                     if (targetPropertyType.IsComplexStorageType())

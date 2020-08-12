@@ -19,6 +19,7 @@ namespace CarsApi.IntegrationTests
     {
         private const string ServiceUrl = "http://localhost:2000/";
         private ServiceStackHost appHost;
+        private IDomainFactory domainFactory;
         private ILogger logger;
         private CarEntityInMemStorage store;
 
@@ -27,7 +28,9 @@ namespace CarsApi.IntegrationTests
         {
             this.appHost = new TestServiceHost();
             this.logger = new Logger<TestServiceHost>(new NullLoggerFactory());
-            this.store = CarEntityInMemStorage.Create(this.logger);
+            this.domainFactory = new DomainFactory(new FuncDependencyContainer(this.appHost.Container));
+            this.domainFactory.RegisterTypesFromAssemblies(typeof(CarEntity).Assembly);
+            this.store = CarEntityInMemStorage.Create(this.logger, this.domainFactory);
             this.appHost.Container.AddSingleton<IIdentifierFactory, GuidIdentifierFactory>();
             this.appHost.Container.AddSingleton(this.logger);
             this.appHost.Container.AddSingleton<IStorage<CarEntity>>(this.store);

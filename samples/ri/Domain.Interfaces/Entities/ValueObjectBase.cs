@@ -15,16 +15,6 @@ namespace Domain.Interfaces.Entities
     {
         protected const string DefaultHydrationDelimiter = "::";
 
-        /// <summary>
-        ///     Here so that type can be deserialized by persistence
-        /// </summary>
-
-        // ReSharper disable once EmptyConstructor
-        // ReSharper disable once PublicConstructorInAbstractClass
-        public ValueObjectBase()
-        {
-        }
-
         public bool Equals(TValueObject other)
         {
             return Equals((object) other);
@@ -39,8 +29,13 @@ namespace Domain.Interfaces.Entities
                 .Join(DefaultHydrationDelimiter);
         }
 
-        public virtual void Rehydrate(string value)
+        public abstract void Rehydrate(string value);
+
+        protected static List<string> RehydrateToList(string value)
         {
+            return value
+                .SafeSplit(DefaultHydrationDelimiter)
+                .ToList();
         }
 
         protected abstract IEnumerable<object> GetAtomicValues();

@@ -17,17 +17,17 @@ namespace Storage.IntegrationTests
         }
 
         protected override IStorage<TEntity> GetStore<TEntity>(string containerName,
-            EntityFactory<TEntity> entityFactory)
+            IDomainFactory domainFactory)
         {
-            return new TestEntityInMemStorage<TEntity>(Logger, entityFactory, this.repository, containerName);
+            return new TestEntityInMemStorage<TEntity>(Logger, domainFactory, this.repository, containerName);
         }
 
         private class TestEntityInMemStorage<TEntity> : GenericStorage<TEntity>
             where TEntity : IPersistableEntity
         {
-            public TestEntityInMemStorage(ILogger logger, EntityFactory<TEntity> entityFactory,
+            public TestEntityInMemStorage(ILogger logger, IDomainFactory domainFactory,
                 InProcessInMemRepository repository, string containerName) :
-                base(logger, entityFactory, repository)
+                base(logger, domainFactory, repository)
             {
                 containerName.GuardAgainstNullOrEmpty(nameof(containerName));
                 ContainerName = containerName;

@@ -68,4 +68,5 @@ public void When$CONDITION$_Then$RESULT$()
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=CEDF9F05BABAEB4E86DFECA8F990D1A7/Shortcut/@EntryValue">guardempty</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=CEDF9F05BABAEB4E86DFECA8F990D1A7/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=CEDF9F05BABAEB4E86DFECA8F990D1A7/Text/@EntryValue">$variable$.GuardAgainstNullOrEmpty(nameof($variable$));</s:String>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Persistable/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=Persistable/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=rehydrating/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

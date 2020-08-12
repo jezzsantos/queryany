@@ -8,18 +8,18 @@ namespace CarsStorage
 {
     public class CarEntityInMemStorage : GenericStorage<CarEntity>
     {
-        private CarEntityInMemStorage(ILogger logger, EntityFactory<CarEntity> entityFactory,
-            InProcessInMemRepository repository) : base(logger, entityFactory, repository)
+        private CarEntityInMemStorage(ILogger logger, IDomainFactory domainFactory,
+            InProcessInMemRepository repository) : base(logger, domainFactory, repository)
         {
         }
 
         protected override string ContainerName => "Car";
 
-        public static CarEntityInMemStorage Create(ILogger logger)
+        public static CarEntityInMemStorage Create(ILogger logger, IDomainFactory domainFactory)
         {
             logger.GuardAgainstNull(nameof(logger));
 
-            return new CarEntityInMemStorage(logger, CarEntity.GetFactory(logger),
+            return new CarEntityInMemStorage(logger, domainFactory,
                 new InProcessInMemRepository());
         }
     }

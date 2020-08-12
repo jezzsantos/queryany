@@ -43,6 +43,11 @@ namespace CarsDomain
             }
         }
 
+        public static ValueObjectFactory<VehicleManagers> Rehydrate()
+        {
+            return (value, container) => new VehicleManagers();
+        }
+
         protected override IEnumerable<object> GetAtomicValues()
         {
             return new[] {ManagerIds};
