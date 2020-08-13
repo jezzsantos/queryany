@@ -395,7 +395,7 @@ namespace Storage.Sql
             {
                 case string text:
 
-                    if (targetPropertyType == typeof(Guid))
+                    if (targetPropertyType == typeof(Guid) || targetPropertyType == typeof(Guid?))
                     {
                         return Guid.Parse(text);
                     }

@@ -24,17 +24,31 @@ namespace Storage.IntegrationTests
 
         public bool ABooleanValue { get; set; }
 
+        public bool? ANullableBooleanValue { get; set; }
+
         public DateTime ADateTimeUtcValue { get; set; }
 
-        public DateTimeOffset ADateTimeOffsetUtcValue { get; set; }
+        public DateTime? ANullableDateTimeUtcValue { get; set; }
+
+        public DateTimeOffset ADateTimeOffsetValue { get; set; }
+
+        public DateTimeOffset? ANullableDateTimeOffsetValue { get; set; }
 
         public double ADoubleValue { get; set; }
 
+        public double? ANullableDoubleValue { get; set; }
+
         public Guid AGuidValue { get; set; }
+
+        public Guid? ANullableGuidValue { get; set; }
 
         public int AIntValue { get; set; }
 
+        public int? ANullableIntValue { get; set; }
+
         public long ALongValue { get; set; }
+
+        public long? ANullableLongValue { get; set; }
 
         public byte[] ABinaryValue { get; set; }
 
@@ -47,12 +61,19 @@ namespace Storage.IntegrationTests
             var properties = base.Dehydrate();
             properties.Add(nameof(AStringValue), AStringValue);
             properties.Add(nameof(ABooleanValue), ABooleanValue);
+            properties.Add(nameof(ANullableBooleanValue), ANullableBooleanValue);
             properties.Add(nameof(ADateTimeUtcValue), ADateTimeUtcValue);
-            properties.Add(nameof(ADateTimeOffsetUtcValue), ADateTimeOffsetUtcValue);
+            properties.Add(nameof(ANullableDateTimeUtcValue), ANullableDateTimeUtcValue);
+            properties.Add(nameof(ADateTimeOffsetValue), ADateTimeOffsetValue);
+            properties.Add(nameof(ANullableDateTimeOffsetValue), ANullableDateTimeOffsetValue);
             properties.Add(nameof(AGuidValue), AGuidValue);
+            properties.Add(nameof(ANullableGuidValue), ANullableGuidValue);
             properties.Add(nameof(ADoubleValue), ADoubleValue);
+            properties.Add(nameof(ANullableDoubleValue), ANullableDoubleValue);
             properties.Add(nameof(AIntValue), AIntValue);
+            properties.Add(nameof(ANullableIntValue), ANullableIntValue);
             properties.Add(nameof(ALongValue), ALongValue);
+            properties.Add(nameof(ANullableLongValue), ANullableLongValue);
             properties.Add(nameof(ABinaryValue), ABinaryValue);
             properties.Add(nameof(AComplexNonValueObjectValue), AComplexNonValueObjectValue);
             properties.Add(nameof(AComplexValueObjectValue), AComplexValueObjectValue);
@@ -65,12 +86,20 @@ namespace Storage.IntegrationTests
             base.Rehydrate(properties);
             AStringValue = properties.GetValueOrDefault<string>(nameof(AStringValue));
             ABooleanValue = properties.GetValueOrDefault<bool>(nameof(ABooleanValue));
+            ANullableBooleanValue = properties.GetValueOrDefault<bool?>(nameof(ANullableBooleanValue));
             ADateTimeUtcValue = properties.GetValueOrDefault<DateTime>(nameof(ADateTimeUtcValue));
-            ADateTimeOffsetUtcValue = properties.GetValueOrDefault<DateTimeOffset>(nameof(ADateTimeOffsetUtcValue));
+            ANullableDateTimeUtcValue = properties.GetValueOrDefault<DateTime?>(nameof(ANullableDateTimeUtcValue));
+            ADateTimeOffsetValue = properties.GetValueOrDefault<DateTimeOffset>(nameof(ADateTimeOffsetValue));
+            ANullableDateTimeOffsetValue =
+                properties.GetValueOrDefault<DateTimeOffset?>(nameof(ANullableDateTimeOffsetValue));
             AGuidValue = properties.GetValueOrDefault<Guid>(nameof(AGuidValue));
+            ANullableGuidValue = properties.GetValueOrDefault<Guid?>(nameof(ANullableGuidValue));
             ADoubleValue = properties.GetValueOrDefault<double>(nameof(ADoubleValue));
+            ANullableDoubleValue = properties.GetValueOrDefault<double?>(nameof(ANullableDoubleValue));
             AIntValue = properties.GetValueOrDefault<int>(nameof(AIntValue));
+            ANullableIntValue = properties.GetValueOrDefault<int?>(nameof(ANullableIntValue));
             ALongValue = properties.GetValueOrDefault<long>(nameof(ALongValue));
+            ANullableLongValue = properties.GetValueOrDefault<long?>(nameof(ANullableLongValue));
             ABinaryValue = properties.GetValueOrDefault<byte[]>(nameof(ABinaryValue));
             AComplexNonValueObjectValue =
                 properties.GetValueOrDefault<ComplexNonValueObject>(nameof(AComplexNonValueObjectValue));

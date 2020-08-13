@@ -389,88 +389,6 @@ namespace Storage.Azure
 
     internal static class AzureTableStorageEntityExtensions
     {
-        public static TEntity FromTableEntity<TEntity>(this DynamicTableEntity tableEntity,
-            AzureTableStorageRepository.TableStorageApiOptions options, IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
-        {
-            return (TEntity) tableEntity.FromTableEntity(typeof(TEntity), options, domainFactory);
-        }
-
-        public static IPersistableEntity FromTableEntity(this DynamicTableEntity tableEntity, Type entityType,
-            AzureTableStorageRepository.TableStorageApiOptions options, IDomainFactory domainFactory)
-        {
-            var entityPropertyTypeInfo = entityType.GetProperties();
-            var containerEntityProperties = tableEntity.Properties
-                .Where(pair =>
-                    entityPropertyTypeInfo.Any(prop => prop.Name.EqualsOrdinal(pair.Key)) &&
-                    pair.Value.PropertyAsObject != null)
-                .ToDictionary(pair => pair.Key,
-                    pair => pair.Value.FromTableEntityProperty(entityPropertyTypeInfo
-                        .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType, domainFactory, options));
-
-            var id = tableEntity.RowKey.ToIdentifier();
-            containerEntityProperties[nameof(IIdentifiableEntity.Id)] = id;
-
-            return containerEntityProperties.EntityFromContainerProperties(entityType, domainFactory);
-        }
-
-        private static object FromTableEntityProperty(this EntityProperty property, Type targetPropertyType,
-            IDomainFactory domainFactory,
-            AzureTableStorageRepository.TableStorageApiOptions options)
-        {
-            var value = property.PropertyAsObject;
-            switch (value)
-            {
-                case string text:
-                    if (text.EqualsOrdinal(AzureTableStorageRepository.NullValue))
-                    {
-                        return null;
-                    }
-
-                    if (typeof(IPersistableValueObject).IsAssignableFrom(targetPropertyType))
-                    {
-                        return text.ValueObjectFromContainerProperty(targetPropertyType, domainFactory);
-                    }
-
-                    if (targetPropertyType.IsComplexStorageType())
-                    {
-                        return text.ComplexTypeFromContainerProperty(targetPropertyType);
-                    }
-
-                    return text;
-
-                case DateTime dateTime:
-                    if (targetPropertyType == typeof(DateTimeOffset))
-                    {
-                        var dateTimeOffset = property.DateTimeOffsetValue.GetValueOrDefault(DateTimeOffset.MinValue);
-                        return !dateTimeOffset.DateTime.HasValue() ||
-                               dateTimeOffset.DateTime.IsMinimumAllowableDate(options)
-                            ? DateTimeOffset.MinValue.UtcDateTime
-                            : dateTimeOffset;
-                    }
-                    else
-                    {
-                        return !dateTime.HasValue() || dateTime.IsMinimumAllowableDate(options)
-                            ? DateTime.MinValue
-                            : dateTime;
-                    }
-
-                case bool _:
-                case int _:
-                case long _:
-                case double _:
-                case Guid _:
-                case byte[] _:
-                    return value;
-
-                case null:
-                    return null;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(property));
-            }
-        }
-
         public static DynamicTableEntity ToTableEntity<TEntity>(this TEntity entity,
             AzureTableStorageRepository.TableStorageApiOptions options)
             where TEntity : IPersistableEntity
@@ -573,6 +491,88 @@ namespace Storage.Azure
             AzureTableStorageRepository.TableStorageApiOptions options)
         {
             return dateTime == options.MinimumAllowableUtcDateTime;
+        }
+
+        public static TEntity FromTableEntity<TEntity>(this DynamicTableEntity tableEntity,
+            AzureTableStorageRepository.TableStorageApiOptions options, IDomainFactory domainFactory)
+            where TEntity : IPersistableEntity
+        {
+            return (TEntity) tableEntity.FromTableEntity(typeof(TEntity), options, domainFactory);
+        }
+
+        public static IPersistableEntity FromTableEntity(this DynamicTableEntity tableEntity, Type entityType,
+            AzureTableStorageRepository.TableStorageApiOptions options, IDomainFactory domainFactory)
+        {
+            var entityPropertyTypeInfo = entityType.GetProperties();
+            var containerEntityProperties = tableEntity.Properties
+                .Where(pair =>
+                    entityPropertyTypeInfo.Any(prop => prop.Name.EqualsOrdinal(pair.Key)) &&
+                    pair.Value.PropertyAsObject != null)
+                .ToDictionary(pair => pair.Key,
+                    pair => pair.Value.FromTableEntityProperty(entityPropertyTypeInfo
+                        .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType, domainFactory, options));
+
+            var id = tableEntity.RowKey.ToIdentifier();
+            containerEntityProperties[nameof(IIdentifiableEntity.Id)] = id;
+
+            return containerEntityProperties.EntityFromContainerProperties(entityType, domainFactory);
+        }
+
+        private static object FromTableEntityProperty(this EntityProperty property, Type targetPropertyType,
+            IDomainFactory domainFactory,
+            AzureTableStorageRepository.TableStorageApiOptions options)
+        {
+            var value = property.PropertyAsObject;
+            switch (value)
+            {
+                case string text:
+                    if (text.EqualsOrdinal(AzureTableStorageRepository.NullValue))
+                    {
+                        return null;
+                    }
+
+                    if (typeof(IPersistableValueObject).IsAssignableFrom(targetPropertyType))
+                    {
+                        return text.ValueObjectFromContainerProperty(targetPropertyType, domainFactory);
+                    }
+
+                    if (targetPropertyType.IsComplexStorageType())
+                    {
+                        return text.ComplexTypeFromContainerProperty(targetPropertyType);
+                    }
+
+                    return text;
+
+                case DateTime dateTime:
+                    if (targetPropertyType == typeof(DateTimeOffset) || targetPropertyType == typeof(DateTimeOffset?))
+                    {
+                        var dateTimeOffset = property.DateTimeOffsetValue.GetValueOrDefault(DateTimeOffset.MinValue);
+                        return !dateTimeOffset.DateTime.HasValue() ||
+                               dateTimeOffset.DateTime.IsMinimumAllowableDate(options)
+                            ? DateTimeOffset.MinValue.UtcDateTime
+                            : dateTimeOffset;
+                    }
+                    else
+                    {
+                        return !dateTime.HasValue() || dateTime.IsMinimumAllowableDate(options)
+                            ? DateTime.MinValue
+                            : dateTime;
+                    }
+
+                case bool _:
+                case int _:
+                case long _:
+                case double _:
+                case Guid _:
+                case byte[] _:
+                    return value;
+
+                case null:
+                    return null;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(property));
+            }
         }
     }
 

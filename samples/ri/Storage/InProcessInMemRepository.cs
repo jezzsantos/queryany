@@ -294,7 +294,7 @@ namespace Storage
             if (value is DateTimeOffset dateTimeOffset)
             {
                 return
-                    $"{fieldName} {@operator} DateTimeOffset({dateTimeOffset.Ticks}, TimeSpan.Zero)";
+                    $"{fieldName} {@operator} DateTimeOffset({dateTimeOffset.Ticks}, TimeSpan.Parse(\"{dateTimeOffset.Offset.ToString()}\"))";
             }
 
             if (value is byte[] bytes)

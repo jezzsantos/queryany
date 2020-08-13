@@ -107,13 +107,20 @@ namespace Storage.IntegrationTests
             {
                 ABinaryValue = new byte[] {0x01},
                 ABooleanValue = true,
+                ANullableBooleanValue = true,
                 ADoubleValue = 0.1,
-                AGuidValue = Guid.Empty,
+                ANullableDoubleValue = 0.1,
+                AGuidValue = new Guid("12345678-1111-2222-3333-123456789012"),
+                ANullableGuidValue = new Guid("12345678-1111-2222-3333-123456789012"),
                 AIntValue = 1,
+                ANullableIntValue = 1,
                 ALongValue = 2,
+                ANullableLongValue = 2,
                 AStringValue = "astringvalue",
                 ADateTimeUtcValue = DateTime.Today.ToUniversalTime(),
-                ADateTimeOffsetUtcValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
+                ANullableDateTimeUtcValue = DateTime.Today.ToUniversalTime(),
+                ADateTimeOffsetValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
+                ANullableDateTimeOffsetValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
                 AComplexNonValueObjectValue = new ComplexNonValueObject
                 {
                     APropertyValue = "avalue"
@@ -132,14 +139,22 @@ namespace Storage.IntegrationTests
             result.LastModifiedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
             result.ABinaryValue.SequenceEqual(new byte[] {0x01}).Should().BeTrue();
             result.ABooleanValue.Should().Be(true);
-            result.AGuidValue.Should().Be(Guid.Empty);
+            result.ANullableBooleanValue.Should().Be(true);
+            result.AGuidValue.Should().Be(new Guid("12345678-1111-2222-3333-123456789012"));
+            result.ANullableGuidValue.Should().Be(new Guid("12345678-1111-2222-3333-123456789012"));
             result.AIntValue.Should().Be(1);
+            result.ANullableIntValue.Should().Be(1);
             result.ALongValue.Should().Be(2);
+            result.ANullableLongValue.Should().Be(2);
             result.ADoubleValue.Should().Be(0.1);
+            result.ANullableDoubleValue.Should().Be(0.1);
             result.AStringValue.Should().Be("astringvalue");
             result.ADateTimeUtcValue.Should().Be(DateTime.Today.ToUniversalTime());
             result.ADateTimeUtcValue.Kind.Should().Be(DateTimeKind.Utc);
-            result.ADateTimeOffsetUtcValue.Should().Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
+            result.ANullableDateTimeUtcValue.Should().Be(DateTime.Today.ToUniversalTime());
+            result.ANullableDateTimeUtcValue.GetValueOrDefault().Kind.Should().Be(DateTimeKind.Utc);
+            result.ADateTimeOffsetValue.Should().Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
+            result.ANullableDateTimeOffsetValue.Should().Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
             result.AComplexNonValueObjectValue.ToString().Should()
                 .Be(new ComplexNonValueObject {APropertyValue = "avalue"}.ToString());
             result.AComplexValueObjectValue.Should().Be(ComplexValueObject.Create("avalue", 25, true));
@@ -152,13 +167,20 @@ namespace Storage.IntegrationTests
             {
                 ABinaryValue = default,
                 ABooleanValue = default,
+                ANullableBooleanValue = default,
                 ADoubleValue = default,
+                ANullableDoubleValue = default,
                 AGuidValue = default,
+                ANullableGuidValue = default,
                 AIntValue = default,
+                ANullableIntValue = default,
                 ALongValue = default,
+                ANullableLongValue = default,
                 AStringValue = default,
                 ADateTimeUtcValue = default,
-                ADateTimeOffsetUtcValue = default,
+                ANullableDateTimeUtcValue = default,
+                ADateTimeOffsetValue = default,
+                ANullableDateTimeOffsetValue = default,
                 AComplexNonValueObjectValue = default,
                 AComplexValueObjectValue = default
             };
@@ -174,14 +196,21 @@ namespace Storage.IntegrationTests
             result.LastModifiedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
             result.ABinaryValue.Should().BeNull();
             result.ABooleanValue.Should().Be(default);
+            result.ANullableBooleanValue.Should().Be(null);
             result.AGuidValue.Should().Be(Guid.Empty);
+            result.ANullableGuidValue.Should().Be(null);
             result.AIntValue.Should().Be(default);
+            result.ANullableIntValue.Should().Be(null);
             result.ALongValue.Should().Be(default);
+            result.ANullableLongValue.Should().Be(null);
             result.ADoubleValue.Should().Be(default);
+            result.ANullableDoubleValue.Should().Be(null);
             result.AStringValue.Should().Be(default);
             result.ADateTimeUtcValue.Should().Be(DateTime.MinValue);
             result.ADateTimeUtcValue.Kind.Should().Be(DateTimeKind.Unspecified);
-            result.ADateTimeOffsetUtcValue.Should().Be(default);
+            result.ANullableDateTimeUtcValue.Should().Be(null);
+            result.ADateTimeOffsetValue.Should().Be(default);
+            result.ANullableDateTimeOffsetValue.Should().Be(null);
             result.AComplexNonValueObjectValue.Should().Be(default);
             result.AComplexValueObjectValue.Should().Be(default);
         }
@@ -400,7 +429,7 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
-        public void WhenQueryForDateTimeValue_ThenReturnsResult()
+        public void WhenQueryForDateTimeUtcValue_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
@@ -415,14 +444,46 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
+        public void WhenQueryForNullableDateTimeUtcValue_ThenReturnsResult()
+        {
+            var dateTime1 = DateTime.UtcNow;
+            var dateTime2 = DateTime.UtcNow.AddDays(1);
+            this.storage.Add(new TestEntity {ANullableDateTimeUtcValue = dateTime1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableDateTimeUtcValue = dateTime2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDateTimeUtcValue, ConditionOperator.EqualTo, dateTime2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
         public void WhenQueryForDateTimeOffsetValue_ThenReturnsResult()
         {
-            var dateTime1 = DateTimeOffset.UtcNow;
-            var dateTime2 = DateTimeOffset.UtcNow.AddDays(1);
-            this.storage.Add(new TestEntity {ADateTimeOffsetUtcValue = dateTime1});
-            var entity2 = this.storage.Add(new TestEntity {ADateTimeOffsetUtcValue = dateTime2});
+            var dateTimeOffset1 = DateTimeOffset.UtcNow;
+            var dateTimeOffset2 = DateTimeOffset.UtcNow.AddDays(1);
+            this.storage.Add(new TestEntity {ADateTimeOffsetValue = dateTimeOffset1});
+            var entity2 = this.storage.Add(new TestEntity {ADateTimeOffsetValue = dateTimeOffset2});
             var query = Query.From<TestEntity>()
-                .Where(e => e.ADateTimeOffsetUtcValue, ConditionOperator.EqualTo, dateTime2);
+                .Where(e => e.ADateTimeOffsetValue, ConditionOperator.EqualTo, dateTimeOffset2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableDateTimeOffsetValue_ThenReturnsResult()
+        {
+            var dateTimeOffset1 = DateTimeOffset.UtcNow;
+            var dateTimeOffset2 = DateTimeOffset.UtcNow.AddDays(1);
+            this.storage.Add(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDateTimeOffsetValue, ConditionOperator.EqualTo, dateTimeOffset2);
 
             var results = this.storage.Query(query);
 
@@ -446,7 +507,39 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
-        public void WhenQueryForDateTimeValueGreaterThan_ThenReturnsResult()
+        public void WhenQueryForNullableMinDateTimeValue_ThenReturnsResult()
+        {
+            var dateTime1 = DateTime.UtcNow;
+            var dateTime2 = DateTime.MinValue;
+            this.storage.Add(new TestEntity {ANullableDateTimeUtcValue = dateTime1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableDateTimeUtcValue = dateTime2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDateTimeUtcValue, ConditionOperator.EqualTo, dateTime2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableMinDateTimeOffsetValue_ThenReturnsResult()
+        {
+            var dateTimeOffset1 = DateTimeOffset.Now;
+            var dateTimeOffset2 = DateTimeOffset.MinValue;
+            this.storage.Add(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDateTimeOffsetValue, ConditionOperator.EqualTo, dateTimeOffset2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForDateTimeUtcValueGreaterThan_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
@@ -462,7 +555,7 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
-        public void WhenQueryForDateTimeValueGreaterThanOrEqualTo_ThenReturnsResult()
+        public void WhenQueryForDateTimeUtcValueGreaterThanOrEqualTo_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
@@ -479,7 +572,7 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
-        public void WhenQueryForDateTimeValueLessThan_ThenReturnsResult()
+        public void WhenQueryForDateTimeUtcValueLessThan_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
@@ -494,7 +587,7 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
-        public void WhenQueryForDateTimeValueLessThanOrEqual_ThenReturnsResult()
+        public void WhenQueryForDateTimeUtcValueLessThanOrEqual_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
@@ -511,7 +604,7 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
-        public void WhenQueryForDateTimeValueNotEqual_ThenReturnsResult()
+        public void WhenQueryForDateTimeUtcValueNotEqual_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
@@ -527,11 +620,270 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
+        public void WhenQueryForNullableDateTimeUtcValueGreaterThan_ThenReturnsResult()
+        {
+            var dateTime1 = DateTime.UtcNow;
+            var dateTime2 = DateTime.UtcNow.AddDays(1);
+            this.storage.Add(new TestEntity {ANullableDateTimeUtcValue = dateTime1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableDateTimeUtcValue = dateTime2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDateTimeUtcValue, ConditionOperator.GreaterThan, dateTime1);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableDateTimeUtcValueGreaterThanOrEqualTo_ThenReturnsResult()
+        {
+            var dateTime1 = DateTime.UtcNow;
+            var dateTime2 = DateTime.UtcNow.AddDays(1);
+            var entity1 = this.storage.Add(new TestEntity {ANullableDateTimeUtcValue = dateTime1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableDateTimeUtcValue = dateTime2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDateTimeUtcValue, ConditionOperator.GreaterThanEqualTo, dateTime1);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(2);
+            results.Results[0].Id.Should().Be(entity1.Id);
+            results.Results[1].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableDateTimeUtcValueLessThan_ThenReturnsResult()
+        {
+            var dateTime1 = DateTime.UtcNow;
+            var dateTime2 = DateTime.UtcNow.AddDays(1);
+            var entity1 = this.storage.Add(new TestEntity {ANullableDateTimeUtcValue = dateTime1});
+            this.storage.Add(new TestEntity {ANullableDateTimeUtcValue = dateTime2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDateTimeUtcValue, ConditionOperator.LessThan, dateTime2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity1.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableDateTimeUtcValueLessThanOrEqual_ThenReturnsResult()
+        {
+            var dateTime1 = DateTime.UtcNow;
+            var dateTime2 = DateTime.UtcNow.AddDays(1);
+            var entity1 = this.storage.Add(new TestEntity {ANullableDateTimeUtcValue = dateTime1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableDateTimeUtcValue = dateTime2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDateTimeUtcValue, ConditionOperator.LessThanEqualTo, dateTime2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(2);
+            results.Results[0].Id.Should().Be(entity1.Id);
+            results.Results[1].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableDateTimeUtcValueNotEqual_ThenReturnsResult()
+        {
+            var dateTime1 = DateTime.UtcNow;
+            var dateTime2 = DateTime.UtcNow.AddDays(1);
+            var entity1 = this.storage.Add(new TestEntity {ANullableDateTimeUtcValue = dateTime1});
+            this.storage.Add(new TestEntity {ANullableDateTimeUtcValue = dateTime2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDateTimeUtcValue, ConditionOperator.NotEqualTo, dateTime2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity1.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForDateTimeOffsetValueGreaterThan_ThenReturnsResult()
+        {
+            var dateTimeOffset1 = DateTimeOffset.Now;
+            var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
+            this.storage.Add(new TestEntity {ADateTimeOffsetValue = dateTimeOffset1});
+            var entity2 = this.storage.Add(new TestEntity {ADateTimeOffsetValue = dateTimeOffset2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ADateTimeOffsetValue, ConditionOperator.GreaterThan, dateTimeOffset1);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForDateTimeOffsetValueGreaterThanOrEqualTo_ThenReturnsResult()
+        {
+            var dateTimeOffset1 = DateTimeOffset.Now;
+            var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
+            var entity1 = this.storage.Add(new TestEntity {ADateTimeOffsetValue = dateTimeOffset1});
+            var entity2 = this.storage.Add(new TestEntity {ADateTimeOffsetValue = dateTimeOffset2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ADateTimeOffsetValue, ConditionOperator.GreaterThanEqualTo, dateTimeOffset1);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(2);
+            results.Results[0].Id.Should().Be(entity1.Id);
+            results.Results[1].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForDateTimeOffsetValueLessThan_ThenReturnsResult()
+        {
+            var dateTimeOffset1 = DateTimeOffset.Now;
+            var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
+            var entity1 = this.storage.Add(new TestEntity {ADateTimeOffsetValue = dateTimeOffset1});
+            this.storage.Add(new TestEntity {ADateTimeOffsetValue = dateTimeOffset2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ADateTimeOffsetValue, ConditionOperator.LessThan, dateTimeOffset2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity1.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForDateTimeOffsetValueLessThanOrEqual_ThenReturnsResult()
+        {
+            var dateTimeOffset1 = DateTimeOffset.Now;
+            var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
+            var entity1 = this.storage.Add(new TestEntity {ADateTimeOffsetValue = dateTimeOffset1});
+            var entity2 = this.storage.Add(new TestEntity {ADateTimeOffsetValue = dateTimeOffset2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ADateTimeOffsetValue, ConditionOperator.LessThanEqualTo, dateTimeOffset2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(2);
+            results.Results[0].Id.Should().Be(entity1.Id);
+            results.Results[1].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForDateTimeOffsetValueNotEqual_ThenReturnsResult()
+        {
+            var dateTimeOffset1 = DateTimeOffset.Now;
+            var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
+            var entity1 = this.storage.Add(new TestEntity {ADateTimeOffsetValue = dateTimeOffset1});
+            this.storage.Add(new TestEntity {ADateTimeOffsetValue = dateTimeOffset2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ADateTimeOffsetValue, ConditionOperator.NotEqualTo, dateTimeOffset2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity1.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableDateTimeOffsetValueGreaterThan_ThenReturnsResult()
+        {
+            var dateTimeOffset1 = DateTimeOffset.Now;
+            var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
+            this.storage.Add(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDateTimeOffsetValue, ConditionOperator.GreaterThan, dateTimeOffset1);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableDateTimeOffsetValueGreaterThanOrEqualTo_ThenReturnsResult()
+        {
+            var dateTimeOffset1 = DateTimeOffset.Now;
+            var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
+            var entity1 = this.storage.Add(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDateTimeOffsetValue, ConditionOperator.GreaterThanEqualTo, dateTimeOffset1);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(2);
+            results.Results[0].Id.Should().Be(entity1.Id);
+            results.Results[1].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableDateTimeOffsetValueLessThan_ThenReturnsResult()
+        {
+            var dateTimeOffset1 = DateTimeOffset.Now;
+            var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
+            var entity1 = this.storage.Add(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1});
+            this.storage.Add(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDateTimeOffsetValue, ConditionOperator.LessThan, dateTimeOffset2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity1.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableDateTimeOffsetValueLessThanOrEqual_ThenReturnsResult()
+        {
+            var dateTimeOffset1 = DateTimeOffset.Now;
+            var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
+            var entity1 = this.storage.Add(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDateTimeOffsetValue, ConditionOperator.LessThanEqualTo, dateTimeOffset2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(2);
+            results.Results[0].Id.Should().Be(entity1.Id);
+            results.Results[1].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableDateTimeOffsetValueNotEqual_ThenReturnsResult()
+        {
+            var dateTimeOffset1 = DateTimeOffset.Now;
+            var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
+            var entity1 = this.storage.Add(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1});
+            this.storage.Add(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDateTimeOffsetValue, ConditionOperator.NotEqualTo, dateTimeOffset2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity1.Id);
+        }
+
+        [TestMethod]
         public void WhenQueryForBoolValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {ABooleanValue = false});
             var entity2 = this.storage.Add(new TestEntity {ABooleanValue = true});
             var query = Query.From<TestEntity>().Where(e => e.ABooleanValue, ConditionOperator.EqualTo, true);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableBoolValue_ThenReturnsResult()
+        {
+            this.storage.Add(new TestEntity {ANullableBooleanValue = false});
+            var entity2 = this.storage.Add(new TestEntity {ANullableBooleanValue = true});
+            var query = Query.From<TestEntity>().Where(e => e.ANullableBooleanValue, ConditionOperator.EqualTo, true);
 
             var results = this.storage.Query(query);
 
@@ -620,11 +972,105 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
+        public void WhenQueryForNullableIntValue_ThenReturnsResult()
+        {
+            this.storage.Add(new TestEntity {ANullableIntValue = 1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableIntValue = 2});
+            var query = Query.From<TestEntity>().Where(e => e.ANullableIntValue, ConditionOperator.EqualTo, 2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableIntValueGreaterThan_ThenReturnsResult()
+        {
+            this.storage.Add(new TestEntity {ANullableIntValue = 1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableIntValue = 2});
+            var query = Query.From<TestEntity>().Where(e => e.ANullableIntValue, ConditionOperator.GreaterThan, 1);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableIntValueGreaterThanOrEqualTo_ThenReturnsResult()
+        {
+            var entity1 = this.storage.Add(new TestEntity {ANullableIntValue = 1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableIntValue = 2});
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableIntValue, ConditionOperator.GreaterThanEqualTo, 1);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(2);
+            results.Results[0].Id.Should().Be(entity1.Id);
+            results.Results[1].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableIntValueLessThan_ThenReturnsResult()
+        {
+            var entity1 = this.storage.Add(new TestEntity {ANullableIntValue = 1});
+            this.storage.Add(new TestEntity {ANullableIntValue = 2});
+            var query = Query.From<TestEntity>().Where(e => e.ANullableIntValue, ConditionOperator.LessThan, 2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity1.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableIntValueLessThanOrEqual_ThenReturnsResult()
+        {
+            var entity1 = this.storage.Add(new TestEntity {ANullableIntValue = 1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableIntValue = 2});
+            var query = Query.From<TestEntity>().Where(e => e.ANullableIntValue, ConditionOperator.LessThanEqualTo, 2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(2);
+            results.Results[0].Id.Should().Be(entity1.Id);
+            results.Results[1].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableIntValueNotEqual_ThenReturnsResult()
+        {
+            var entity1 = this.storage.Add(new TestEntity {ANullableIntValue = 1});
+            this.storage.Add(new TestEntity {ANullableIntValue = 2});
+            var query = Query.From<TestEntity>().Where(e => e.ANullableIntValue, ConditionOperator.NotEqualTo, 2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity1.Id);
+        }
+
+        [TestMethod]
         public void WhenQueryForLongValue_ThenReturnsResult()
         {
             this.storage.Add(new TestEntity {ALongValue = 1});
             var entity2 = this.storage.Add(new TestEntity {ALongValue = 2});
             var query = Query.From<TestEntity>().Where(e => e.ALongValue, ConditionOperator.EqualTo, 2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableLongValue_ThenReturnsResult()
+        {
+            this.storage.Add(new TestEntity {ANullableLongValue = 1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableLongValue = 2});
+            var query = Query.From<TestEntity>().Where(e => e.ANullableLongValue, ConditionOperator.EqualTo, 2);
 
             var results = this.storage.Query(query);
 
@@ -646,6 +1092,19 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
+        public void WhenQueryForNullableDoubleValue_ThenReturnsResult()
+        {
+            this.storage.Add(new TestEntity {ANullableDoubleValue = 1.0});
+            var entity2 = this.storage.Add(new TestEntity {ANullableDoubleValue = 2.0});
+            var query = Query.From<TestEntity>().Where(e => e.ANullableDoubleValue, ConditionOperator.EqualTo, 2.0);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
         public void WhenQueryForGuidValue_ThenReturnsResult()
         {
             var guid1 = Guid.NewGuid();
@@ -653,6 +1112,21 @@ namespace Storage.IntegrationTests
             this.storage.Add(new TestEntity {AGuidValue = guid1});
             var entity2 = this.storage.Add(new TestEntity {AGuidValue = guid2});
             var query = Query.From<TestEntity>().Where(e => e.AGuidValue, ConditionOperator.EqualTo, guid2);
+
+            var results = this.storage.Query(query);
+
+            results.Results.Count.Should().Be(1);
+            results.Results[0].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForNullableGuidValue_ThenReturnsResult()
+        {
+            var guid1 = Guid.NewGuid();
+            var guid2 = Guid.NewGuid();
+            this.storage.Add(new TestEntity {ANullableGuidValue = guid1});
+            var entity2 = this.storage.Add(new TestEntity {ANullableGuidValue = guid2});
+            var query = Query.From<TestEntity>().Where(e => e.ANullableGuidValue, ConditionOperator.EqualTo, guid2);
 
             var results = this.storage.Query(query);
 
@@ -786,7 +1260,7 @@ namespace Storage.IntegrationTests
                 ALongValue = 2,
                 AStringValue = "astringvalue",
                 ADateTimeUtcValue = DateTime.Today.ToUniversalTime(),
-                ADateTimeOffsetUtcValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
+                ADateTimeOffsetValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
                 AComplexNonValueObjectValue = new ComplexNonValueObject
                 {
                     APropertyValue = "avalue"
@@ -810,7 +1284,7 @@ namespace Storage.IntegrationTests
             result.ADoubleValue.Should().Be(0.1);
             result.AStringValue.Should().Be("astringvalue");
             result.ADateTimeUtcValue.Should().Be(DateTime.Today.ToUniversalTime());
-            result.ADateTimeOffsetUtcValue.Should().Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
+            result.ADateTimeOffsetValue.Should().Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
             result.AComplexNonValueObjectValue.ToJson().Should()
                 .Be(new ComplexNonValueObject {APropertyValue = "avalue"}.ToJson());
             result.AComplexValueObjectValue.Should().Be(ComplexValueObject.Create("avalue", 25, true));
@@ -829,7 +1303,7 @@ namespace Storage.IntegrationTests
                 ALongValue = 2,
                 AStringValue = "astringvalue",
                 ADateTimeUtcValue = DateTime.Today.ToUniversalTime(),
-                ADateTimeOffsetUtcValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
+                ADateTimeOffsetValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
                 AComplexNonValueObjectValue = new ComplexNonValueObject
                 {
                     APropertyValue = "avalue"
@@ -854,7 +1328,7 @@ namespace Storage.IntegrationTests
             result.ADoubleValue.Should().Be(0);
             result.AStringValue.Should().Be(null);
             result.ADateTimeUtcValue.Should().Be(DateTime.MinValue);
-            result.ADateTimeOffsetUtcValue.Should().Be(DateTimeOffset.MinValue);
+            result.ADateTimeOffsetValue.Should().Be(DateTimeOffset.MinValue);
             result.AComplexNonValueObjectValue.Should().Be(null);
             result.AComplexValueObjectValue.Should().Be(null);
         }

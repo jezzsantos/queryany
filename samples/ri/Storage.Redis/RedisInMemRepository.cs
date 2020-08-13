@@ -401,42 +401,37 @@ namespace Storage.Redis
                 return null;
             }
 
-            if (targetPropertyType == typeof(Identifier))
-            {
-                return propertyValue.ToIdentifier();
-            }
-
-            if (targetPropertyType == typeof(bool))
+            if (targetPropertyType == typeof(bool) || targetPropertyType == typeof(bool?))
             {
                 return bool.Parse(propertyValue);
             }
 
-            if (targetPropertyType == typeof(DateTime))
+            if (targetPropertyType == typeof(DateTime) || targetPropertyType == typeof(DateTime?))
             {
                 return propertyValue.FromIso8601();
             }
 
-            if (targetPropertyType == typeof(DateTimeOffset))
+            if (targetPropertyType == typeof(DateTimeOffset) || targetPropertyType == typeof(DateTimeOffset?))
             {
                 return DateTimeOffset.ParseExact(propertyValue, "O", null).ToUniversalTime();
             }
 
-            if (targetPropertyType == typeof(Guid))
+            if (targetPropertyType == typeof(Guid) || targetPropertyType == typeof(Guid?))
             {
                 return Guid.Parse(propertyValue);
             }
 
-            if (targetPropertyType == typeof(double))
+            if (targetPropertyType == typeof(double) || targetPropertyType == typeof(double?))
             {
                 return double.Parse(propertyValue);
             }
 
-            if (targetPropertyType == typeof(long))
+            if (targetPropertyType == typeof(long) || targetPropertyType == typeof(long?))
             {
                 return long.Parse(propertyValue);
             }
 
-            if (targetPropertyType == typeof(int))
+            if (targetPropertyType == typeof(int) || targetPropertyType == typeof(int?))
             {
                 return int.Parse(propertyValue);
             }

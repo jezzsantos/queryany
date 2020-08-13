@@ -278,119 +278,6 @@ namespace Storage.Azure
 
     internal static class AzureCosmosSqlApiExtensions
     {
-        public static TEntity FromContainerEntity<TEntity>(this JObject containerEntity,
-            IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
-        {
-            return (TEntity) containerEntity.FromContainerEntity(typeof(TEntity),
-                domainFactory);
-        }
-
-        public static IPersistableEntity FromContainerEntity(this JObject containerEntity, Type entityType,
-            IDomainFactory domainFactory)
-        {
-            var entityPropertyTypeInfo = entityType.GetProperties();
-
-            var containerEntityProperties = containerEntity.ToObject<Dictionary<string, object>>()
-                .Where(pair =>
-                    entityPropertyTypeInfo.Any(prop => prop.Name.EqualsOrdinal(pair.Key)) &&
-                    pair.Value != null)
-                .ToDictionary(pair => pair.Key,
-                    pair => pair.Value.FromContainerEntityProperty(entityPropertyTypeInfo
-                        .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType, domainFactory));
-
-            var id = containerEntity[AzureCosmosSqlApiRepository.IdentifierPropertyName].ToString().ToIdentifier();
-            containerEntityProperties[nameof(IIdentifiableEntity.Id)] = id;
-
-            return containerEntityProperties.EntityFromContainerProperties(entityType, domainFactory);
-        }
-
-        private static object FromContainerEntityProperty(this object property, Type targetPropertyType,
-            IDomainFactory domainFactory)
-        {
-            var value = property;
-            switch (value)
-            {
-                case JObject jObject:
-                    if (targetPropertyType.IsComplexStorageType())
-                    {
-                        return jObject.ToObject(targetPropertyType);
-                    }
-
-                    return null;
-
-                case string text:
-                    if (targetPropertyType == typeof(byte[]))
-                    {
-                        if (text.HasValue())
-                        {
-                            return Convert.FromBase64String(text);
-                        }
-
-                        return default(byte[]);
-                    }
-
-                    if (targetPropertyType == typeof(Guid))
-                    {
-                        if (text.HasValue())
-                        {
-                            return Guid.Parse(text);
-                        }
-
-                        return Guid.Empty;
-                    }
-
-                    if (typeof(IPersistableValueObject).IsAssignableFrom(targetPropertyType))
-                    {
-                        return text.ValueObjectFromContainerProperty(targetPropertyType, domainFactory);
-                    }
-
-                    if (targetPropertyType.IsComplexStorageType())
-                    {
-                        return text.ComplexTypeFromContainerProperty(targetPropertyType);
-                    }
-
-                    return text;
-
-                case DateTimeOffset dateTimeOffset:
-                    if (targetPropertyType == typeof(DateTime))
-                    {
-                        var dateTime = dateTimeOffset.UtcDateTime;
-                        return !dateTime.HasValue()
-                            ? DateTime.MinValue
-                            : dateTime;
-                    }
-                    else
-                    {
-                        return dateTimeOffset;
-                    }
-
-                case bool _:
-                case int _:
-                case long _:
-                case double _:
-                    if (targetPropertyType == typeof(int))
-                    {
-                        return Convert.ToInt32(value);
-                    }
-                    if (targetPropertyType == typeof(long))
-                    {
-                        return Convert.ToInt64(value);
-                    }
-                    if (targetPropertyType == typeof(double))
-                    {
-                        return Convert.ToDouble(value);
-                    }
-                    return value;
-
-                case null:
-                    return null;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(property));
-            }
-        }
-
         public static dynamic ToContainerEntity<TEntity>(this TEntity entity) where TEntity : IPersistableEntity
         {
             bool IsNotExcluded(string propertyName)
@@ -442,6 +329,111 @@ namespace Storage.Azure
             containerEntityProperties[nameof(IPersistableEntity.LastModifiedAtUtc)] = utcNow;
 
             return containerEntity;
+        }
+
+        public static TEntity FromContainerEntity<TEntity>(this JObject containerEntity,
+            IDomainFactory domainFactory)
+            where TEntity : IPersistableEntity
+        {
+            return (TEntity) containerEntity.FromContainerEntity(typeof(TEntity),
+                domainFactory);
+        }
+
+        public static IPersistableEntity FromContainerEntity(this JObject containerEntity, Type entityType,
+            IDomainFactory domainFactory)
+        {
+            var entityPropertyTypeInfo = entityType.GetProperties();
+
+            var containerEntityProperties = containerEntity.ToObject<Dictionary<string, object>>()
+                .Where(pair =>
+                    entityPropertyTypeInfo.Any(prop => prop.Name.EqualsOrdinal(pair.Key)) &&
+                    pair.Value != null)
+                .ToDictionary(pair => pair.Key,
+                    pair => pair.Value.FromContainerEntityProperty(entityPropertyTypeInfo
+                        .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType, domainFactory));
+
+            var id = containerEntity[AzureCosmosSqlApiRepository.IdentifierPropertyName].ToString().ToIdentifier();
+            containerEntityProperties[nameof(IIdentifiableEntity.Id)] = id;
+
+            return containerEntityProperties.EntityFromContainerProperties(entityType, domainFactory);
+        }
+
+        private static object FromContainerEntityProperty(this object property, Type targetPropertyType,
+            IDomainFactory domainFactory)
+        {
+            var value = property;
+            switch (value)
+            {
+                case string text:
+                    if (targetPropertyType == typeof(byte[]))
+                    {
+                        if (text.HasValue())
+                        {
+                            return Convert.FromBase64String(text);
+                        }
+
+                        return default(byte[]);
+                    }
+
+                    if (targetPropertyType == typeof(Guid) || targetPropertyType == typeof(Guid?))
+                    {
+                        if (text.HasValue())
+                        {
+                            return Guid.Parse(text);
+                        }
+
+                        return Guid.Empty;
+                    }
+
+                    if (typeof(IPersistableValueObject).IsAssignableFrom(targetPropertyType))
+                    {
+                        return text.ValueObjectFromContainerProperty(targetPropertyType, domainFactory);
+                    }
+
+                    if (targetPropertyType.IsComplexStorageType())
+                    {
+                        return text.ComplexTypeFromContainerProperty(targetPropertyType);
+                    }
+
+                    return text;
+
+                case DateTimeOffset dateTimeOffset:
+                    if (targetPropertyType == typeof(DateTime) || targetPropertyType == typeof(DateTime?))
+                    {
+                        var dateTime = dateTimeOffset.UtcDateTime;
+                        return !dateTime.HasValue()
+                            ? DateTime.MinValue
+                            : dateTime;
+                    }
+                    else
+                    {
+                        return dateTimeOffset;
+                    }
+
+                case bool _:
+                case int _:
+                case long _:
+                case double _:
+                    if (targetPropertyType == typeof(int) || targetPropertyType == typeof(int?))
+                    {
+                        return Convert.ToInt32(value);
+                    }
+                    if (targetPropertyType == typeof(long) || targetPropertyType == typeof(long?))
+                    {
+                        return Convert.ToInt64(value);
+                    }
+                    if (targetPropertyType == typeof(double) || targetPropertyType == typeof(double?))
+                    {
+                        return Convert.ToDouble(value);
+                    }
+                    return value;
+
+                case null:
+                    return null;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(property));
+            }
         }
 
         public static long Count(this FeedIterator<int> iterator)
@@ -631,8 +623,9 @@ namespace Storage.Azure
                         : $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ssZ}'";
 
                 case DateTimeOffset dateTimeOffset:
-                    return
-                        $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTimeOffset:O}'";
+                    return dateTimeOffset == DateTimeOffset.MinValue
+                        ? $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTimeOffset:yyyy-MM-ddTHH:mm:ssK}'"
+                        : $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTimeOffset:O}'";
 
                 case bool _:
                     return
