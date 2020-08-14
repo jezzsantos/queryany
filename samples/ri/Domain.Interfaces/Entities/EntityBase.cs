@@ -17,6 +17,7 @@ namespace Domain.Interfaces.Entities
             logger.GuardAgainstNull(nameof(logger));
             idFactory.GuardAgainstNull(nameof(idFactory));
             Logger = logger;
+            IdFactory = idFactory;
 
             var now = DateTime.UtcNow;
             CreatedAtUtc = now;
@@ -25,6 +26,8 @@ namespace Domain.Interfaces.Entities
         }
 
         protected ILogger Logger { get; }
+
+        protected IIdentifierFactory IdFactory { get; }
 
         public DateTime CreatedAtUtc { get; private set; }
 

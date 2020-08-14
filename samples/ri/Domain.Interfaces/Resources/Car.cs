@@ -24,6 +24,8 @@ namespace Domain.Interfaces.Resources
     public class CarOwner
     {
         public string Id { get; set; }
+
+        public PersonName Name { get; set; }
     }
 
     public class CarManufacturer

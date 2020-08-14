@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <RootNamespace>PersonsStorage</RootNamespace>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\PersonsApplication\PersonsApplication.csproj" />
+      <ProjectReference Include="..\Storage.Azure\Storage.Azure.csproj" />
+      <ProjectReference Include="..\Storage.Interfaces\Storage.Interfaces.csproj" />
+      <ProjectReference Include="..\Storage\Storage.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using CarsApi;
+using Api.Common;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;

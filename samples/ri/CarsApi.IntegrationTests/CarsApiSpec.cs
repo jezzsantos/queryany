@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
+using Api.Common;
 using Api.Interfaces.ServiceOperations;
+using CarsApplication.Storage;
 using CarsDomain;
 using CarsStorage;
 using Domain.Interfaces.Entities;
@@ -8,6 +10,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using ServiceClients;
 using ServiceStack;
 using Storage;
 using Storage.Interfaces;
@@ -33,8 +36,9 @@ namespace CarsApi.IntegrationTests
             this.store = CarEntityInMemStorage.Create(this.logger, this.domainFactory);
             this.appHost.Container.AddSingleton<IIdentifierFactory, GuidIdentifierFactory>();
             this.appHost.Container.AddSingleton(this.logger);
+            this.appHost.Container.AddSingleton<ICarStorage>(c => new CarStorage(c.Resolve<IStorage<CarEntity>>()));
             this.appHost.Container.AddSingleton<IStorage<CarEntity>>(this.store);
-
+            this.appHost.Container.AddSingleton<IPersonsService>(c => new StubPersonsService());
             this.appHost.Init()
                 .Start(ServiceUrl);
         }

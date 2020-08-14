@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CarsApplication.Storage;
 using CarsDomain;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Domain.Interfaces.Resources;
 using Microsoft.Extensions.Logging;
-using QueryAny;
 using QueryAny.Primitives;
+using ServiceClients;
 using ServiceStack;
-using Storage.Interfaces;
 
 namespace CarsApplication
 {
@@ -17,27 +17,34 @@ namespace CarsApplication
     {
         private readonly IIdentifierFactory idFactory;
         private readonly ILogger logger;
-        private readonly IStorage<CarEntity> storage;
+        private readonly IPersonsService personsService;
+        private readonly ICarStorage storage;
 
-        public CarsApplication(ILogger logger, IIdentifierFactory idFactory, IStorage<CarEntity> storage)
+        public CarsApplication(ILogger logger, IIdentifierFactory idFactory, ICarStorage storage,
+            IPersonsService personsService)
         {
             logger.GuardAgainstNull(nameof(logger));
             idFactory.GuardAgainstNull(nameof(idFactory));
             storage.GuardAgainstNull(nameof(storage));
+            personsService.GuardAgainstNull(nameof(personsService));
             this.logger = logger;
             this.idFactory = idFactory;
             this.storage = storage;
+            this.personsService = personsService;
         }
 
         public Car Create(ICurrentCaller caller, int year, string make, string model)
         {
             caller.GuardAgainstNull(nameof(caller));
 
+            var owner = this.personsService.Get(caller.Id.ToIdentifier())
+                .ToOwner();
+
             var car = new CarEntity(this.logger, this.idFactory);
-            car.SetOwnership(caller.Id.ToIdentifier());
+            car.SetOwnership(owner);
             car.SetManufacturer(year, make, model);
 
-            var created = this.storage.Add(car);
+            var created = this.storage.Create(car);
 
             this.logger.LogInformation("Car {Id} was created by {Caller}", created.Id, caller.Id);
 
@@ -68,12 +75,7 @@ namespace CarsApplication
         {
             caller.GuardAgainstNull(nameof(caller));
 
-            var query = Query.From<CarEntity>()
-                .Where(e => e.OccupiedUntilUtc, ConditionOperator.LessThan, DateTime.UtcNow)
-                .WithSearchOptions(searchOptions);
-
-            var cars = this.storage.Query(query)
-                .Results;
+            var cars = this.storage.SearchAvailable(searchOptions);
 
             this.logger.LogInformation("Available carsApplication were retrieved by {Caller}", caller.Id);
 
@@ -95,12 +97,19 @@ namespace CarsApplication
         {
             var dto = entity.ConvertTo<Car>();
             dto.Id = entity.Id.ToString();
-            dto.Owner = new CarOwner {Id = entity.Owner?.Id.ToString()};
+            dto.Owner = new CarOwner {Id = entity.Owner?.Id};
             dto.Managers = entity.Managers.HasValue()
-                ? new List<CarManager>(entity.Managers.ManagerIds.Select(mi => new CarManager {Id = mi.ToString()}))
+                ? new List<CarManager>(entity.Managers.Managers.Select(mi => new CarManager {Id = mi.ToString()}))
                 : new List<CarManager>();
 
             return dto;
+        }
+
+        public static CarOwner ToOwner(this Person person)
+        {
+            var owner = person.ConvertTo<CarOwner>();
+
+            return owner;
         }
     }
 }

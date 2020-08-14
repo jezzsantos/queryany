@@ -117,30 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="HasGetOptionsValidator_InvalidEmbed" xml:space="preserve">
-    <value>The format of the Embed expression is invalid</value>
-  </data>
-  <data name="HasGetOptionsValidator_InvalidResourceReference" xml:space="preserve">
-    <value>The Embed contains invalid resource references</value>
-  </data>
-  <data name="HasGetOptionsValidator_TooManyResourceReferences" xml:space="preserve">
-    <value>The Embed expression contains too many resources. Maximum of {0} allowed</value>
-  </data>
-  <data name="HasSearchOptionsValidator_InvalidDistinct" xml:space="preserve">
-    <value>The format of the Distinct expression is invalid</value>
-  </data>
-  <data name="HasSearchOptionsValidator_InvalidFilter" xml:space="preserve">
-    <value>The format of the Filter expression is invalid</value>
-  </data>
-  <data name="HasSearchOptionsValidator_InvalidLimit" xml:space="preserve">
-    <value>The Limit for this operation must be between {0} and {1}</value>
-  </data>
-  <data name="HasSearchOptionsValidator_InvalidOffset" xml:space="preserve">
-    <value>The offset must be between {0} and {1}</value>
-  </data>
-  <data name="HasSearchOptionsValidator_InvalidSort" xml:space="preserve">
-    <value>The format of the Sort expression is invalid</value>
-  </data>
   <data name="CreateCarRequestValidator_InvalidYear" xml:space="preserve">
     <value>The Year for the car must be between {0} and {1}</value>
   </data>
@@ -155,26 +131,5 @@
   </data>
   <data name="OccupyCarRequestValidator_InvalidUntilUtc" xml:space="preserve">
     <value>The UntilUtc must be a valid date and time</value>
-  </data>
-  <data name="DomainFactory_EntityTypeNotFound" xml:space="preserve">
-    <value>No Entity factory is registered in the DomainFactory for type '{0}'</value>
-  </data>
-  <data name="DomainFactory_ValueObjectTypeNotFound" xml:space="preserve">
-    <value>No ValueObject factory is registered in the DomainFactory for type '{0}'</value>
-  </data>
-  <data name="DomainFactory_FactoryMethodHasParameters" xml:space="preserve">
-    <value>Failed to register method: '{0}.{1}()' in DomainFactory. This method must be named '{2}' and declared with no parameters</value>
-  </data>
-  <data name="DomainFactory_EntityFactoryMethodExists" xml:space="preserve">
-    <value>Failed to register method: '{0}.{1}()' in DomainFactory. Entity: {0} has more than one declared definition of 'EntityFactory&lt;{0}&gt;'</value>
-  </data>
-  <data name="DomainFactory_ValueObjectFactoryMethodExists" xml:space="preserve">
-    <value>Failed to register method: '{0}.{1}()' in DomainFactory. ValueObject: {0} has more than one declared definition of 'ValueObjectFactory&lt;{0}&gt;'</value>
-  </data>
-  <data name="DomainFactory_EntityFactoryMethodNotFound" xml:space="preserve">
-    <value>Failed to register Entity: '{0}' in DomainFactory. This class must declare a factory method with signature 'public static EntityFactory&lt;{0}&gt; {1}()''</value>
-  </data>
-  <data name="DomainFactory_ValueObjectFactoryMethodNotFound" xml:space="preserve">
-    <value>Failed to register ValueObject: '{0}' in DomainFactory. This class must declare a factory method with signature 'public static ValueObjectFactory&lt;{0}&gt; {1}()''</value>
   </data>
 </root>

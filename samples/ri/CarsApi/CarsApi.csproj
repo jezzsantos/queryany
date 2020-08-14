@@ -15,9 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Api.Common\Api.Common.csproj" />
     <ProjectReference Include="..\CarsApplication\CarsApplication.csproj" />
     <ProjectReference Include="..\CarsStorage\CarsStorage.csproj" />
     <ProjectReference Include="..\Api.Interfaces\Api.Interfaces.csproj" />
+    <ProjectReference Include="..\ServiceClients\ServiceClients.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,7 +2,8 @@
 <module type="RIDER_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$/../../../README.md" />
-    <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.Sql" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/Api.Common" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/Api.Common.UnitTests" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Api.Interfaces" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Api.Interfaces.UnitTests" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/CarsApi" />
@@ -15,12 +16,22 @@
     <content url="file://$MODULE_DIR$/../../../samples/ri/CarsStorage" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Domain.Interfaces" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Domain.Interfaces.UnitTests" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/PersonsApi" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/PersonsApi.IntegrationTests" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/PersonsApi.UnitTests" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/PersonsApplication" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/PersonsApplication.UnitTests" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/PersonsDomain" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/PersonsDomain.UnitTests" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/PersonsStorage" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/README.md" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/ServiceClients" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.Azure" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.IntegrationTests" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.Interfaces" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.Redis" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.Sql" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.UnitTests" />
     <content url="file://$MODULE_DIR$/../.." />
     <content url="file://$USER_HOME$/.nuget/packages/microsoft.net.test.sdk/16.5.0/build/netcoreapp2.1" />

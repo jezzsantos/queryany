@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Domain.Interfaces.Entities;
+using Domain.Interfaces.Resources;
 using Microsoft.Extensions.Logging;
 using QueryAny;
 using QueryAny.Primitives;
@@ -17,7 +18,7 @@ namespace CarsDomain
 
         public Manufacturer Manufacturer { get; private set; }
 
-        public VehicleOwner Owner { get; private set; }
+        public CarOwner Owner { get; private set; }
 
         public VehicleManagers Managers { get; private set; }
 
@@ -39,7 +40,7 @@ namespace CarsDomain
             base.Rehydrate(properties);
             Manufacturer = properties.GetValueOrDefault<Manufacturer>(nameof(Manufacturer));
             OccupiedUntilUtc = properties.GetValueOrDefault<DateTime>(nameof(OccupiedUntilUtc));
-            Owner = properties.GetValueOrDefault<VehicleOwner>(nameof(Owner));
+            Owner = properties.GetValueOrDefault<CarOwner>(nameof(Owner));
             Managers = properties.GetValueOrDefault<VehicleManagers>(nameof(Managers));
         }
 
@@ -48,11 +49,11 @@ namespace CarsDomain
             Manufacturer = new Manufacturer(year, make, model);
         }
 
-        public void SetOwnership(Identifier ownerId)
+        public void SetOwnership(CarOwner owner)
         {
-            Owner = new VehicleOwner(ownerId);
+            Owner = owner;
             Managers = new VehicleManagers();
-            Managers.Add(ownerId);
+            Managers.Add(owner.Id.ToIdentifier());
         }
 
         public void Occupy(DateTime untilUtc)

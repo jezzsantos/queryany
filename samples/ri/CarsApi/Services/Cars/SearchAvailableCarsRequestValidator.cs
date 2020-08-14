@@ -1,5 +1,5 @@
-﻿using Api.Interfaces.ServiceOperations;
-using CarsApi.Validators;
+﻿using Api.Common.Validators;
+using Api.Interfaces.ServiceOperations;
 using QueryAny.Primitives;
 using ServiceStack.FluentValidation;
 

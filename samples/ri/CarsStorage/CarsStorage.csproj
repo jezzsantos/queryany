@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\CarsApplication\CarsApplication.csproj" />
       <ProjectReference Include="..\CarsDomain\CarsDomain.csproj" />
       <ProjectReference Include="..\Storage.Azure\Storage.Azure.csproj" />
     </ItemGroup>

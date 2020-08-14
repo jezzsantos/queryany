@@ -1,0 +1,146 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using PhoneNumbers;
+using QueryAny.Primitives;
+
+namespace Domain.Interfaces
+{
+    public static class Validations
+    {
+        public static bool IsMatchedWith(this ValidationFormat format, string value)
+        {
+            if (format.Expression.HasValue())
+            {
+                return Regex.IsMatch(value, format.Expression);
+            }
+
+            if (format.Function != null)
+            {
+                return format.Function(value);
+            }
+
+            return false;
+        }
+
+        public static ValidationFormat DescriptiveName(int min = 1, int max = 100)
+        {
+            return
+                new ValidationFormat(@"^[\d\w\`\#\(\)\-\'\,\.\/ ]{{{0},{1}}}$".Format(min,
+                    max), min, max);
+        }
+
+        public static class Person
+        {
+            public static readonly ValidationFormat Email =
+                new ValidationFormat(
+                    @"^(?:[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+\.)*[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+@(?:(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!\.)){0,61}[a-zA-Z0-9]?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!$)){0,61}[a-zA-Z0-9]?)|(?:\[(?:(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\.){3}(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\]))$");
+
+            public static ValidationFormat Name = DescriptiveName();
+
+            public static ValidationFormat PhoneNumber = new ValidationFormat(value =>
+            {
+                if (!value.HasValue())
+                {
+                    return false;
+                }
+
+                if (!value.StartsWith("+"))
+                {
+                    return false;
+                }
+
+                var util = PhoneNumberUtil.GetInstance();
+                try
+                {
+                    var number = util.Parse(value, null);
+                    return util.IsValidNumber(number);
+                }
+                catch (NumberParseException)
+                {
+                    return false;
+                }
+            });
+        }
+    }
+
+    public class ValidationFormat
+    {
+        public ValidationFormat(string expression, int minLength = 0, int maxLength = 0,
+            IEnumerable<string> substitutions = null)
+        {
+            Expression = expression;
+            MinLength = minLength;
+            MaxLength = maxLength;
+            Substitutions = substitutions ?? new List<string>();
+        }
+
+        public ValidationFormat(Func<string, bool> predicate) : this(null, 0)
+        {
+            Function = predicate;
+        }
+
+        public Func<string, bool> Function { get; set; }
+
+        public string Expression { get; }
+
+        public int MaxLength { get; }
+
+        public int MinLength { get; }
+
+        public IEnumerable<string> Substitutions { get; }
+
+        /// <summary>
+        ///     Substitutes the given name/values into the expression.
+        /// </summary>
+        public string Substitute(IDictionary<string, string> values)
+        {
+            values.GuardAgainstNull(nameof(values));
+
+            var expression = Expression;
+            values.ToList()
+                .ForEach(val =>
+                {
+                    if (Substitutions.Contains(val.Key))
+                    {
+                        expression = expression.Replace(val.Key, val.Value);
+                    }
+                });
+
+            return expression;
+        }
+
+        /// <summary>
+        ///     Substitutes the given values into the expression.
+        /// </summary>
+        /// <remarks>
+        ///     Substitutions are performed by index
+        /// </remarks>
+        public string Substitute(IEnumerable<string> values)
+        {
+            return Substitute(InitializeSubstitutions(values));
+        }
+
+        private IDictionary<string, string> InitializeSubstitutions(IEnumerable<string> values)
+        {
+            values.GuardAgainstNull(nameof(values));
+
+            var result = new Dictionary<string, string>();
+
+            var substitutions = Substitutions.ToList();
+            var counter = 0;
+            values.ToList().ForEach(val =>
+            {
+                if (substitutions.Count > counter)
+                {
+                    result.Add(substitutions[counter], val);
+
+                    counter++;
+                }
+            });
+
+            return result;
+        }
+    }
+}

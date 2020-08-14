@@ -7,28 +7,28 @@ namespace CarsDomain
 {
     public class VehicleManagers : ValueObjectBase<VehicleManagers>
     {
-        private List<Identifier> managerIds;
+        private List<Identifier> managers;
 
         public VehicleManagers()
         {
-            this.managerIds = new List<Identifier>();
+            this.managers = new List<Identifier>();
         }
 
-        public IReadOnlyList<Identifier> ManagerIds => this.managerIds;
+        public IReadOnlyList<Identifier> Managers => this.managers;
 
-        public void Add(Identifier managerId)
+        public void Add(Identifier id)
         {
-            managerId.GuardAgainstNull(nameof(managerId));
+            id.GuardAgainstNull(nameof(id));
 
-            if (!this.managerIds.Contains(managerId))
+            if (!this.managers.Contains(id))
             {
-                this.managerIds.Add(managerId);
+                this.managers.Add(id);
             }
         }
 
         public override string Dehydrate()
         {
-            return this.managerIds
+            return this.managers
                 .Select(man => man)
                 .Join(";");
         }
@@ -37,7 +37,7 @@ namespace CarsDomain
         {
             if (value.HasValue())
             {
-                this.managerIds = value.SafeSplit(";")
+                this.managers = value.SafeSplit(";")
                     .Select(Identifier.Create)
                     .ToList();
             }
@@ -50,7 +50,7 @@ namespace CarsDomain
 
         protected override IEnumerable<object> GetAtomicValues()
         {
-            return new[] {ManagerIds};
+            return new[] {Managers};
         }
     }
 }

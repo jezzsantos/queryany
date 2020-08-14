@@ -22,7 +22,17 @@ namespace Domain.Interfaces.Entities
 
         public virtual string Dehydrate()
         {
-            return GetAtomicValues()
+            var parts = GetAtomicValues().ToList();
+            if (!parts.Any())
+            {
+                return null;
+            }
+            if (parts.Count() == 1)
+            {
+                return parts[0].ToString();
+            }
+
+            return parts
                 .Select(val => val != null
                     ? val.ToString()
                     : string.Empty)

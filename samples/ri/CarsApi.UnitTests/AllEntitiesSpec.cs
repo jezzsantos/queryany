@@ -1,4 +1,5 @@
-﻿using CarsDomain;
+﻿using Api.Common;
+using CarsDomain;
 using Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
