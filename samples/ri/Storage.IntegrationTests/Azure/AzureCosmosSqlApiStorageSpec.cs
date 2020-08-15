@@ -8,6 +8,8 @@ using Storage.Interfaces;
 namespace Storage.IntegrationTests.Azure
 {
     [TestClass, TestCategory("Integration.NOCI")]
+
+    // ReSharper disable once InconsistentNaming
     public class AzureCosmosSqlApiStorageSpec : AzureCosmosStorageBaseSpec
     {
         private static AzureCosmosSqlApiRepository repository;

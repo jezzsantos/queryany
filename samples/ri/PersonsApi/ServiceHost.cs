@@ -40,7 +40,12 @@ namespace PersonsApi
             container.AddSingleton<ILogger>(c => new Logger<ServiceHost>(new NullLoggerFactory()));
             container.AddSingleton<IDependencyContainer>(new FuncDependencyContainer(container));
             container.AddSingleton<IIdentifierFactory, GuidIdentifierFactory>();
-            container.AddSingleton<IDomainFactory, DomainFactory>();
+            container.AddSingleton<IDomainFactory>(c =>
+            {
+                var domainFactory = new DomainFactory(c.Resolve<IDependencyContainer>());
+                domainFactory.RegisterTypesFromAssemblies(typeof(PersonEntity).Assembly);
+                return domainFactory;
+            });
             container.AddSingleton<IPersonStorage>(c => new PersonStorage(c.Resolve<IStorage<PersonEntity>>()));
             container.AddSingleton<IStorage<PersonEntity>>(c =>
                 PersonEntityAzureStorage.Create(c.Resolve<ILogger>(), c.Resolve<IAppSettings>(),

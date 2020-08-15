@@ -7,15 +7,17 @@ using QueryAny.Primitives;
 
 namespace Storage.IntegrationTests.Azure
 {
+    // ReSharper disable once InconsistentNaming
     public abstract class AzureCosmosStorageBaseSpec : AnyStorageBaseSpec
     {
-        private const string AzureCosmosDbEmulatorProcessName = @"Microsoft.Azure.Cosmos.Emulator";
+        // ReSharper disable once InconsistentNaming
+        private const string EmulatorProcessName = @"Microsoft.Azure.Cosmos.Emulator";
 
-        private const string AzureCosmosDbEmulatorStartupArgs =
+        private const string EmulatorStartupArgs =
             @"/NoExplorer /DisableRateLimiting";
 
-        private const string AzureCosmosDbEmulatorResetArgs = @"/ResetDataPath";
-        private const string AzureCosmosDbEmulatorShutdownArgs = @"/Shutdown";
+        private const string EmulatorResetArgs = @"/ResetDataPath";
+        private const string EmulatorShutdownArgs = @"/Shutdown";
 
         protected static void InitializeAllTests(TestContext context, string startupArguments)
         {
@@ -31,9 +33,9 @@ namespace Storage.IntegrationTests.Azure
         {
             ShutdownCosmosDbEmulator();
 
-            ExecuteEmulatorCommand(AzureCosmosDbEmulatorResetArgs);
+            ExecuteEmulatorCommand(EmulatorResetArgs);
 
-            var startupArgs = AzureCosmosDbEmulatorStartupArgs;
+            var startupArgs = EmulatorStartupArgs;
             if (moreStartupArguments.HasValue())
             {
                 startupArgs = $"{startupArgs} {moreStartupArguments.Trim()}";
@@ -47,7 +49,7 @@ namespace Storage.IntegrationTests.Azure
         {
             if (IsEmulatorRunning())
             {
-                ExecuteEmulatorCommand(AzureCosmosDbEmulatorShutdownArgs);
+                ExecuteEmulatorCommand(EmulatorShutdownArgs);
                 if (IsEmulatorRunning())
                 {
                     KillEmulatorProcesses();
@@ -58,7 +60,7 @@ namespace Storage.IntegrationTests.Azure
         private static bool IsEmulatorRunning()
         {
             return Process.GetProcesses()
-                .Any(process => process.ProcessName.EqualsIgnoreCase(AzureCosmosDbEmulatorProcessName));
+                .Any(process => process.ProcessName.EqualsIgnoreCase(EmulatorProcessName));
         }
 
         private static void ExecuteEmulatorCommand(string command, bool waitForCompletion = true)
@@ -66,7 +68,7 @@ namespace Storage.IntegrationTests.Azure
             var process = Process.Start(new ProcessStartInfo
             {
                 Arguments = command,
-                FileName = $"C:\\Program Files\\Azure Cosmos DB Emulator\\{AzureCosmosDbEmulatorProcessName}.exe",
+                FileName = $"C:\\Program Files\\Azure Cosmos DB Emulator\\{EmulatorProcessName}.exe",
                 WindowStyle = ProcessWindowStyle.Hidden,
                 Verb = "runas",
                 UseShellExecute = true
@@ -80,7 +82,7 @@ namespace Storage.IntegrationTests.Azure
         private static void KillEmulatorProcesses()
         {
             var processes = Process.GetProcesses()
-                .Where(process => process.ProcessName.EqualsIgnoreCase(AzureCosmosDbEmulatorProcessName))
+                .Where(process => process.ProcessName.EqualsIgnoreCase(EmulatorProcessName))
                 .ToList();
             foreach (var process in processes)
             {

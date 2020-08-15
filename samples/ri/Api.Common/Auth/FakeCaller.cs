@@ -4,8 +4,8 @@ namespace Api.Common.Auth
 {
     public class FakeCaller : ICurrentCaller
     {
-        public string Id => "anonymous";
+        public string Id => CurrentCallerConstants.AnonymousUserId;
 
-        public string[] Roles => new[] {"normaluser"};
+        public string[] Roles => new string[] { };
     }
 }

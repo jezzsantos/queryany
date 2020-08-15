@@ -105,31 +105,34 @@ namespace Domain.Interfaces
 
     public static class SearchOptions<TResult>
     {
-        public static Func<IEnumerable<TResult>, Sorting, IEnumerable<TResult>> DynamicOrderByFunc = (items, sorting) =>
-        {
-            var by = sorting.By;
+        public static readonly Func<IEnumerable<TResult>, Sorting, IEnumerable<TResult>> DynamicOrderByFunc =
+            (items, sorting) =>
+            {
+                var by = sorting.By;
 
-            string expression = null;
-            if (sorting.Direction == SortDirection.Ascending)
-            {
-                expression = $"{by} ascending";
-            }
+                string expression = null;
+                if (sorting.Direction == SortDirection.Ascending)
+                {
+                    expression = $"{by} ascending";
+                }
 
-            if (sorting.Direction == SortDirection.Descending)
-            {
-                expression = $"{by} descending";
-            }
+                if (sorting.Direction == SortDirection.Descending)
+                {
+                    expression = $"{by} descending";
+                }
 
-            try
-            {
-                return items.AsQueryable().OrderBy(expression);
-            }
-            catch (ParseException)
-            {
-                // Ignore exception. Possibly an invalid sorting expression?
-                return items;
-            }
-        };
+                try
+                {
+                    // ReSharper disable once PossibleMultipleEnumeration
+                    return items.AsQueryable().OrderBy(expression);
+                }
+                catch (ParseException)
+                {
+                    // Ignore exception. Possibly an invalid sorting expression?
+                    // ReSharper disable once PossibleMultipleEnumeration
+                    return items;
+                }
+            };
     }
 
     public class Sorting

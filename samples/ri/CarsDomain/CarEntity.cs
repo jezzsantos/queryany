@@ -18,7 +18,7 @@ namespace CarsDomain
 
         public Manufacturer Manufacturer { get; private set; }
 
-        public CarOwner Owner { get; private set; }
+        public VehicleOwner Owner { get; private set; }
 
         public VehicleManagers Managers { get; private set; }
 
@@ -40,7 +40,7 @@ namespace CarsDomain
             base.Rehydrate(properties);
             Manufacturer = properties.GetValueOrDefault<Manufacturer>(nameof(Manufacturer));
             OccupiedUntilUtc = properties.GetValueOrDefault<DateTime>(nameof(OccupiedUntilUtc));
-            Owner = properties.GetValueOrDefault<CarOwner>(nameof(Owner));
+            Owner = properties.GetValueOrDefault<VehicleOwner>(nameof(Owner));
             Managers = properties.GetValueOrDefault<VehicleManagers>(nameof(Managers));
         }
 
@@ -51,7 +51,7 @@ namespace CarsDomain
 
         public void SetOwnership(CarOwner owner)
         {
-            Owner = owner;
+            Owner = new VehicleOwner(owner);
             Managers = new VehicleManagers();
             Managers.Add(owner.Id.ToIdentifier());
         }

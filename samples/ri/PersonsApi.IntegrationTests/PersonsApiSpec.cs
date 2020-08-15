@@ -1,15 +1,14 @@
-using Api.Common;
 using Api.Interfaces.ServiceOperations;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PersonsApplication.Storage;
 using PersonsDomain;
 using PersonsStorage;
 using ServiceStack;
-using Storage;
 using Storage.Interfaces;
 
 namespace PersonsApi.IntegrationTests
@@ -18,32 +17,36 @@ namespace PersonsApi.IntegrationTests
     public class PersonsApiSpec
     {
         private const string ServiceUrl = "http://localhost:2000/";
-        private ServiceStackHost appHost;
-        private IDomainFactory domainFactory;
-        private ILogger logger;
-        private PersonEntityInMemStorage store;
+        private static IWebHost webHost;
+        private static IStorage<PersonEntity> storage;
 
-        [TestInitialize]
-        public void Initialize()
+        [ClassInitialize]
+        public static void InitializeAllTests(TestContext context)
         {
-            this.appHost = new TestServiceHost();
-            this.logger = new Logger<TestServiceHost>(new NullLoggerFactory());
-            this.domainFactory = new DomainFactory(new FuncDependencyContainer(this.appHost.Container));
-            this.domainFactory.RegisterTypesFromAssemblies(typeof(PersonEntity).Assembly);
-            this.store = PersonEntityInMemStorage.Create(this.logger, this.domainFactory);
-            this.appHost.Container.AddSingleton<IIdentifierFactory, GuidIdentifierFactory>();
-            this.appHost.Container.AddSingleton(this.logger);
-            this.appHost.Container.AddSingleton<IPersonStorage>(c =>
+            webHost = WebHost.CreateDefaultBuilder(null)
+                .UseModularStartup<Startup>()
+                .UseUrls(ServiceUrl)
+                .UseKestrel()
+                .ConfigureLogging((ctx, builder) => builder.AddConsole())
+                .Build();
+            webHost.Start();
+
+            // Override services for testing
+            var container = HostContext.Container;
+            container.AddSingleton<IPersonStorage>(c =>
                 new PersonStorage(c.Resolve<IStorage<PersonEntity>>()));
-            this.appHost.Container.AddSingleton<IStorage<PersonEntity>>(this.store);
-            this.appHost.Init()
-                .Start(ServiceUrl);
+            storage = PersonEntityInMemStorage.Create(container.Resolve<ILogger>(),
+                container.Resolve<IDomainFactory>());
+            container.AddSingleton(storage);
+
+            container.AddSingleton<IStorage<PersonEntity>>(c =>
+                PersonEntityInMemStorage.Create(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>()));
         }
 
-        [TestCleanup]
-        public void Cleanup()
+        [ClassCleanup]
+        public static void CleanupAllTests()
         {
-            this.appHost.Dispose();
+            webHost?.StopAsync().GetAwaiter().GetResult();
         }
 
         [TestMethod]

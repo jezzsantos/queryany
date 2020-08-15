@@ -44,6 +44,11 @@ namespace PersonsApplication
             caller.GuardAgainstNull(nameof(caller));
             id.GuardAgainstNullOrEmpty(nameof(id));
 
+            if (id.ToIdentifier() == CurrentCallerConstants.AnonymousUserId)
+            {
+                return Person.Anonymous;
+            }
+
             var person = this.storage.Get(id.ToIdentifier());
             if (id == null)
             {

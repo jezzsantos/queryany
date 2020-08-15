@@ -14,6 +14,7 @@ using ServiceStack;
 
 namespace Storage.Azure
 {
+    // ReSharper disable once InconsistentNaming
     public class AzureTableStorageRepository : IRepository
     {
         internal const string NullValue = "null";
@@ -375,9 +376,11 @@ namespace Storage.Azure
 
         public class TableStorageApiOptions
         {
+            // ReSharper disable once InconsistentNaming
             public static readonly TableStorageApiOptions AzureTableStorage = new TableStorageApiOptions
                 {DefaultPartitionKey = string.Empty, MinimumAllowableUtcDateTime = TableConstants.MinDateTime};
 
+            // ReSharper disable once InconsistentNaming
             public static readonly TableStorageApiOptions AzureCosmosDbStorage = new TableStorageApiOptions
                 {DefaultPartitionKey = "default", MinimumAllowableUtcDateTime = DateTimeOffset.MinValue};
 
@@ -387,6 +390,7 @@ namespace Storage.Azure
         }
     }
 
+    // ReSharper disable once InconsistentNaming
     internal static class AzureTableStorageEntityExtensions
     {
         public static DynamicTableEntity ToTableEntity<TEntity>(this TEntity entity,
@@ -576,6 +580,7 @@ namespace Storage.Azure
         }
     }
 
+    // ReSharper disable once InconsistentNaming
     public static class AzureTableStorageWhereExtensions
     {
         public static string ToAzureTableStorageWhereClause(this IEnumerable<WhereExpression> wheres)
@@ -698,6 +703,7 @@ namespace Storage.Azure
         }
     }
 
+    // ReSharper disable once InconsistentNaming
     internal static class AzureTableStorageExceptionExtensions
     {
         public static bool IsTableNotFoundException(this StorageException exception)

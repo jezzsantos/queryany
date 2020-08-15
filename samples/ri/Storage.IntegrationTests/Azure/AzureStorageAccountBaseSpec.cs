@@ -7,12 +7,13 @@ using QueryAny.Primitives;
 
 namespace Storage.IntegrationTests.Azure
 {
+    // ReSharper disable once InconsistentNaming
     public abstract class AzureStorageAccountBaseSpec : AnyStorageBaseSpec
     {
-        private const string AzureStorageEmulatorProcessName = @"AzureStorageEmulator";
-        private const string AzureStorageEmulatorStartupArgs = @"start";
-        private const string AzureStorageEmulatorResetArgs = @"clear all";
-        private const string AzureStorageEmulatorShutdownArgs = @"stop";
+        private const string EmulatorProcessName = @"AzureStorageEmulator";
+        private const string EmulatorStartupArgs = @"start";
+        private const string EmulatorResetArgs = @"clear all";
+        private const string EmulatorShutdownArgs = @"stop";
 
         protected static void InitializeAllTests(TestContext context)
         {
@@ -28,9 +29,9 @@ namespace Storage.IntegrationTests.Azure
         {
             ShutdownAzureStorageEmulator();
 
-            ExecuteEmulatorCommand(AzureStorageEmulatorResetArgs);
+            ExecuteEmulatorCommand(EmulatorResetArgs);
 
-            var startupArgs = AzureStorageEmulatorStartupArgs;
+            var startupArgs = EmulatorStartupArgs;
 
             ExecuteEmulatorCommand(startupArgs, false);
             Thread.Sleep(TimeSpan.FromSeconds(10));
@@ -40,7 +41,7 @@ namespace Storage.IntegrationTests.Azure
         {
             if (IsEmulatorRunning())
             {
-                ExecuteEmulatorCommand(AzureStorageEmulatorShutdownArgs);
+                ExecuteEmulatorCommand(EmulatorShutdownArgs);
                 if (IsEmulatorRunning())
                 {
                     KillEmulatorProcesses();
@@ -51,7 +52,7 @@ namespace Storage.IntegrationTests.Azure
         private static bool IsEmulatorRunning()
         {
             return Process.GetProcesses()
-                .Any(process => process.ProcessName.EqualsIgnoreCase(AzureStorageEmulatorProcessName));
+                .Any(process => process.ProcessName.EqualsIgnoreCase(EmulatorProcessName));
         }
 
         private static void ExecuteEmulatorCommand(string command, bool waitForCompletion = true)
@@ -60,7 +61,7 @@ namespace Storage.IntegrationTests.Azure
             {
                 Arguments = command,
                 FileName =
-                    $"C:\\Program Files (x86)\\Microsoft SDKs\\Azure\\Storage Emulator\\{AzureStorageEmulatorProcessName}.exe",
+                    $"C:\\Program Files (x86)\\Microsoft SDKs\\Azure\\Storage Emulator\\{EmulatorProcessName}.exe",
                 WindowStyle = ProcessWindowStyle.Hidden,
                 Verb = "runas",
                 UseShellExecute = true
@@ -74,7 +75,7 @@ namespace Storage.IntegrationTests.Azure
         private static void KillEmulatorProcesses()
         {
             var processes = Process.GetProcesses()
-                .Where(process => process.ProcessName.EqualsIgnoreCase(AzureStorageEmulatorProcessName))
+                .Where(process => process.ProcessName.EqualsIgnoreCase(EmulatorProcessName))
                 .ToList();
             foreach (var process in processes)
             {

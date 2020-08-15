@@ -9,6 +9,8 @@ using Storage.Interfaces;
 namespace Storage.IntegrationTests.Azure
 {
     [TestClass, TestCategory("Integration")]
+
+    // ReSharper disable once InconsistentNaming
     public class AzureTableStorageSpec : AzureStorageAccountBaseSpec
     {
         private static AzureTableStorageRepository repository;

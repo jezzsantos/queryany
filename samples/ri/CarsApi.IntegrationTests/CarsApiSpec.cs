@@ -1,18 +1,18 @@
 using System;
 using System.Linq;
-using Api.Common;
 using Api.Interfaces.ServiceOperations;
 using CarsApplication.Storage;
 using CarsDomain;
 using CarsStorage;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ServiceClients;
 using ServiceStack;
-using Storage;
 using Storage.Interfaces;
 
 namespace CarsApi.IntegrationTests
@@ -21,32 +21,39 @@ namespace CarsApi.IntegrationTests
     public class CarsApiSpec
     {
         private const string ServiceUrl = "http://localhost:2000/";
-        private ServiceStackHost appHost;
-        private IDomainFactory domainFactory;
-        private ILogger logger;
-        private CarEntityInMemStorage store;
+        private static IWebHost webHost;
+        private static IStorage<CarEntity> storage;
+
+        [ClassInitialize]
+        public static void InitializeAllTests(TestContext context)
+        {
+            webHost = WebHost.CreateDefaultBuilder(null)
+                .UseModularStartup<Startup>()
+                .UseUrls(ServiceUrl)
+                .UseKestrel()
+                .ConfigureLogging((ctx, builder) => builder.AddConsole())
+                .Build();
+            webHost.Start();
+
+            // Override services for testing
+            var container = HostContext.Container;
+            container.AddSingleton<IPersonsService, StubPersonsService>();
+            container.AddSingleton<ICarStorage>(c =>
+                new CarStorage(c.Resolve<IStorage<CarEntity>>()));
+            storage = CarEntityInMemStorage.Create(container.Resolve<ILogger>(), container.Resolve<IDomainFactory>());
+            container.AddSingleton(storage);
+        }
+
+        [ClassCleanup]
+        public static void CleanupAllTests()
+        {
+            webHost?.StopAsync().GetAwaiter().GetResult();
+        }
 
         [TestInitialize]
         public void Initialize()
         {
-            this.appHost = new TestServiceHost();
-            this.logger = new Logger<TestServiceHost>(new NullLoggerFactory());
-            this.domainFactory = new DomainFactory(new FuncDependencyContainer(this.appHost.Container));
-            this.domainFactory.RegisterTypesFromAssemblies(typeof(CarEntity).Assembly);
-            this.store = CarEntityInMemStorage.Create(this.logger, this.domainFactory);
-            this.appHost.Container.AddSingleton<IIdentifierFactory, GuidIdentifierFactory>();
-            this.appHost.Container.AddSingleton(this.logger);
-            this.appHost.Container.AddSingleton<ICarStorage>(c => new CarStorage(c.Resolve<IStorage<CarEntity>>()));
-            this.appHost.Container.AddSingleton<IStorage<CarEntity>>(this.store);
-            this.appHost.Container.AddSingleton<IPersonsService>(c => new StubPersonsService());
-            this.appHost.Init()
-                .Start(ServiceUrl);
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            this.appHost.Dispose();
+            storage.DestroyAll();
         }
 
         [TestMethod]
@@ -65,8 +72,8 @@ namespace CarsApi.IntegrationTests
             car.Manufacturer.Make.Should().Be(Manufacturer.Makes[0]);
             car.Manufacturer.Model.Should().Be(Manufacturer.Models[0]);
             car.OccupiedUntilUtc.Should().Be(DateTime.MinValue);
-            car.Owner.Id.Should().Be("anonymous");
-            car.Managers.Single().Id.Should().Be("anonymous");
+            car.Owner.Id.Should().Be(CurrentCallerConstants.AnonymousUserId);
+            car.Managers.Single().Id.Should().Be(CurrentCallerConstants.AnonymousUserId);
         }
 
         [TestMethod]
@@ -80,7 +87,7 @@ namespace CarsApi.IntegrationTests
         }
 
         [TestMethod]
-        public void WhenGetAvailableAndCars_ThenReturnsNone()
+        public void WhenGetAvailableAndCars_ThenReturnsAvailable()
         {
             var client = new JsonServiceClient(ServiceUrl);
 

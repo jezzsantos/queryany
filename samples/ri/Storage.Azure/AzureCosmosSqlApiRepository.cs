@@ -12,6 +12,7 @@ using QueryAny.Primitives;
 
 namespace Storage.Azure
 {
+    // ReSharper disable once InconsistentNaming
     public class AzureCosmosSqlApiRepository : IRepository
     {
         internal const string IdentifierPropertyName = @"id";
@@ -276,6 +277,7 @@ namespace Storage.Azure
         }
     }
 
+    // ReSharper disable once InconsistentNaming
     internal static class AzureCosmosSqlApiExtensions
     {
         public static dynamic ToContainerEntity<TEntity>(this TEntity entity) where TEntity : IPersistableEntity
@@ -461,6 +463,7 @@ namespace Storage.Azure
         }
     }
 
+    // ReSharper disable once InconsistentNaming
     public static class AzureCosmosSqlApiQueryExtensions
     {
         public static string ToAzureCosmosSqlApiQueryClause<TEntity>(this QueryClause<TEntity> query,

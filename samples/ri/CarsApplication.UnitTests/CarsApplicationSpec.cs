@@ -60,7 +60,7 @@ namespace CarsApplication.UnitTests
             result.Id.Should().Be("anid");
             this.storage.Verify(s =>
                 s.Create(It.Is<CarEntity>(e =>
-                    e.Owner.Id == "apersonid"
+                    e.Owner == "apersonid"
                     && e.Manufacturer.Year == 2010
                     && e.Manufacturer.Make == make
                     && e.Manufacturer.Model == model

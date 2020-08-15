@@ -2,6 +2,18 @@
 {
     public class Person : IIdentifiableResource
     {
+        public static readonly Person Anonymous = new Person
+        {
+            Id = CurrentCallerConstants.AnonymousUserId,
+            Name = new PersonName
+            {
+                FirstName = CurrentCallerConstants.AnonymousUserName,
+                LastName = CurrentCallerConstants.AnonymousUserName
+            },
+            Email = null,
+            PhoneNumber = null
+        };
+
         public PersonName Name { get; set; }
 
         public string Email { get; set; }
