@@ -8,7 +8,7 @@ namespace Api.Common
     {
         public static ICurrentCaller ToCaller(this IRequest request)
         {
-            return new FakeCaller();
+            return new AnonymousCaller();
         }
     }
 }

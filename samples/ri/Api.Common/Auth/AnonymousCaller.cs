@@ -2,7 +2,7 @@
 
 namespace Api.Common.Auth
 {
-    public class FakeCaller : ICurrentCaller
+    public class AnonymousCaller : ICurrentCaller
     {
         public string Id => CurrentCallerConstants.AnonymousUserId;
 

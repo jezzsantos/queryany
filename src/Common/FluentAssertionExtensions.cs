@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 using FluentAssertions.Execution;
@@ -6,6 +7,7 @@ using FluentAssertions.Specialized;
 using QueryAny.Primitives;
 
 // ReSharper disable once CheckNamespace
+[ExcludeFromCodeCoverage]
 public static class ExceptionAssertionExtensions
 {
     public static ExceptionAssertions<TException> WithMessageLike<TException>(
