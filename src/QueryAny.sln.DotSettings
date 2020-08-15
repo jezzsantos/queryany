@@ -41,6 +41,45 @@
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=2ED828C00A95424ABCAEED55E016946C/Shortcut/@EntryValue">guard</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=2ED828C00A95424ABCAEED55E016946C/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=2ED828C00A95424ABCAEED55E016946C/Text/@EntryValue">$variable$.GuardAgainstNull(nameof($variable$));</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Description/@EntryValue">A ValueObject</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Field/=name/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Field/=Name/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Field/=name/Expression/@EntryValue">decapitalize(Name)</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Field/=name/Order/@EntryValue">1</s:Int64>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Field/=Name/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Shortcut/@EntryValue">valueobject</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Text/@EntryValue">public class $Name$ : ValueObjectBase&lt;$Name$&gt;
+    {
+        private string $name$;
+
+        public $Name$(string $name$)
+        {
+            $name$.GuardAgainstNullOrEmpty(nameof($name$));
+            this.$name$ = $name$;
+        }
+
+        public override void Rehydrate(string value)
+        {
+            this.$name$ = value;
+        }
+
+        public static ValueObjectFactory&lt;$Name$&gt; Rehydrate()
+        {
+            return (property, container) =&gt; new $Name$(property);
+        }
+
+        protected override IEnumerable&lt;object&gt; GetAtomicValues()
+        {
+            return new[] {this.$name$};
+        }
+    }</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BFE44FFF508D5847B2118A6883F654C5/@KeyIndexDefined">True</s:Boolean>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BFE44FFF508D5847B2118A6883F654C5/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BFE44FFF508D5847B2118A6883F654C5/Field/=CONDITION/@KeyIndexDefined">True</s:Boolean>

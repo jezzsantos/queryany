@@ -22,6 +22,8 @@ namespace CarsDomain
 
         public VehicleManagers Managers { get; private set; }
 
+        public LicensePlate Plate { get; private set; }
+
         public DateTime OccupiedUntilUtc { get; private set; }
 
         public override Dictionary<string, object> Dehydrate()
@@ -31,6 +33,7 @@ namespace CarsDomain
             properties.Add(nameof(OccupiedUntilUtc), OccupiedUntilUtc);
             properties.Add(nameof(Owner), Owner);
             properties.Add(nameof(Managers), Managers);
+            properties.Add(nameof(Plate), Plate);
 
             return properties;
         }
@@ -42,6 +45,7 @@ namespace CarsDomain
             OccupiedUntilUtc = properties.GetValueOrDefault<DateTime>(nameof(OccupiedUntilUtc));
             Owner = properties.GetValueOrDefault<VehicleOwner>(nameof(Owner));
             Managers = properties.GetValueOrDefault<VehicleManagers>(nameof(Managers));
+            Plate = properties.GetValueOrDefault<LicensePlate>(nameof(Plate));
         }
 
         public void SetManufacturer(int year, string make, string model)
@@ -54,6 +58,11 @@ namespace CarsDomain
             Owner = new VehicleOwner(owner);
             Managers = new VehicleManagers();
             Managers.Add(owner.Id.ToIdentifier());
+        }
+
+        public void Register(string jurisdiction, string number)
+        {
+            Plate = new LicensePlate(jurisdiction, number);
         }
 
         public void Occupy(DateTime untilUtc)
