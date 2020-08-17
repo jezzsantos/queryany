@@ -109,64 +109,62 @@ Application or from Application to Infrastructure. Ever!
 ## Domain
 
 The domain layer contains **Domain Entities, Value Objects, Aggregates
-and Domain Services:** Your smart, fully encapsulated, pure OO, 'domain
-classes' that have all your domain rules, logic, validation, etc
+and Domain Services:** Your smart, fully encapsulated, strict OO,
+'domain classes' that have all your domain rules, logic, validation, etc
 encapsulated within them.
 
-What they lack is only *when* to do the things they do in response to
-the world around them, and who manages their lifecycle. That comes from
-the Application Layer.
+Its likely you will have a separate assembly for each domain. Its likely
+that each domain will contain one or more aggregate roots. Its advisable
+to keep your aggregate roots small: for good guidance on this appraoch
+see:
+[Effective Aggregate Design - Part I](https://dddcommunity.org/wp-content/uploads/files/pdf_articles/Vernon_2011_1.pdf)
 
-### CarsDomain
+What the entities lack is only *when* to do the things they do in
+response to the world around them, and who manages their lifecycle (and
+statelessness). That stimulus will come from the "Application Layer".
 
-Essentially the core domain logic layer (domain entities and application
-layers).
+### ???.Domain
+
+Essentially, the core domain logic layer, containing value objects,
+entities and aggregate roots, and all modelled use cases.
 
 > Note: In a real architecture, you would never actually name this layer
-> (or the types within it) using the suffix "Domain". It is just here as
-> a guide post for you, so that you can tell what the layer is.
+> (or the types within it) using the suffix "Domain" or "Entity". We use
+> it here just as a guide post for you, so that you can tell what the
+> layer contains.
 
-It defines the domain entities with all domains specific rules, etc.
-
-It contains an 'application layer' (in DDD parlance) or 'Interactor' (in
-Clean Architecture parlance) used to coordinate the various domain
-functions on the various domain entities. This layer orchestrates the
-domain entities, and manages persistence of them, and all interactions
-with infrastructure layers (ie. The Web, Persistence, External
-Services).
-
-> Design Choice: In this case we have included the domain entities in
-> this assembly for simplicity, but you may want to have a separate
-> assembly for the entities of this domain to make your domain more
-> portable.
+> Design Choice: In this case, we have included all the domain entities
+> for each bounded domain in a separate assembly for simplicity.
 
 > Design Choice: The domain entities in this implementation are
 > relatively simple in terms of functionality and rules (close to anemic
-> \- due to limited scope of the sample). They also do not display much
-> in the way of aggregation which is more common than not. Usually
-> primary entities like a 'Car' would be an aggregate entity (DDD
-> parlance), and all operations that the aggregated entities perform
-> would be accessible through this _aggregate root_.
+> due to limited scope of the sample). They also do not display much in
+> the way of traditional OO hierarchical aggregation which is not common
+> and not generally scalable. Usually aggregate roots (DDD parlance)
+> like a 'Car' and 'Person' would provide all operations that operate on
+> any aggregated entities/value objects.
 
 > Design Choice: Domain entities in this RI have been specifically
 > designed to be persistent "aware" for practicality. We use the terms
 > Hydrate/Dehydrate to associate them to persistence support, and we
-> define `Dictionary<string, object>` to remove the need to specify DTO
-> classes for mapping. Which side-steps an additional mapping layer.
+> define `Dictionary<string, object>` (a.k.a property bags) to remove
+> the need to specify DTO classes for mapping. Which side-steps an
+> additional explicit mapping layer in your code.
 
 > Design Choice: There are many ways to handle/decouple persistence
 > between your entities and repositories, this is *one* pattern, you may
 > desire another. You definitely <u>don't</u> want your entities to do
-> their own persistence (like the ActiveRecord pattern does). Do could
-> define a mapping layer to DTO's between entities and repositories (as
-> ORM's do), but having the knowledge of what internal data an entity
-> needs to be serialized (de-hydrated) and de-serialized (re-hydrated)
-> is knowledge in-practice that an entity/valueobject *could*
-> legitimately have. YMMV, this pattern is absolutely flexible, scalable
-> and simple to maintain.
+> their own persistence (like the ActiveRecord pattern does).
+> Persistence is not a concern of your domain. Do could define a mapping
+> layer to DTO's between entities and repositories (as ORM's do), but
+> having the knowledge of what internal data an entity needs to be
+> serialized (de-hydrated) and de-serialized (re-hydrated) is knowledge
+> in-practice that an entity/valueobject *could* legitimately have.
+> YMMV, this pattern is absolutely flexible, scalable and simple to
+> maintain.
 
 > We anticipate that there will be one of these assemblies for every
-> major domain in the product.
+> domain in the product.
 
 ### Domain.Interfaces
 
@@ -193,9 +191,16 @@ separated by component.
 
 This layer contains the **Transaction Scripts/Application Layer/Domain
 Services:** classes that co-ordinate/orchestrate/manage/script your
-domain entities/valueobjects.
+aggregate root entities.
 
-These classes contain commands and queries.
+The 'Application Layer' (in DDD parlance) or 'Interactor' (in Clean
+Architecture parlance) is used to coordinate the various domain entities
+and domain services that make up this particular application. Since this
+later exposes stateless "services", it orchestrates the domain entities,
+manages the persistence of them, and all interactions with
+infrastructure layers (ie. The Web, Persistence, External Services).
+
+These classes contain commands and queries (as in CQRS).
 
 Commands essentially follow the same pattern:
 
@@ -214,8 +219,7 @@ Commands essentially follow the same pattern:
 > types that traverse the boundary between Domain<->Infrastructure. The
 > assembly that defines them should contain NO implementation.
 
-
-### CarsApplication
+### ???Application
 
 Contains the application layer consisting of services that instruct the
 domain entities to do things, using the Ask-Dont-Tell pattern.
@@ -230,6 +234,13 @@ shared across all APIs.
 
 > We anticipate that there will be one of these assemblies for all APIs
 > in the product.
+
+### ServiceClients
+
+Contains clients to access external services (relative to each domain).
+This is the mechanism for cross-domain communication. Usually
+implemented over HTTP in a distributed system or in-process in a
+monolithic system.
 
 ### Storage.Interfaces
 
@@ -253,7 +264,7 @@ Contains all ports & Adapters, all infrastructure classes and anything
 to do with interacting with the outside world (from the domain's
 perspective).
 
-### CarsApi
+### ???Api
 
 This is the web API host. In this case its ASP.NET Core running the
 [ServiceStack](http://www.servicestack.net) framework on Windows. It
@@ -286,7 +297,7 @@ runtime dependencies.
 > can be factored out into separate hosts when the product needs to
 > scale and be optimized.
 
-### CarsStorage
+### ???Storage
 
 This is a library of entity specific storage implementation classes used
 in both production code and during integration testing.

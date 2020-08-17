@@ -1,4 +1,6 @@
-﻿using Domain.Interfaces.Entities;
+﻿using System.Linq;
+using Domain.Interfaces.Entities;
+using Domain.Interfaces.Resources;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -28,6 +30,24 @@ namespace CarsDomain.UnitTests
 
             this.entity.Manufacturer.Should()
                 .Be(new Manufacturer(Manufacturer.MinYear + 1, Manufacturer.Makes[0], Manufacturer.Models[0]));
+        }
+
+        [TestMethod]
+        public void WhenSetOwnership_ThenOwnedAndManaged()
+        {
+            var owner = new CarOwner {Id = "anownerid"};
+            this.entity.SetOwnership(owner);
+
+            this.entity.Owner.Should().Be(new VehicleOwner(owner));
+            this.entity.Managers.Managers.Single().Should().Be("anownerid".ToIdentifier());
+        }
+
+        [TestMethod]
+        public void WhenRegistered_ThenRegistered()
+        {
+            this.entity.Register("ajurisdiction", "anumber");
+
+            this.entity.Plate.Should().Be(new LicensePlate("ajurisdiction", "anumber"));
         }
     }
 }
