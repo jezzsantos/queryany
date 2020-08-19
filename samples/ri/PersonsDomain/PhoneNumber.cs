@@ -1,35 +1,25 @@
-﻿using System.Collections.Generic;
-using Domain.Interfaces;
+﻿using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using QueryAny.Primitives;
 
 namespace PersonsDomain
 {
-    public class PhoneNumber : ValueObjectBase<PhoneNumber>
+    public class PhoneNumber : SingleValueObjectBase<PhoneNumber, string>
     {
-        private string phoneNumber;
-
-        public PhoneNumber(string phoneNumber)
+        public PhoneNumber(string phoneNumber) : base(phoneNumber)
         {
             phoneNumber.GuardAgainstNullOrEmpty(nameof(phoneNumber));
             phoneNumber.GuardAgainstInvalid(Validations.Person.PhoneNumber, nameof(phoneNumber));
-
-            this.phoneNumber = phoneNumber;
         }
 
-        public override void Rehydrate(string value)
+        protected override string ToValue(string value)
         {
-            this.phoneNumber = value;
+            return value;
         }
 
-        public static ValueObjectFactory<PhoneNumber> Rehydrate()
+        public static ValueObjectFactory<PhoneNumber> Instantiate()
         {
             return (property, container) => new PhoneNumber(property);
-        }
-
-        protected override IEnumerable<object> GetAtomicValues()
-        {
-            return new[] {this.phoneNumber};
         }
     }
 }

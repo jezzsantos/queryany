@@ -323,7 +323,7 @@ namespace Storage.Azure
             {
                 var entity = SafeExecute(table,
                     () => table.Execute(
-                        TableOperation.Retrieve<DynamicTableEntity>(this.options.DefaultPartitionKey, id.ToString())));
+                        TableOperation.Retrieve<DynamicTableEntity>(this.options.DefaultPartitionKey, id)));
 
                 return entity.Result as DynamicTableEntity;
             }
@@ -406,7 +406,7 @@ namespace Storage.Azure
 
             var entityProperties = entity.Dehydrate()
                 .Where(pair => IsNotExcluded(pair.Key));
-            var tableEntity = new DynamicTableEntity(options.DefaultPartitionKey, entity.Id.ToString())
+            var tableEntity = new DynamicTableEntity(options.DefaultPartitionKey, entity.Id)
             {
                 Properties = entityProperties.ToTableEntityProperties(options)
             };

@@ -39,11 +39,11 @@ namespace Domain.Interfaces.Entities
                 .Join(DefaultHydrationDelimiter);
         }
 
-        public abstract void Rehydrate(string value);
+        public abstract void Rehydrate(string hydratedValue);
 
-        protected static List<string> RehydrateToList(string value)
+        protected static List<string> RehydrateToList(string hydratedValue)
         {
-            return value
+            return hydratedValue
                 .SafeSplit(DefaultHydrationDelimiter)
                 .ToList();
         }

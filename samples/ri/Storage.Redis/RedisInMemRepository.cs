@@ -65,7 +65,7 @@ namespace Storage.Redis
             client.Remove(key);
             client.SetRangeInHash(key, keyValues);
 
-            return keyValues.FromContainerProperties<TEntity>(id.ToString(), domainFactory);
+            return keyValues.FromContainerProperties<TEntity>(id, domainFactory);
         }
 
         public long Count(string containerName)

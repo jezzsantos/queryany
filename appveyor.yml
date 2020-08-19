@@ -13,6 +13,12 @@ environment:
     test_assemblies: samples\ri\CarsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\CarsApi.IntegrationTests.dll;samples\ri\PersonsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\PersonsApi.IntegrationTests.dll;samples\ri\Storage.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\Storage.IntegrationTests.dll
     test_category: Integration
     test_settings: 
+  - test_type: Integration.Testing.Web
+    test_assemblies: samples\ri\CarsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\CarsApi.IntegrationTests.dll;samples\ri\PersonsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\PersonsApi.IntegrationTests.dll;samples\ri\Storage.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\Storage.IntegrationTests.dll
+    test_category: Integration.Web
+  - test_type: Integration.Testing.Storage
+    test_assemblies: samples\ri\CarsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\CarsApi.IntegrationTests.dll;samples\ri\PersonsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\PersonsApi.IntegrationTests.dll;samples\ri\Storage.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\Storage.IntegrationTests.dll
+    test_category: Integration.Storage
 matrix:
     fast_finish: false
 install:

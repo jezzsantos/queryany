@@ -18,9 +18,6 @@
     <resheader name="writer">
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
-    <data name="EntityBase_IdentifierExists">
-        <value>The entity already has an Identifier, and cannot be changed</value>
-    </data>
     <data name="ForbiddenException_Message">
         <value>Access to the resource is forbidden to the current user</value>
     </data>
@@ -39,5 +36,7 @@
     <data name="RuleViolationException_Message">
         <value>A pre-condition of the current request for the resource has not been met</value>
     </data>
-
+    <data name="HydrationIdentifierFactory_InvalidId" xml:space="preserve">
+        <value>The hydrating properties do not contain an Identifier property with a non null value</value>
+    </data>
 </root>

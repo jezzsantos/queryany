@@ -19,7 +19,7 @@ namespace Domain.Interfaces.Entities
             var id = this.hydratingProperties.GetValueOrDefault<Identifier>(nameof(IIdentifiableEntity.Id));
             if (!id.HasValue())
             {
-                throw new ResourceConflictException("The hydrating properties does not contain an Identifier");
+                throw new ResourceConflictException(Properties.Resources.HydrationIdentifierFactory_InvalidId);
             }
 
             return id;

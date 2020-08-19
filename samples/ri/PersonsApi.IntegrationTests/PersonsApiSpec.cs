@@ -13,7 +13,7 @@ using Storage.Interfaces;
 
 namespace PersonsApi.IntegrationTests
 {
-    [TestClass, TestCategory("Integration")]
+    [TestClass, TestCategory("Integration.Web")]
     public class PersonsApiSpec
     {
         private const string ServiceUrl = "http://localhost:2000/";

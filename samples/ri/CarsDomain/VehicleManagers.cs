@@ -43,7 +43,7 @@ namespace CarsDomain
             }
         }
 
-        public static ValueObjectFactory<VehicleManagers> Rehydrate()
+        public static ValueObjectFactory<VehicleManagers> Instantiate()
         {
             return (value, container) => new VehicleManagers();
         }

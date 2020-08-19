@@ -48,7 +48,7 @@ namespace PersonsDomain
             Phone = properties.GetValueOrDefault<PhoneNumber>(nameof(Phone));
         }
 
-        public static EntityFactory<PersonEntity> Rehydrate()
+        public static EntityFactory<PersonEntity> Instantiate()
         {
             return (properties, container) =>
                 new PersonEntity(container.Resolve<ILogger>(), new HydrationIdentifierFactory(properties),

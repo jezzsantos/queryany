@@ -9,7 +9,7 @@ using Storage.Redis;
 
 namespace Storage.IntegrationTests.Redis
 {
-    [TestClass, TestCategory("Integration")]
+    [TestClass, TestCategory("Integration.Storage")]
     public class RedisInMemStorageSpec : RedisInMemStorageBaseSpec
     {
         private static RedisInMemRepository repository;

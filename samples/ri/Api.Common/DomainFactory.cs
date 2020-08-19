@@ -12,6 +12,7 @@ namespace Api.Common
 {
     public class DomainFactory : IDomainFactory
     {
+        private const string FactoryMethodName = "Instantiate";
         private readonly IDependencyContainer container;
         private readonly Dictionary<Type, EntityFactory<IPersistableEntity>> entityFactories;
         private readonly Dictionary<Type, ValueObjectFactory<IPersistableValueObject>> valueObjectFactories;
@@ -82,7 +83,7 @@ namespace Api.Common
                             {
                                 throw new InvalidOperationException(
                                     Resources.DomainFactory_FactoryMethodHasParameters.Format(type.Name,
-                                        factoryMethod.Name, nameof(IPersistableEntity.Rehydrate)));
+                                        factoryMethod.Name, FactoryMethodName));
                             }
 
                             if (EntityFactories.ContainsKey(type))
@@ -99,7 +100,7 @@ namespace Api.Common
                         {
                             throw new InvalidOperationException(
                                 Resources.DomainFactory_EntityFactoryMethodNotFound.Format(type.Name,
-                                    nameof(IPersistableEntity.Rehydrate)));
+                                    FactoryMethodName));
                         }
                     }
 
@@ -112,7 +113,7 @@ namespace Api.Common
                             {
                                 throw new InvalidOperationException(
                                     Resources.DomainFactory_FactoryMethodHasParameters.Format(type.Name,
-                                        factoryMethod.Name, nameof(IPersistableValueObject.Rehydrate)));
+                                        factoryMethod.Name, FactoryMethodName));
                             }
 
                             if (ValueObjectFactories.ContainsKey(type))
@@ -130,16 +131,16 @@ namespace Api.Common
                         {
                             throw new InvalidOperationException(
                                 Resources.DomainFactory_ValueObjectFactoryMethodNotFound.Format(type.Name,
-                                    nameof(IPersistableValueObject.Rehydrate)));
+                                    FactoryMethodName));
                         }
                     }
                 }
             }
         }
 
-        private static bool IsWrongNamedOrHasParameters(MethodInfo method)
+        private static bool IsWrongNamedOrHasParameters(MethodBase method)
         {
-            return method.Name.NotEqualsOrdinal(nameof(IPersistableEntity.Rehydrate))
+            return method.Name.NotEqualsOrdinal(FactoryMethodName)
                    || method.GetParameters().Length != 0;
         }
 

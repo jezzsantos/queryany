@@ -17,7 +17,7 @@ namespace Storage
                 return false;
             }
 
-            if (!Guid.TryParse(value.ToString(), out var result))
+            if (!Guid.TryParse(value, out var result))
             {
                 return false;
             }

@@ -29,7 +29,7 @@ namespace PersonsDomain
             LastName = parts[1];
         }
 
-        public static ValueObjectFactory<PersonName> Rehydrate()
+        public static ValueObjectFactory<PersonName> Instantiate()
         {
             return (property, container) =>
             {

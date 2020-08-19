@@ -17,7 +17,7 @@ using Storage.Interfaces;
 
 namespace CarsApi.IntegrationTests
 {
-    [TestClass, TestCategory("Integration")]
+    [TestClass, TestCategory("Integration.Web")]
     public class CarsApiSpec
     {
         private const string ServiceUrl = "http://localhost:2000/";

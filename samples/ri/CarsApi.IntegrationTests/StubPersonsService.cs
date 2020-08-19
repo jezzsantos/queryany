@@ -10,7 +10,7 @@ namespace CarsApi.IntegrationTests
         {
             return new Person
             {
-                Id = id.ToString(),
+                Id = id,
                 Name = new PersonName
                 {
                     FirstName = "afirstname",

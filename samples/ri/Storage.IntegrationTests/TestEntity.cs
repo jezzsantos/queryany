@@ -107,7 +107,7 @@ namespace Storage.IntegrationTests
                 properties.GetValueOrDefault<ComplexValueObject>(nameof(AComplexValueObjectValue));
         }
 
-        public static EntityFactory<TestEntity> Rehydrate()
+        public static EntityFactory<TestEntity> Instantiate()
         {
             return (properties, container) => new TestEntity(new HydrationIdentifierFactory(properties));
         }
@@ -144,7 +144,7 @@ namespace Storage.IntegrationTests
             AIntValue = properties.GetValueOrDefault<int>(nameof(AIntValue));
         }
 
-        public static EntityFactory<FirstJoiningTestEntity> Rehydrate()
+        public static EntityFactory<FirstJoiningTestEntity> Instantiate()
         {
             return (properties, container) => new FirstJoiningTestEntity(new HydrationIdentifierFactory(properties));
         }
@@ -185,7 +185,7 @@ namespace Storage.IntegrationTests
             ALongValue = properties.GetValueOrDefault<long>(nameof(ALongValue));
         }
 
-        public static EntityFactory<SecondJoiningTestEntity> Rehydrate()
+        public static EntityFactory<SecondJoiningTestEntity> Instantiate()
         {
             return (properties, container) => new SecondJoiningTestEntity(new HydrationIdentifierFactory(properties));
         }
@@ -242,7 +242,7 @@ namespace Storage.IntegrationTests
             }
         }
 
-        public static ValueObjectFactory<ComplexValueObject> Rehydrate()
+        public static ValueObjectFactory<ComplexValueObject> Instantiate()
         {
             return (value, container) =>
             {

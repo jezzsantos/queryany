@@ -13,7 +13,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenDeserialized_ThenReturnsInstance()
         {
-            var result = typeof(TestSingleValueObject).CreateInstance();
+            var result = typeof(TestSingleStringValueObject).CreateInstance();
 
             result.Should().NotBeNull();
         }
@@ -21,7 +21,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenHydrate_ThenReturnsProperties()
         {
-            var valueObject = new TestSingleValueObject("avalue");
+            var valueObject = new TestSingleStringValueObject("avalue");
             var result = valueObject.Dehydrate();
 
             result.Should().Be("avalue");
@@ -30,16 +30,16 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenDehydrate_ThenReturnsInstance()
         {
-            var valueObject = new TestSingleValueObject(null);
-            valueObject.Rehydrate("avalue");
+            var valueObject = new TestSingleStringValueObject("avalue");
+            valueObject.Rehydrate("anothervalue");
 
-            valueObject.StringValue.Should().Be("avalue");
+            valueObject.StringValue.Should().Be("anothervalue");
         }
 
         [TestMethod]
         public void WhenEqualsWithNull_ThenReturnsFalse()
         {
-            var result = new TestSingleValueObject("avalue").Equals((TestSingleValueObject) null);
+            var result = new TestSingleStringValueObject("avalue").Equals(null);
 
             Assert.IsFalse(result);
         }
@@ -47,7 +47,8 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenEqualsWithDifferentValue_ThenReturnsFalse()
         {
-            var result = new TestSingleValueObject("avalue").Equals(new TestSingleValueObject("anothervalue"));
+            var result =
+                new TestSingleStringValueObject("avalue").Equals(new TestSingleStringValueObject("anothervalue"));
 
             Assert.IsFalse(result);
         }
@@ -55,13 +56,13 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenEqualsWithSameValue_ThenReturnsTrue()
         {
-            var result = new TestSingleValueObject("avalue").Equals(new TestSingleValueObject("avalue"));
+            var result = new TestSingleStringValueObject("avalue").Equals(new TestSingleStringValueObject("avalue"));
 
             result.Should().BeTrue();
         }
 
         [TestMethod]
-        public void WhenEqualsWithDifferentValueInMultivalueObject_ThenReturnsFalse()
+        public void WhenEqualsWithDifferentValueInMultiValueObject_ThenReturnsFalse()
         {
             var result =
                 new TestMultiValueObject("avalue1", 25, true).Equals(new TestMultiValueObject("avalue2", 50, false));
@@ -70,7 +71,7 @@ namespace Domain.Interfaces.UnitTests
         }
 
         [TestMethod]
-        public void WhenEqualsWithSameValueInMultivalueObject_ThenReturnsTrue()
+        public void WhenEqualsWithSameValueInMultiValueObject_ThenReturnsTrue()
         {
             var result =
                 new TestMultiValueObject("avalue1", 25, true).Equals(new TestMultiValueObject("avalue1", 25, true));
@@ -210,28 +211,17 @@ namespace Domain.Interfaces.UnitTests
         }
     }
 
-    public class TestSingleValueObject : ValueObjectBase<TestSingleValueObject>
+    public class TestSingleStringValueObject : SingleValueObjectBase<TestSingleStringValueObject, string>
     {
-        public TestSingleValueObject(string value)
+        public TestSingleStringValueObject(string value) : base(value)
         {
-            StringValue = value;
         }
 
-        public string StringValue { get; private set; }
+        public string StringValue => Value;
 
-        public override string Dehydrate()
+        protected override string ToValue(string value)
         {
-            return StringValue;
-        }
-
-        public override void Rehydrate(string value)
-        {
-            StringValue = value;
-        }
-
-        protected override IEnumerable<object> GetAtomicValues()
-        {
-            return new[] {StringValue};
+            return value;
         }
     }
 
@@ -265,7 +255,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenHasValueAndValueIsNull_ThenReturnsFalse()
         {
-            var result = ((TestSingleValueObject) null).HasValue();
+            var result = ((TestSingleStringValueObject) null).HasValue();
 
             result.Should().BeFalse();
         }
@@ -273,7 +263,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenHasValueAndValueIsNotNull_ThenReturnsTrue()
         {
-            var result = new TestSingleValueObject("avalue").HasValue();
+            var result = new TestSingleStringValueObject("avalue").HasValue();
 
             result.Should().BeTrue();
         }

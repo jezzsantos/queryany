@@ -8,9 +8,15 @@ namespace Domain.Interfaces.UnitTests
     {
         public TestEntity(ILogger logger, IIdentifierFactory idFactory) : base(logger, idFactory)
         {
+            RaiseCreateEvent(new CreateEvent {APropertyName = "acreatedvalue"});
         }
 
         public string APropertyName { get; private set; }
+
+        public void ChangeProperty(string value)
+        {
+            RaiseChangeEvent(new ChangeEvent {APropertyName = value});
+        }
 
         public override void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
@@ -18,10 +24,20 @@ namespace Domain.Interfaces.UnitTests
             APropertyName = properties.GetValueOrDefault<string>(nameof(APropertyName));
         }
 
-        public static EntityFactory<TestEntity> GetFactory()
+        public static EntityFactory<TestEntity> Instantiate()
         {
             return (hydratingProperties, container) => new TestEntity(container.Resolve<ILogger>(),
                 new HydrationIdentifierFactory(hydratingProperties));
+        }
+
+        public class CreateEvent
+        {
+            public string APropertyName { get; set; }
+        }
+
+        public class ChangeEvent
+        {
+            public string APropertyName { get; set; }
         }
     }
 }

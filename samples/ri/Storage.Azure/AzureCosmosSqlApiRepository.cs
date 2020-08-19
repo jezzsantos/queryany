@@ -48,7 +48,7 @@ namespace Storage.Azure
 
             if (Exists(container, id))
             {
-                container.DeleteItemAsync<object>(id.ToString(), new PartitionKey(id.ToString())).GetAwaiter()
+                container.DeleteItemAsync<object>(id, new PartitionKey(id)).GetAwaiter()
                     .GetResult();
             }
         }
@@ -242,7 +242,7 @@ namespace Storage.Azure
         {
             try
             {
-                var entity = container.ReadItemAsync<object>(id.ToString(), new PartitionKey(id.ToString()))
+                var entity = container.ReadItemAsync<object>(id, new PartitionKey(id))
                     .GetAwaiter()
                     .GetResult();
 
@@ -260,7 +260,7 @@ namespace Storage.Azure
         {
             try
             {
-                var entity = container.ReadItemAsync<object>(id.ToString(), new PartitionKey(id.ToString()))
+                var entity = container.ReadItemAsync<object>(id, new PartitionKey(id))
                     .GetAwaiter()
                     .GetResult();
                 if (entity != null)
@@ -320,7 +320,7 @@ namespace Storage.Azure
                 containerEntityProperties.Add(pair.Key, value);
             }
 
-            containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id.ToString());
+            containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id);
 
             var utcNow = DateTime.UtcNow;
             if (!entity.CreatedAtUtc.HasValue())

@@ -64,7 +64,7 @@ namespace PersonsApplication
         public static Person ToPerson(this PersonEntity entity)
         {
             var dto = entity.ConvertTo<Person>();
-            dto.Id = entity.Id.ToString();
+            dto.Id = entity.Id;
             return dto;
         }
     }

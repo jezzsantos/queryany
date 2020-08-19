@@ -20,7 +20,7 @@ namespace ServiceClients
         {
             var client = new JsonServiceClient(this.baseUrl);
 
-            return client.Get(new GetPersonRequest {Id = id.ToString()}).Person;
+            return client.Get(new GetPersonRequest {Id = id}).Person;
         }
     }
 }

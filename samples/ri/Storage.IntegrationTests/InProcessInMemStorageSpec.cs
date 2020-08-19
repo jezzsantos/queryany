@@ -6,7 +6,7 @@ using Storage.Interfaces;
 
 namespace Storage.IntegrationTests
 {
-    [TestClass, TestCategory("Integration")]
+    [TestClass, TestCategory("Integration.Storage")]
     public class InProcessInMemStorageSpec : AnyStorageBaseSpec
     {
         private readonly InProcessInMemRepository repository;

@@ -452,10 +452,10 @@ instead, especially if commands change their state.
   returns a `ValueObjectFactory<ValueObjectBase<TValue>>` used for
   instantiation by persistence layers.
 
-Example of Rehydrate Method:
+Example of `Instantiate` Method:
 
 ```
-      public static ValueObjectFactory<Manufacturer> Rehydrate()
+      public static ValueObjectFactory<Manufacturer> Instantiate()
       {
           return (value, container) =>
           {
@@ -509,10 +509,10 @@ In practice:
   `EntityFactory<EntityBase<TValue>>` used for instantiation by
   persistence layers.
 
-Example of Rehydrate Method:
+Example of `Instantiate` Method:
 
 ```
-        public static EntityFactory<CarEntity> Rehydrate()
+        public static EntityFactory<CarEntity> Instantiate()
         {
             return (hydratingProperties, container) => new CarEntity(container.Resolve<ILogger>(),
                 new HydrationIdentifierFactory(hydratingProperties));
@@ -521,14 +521,14 @@ Example of Rehydrate Method:
 
 ## Aggregates
 
-These are entities which have a hierarchy of other Entities and Value
-Objects.
+These are entities which typically embed other Entities (rearely) and Value
+Objects (commonly).
 
-The top most parent is called the *aggregate root*.
+The top most parent entity is referred to as the *aggregate root*.
 
 Any action that you need to perform on child entity (or value object)
 must be performed on the aggregate root. Which means that you cannot
-access or instruct a child entity/value to do anything directly.
+access or instruct a child entity/value object to do anything directly.
 
 In practice:
 

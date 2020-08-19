@@ -7,27 +7,28 @@ namespace CarsDomain
 {
     public class LicensePlate : ValueObjectBase<LicensePlate>
     {
-        private string jurisdiction;
-        private string number;
-
         public LicensePlate(string jurisdiction, string number)
         {
             jurisdiction.GuardAgainstNullOrEmpty(nameof(number));
             number.GuardAgainstNullOrEmpty(nameof(number));
             jurisdiction.GuardAgainstInvalid(Validations.Car.Jurisdiction, nameof(jurisdiction));
             number.GuardAgainstInvalid(Validations.Car.Number, nameof(number));
-            this.jurisdiction = jurisdiction;
-            this.number = number;
+            Jurisdiction = jurisdiction;
+            Number = number;
         }
+
+        public string Jurisdiction { get; private set; }
+
+        public string Number { get; private set; }
 
         public override void Rehydrate(string value)
         {
             var parts = RehydrateToList(value);
-            this.jurisdiction = parts[0];
-            this.number = parts[1];
+            Jurisdiction = parts[0];
+            Number = parts[1];
         }
 
-        public static ValueObjectFactory<LicensePlate> Rehydrate()
+        public static ValueObjectFactory<LicensePlate> Instantiate()
         {
             return (property, container) =>
             {
@@ -38,7 +39,7 @@ namespace CarsDomain
 
         protected override IEnumerable<object> GetAtomicValues()
         {
-            return new[] {this.jurisdiction, this.number};
+            return new[] {Jurisdiction, Number};
         }
     }
 }

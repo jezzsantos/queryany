@@ -13,7 +13,7 @@ namespace CarsDomain
     {
         public CarEntity(ILogger logger, IIdentifierFactory idFactory) : base(logger, idFactory)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            RaiseCreateEvent(CarsDomain.Events.Car.Created.Create(Id));
         }
 
         public Manufacturer Manufacturer { get; private set; }
@@ -51,6 +51,9 @@ namespace CarsDomain
         public void SetManufacturer(int year, string make, string model)
         {
             Manufacturer = new Manufacturer(year, make, model);
+
+            Logger.LogDebug("Car {Id} changed manufacturer to {Year}, {Make}, {Model}", Id, year, make, model);
+            RaiseChangeEvent(CarsDomain.Events.Car.ManufacturerChanged.Create(Id, Manufacturer));
         }
 
         public void SetOwnership(CarOwner owner)
@@ -58,11 +61,17 @@ namespace CarsDomain
             Owner = new VehicleOwner(owner);
             Managers = new VehicleManagers();
             Managers.Add(owner.Id.ToIdentifier());
+
+            Logger.LogDebug("Car {Id} changed ownership to {Owner}", Id, Owner);
+            RaiseChangeEvent(CarsDomain.Events.Car.OwnershipChanged.Create(Id, Owner, Managers));
         }
 
         public void Register(string jurisdiction, string number)
         {
             Plate = new LicensePlate(jurisdiction, number);
+
+            Logger.LogDebug("Car {Id} registration changed to {Jurisdiction}, {Number}", Id, jurisdiction, number);
+            RaiseChangeEvent(CarsDomain.Events.Car.RegistrationChanged.Create(Id, Plate));
         }
 
         public void Occupy(DateTime untilUtc)
@@ -73,10 +82,12 @@ namespace CarsDomain
             }
 
             OccupiedUntilUtc = untilUtc;
-            Logger.LogDebug("Car was occupied until {Until}", untilUtc);
+
+            Logger.LogDebug("Car {Id} was occupied until {Until}", Id, untilUtc);
+            RaiseChangeEvent(CarsDomain.Events.Car.OccupancyChanged.Create(Id, untilUtc));
         }
 
-        public static EntityFactory<CarEntity> Rehydrate()
+        public static EntityFactory<CarEntity> Instantiate()
         {
             return (hydratingProperties, container) => new CarEntity(container.Resolve<ILogger>(),
                 new HydrationIdentifierFactory(hydratingProperties));

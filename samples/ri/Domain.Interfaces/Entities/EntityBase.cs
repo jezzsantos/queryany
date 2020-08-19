@@ -10,8 +10,11 @@ namespace Domain.Interfaces.Entities
     ///     Entities are equal when their identities are equal.
     ///     Entities support being persisted
     /// </summary>
-    public abstract class EntityBase : IPersistableEntity
+    public abstract class EntityBase : IPersistableEntity, IPublishingEntity
     {
+        public const string EventsPropertyName = "Events";
+        private readonly bool isInstantiating;
+
         protected EntityBase(ILogger logger, IIdentifierFactory idFactory)
         {
             logger.GuardAgainstNull(nameof(logger));
@@ -23,10 +26,14 @@ namespace Domain.Interfaces.Entities
             CreatedAtUtc = now;
             LastModifiedAtUtc = now;
             Id = idFactory.Create(this);
+            this.isInstantiating = !(idFactory is HydrationIdentifierFactory);
+            Events = new List<object>();
         }
 
         protected ILogger Logger { get; }
 
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
+        // ReSharper disable once MemberCanBePrivate.Global
         protected IIdentifierFactory IdFactory { get; }
 
         public DateTime CreatedAtUtc { get; private set; }
@@ -41,7 +48,8 @@ namespace Domain.Interfaces.Entities
             {
                 {nameof(Id), Id},
                 {nameof(CreatedAtUtc), CreatedAtUtc},
-                {nameof(LastModifiedAtUtc), LastModifiedAtUtc}
+                {nameof(LastModifiedAtUtc), LastModifiedAtUtc},
+                {EventsPropertyName, Events}
             };
         }
 
@@ -53,6 +61,32 @@ namespace Domain.Interfaces.Entities
                 : null;
             CreatedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(CreatedAtUtc));
             LastModifiedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(LastModifiedAtUtc));
+            Events = properties.GetValueOrDefault<List<object>>(EventsPropertyName);
+        }
+
+        public List<object> Events { get; private set; }
+
+        public void ClearEvents()
+        {
+            Events.Clear();
+        }
+
+        void IPublishingEntity.RaiseEvent(object @event)
+        {
+            Events.Add(@event);
+        }
+
+        protected void RaiseCreateEvent(object @event)
+        {
+            if (this.isInstantiating)
+            {
+                ((IPublishingEntity) this).RaiseEvent(@event);
+            }
+        }
+
+        protected void RaiseChangeEvent(object @event)
+        {
+            ((IPublishingEntity) this).RaiseEvent(@event);
         }
 
         public sealed override bool Equals(object obj)

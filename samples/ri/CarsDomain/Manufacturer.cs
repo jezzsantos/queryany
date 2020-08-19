@@ -50,7 +50,7 @@ namespace CarsDomain
             }
         }
 
-        public static ValueObjectFactory<Manufacturer> Rehydrate()
+        public static ValueObjectFactory<Manufacturer> Instantiate()
         {
             return (value, container) =>
             {

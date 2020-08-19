@@ -1,36 +1,22 @@
-﻿using System.Collections.Generic;
-using QueryAny.Primitives;
+﻿using QueryAny.Primitives;
 
 namespace Domain.Interfaces.Entities
 {
-    public class Identifier : ValueObjectBase<Identifier>
+    public class Identifier : SingleValueObjectBase<Identifier, string>
     {
-        private string identifier;
-
-        private Identifier(string identifier)
+        private Identifier(string identifier) : base(identifier)
         {
             identifier.GuardAgainstNullOrEmpty(nameof(identifier));
-            this.identifier = identifier;
-        }
-
-        public override string Dehydrate()
-        {
-            return this.identifier;
-        }
-
-        public override void Rehydrate(string value)
-        {
-            this.identifier = value;
-        }
-
-        protected override IEnumerable<object> GetAtomicValues()
-        {
-            return new[] {this.identifier};
         }
 
         public static Identifier Create(string value)
         {
             return new Identifier(value);
+        }
+
+        protected override string ToValue(string value)
+        {
+            return value;
         }
     }
 

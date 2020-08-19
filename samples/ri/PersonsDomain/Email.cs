@@ -1,35 +1,25 @@
-﻿using System.Collections.Generic;
-using Domain.Interfaces;
+﻿using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using QueryAny.Primitives;
 
 namespace PersonsDomain
 {
-    public class Email : ValueObjectBase<Email>
+    public class Email : SingleValueObjectBase<Email, string>
     {
-        private string emailAddress;
-
-        public Email(string emailAddress)
+        public Email(string emailAddress) : base(emailAddress)
         {
             emailAddress.GuardAgainstNullOrEmpty(nameof(emailAddress));
             emailAddress.GuardAgainstInvalid(Validations.Person.Email, nameof(emailAddress));
-
-            this.emailAddress = emailAddress;
         }
 
-        public override void Rehydrate(string value)
+        protected override string ToValue(string value)
         {
-            this.emailAddress = value;
+            return value;
         }
 
-        public static ValueObjectFactory<Email> Rehydrate()
+        public static ValueObjectFactory<Email> Instantiate()
         {
             return (property, container) => new Email(property);
-        }
-
-        protected override IEnumerable<object> GetAtomicValues()
-        {
-            return new[] {this.emailAddress};
         }
     }
 }

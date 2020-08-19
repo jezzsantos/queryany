@@ -61,15 +61,6 @@ namespace Domain.Interfaces.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The entity already has an Identifier, and cannot be changed.
-        /// </summary>
-        public static string EntityBase_IdentifierExists {
-            get {
-                return ResourceManager.GetString("EntityBase_IdentifierExists", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Access to the resource is forbidden to the current user.
         /// </summary>
         public static string ForbiddenException_Message {
@@ -120,6 +111,15 @@ namespace Domain.Interfaces.Properties {
         public static string RuleViolationException_Message {
             get {
                 return ResourceManager.GetString("RuleViolationException_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The hydrating properties do not contain an Identifier property with a non null value
+        /// </summary>
+        public static string HydrationIdentifierFactory_InvalidId {
+            get {
+                return ResourceManager.GetString("HydrationIdentifierFactory_InvalidId", resourceCulture);
             }
         }
     }

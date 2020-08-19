@@ -124,7 +124,7 @@ namespace Api.Common.UnitTests
             APropertyValue = properties.GetValueOrDefault<string>(nameof(APropertyValue));
         }
 
-        public static EntityFactory<TestEntity> Rehydrate()
+        public static EntityFactory<TestEntity> Instantiate()
         {
             return (hydratingProperties, container) =>
                 new TestEntity(container.Resolve<ILogger>(), container.Resolve<IIdentifierFactory>());
@@ -151,7 +151,7 @@ namespace Api.Common.UnitTests
             return new[] {APropertyValue};
         }
 
-        public static ValueObjectFactory<TestValueObject> Rehydrate()
+        public static ValueObjectFactory<TestValueObject> Instantiate()
         {
             return (hydratingProperty, container) => new TestValueObject(container.Resolve<ILogger>());
         }

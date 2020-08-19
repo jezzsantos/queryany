@@ -1,33 +1,24 @@
-﻿using System.Collections.Generic;
-using Domain.Interfaces.Entities;
+﻿using Domain.Interfaces.Entities;
 using Domain.Interfaces.Resources;
 using QueryAny.Primitives;
 
 namespace CarsDomain
 {
-    public class VehicleOwner : ValueObjectBase<VehicleOwner>
+    public class VehicleOwner : SingleValueObjectBase<VehicleOwner, string>
     {
-        public VehicleOwner(CarOwner owner)
+        public VehicleOwner(CarOwner owner) : base(owner.Id)
         {
             owner.GuardAgainstNull(nameof(owner));
-            Owner = owner.Id.ToIdentifier();
         }
 
-        public Identifier Owner { get; private set; }
-
-        public override void Rehydrate(string value)
-        {
-            Owner = value?.ToIdentifier();
-        }
-
-        public static ValueObjectFactory<VehicleOwner> Rehydrate()
+        public static ValueObjectFactory<VehicleOwner> Instantiate()
         {
             return (property, container) => new VehicleOwner(new CarOwner {Id = property});
         }
 
-        protected override IEnumerable<object> GetAtomicValues()
+        protected override string ToValue(string value)
         {
-            return new[] {Owner};
+            return value;
         }
     }
 }

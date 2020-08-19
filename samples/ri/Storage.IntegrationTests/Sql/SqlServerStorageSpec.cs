@@ -9,7 +9,7 @@ using Storage.Sql;
 
 namespace Storage.IntegrationTests.Sql
 {
-    [TestClass, TestCategory("Integration")]
+    [TestClass, TestCategory("Integration.Storage")]
     public class SqlServerStorageSpec : SqlServerStorageBaseSpec
     {
         private static SqlServerRepository repository;

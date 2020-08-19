@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Api.Common\Api.Common.csproj" />
     <ProjectReference Include="..\Domain.Interfaces\Domain.Interfaces.csproj" />
   </ItemGroup>
 
