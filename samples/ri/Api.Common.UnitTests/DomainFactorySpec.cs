@@ -124,6 +124,11 @@ namespace Api.Common.UnitTests
             APropertyValue = properties.GetValueOrDefault<string>(nameof(APropertyValue));
         }
 
+        protected override void When(object @event)
+        {
+            throw new NotImplementedException();
+        }
+
         public static EntityFactory<TestEntity> Instantiate()
         {
             return (hydratingProperties, container) =>

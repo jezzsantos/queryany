@@ -24,6 +24,11 @@ namespace Domain.Interfaces.UnitTests
             APropertyName = properties.GetValueOrDefault<string>(nameof(APropertyName));
         }
 
+        protected override void When(object @event)
+        {
+            //Not used in testing
+        }
+
         public static EntityFactory<TestEntity> Instantiate()
         {
             return (hydratingProperties, container) => new TestEntity(container.Resolve<ILogger>(),

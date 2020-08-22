@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
-using QueryAny.Primitives;
 
 namespace PersonsDomain
 {
@@ -9,8 +9,7 @@ namespace PersonsDomain
     {
         public PersonEntity(ILogger logger, IIdentifierFactory idFactory, PersonName name) : base(logger, idFactory)
         {
-            name.GuardAgainstNull(nameof(name));
-            Name = name;
+            RaiseCreateEvent(PersonsDomain.Events.Person.Created.Create(Id, name));
         }
 
         public PersonName Name { get; private set; }
@@ -21,14 +20,33 @@ namespace PersonsDomain
 
         public void SetEmail(Email email)
         {
-            email.GuardAgainstNull(nameof(email));
-            Email = email;
+            RaiseChangeEvent(PersonsDomain.Events.Person.EmailChanged.Create(Id, email));
         }
 
         public void SetPhoneNumber(PhoneNumber number)
         {
-            number.GuardAgainstNull(nameof(number));
-            Phone = number;
+            RaiseChangeEvent(PersonsDomain.Events.Person.PhoneNumberChanged.Create(Id, number));
+        }
+
+        protected override void When(object @event)
+        {
+            switch (@event)
+            {
+                case Events.Person.Created created:
+                    Name = new PersonName(created.FirstName, created.LastName);
+                    break;
+
+                case Events.Person.EmailChanged changed:
+                    Email = new Email(changed.EmailAddress);
+                    break;
+
+                case Events.Person.PhoneNumberChanged changed:
+                    Phone = new PhoneNumber(changed.Number);
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unknown event {@event.GetType()}");
+            }
         }
 
         public override Dictionary<string, object> Dehydrate()

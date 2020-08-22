@@ -73,7 +73,21 @@ namespace Domain.Interfaces.Entities
 
         void IPublishingEntity.RaiseEvent(object @event)
         {
+            When(@event);
+            var isValid = EnsureValidState();
+            if (!isValid)
+            {
+                throw new RuleViolationException($"The entity with {Id} is in an invalid state.");
+            }
+
             Events.Add(@event);
+        }
+
+        protected abstract void When(object @event);
+
+        protected virtual bool EnsureValidState()
+        {
+            return Id.HasValue();
         }
 
         protected void RaiseCreateEvent(object @event)

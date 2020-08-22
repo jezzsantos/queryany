@@ -50,44 +50,90 @@ namespace CarsDomain
             Plate = properties.GetValueOrDefault<LicensePlate>(nameof(Plate));
         }
 
-        public void SetManufacturer(int year, string make, string model)
+        protected override void When(object @event)
         {
-            Manufacturer = new Manufacturer(year, make, model);
+            switch (@event)
+            {
+                case Events.Car.Created _:
+                    break;
 
-            Logger.LogDebug("Car {Id} changed manufacturer to {Year}, {Make}, {Model}", Id, year, make, model);
-            RaiseChangeEvent(CarsDomain.Events.Car.ManufacturerChanged.Create(Id, Manufacturer));
+                case Events.Car.ManufacturerChanged changed:
+                    Manufacturer = new Manufacturer(changed.Year, changed.Make, changed.Model);
+                    Logger.LogDebug("Car {Id} changed manufacturer to {Year}, {Make}, {Model}", Id, changed.Year,
+                        changed.Make, changed.Model);
+                    break;
+
+                case Events.Car.OwnershipChanged changed:
+                    Owner = new VehicleOwner(changed.Owner);
+                    Managers = new VehicleManagers();
+                    Managers.Add(changed.Owner.ToIdentifier());
+
+                    Logger.LogDebug("Car {Id} changed ownership to {Owner}", Id, Owner);
+                    break;
+
+                case Events.Car.RegistrationChanged changed:
+                    Plate = new LicensePlate(changed.Jurisdiction, changed.Number);
+
+                    Logger.LogDebug("Car {Id} registration changed to {Jurisdiction}, {Number}", Id,
+                        changed.Jurisdiction, changed.Number);
+                    break;
+
+                case Events.Car.OccupancyChanged changed:
+                    if (!changed.UntilUtc.HasValue())
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(changed.UntilUtc));
+                    }
+
+                    OccupiedUntilUtc = changed.UntilUtc;
+                    Logger.LogDebug("Car {Id} was occupied until {Until}", Id, changed.UntilUtc);
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unknown event {@event.GetType()}");
+            }
+        }
+
+        public void SetManufacturer(Manufacturer manufacturer)
+        {
+            RaiseChangeEvent(CarsDomain.Events.Car.ManufacturerChanged.Create(Id, manufacturer));
         }
 
         public void SetOwnership(CarOwner owner)
         {
-            Owner = new VehicleOwner(owner);
-            Managers = new VehicleManagers();
-            Managers.Add(owner.Id.ToIdentifier());
-
-            Logger.LogDebug("Car {Id} changed ownership to {Owner}", Id, Owner);
-            RaiseChangeEvent(CarsDomain.Events.Car.OwnershipChanged.Create(Id, Owner, Managers));
-        }
-
-        public void Register(string jurisdiction, string number)
-        {
             RaiseChangeEvent(CarsDomain.Events.Car.OwnershipChanged.Create(Id, owner));
         }
 
-            Logger.LogDebug("Car {Id} registration changed to {Jurisdiction}, {Number}", Id, jurisdiction, number);
-            RaiseChangeEvent(CarsDomain.Events.Car.RegistrationChanged.Create(Id, Plate));
+        public void Register(LicensePlate plate)
+        {
+            RaiseChangeEvent(CarsDomain.Events.Car.RegistrationChanged.Create(Id, plate));
         }
 
         public void Occupy(DateTime untilUtc)
         {
-            if (!untilUtc.HasValue())
+            RaiseChangeEvent(CarsDomain.Events.Car.OccupancyChanged.Create(Id, untilUtc));
+        }
+
+        protected override bool EnsureValidState()
+        {
+            var isValid = base.EnsureValidState();
+
+            if (OccupiedUntilUtc.HasValue())
             {
-                throw new ArgumentOutOfRangeException(nameof(untilUtc));
+                if (!Manufacturer.HasValue())
+                {
+                    throw new RuleViolationException(Resources.CarEntity_NotManufactured);
+                }
+                if (!Owner.HasValue())
+                {
+                    throw new RuleViolationException(Resources.CarEntity_NotOwned);
+                }
+                if (!Plate.HasValue())
+                {
+                    throw new RuleViolationException(Resources.CarEntity_NotRegistered);
+                }
             }
 
-            OccupiedUntilUtc = untilUtc;
-
-            Logger.LogDebug("Car {Id} was occupied until {Until}", Id, untilUtc);
-            RaiseChangeEvent(CarsDomain.Events.Car.OccupancyChanged.Create(Id, untilUtc));
+            return isValid;
         }
 
         public static EntityFactory<CarEntity> Instantiate()
