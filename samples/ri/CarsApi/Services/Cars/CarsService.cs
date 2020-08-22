@@ -39,6 +39,15 @@ namespace CarsApi.Services.Cars
             };
         }
 
+        public RegisterCarResponse Put(RegisterCarRequest request)
+        {
+            return new RegisterCarResponse
+            {
+                Car = this.carsApplication.Register(Request.ToCaller(), request.Id, request.Jurisdiction,
+                    request.Number)
+            };
+        }
+
         public OccupyCarResponse Put(OccupyCarRequest request)
         {
             return new OccupyCarResponse

@@ -70,6 +70,26 @@ namespace CarsApplication
             return updated.ToCar();
         }
 
+        public Car Register(ICurrentCaller caller, string id, string jurisdiction, string number)
+        {
+            caller.GuardAgainstNull(nameof(caller));
+            id.GuardAgainstNullOrEmpty(nameof(id));
+
+            var car = this.storage.Get(id.ToIdentifier());
+            if (id == null)
+            {
+                throw new ResourceNotFoundException();
+            }
+
+            var plate = new LicensePlate(jurisdiction, number);
+            car.Register(plate);
+            var updated = this.storage.Update(car);
+
+            this.logger.LogInformation("Car {Id} was registered with plate {Plate}, by {Caller}", id, plate, caller.Id);
+
+            return updated.ToCar();
+        }
+
         public SearchResults<Car> SearchAvailable(ICurrentCaller caller, SearchOptions searchOptions,
             GetOptions getOptions)
         {

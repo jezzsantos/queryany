@@ -97,10 +97,16 @@ namespace CarsApi.IntegrationTests
                 Make = Manufacturer.Makes[0],
                 Model = Manufacturer.Models[0]
             }).Car;
+            client.Put(new RegisterCarRequest
+            {
+                Id = car.Id,
+                Jurisdiction = "New Zealand",
+                Number = "ABC123"
+            });
             client.Put(new OccupyCarRequest
             {
                 Id = car.Id,
-                UntilUtc = DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(1))
+                UntilUtc = DateTime.UtcNow.Add(TimeSpan.FromMinutes(1))
             });
 
             var cars = client.Get(new SearchAvailableCarsRequest());

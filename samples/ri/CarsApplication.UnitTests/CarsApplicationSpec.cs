@@ -69,6 +69,25 @@ namespace CarsApplication.UnitTests
         }
 
         [TestMethod]
+        public void WhenRegister_ThenRegistersCar()
+        {
+            var entity = new CarEntity(this.logger.Object, this.idFactory.Object);
+            this.storage.Setup(s => s.Get(It.Is<Identifier>(i => i == "acarid")))
+                .Returns(entity);
+            this.storage.Setup(s =>
+                    s.Update(It.Is<CarEntity>(
+                        e => e.Plate == new LicensePlate(LicensePlate.Jurisdictions[0], "anumber"))))
+                .Returns(entity);
+
+            var result =
+                this.carsApplication.Register(this.caller.Object, "acarid", LicensePlate.Jurisdictions[0], "anumber");
+
+            result.Plate.Should().BeEquivalentTo(new CarLicensePlate
+                {Jurisdiction = LicensePlate.Jurisdictions[0], Number = "anumber"});
+            result.Should().NotBeNull();
+        }
+
+        [TestMethod]
         public void WhenOccupy_ThenOccupiesAndReturnsCar()
         {
             var untilUtc = DateTime.UtcNow;

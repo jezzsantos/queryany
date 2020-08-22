@@ -38,7 +38,7 @@ namespace CarsStorage
         public List<CarEntity> SearchAvailable(SearchOptions options)
         {
             var query = Query.From<CarEntity>()
-                .Where(e => e.OccupiedUntilUtc, ConditionOperator.LessThan, DateTime.UtcNow)
+                .Where(e => e.OccupiedUntilUtc, ConditionOperator.GreaterThan, DateTime.UtcNow)
                 .WithSearchOptions(options);
 
             return this.storage.Query(query)

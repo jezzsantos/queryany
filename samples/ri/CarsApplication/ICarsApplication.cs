@@ -10,6 +10,8 @@ namespace CarsApplication
 
         SearchResults<Car> SearchAvailable(ICurrentCaller caller, SearchOptions searchOptions, GetOptions getOptions);
 
-        Car Occupy(ICurrentCaller caller, string id, in DateTime untilUtc);
+        Car Occupy(ICurrentCaller caller, string id, DateTime untilUtc);
+
+        Car Register(ICurrentCaller caller, string id, string jurisdiction, string number);
     }
 }
