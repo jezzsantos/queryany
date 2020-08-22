@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace PersonsApi.Properties {
+namespace CarsDomain.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace PersonsApi.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("PersonsApi.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CarsDomain.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,29 +61,29 @@ namespace PersonsApi.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Id of the resource is not a valid identifier.
+        ///   Looks up a localized string similar to The manufacturer details for the car have not yet been defined.
         /// </summary>
-        internal static string AnyValidator_InvalidId {
+        internal static string CarEntity_NotManufactured {
             get {
-                return ResourceManager.GetString("AnyValidator_InvalidId", resourceCulture);
+                return ResourceManager.GetString("CarEntity_NotManufactured", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The FirstName of the person is invalid.
+        ///   Looks up a localized string similar to The ownership of the car is not yet been defined.
         /// </summary>
-        internal static string CreatePersonRequestValidator_InvalidFirstName {
+        internal static string CarEntity_NotOwned {
             get {
-                return ResourceManager.GetString("CreatePersonRequestValidator_InvalidFirstName", resourceCulture);
+                return ResourceManager.GetString("CarEntity_NotOwned", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The LastName of the person is invalid.
+        ///   Looks up a localized string similar to The registration for the car is not yet been defined.
         /// </summary>
-        internal static string CreatePersonRequestValidator_InvalidLastName {
+        internal static string CarEntity_NotRegistered {
             get {
-                return ResourceManager.GetString("CreatePersonRequestValidator_InvalidLastName", resourceCulture);
+                return ResourceManager.GetString("CarEntity_NotRegistered", resourceCulture);
             }
         }
     }

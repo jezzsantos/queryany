@@ -30,7 +30,7 @@ public static class ExceptionAssertionExtensions
         return new ExceptionAssertions<TException>(@throw.Subject);
     }
 
-    private static bool IsFormattedFrom(string actualExceptionMessage, string expectedMessageWithFormatters)
+    public static bool IsFormattedFrom(string actualExceptionMessage, string expectedMessageWithFormatters)
     {
         var escapedPattern = expectedMessageWithFormatters
             .Replace("[", "\\[")

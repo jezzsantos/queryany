@@ -18,6 +18,8 @@ namespace PersonsDomain.UnitTests
         {
             this.logger = new Mock<ILogger>();
             this.identifierFactory = new Mock<IIdentifierFactory>();
+            this.identifierFactory.Setup(f => f.Create(It.IsAny<IIdentifiableEntity>()))
+                .Returns("apersonid".ToIdentifier);
             this.entity = new PersonEntity(this.logger.Object, this.identifierFactory.Object,
                 new PersonName("afirstname", "alastname"));
         }

@@ -72,14 +72,18 @@ namespace CarsApplication.UnitTests
         public void WhenOccupy_ThenOccupiesAndReturnsCar()
         {
             var untilUtc = DateTime.UtcNow;
+            var entity = new CarEntity(this.logger.Object, this.idFactory.Object);
+            entity.SetManufacturer(new Manufacturer(2010, Manufacturer.Makes[0], Manufacturer.Models[0]));
+            entity.SetOwnership(new CarOwner {Id = "anownerid"});
+            entity.Register(new LicensePlate(LicensePlate.Jurisdictions[0], "anumber"));
             this.storage.Setup(s => s.Get(It.Is<Identifier>(i => i == "acarid")))
-                .Returns(new CarEntity(this.logger.Object, this.idFactory.Object));
+                .Returns(entity);
             this.storage.Setup(s => s.Update(It.Is<CarEntity>(e => e.OccupiedUntilUtc == untilUtc)))
-                .Returns(new CarEntity(this.logger.Object, this.idFactory.Object));
+                .Returns(entity);
 
             var result = this.carsApplication.Occupy(this.caller.Object, "acarid", untilUtc);
 
-            result.Should().NotBeNull();
+            result.OccupiedUntilUtc.Should().Be(untilUtc);
         }
 
         [TestMethod]

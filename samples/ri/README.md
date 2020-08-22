@@ -646,27 +646,6 @@ hard to design for most developers.
 
 > Note: Again, this is one strategy, there are many.
 
-# Local Development and Manual Testing
-
-1. First:
-   [Getting Started](https://github.com/jezzsantos/queryany/wiki/Getting-Started)
-   for details on what you need installed on your machine.
-2. Start the `CarsApi` and `PersonsApi` project locally with F5. (A
-   browser should open to API documentation site for both sites).
-3. You will need to start the Azure CosmosDB emulator on your machine
-   (from the Start Menu).
-4. Ensure that you have manually created a new CosmosDB database called:
-   "Production".
-
-To manually test everything is working, or debug the code:
-
-1. Navigate to:
-   [GET https://localhost:5001/cars/available](https://localhost:5001/cars/available)
-   (you should get an empty array of cars in response)
-2. Using a tool like PostMan or other REST client, create a new car by
-   calling: `POST /cars` with a JSON body like this: `{"Year":
-   2020,"Make": "Honda","Model": "Civic"}`
-
 # Automated Testing
 
 1. First:
@@ -681,3 +660,23 @@ To manually test everything is working, or debug the code:
 > Administrator, and therefore cant start/stop those local services.
 > Refer to step 1 above.
 
+# Local Development, Debugging and Manual Testing
+
+1. First:
+   [Getting Started](https://github.com/jezzsantos/queryany/wiki/Getting-Started)
+   for details on what you need installed on your machine.
+1. You will need to start the Azure CosmosDB emulator on your machine
+   (from the Start Menu).
+1. Ensure that you have manually created a new CosmosDB database called:
+   `Production`.
+1. Start the `CarsApi` and `PersonsApi` projects locally with F5. (A
+   browser should open to API documentation site for both sites).
+
+To manually test everything is working, or debug the code:
+
+1. Navigate to:
+   [GET https://localhost:5001/cars/available](https://localhost:5001/cars/available)
+   (you should get an empty array of cars in response)
+1. Using a tool like PostMan or other REST client, create a new car by
+   calling: `POST /cars` with a JSON body like this: `{"Year":
+   2020,"Make": "Honda","Model": "Civic"}`

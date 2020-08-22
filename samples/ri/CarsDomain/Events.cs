@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Domain.Interfaces.Entities;
+using Domain.Interfaces.Resources;
 
 namespace CarsDomain
 {
@@ -60,13 +60,13 @@ namespace CarsDomain
 
                 public List<string> Managers { get; set; }
 
-                public static OwnershipChanged Create(Identifier id, VehicleOwner owner, VehicleManagers managers)
+                public static OwnershipChanged Create(Identifier id, CarOwner owner)
                 {
                     return new OwnershipChanged
                     {
                         Id = id,
-                        Owner = owner,
-                        Managers = managers.Managers.Select(x => (string) x).ToList(),
+                        Owner = owner.Id,
+                        Managers = new List<string> {owner.Id},
                         ModifiedUtc = DateTime.UtcNow
                     };
                 }

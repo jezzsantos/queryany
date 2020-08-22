@@ -7,11 +7,13 @@ namespace CarsDomain
 {
     public class LicensePlate : ValueObjectBase<LicensePlate>
     {
+        public static readonly List<string> Jurisdictions = new List<string> {"New Zealand", "Australia"};
+
         public LicensePlate(string jurisdiction, string number)
         {
             jurisdiction.GuardAgainstNullOrEmpty(nameof(number));
             number.GuardAgainstNullOrEmpty(nameof(number));
-            jurisdiction.GuardAgainstInvalid(Validations.Car.Jurisdiction, nameof(jurisdiction));
+            jurisdiction.GuardAgainstInvalid(val => Jurisdictions.Contains(val), nameof(jurisdiction));
             number.GuardAgainstInvalid(Validations.Car.Number, nameof(number));
             Jurisdiction = jurisdiction;
             Number = number;

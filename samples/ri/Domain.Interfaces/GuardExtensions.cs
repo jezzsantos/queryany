@@ -10,8 +10,20 @@ namespace Domain.Interfaces
             format.GuardAgainstNull(nameof(format));
             parameterName.GuardAgainstNullOrEmpty(nameof(parameterName));
 
-            var match = format.IsMatchedWith(value);
-            if (!match)
+            var isMatch = format.IsMatchedWith(value);
+            if (!isMatch)
+            {
+                throw new ArgumentOutOfRangeException(parameterName);
+            }
+        }
+
+        public static void GuardAgainstInvalid(this string value, Func<string, bool> validator, string parameterName)
+        {
+            validator.GuardAgainstNull(nameof(validator));
+            parameterName.GuardAgainstNullOrEmpty(nameof(parameterName));
+
+            var isValid = validator(value);
+            if (!isValid)
             {
                 throw new ArgumentOutOfRangeException(parameterName);
             }

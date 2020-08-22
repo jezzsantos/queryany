@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using CarsDomain.Properties;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Domain.Interfaces.Resources;
 using Microsoft.Extensions.Logging;
@@ -68,7 +70,8 @@ namespace CarsDomain
 
         public void Register(string jurisdiction, string number)
         {
-            Plate = new LicensePlate(jurisdiction, number);
+            RaiseChangeEvent(CarsDomain.Events.Car.OwnershipChanged.Create(Id, owner));
+        }
 
             Logger.LogDebug("Car {Id} registration changed to {Jurisdiction}, {Number}", Id, jurisdiction, number);
             RaiseChangeEvent(CarsDomain.Events.Car.RegistrationChanged.Create(Id, Plate));

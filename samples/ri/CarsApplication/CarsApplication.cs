@@ -42,7 +42,7 @@ namespace CarsApplication
 
             var car = new CarEntity(this.logger, this.idFactory);
             car.SetOwnership(owner);
-            car.SetManufacturer(year, make, model);
+            car.SetManufacturer(new Manufacturer(year, make, model));
 
             var created = this.storage.Create(car);
 
@@ -51,7 +51,7 @@ namespace CarsApplication
             return created.ToCar();
         }
 
-        public Car Occupy(ICurrentCaller caller, string id, in DateTime untilUtc)
+        public Car Occupy(ICurrentCaller caller, string id, DateTime untilUtc)
         {
             caller.GuardAgainstNull(nameof(caller));
             id.GuardAgainstNullOrEmpty(nameof(id));

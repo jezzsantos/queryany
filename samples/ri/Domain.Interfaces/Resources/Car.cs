@@ -7,6 +7,8 @@ namespace Domain.Interfaces.Resources
     {
         public CarManufacturer Manufacturer { get; set; }
 
+        public CarLicensePlate Plate { get; set; }
+
         public DateTime OccupiedUntilUtc { get; set; }
 
         public CarOwner Owner { get; set; }
@@ -24,6 +26,13 @@ namespace Domain.Interfaces.Resources
     public class CarOwner
     {
         public string Id { get; set; }
+    }
+
+    public class CarLicensePlate
+    {
+        public string Jurisdiction { get; set; }
+
+        public string Number { get; set; }
     }
 
     public class CarManufacturer

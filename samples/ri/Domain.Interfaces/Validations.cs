@@ -24,7 +24,7 @@ namespace Domain.Interfaces
             return false;
         }
 
-        public static ValidationFormat DescriptiveName(int min = 1, int max = 100)
+        private static ValidationFormat DescriptiveName(int min = 1, int max = 100)
         {
             return
                 new ValidationFormat(@"^[\d\w\`\#\(\)\-\'\,\.\/ ]{{{0},{1}}}$".Format(min,
@@ -37,9 +37,9 @@ namespace Domain.Interfaces
                 new ValidationFormat(
                     @"^(?:[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+\.)*[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+@(?:(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!\.)){0,61}[a-zA-Z0-9]?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!$)){0,61}[a-zA-Z0-9]?)|(?:\[(?:(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\.){3}(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\]))$");
 
-            public static ValidationFormat Name = DescriptiveName();
+            public static readonly ValidationFormat Name = DescriptiveName();
 
-            public static ValidationFormat PhoneNumber = new ValidationFormat(value =>
+            public static readonly ValidationFormat PhoneNumber = new ValidationFormat(value =>
             {
                 if (!value.HasValue())
                 {
@@ -66,8 +66,8 @@ namespace Domain.Interfaces
 
         public static class Car
         {
-            public static ValidationFormat Jurisdiction = new ValidationFormat(@"^[\d\w\-\. ]{1,50}$", 1, 50);
-            public static ValidationFormat Number = new ValidationFormat(@"^[\d\w ]{1,15}$", 1, 15);
+            public static readonly ValidationFormat Jurisdiction = new ValidationFormat(@"^[\d\w\-\. ]{1,50}$", 1, 50);
+            public static readonly ValidationFormat Number = new ValidationFormat(@"^[\d\w ]{1,15}$", 1, 15);
         }
     }
 
@@ -87,20 +87,22 @@ namespace Domain.Interfaces
             Function = predicate;
         }
 
-        public Func<string, bool> Function { get; set; }
+        public Func<string, bool> Function { get; }
 
         public string Expression { get; }
 
-        public int MaxLength { get; }
+        // ReSharper disable once UnusedAutoPropertyAccessor.Local
+        private int MaxLength { get; }
 
-        public int MinLength { get; }
+        // ReSharper disable once UnusedAutoPropertyAccessor.Local
+        private int MinLength { get; }
 
-        public IEnumerable<string> Substitutions { get; }
+        private IEnumerable<string> Substitutions { get; }
 
         /// <summary>
         ///     Substitutes the given name/values into the expression.
         /// </summary>
-        public string Substitute(IDictionary<string, string> values)
+        private string Substitute(IDictionary<string, string> values)
         {
             values.GuardAgainstNull(nameof(values));
 

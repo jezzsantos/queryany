@@ -22,7 +22,7 @@ namespace CarsApi.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Resources {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace CarsApi.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CarsApi.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace CarsApi.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace CarsApi.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The Id of the resource is not a valid identifier.
         /// </summary>
-        public static string AnyValidator_InvalidId {
+        internal static string AnyValidator_InvalidId {
             get {
                 return ResourceManager.GetString("AnyValidator_InvalidId", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace CarsApi.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The Make of the car can only be {0}.
         /// </summary>
-        public static string CreateCarRequestValidator_InvalidMake {
+        internal static string CreateCarRequestValidator_InvalidMake {
             get {
                 return ResourceManager.GetString("CreateCarRequestValidator_InvalidMake", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace CarsApi.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The Manufacturer of the car must be {0}.
         /// </summary>
-        public static string CreateCarRequestValidator_InvalidModel {
+        internal static string CreateCarRequestValidator_InvalidModel {
             get {
                 return ResourceManager.GetString("CreateCarRequestValidator_InvalidModel", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace CarsApi.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The Year for the car must be between {0} and {1}.
         /// </summary>
-        public static string CreateCarRequestValidator_InvalidYear {
+        internal static string CreateCarRequestValidator_InvalidYear {
             get {
                 return ResourceManager.GetString("CreateCarRequestValidator_InvalidYear", resourceCulture);
             }
@@ -99,9 +99,36 @@ namespace CarsApi.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The UntilUtc must be a valid date and time.
         /// </summary>
-        public static string OccupyCarRequestValidator_InvalidUntilUtc {
+        internal static string OccupyCarRequestValidator_InvalidUntilUtc {
             get {
                 return ResourceManager.GetString("OccupyCarRequestValidator_InvalidUntilUtc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The UntilUtc cannot be a date and time in the past.
+        /// </summary>
+        internal static string OccupyCarRequestValidator_PastUntilUtc {
+            get {
+                return ResourceManager.GetString("OccupyCarRequestValidator_PastUntilUtc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The license plate jurisdiction is not valid.
+        /// </summary>
+        internal static string RegisterCarRequestValidator_InvalidJurisdiction {
+            get {
+                return ResourceManager.GetString("RegisterCarRequestValidator_InvalidJurisdiction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The license plate number is invalid for this jurisdiction..
+        /// </summary>
+        internal static string RegisterCarRequestValidator_InvalidNumber {
+            get {
+                return ResourceManager.GetString("RegisterCarRequestValidator_InvalidNumber", resourceCulture);
             }
         }
     }

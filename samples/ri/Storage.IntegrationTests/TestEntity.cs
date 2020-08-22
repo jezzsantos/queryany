@@ -107,6 +107,11 @@ namespace Storage.IntegrationTests
                 properties.GetValueOrDefault<ComplexValueObject>(nameof(AComplexValueObjectValue));
         }
 
+        protected override void When(object @event)
+        {
+            throw new NotImplementedException();
+        }
+
         public static EntityFactory<TestEntity> Instantiate()
         {
             return (properties, container) => new TestEntity(new HydrationIdentifierFactory(properties));
@@ -142,6 +147,11 @@ namespace Storage.IntegrationTests
             base.Rehydrate(properties);
             AStringValue = properties.GetValueOrDefault<string>(nameof(AStringValue));
             AIntValue = properties.GetValueOrDefault<int>(nameof(AIntValue));
+        }
+
+        protected override void When(object @event)
+        {
+            throw new NotImplementedException();
         }
 
         public static EntityFactory<FirstJoiningTestEntity> Instantiate()
@@ -183,6 +193,11 @@ namespace Storage.IntegrationTests
             AStringValue = properties.GetValueOrDefault<string>(nameof(AStringValue));
             AIntValue = properties.GetValueOrDefault<int>(nameof(AIntValue));
             ALongValue = properties.GetValueOrDefault<long>(nameof(ALongValue));
+        }
+
+        protected override void When(object @event)
+        {
+            throw new NotImplementedException();
         }
 
         public static EntityFactory<SecondJoiningTestEntity> Instantiate()

@@ -132,4 +132,13 @@
   <data name="OccupyCarRequestValidator_InvalidUntilUtc" xml:space="preserve">
     <value>The UntilUtc must be a valid date and time</value>
   </data>
+  <data name="RegisterCarRequestValidator_InvalidJurisdiction" xml:space="preserve">
+    <value>The license plate jurisdiction is not valid</value>
+  </data>
+  <data name="RegisterCarRequestValidator_InvalidNumber" xml:space="preserve">
+    <value>The license plate number is invalid for this jurisdiction.</value>
+  </data>
+  <data name="OccupyCarRequestValidator_PastUntilUtc" xml:space="preserve">
+    <value>The UntilUtc cannot be a date and time in the past</value>
+  </data>
 </root>

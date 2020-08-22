@@ -120,4 +120,10 @@
   <data name="AnyValidator_InvalidId" xml:space="preserve">
     <value>The Id of the resource is not a valid identifier</value>
   </data>
+  <data name="CreatePersonRequestValidator_InvalidFirstName" xml:space="preserve">
+    <value>The FirstName of the person is invalid</value>
+  </data>
+  <data name="CreatePersonRequestValidator_InvalidLastName" xml:space="preserve">
+    <value>The LastName of the person is invalid</value>
+  </data>
 </root>

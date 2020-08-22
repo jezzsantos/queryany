@@ -22,6 +22,9 @@
     <Compile Include="..\..\..\src\Common\FluentAssertionExtensions.cs">
       <Link>FluentAssertionExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\src\Common\FluentAssertionValidationExtensions.cs">
+      <Link>FluentAssertionValidationExtensions.cs</Link>
+    </Compile>
   </ItemGroup>
 
 </Project>
