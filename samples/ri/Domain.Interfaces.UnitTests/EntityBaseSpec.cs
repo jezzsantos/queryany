@@ -99,7 +99,7 @@ namespace Domain.Interfaces.UnitTests
             var datum = DateTime.UtcNow.AddYears(1);
             var changes = new List<object>
             {
-                new TestEntity.CreateEvent {APropertyName = "apropertyvalue"}
+                new TestEntity.CreateEvent {APropertyName = "acreatedvalue"}
             };
             var properties = new Dictionary<string, object>
             {
@@ -115,7 +115,7 @@ namespace Domain.Interfaces.UnitTests
             this.entity.CreatedAtUtc.Should().Be(datum);
             this.entity.LastModifiedAtUtc.Should().Be(datum);
             this.entity.Events.Count().Should().Be(1);
-            this.entity.Events.Should().BeSameAs(changes);
+            this.entity.Events.Should().BeEquivalentTo(changes);
         }
 
         [TestMethod]
