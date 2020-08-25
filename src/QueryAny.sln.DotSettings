@@ -72,7 +72,7 @@
             this.$name$ = value;
         }
 
-        public static ValueObjectFactory&lt;$Name$&gt; Rehydrate()
+        public static ValueObjectFactory&lt;$Name$&gt; Instantiate()
         {
             return (property, container) =&gt; new $Name$(property);
         }
@@ -105,9 +105,22 @@
             $parameter$.GuardAgainstNullOrEmpty(nameof($parameter$));
 
             $Parameter$ = $parameter$;
+            RaiseCreateEvent(YourDomain.Events.$Name$.Created.Create(Id, $parameter$));
         }
 
         public string $Parameter$ { get; private set; }
+
+        protected override void When(object @event)
+        {
+            switch (@event)
+            {
+                case YourDomain.Events.$Name$.Created _:
+                    break;
+                
+                default:
+                    throw new InvalidOperationException($"Unknown event {@event.GetType()}");
+            }
+        }
 
         public override Dictionary&lt;string, object&gt; Dehydrate()
         {
@@ -123,7 +136,7 @@
             $Parameter$ = properties.GetValueOrDefault&lt;string&gt;(nameof($Parameter$));
         }
 
-        public static EntityFactory&lt;$Name$Entity&gt; Rehydrate()
+        public static EntityFactory&lt;$Name$Entity&gt; Instantiate()
         {
             return (properties, container) =&gt;
                 new $Name$Entity(container.Resolve&lt;ILogger&gt;(), new HydrationIdentifierFactory(properties),
@@ -157,5 +170,31 @@ public void When$CONDITION$_Then$RESULT$()
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=CEDF9F05BABAEB4E86DFECA8F990D1A7/Shortcut/@EntryValue">guardempty</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=CEDF9F05BABAEB4E86DFECA8F990D1A7/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=CEDF9F05BABAEB4E86DFECA8F990D1A7/Text/@EntryValue">$variable$.GuardAgainstNullOrEmpty(nameof($variable$));</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Description/@EntryValue">Creates a new MSTest class</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Field/=Category/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Field/=Category/Expression/@EntryValue">constant("Unit")</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Field/=Category/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Field/=ClassName/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Field/=ClassName/Expression/@EntryValue">getFileNameWithoutExtension()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Field/=ClassName/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Shortcut/@EntryValue">testc</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Text/@EntryValue">    [TestClass, TestCategory("$Category$")]
+    public class $ClassName$
+    {
+        [TestInitialize]
+        public void Initialize()
+        {
+        }
+    }</s:String>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Persistable/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=rehydrating/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=rehydrating/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=Unavailabilities/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=unavailbility/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=Underlapped/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Api.Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
+using Funq;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using ServiceStack;
 
 namespace Domain.Interfaces.UnitTests
 {
     [TestClass, TestCategory("Unit")]
-    public class EntityBaseSpec
+    public class AggregateRootBaseSpec
     {
         private Mock<IDependencyContainer> dependencyContainer;
-        private TestEntity entity;
+        private TestAggregateRoot entity;
         private Mock<IIdentifierFactory> idFactory;
         private Mock<ILogger> logger;
 
@@ -21,7 +26,7 @@ namespace Domain.Interfaces.UnitTests
         {
             this.logger = new Mock<ILogger>();
             this.idFactory = new Mock<IIdentifierFactory>();
-            this.idFactory.Setup(idf => idf.Create(It.IsAny<TestEntity>()))
+            this.idFactory.Setup(idf => idf.Create(It.IsAny<TestAggregateRoot>()))
                 .Returns("anid".ToIdentifier());
             this.dependencyContainer = new Mock<IDependencyContainer>();
             this.dependencyContainer.Setup(dc => dc.Resolve<ILogger>())
@@ -29,7 +34,7 @@ namespace Domain.Interfaces.UnitTests
             this.dependencyContainer.Setup(dc => dc.Resolve<IIdentifierFactory>())
                 .Returns(this.idFactory.Object);
 
-            this.entity = new TestEntity(this.logger.Object, this.idFactory.Object);
+            this.entity = new TestAggregateRoot(this.logger.Object, this.idFactory.Object);
         }
 
         [TestMethod]
@@ -48,9 +53,22 @@ namespace Domain.Interfaces.UnitTests
         }
 
         [TestMethod]
+        public void WhenConstructed_ThenRaisesEvent()
+        {
+            this.entity.Events.Count().Should().Be(1);
+            this.entity.Events.Should().BeEquivalentTo(new List<object>
+            {
+                new TestAggregateRoot.CreateEvent
+                {
+                    APropertyName = "acreatedvalue"
+                }
+            });
+        }
+
+        [TestMethod]
         public void WhenInstantiateAndCreates_ThenReturnsInstance()
         {
-            var result = TestEntity.Instantiate()(new Dictionary<string, object>
+            var result = TestAggregateRoot.Instantiate()(new Dictionary<string, object>
             {
                 {nameof(IIdentifiableEntity.Id), "anid".ToIdentifier()}
             }, this.dependencyContainer.Object);
@@ -65,14 +83,41 @@ namespace Domain.Interfaces.UnitTests
 
             var result = this.entity.Dehydrate();
 
-            result.Count.Should().Be(3);
+            result.Count.Should().Be(4);
             result[nameof(EntityBase.Id)].Should().Be("anid".ToIdentifier());
             ((DateTime) result[nameof(EntityBase.CreatedAtUtc)]).Should().BeCloseTo(now, 500);
             ((DateTime) result[nameof(EntityBase.LastModifiedAtUtc)]).Should().BeCloseTo(now, 500);
+            ((List<object>) result[AggregateRootBase.EventsPropertyName]).Single().Should()
+                .BeEquivalentTo(new TestAggregateRoot.CreateEvent {APropertyName = "acreatedvalue"});
         }
 
         [TestMethod]
         public void WhenRehydrate_ThenBasePropertiesHydrated()
+        {
+            var datum = DateTime.UtcNow.AddYears(1);
+            var changes = new List<object>
+            {
+                new TestAggregateRoot.CreateEvent {APropertyName = "acreatedvalue"}
+            };
+            var properties = new Dictionary<string, object>
+            {
+                {nameof(EntityBase.Id), "anid".ToIdentifier()},
+                {nameof(EntityBase.CreatedAtUtc), datum},
+                {nameof(EntityBase.LastModifiedAtUtc), datum},
+                {AggregateRootBase.EventsPropertyName, changes}
+            };
+
+            this.entity.Rehydrate(properties);
+
+            this.entity.Id.Should().Be("anid".ToIdentifier());
+            this.entity.CreatedAtUtc.Should().Be(datum);
+            this.entity.LastModifiedAtUtc.Should().Be(datum);
+            this.entity.Events.Count().Should().Be(1);
+            this.entity.Events.Should().BeEquivalentTo(changes);
+        }
+
+        [TestMethod]
+        public void WhenInstantiate_ThenRaisesNoEvents()
         {
             var datum = DateTime.UtcNow.AddYears(1);
             var properties = new Dictionary<string, object>
@@ -81,25 +126,30 @@ namespace Domain.Interfaces.UnitTests
                 {nameof(EntityBase.CreatedAtUtc), datum},
                 {nameof(EntityBase.LastModifiedAtUtc), datum}
             };
+            var container = new Container();
+            container.AddSingleton<ILogger>(NullLogger.Instance);
 
-            this.entity.Rehydrate(properties);
+            var created = TestAggregateRoot.Instantiate()(properties, new FuncDependencyContainer(container));
 
-            this.entity.Id.Should().Be("anid".ToIdentifier());
-            this.entity.CreatedAtUtc.Should().Be(datum);
-            this.entity.LastModifiedAtUtc.Should().Be(datum);
+            created.Events.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void WhenAnyEventRaisedAndSetAggregateEventHandler_ThenEventHandledByHandler()
+        public void WhenChangeProperty_ThenRaisesEvent()
         {
-            object handledAggregateEvent = null;
-            this.entity.SetAggregateEventHandler(o => { handledAggregateEvent = o; });
+            this.entity.ChangeProperty("achangedvalue");
 
-            this.entity.ChangeProperty("avalue");
-
-            handledAggregateEvent.Should().BeEquivalentTo(new TestEntity.ChangeEvent
+            this.entity.Events.Count().Should().Be(2);
+            this.entity.Events.Should().BeEquivalentTo(new List<object>
             {
-                APropertyName = "avalue"
+                new TestAggregateRoot.CreateEvent
+                {
+                    APropertyName = "acreatedvalue"
+                },
+                new TestAggregateRoot.ChangeEvent
+                {
+                    APropertyName = "achangedvalue"
+                }
             });
         }
     }

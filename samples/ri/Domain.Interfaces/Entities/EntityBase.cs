@@ -8,12 +8,12 @@ namespace Domain.Interfaces.Entities
     /// <summary>
     ///     Defines an DDD entity, which has an identifier.
     ///     Entities are equal when their identities are equal.
-    ///     Entities support being persisted
+    ///     Entities support being persisted.
+    ///     Entities operate on all child entities or value objects by handling raised change events from root aggregates
     /// </summary>
-    public abstract class EntityBase : IPersistableEntity, IPublishingEntity
+    public abstract class EntityBase : IPersistableEntity, IPublishingEntity, IPublishedEntityEventHandler
     {
-        public const string EventsPropertyName = "Events";
-        private readonly bool isInstantiating;
+        private Action<object> aggregateEntityEventHandler;
 
         protected EntityBase(ILogger logger, IIdentifierFactory idFactory)
         {
@@ -26,10 +26,10 @@ namespace Domain.Interfaces.Entities
             CreatedAtUtc = now;
             LastModifiedAtUtc = now;
             Id = idFactory.Create(this);
-            this.isInstantiating = !(idFactory is HydrationIdentifierFactory);
-            Events = new List<object>();
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         protected ILogger Logger { get; }
 
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
@@ -48,8 +48,7 @@ namespace Domain.Interfaces.Entities
             {
                 {nameof(Id), Id},
                 {nameof(CreatedAtUtc), CreatedAtUtc},
-                {nameof(LastModifiedAtUtc), LastModifiedAtUtc},
-                {EventsPropertyName, Events}
+                {nameof(LastModifiedAtUtc), LastModifiedAtUtc}
             };
         }
 
@@ -61,42 +60,25 @@ namespace Domain.Interfaces.Entities
                 : null;
             CreatedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(CreatedAtUtc));
             LastModifiedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(LastModifiedAtUtc));
-            Events = properties.GetValueOrDefault<List<object>>(EventsPropertyName);
         }
 
-        public List<object> Events { get; private set; }
-
-        public void ClearEvents()
+        void IPublishedEntityEventHandler.HandleEvent(object @event)
         {
-            Events.Clear();
+            When(@event);
         }
 
         void IPublishingEntity.RaiseEvent(object @event)
         {
             When(@event);
-            var isValid = EnsureValidState();
-            if (!isValid)
-            {
-                throw new RuleViolationException($"The entity with {Id} is in an invalid state.");
-            }
+            this.aggregateEntityEventHandler?.Invoke(@event);
+        }
 
-            Events.Add(@event);
+        public void SetAggregateEventHandler(Action<object> handler)
+        {
+            this.aggregateEntityEventHandler = handler;
         }
 
         protected abstract void When(object @event);
-
-        protected virtual bool EnsureValidState()
-        {
-            return Id.HasValue();
-        }
-
-        protected void RaiseCreateEvent(object @event)
-        {
-            if (this.isInstantiating)
-            {
-                ((IPublishingEntity) this).RaiseEvent(@event);
-            }
-        }
 
         protected void RaiseChangeEvent(object @event)
         {

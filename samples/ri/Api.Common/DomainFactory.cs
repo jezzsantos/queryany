@@ -146,7 +146,7 @@ namespace Api.Common
 
         private static bool IsEntity(Type type)
         {
-            return typeof(EntityBase).IsAssignableFrom(type);
+            return typeof(IPersistableEntity).IsAssignableFrom(type);
         }
 
         private static MethodInfo GetEntityFactoryMethod(Type type)
@@ -159,7 +159,7 @@ namespace Api.Common
                                           && method.ReturnType.BaseType == typeof(MulticastDelegate)
                                           && method.ReturnType.IsGenericType
                                           && method.ReturnType.GenericTypeArguments.Any()
-                                          && typeof(EntityBase).IsAssignableFrom(
+                                          && typeof(IPersistableEntity).IsAssignableFrom(
                                               method.ReturnType.GenericTypeArguments[0])
                                           && method.ReturnType.GetGenericTypeDefinition()
                                               .IsAssignableFrom(typeof(EntityFactory<>)));
