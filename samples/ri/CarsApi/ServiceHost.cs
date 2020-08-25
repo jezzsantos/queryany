@@ -14,7 +14,6 @@ using ServiceClients;
 using ServiceStack;
 using ServiceStack.Configuration;
 using ServiceStack.Validation;
-using Storage;
 using Storage.Interfaces;
 
 namespace CarsApi
@@ -40,7 +39,7 @@ namespace CarsApi
         {
             container.AddSingleton<ILogger>(c => new Logger<ServiceHost>(new NullLoggerFactory()));
             container.AddSingleton<IDependencyContainer>(new FuncDependencyContainer(container));
-            container.AddSingleton<IIdentifierFactory, GuidIdentifierFactory>();
+            container.AddSingleton<IIdentifierFactory, CarIdentifierFactory>();
             container.AddSingleton<IDomainFactory>(c =>
             {
                 var domainFactory = new DomainFactory(c.Resolve<IDependencyContainer>());

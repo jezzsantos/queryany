@@ -13,7 +13,6 @@ using PersonsStorage;
 using ServiceStack;
 using ServiceStack.Configuration;
 using ServiceStack.Validation;
-using Storage;
 using Storage.Interfaces;
 
 namespace PersonsApi
@@ -39,7 +38,7 @@ namespace PersonsApi
         {
             container.AddSingleton<ILogger>(c => new Logger<ServiceHost>(new NullLoggerFactory()));
             container.AddSingleton<IDependencyContainer>(new FuncDependencyContainer(container));
-            container.AddSingleton<IIdentifierFactory, GuidIdentifierFactory>();
+            container.AddSingleton<IIdentifierFactory, PersonIdentifierFactory>();
             container.AddSingleton<IDomainFactory>(c =>
             {
                 var domainFactory = new DomainFactory(c.Resolve<IDependencyContainer>());
