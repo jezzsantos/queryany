@@ -6,15 +6,15 @@ using Domain.Interfaces.Entities;
 using Domain.Interfaces.Resources;
 using Microsoft.Extensions.Logging;
 using QueryAny;
-using QueryAny.Primitives;
 
 namespace CarsDomain
 {
     [EntityName("Car")]
-    public class CarEntity : EntityBase
+    public class CarEntity : AggregateRootBase
     {
         public CarEntity(ILogger logger, IIdentifierFactory idFactory) : base(logger, idFactory)
         {
+            Unavailabilities = new Unavailabilities();
             RaiseCreateEvent(CarsDomain.Events.Car.Created.Create(Id));
         }
 
@@ -26,13 +26,12 @@ namespace CarsDomain
 
         public LicensePlate Plate { get; private set; }
 
-        public DateTime OccupiedUntilUtc { get; private set; }
+        public Unavailabilities Unavailabilities { get; }
 
         public override Dictionary<string, object> Dehydrate()
         {
             var properties = base.Dehydrate();
             properties.Add(nameof(Manufacturer), Manufacturer);
-            properties.Add(nameof(OccupiedUntilUtc), OccupiedUntilUtc);
             properties.Add(nameof(Owner), Owner);
             properties.Add(nameof(Managers), Managers);
             properties.Add(nameof(Plate), Plate);
@@ -44,7 +43,6 @@ namespace CarsDomain
         {
             base.Rehydrate(properties);
             Manufacturer = properties.GetValueOrDefault<Manufacturer>(nameof(Manufacturer));
-            OccupiedUntilUtc = properties.GetValueOrDefault<DateTime>(nameof(OccupiedUntilUtc));
             Owner = properties.GetValueOrDefault<VehicleOwner>(nameof(Owner));
             Managers = properties.GetValueOrDefault<VehicleManagers>(nameof(Managers));
             Plate = properties.GetValueOrDefault<LicensePlate>(nameof(Plate));
@@ -78,14 +76,13 @@ namespace CarsDomain
                         changed.Jurisdiction, changed.Number);
                     break;
 
-                case Events.Car.OccupancyChanged changed:
-                    if (!changed.UntilUtc.HasValue())
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(changed.UntilUtc));
-                    }
-
-                    OccupiedUntilUtc = changed.UntilUtc;
-                    Logger.LogDebug("Car {Id} was occupied until {Until}", Id, changed.UntilUtc);
+                case Events.Car.UnavailabilitySlotAdded added:
+                    var unavailability = new UnavailabilityEntity(Logger, IdFactory);
+                    unavailability.SetAggregateEventHandler(RaiseChangeEvent);
+                    RaiseToEntity(unavailability, @event);
+                    Unavailabilities.Add(unavailability);
+                    Logger.LogDebug("Car {Id} had been made unavailable from {From} until {To}", Id, added.From,
+                        added.To);
                     break;
 
                 default:
@@ -108,16 +105,25 @@ namespace CarsDomain
             RaiseChangeEvent(CarsDomain.Events.Car.RegistrationChanged.Create(Id, plate));
         }
 
-        public void Occupy(DateTime untilUtc)
+        public void Offline(TimeSlot slot)
         {
-            RaiseChangeEvent(CarsDomain.Events.Car.OccupancyChanged.Create(Id, untilUtc));
+            RaiseChangeEvent(CarsDomain.Events.Car.UnavailabilitySlotAdded.Create(Id, slot,
+                UnavailabilityCausedBy.Offline, null));
+        }
+
+        public void AddUnavailability(TimeSlot slot, UnavailabilityCausedBy causedBy, string causedByReference)
+        {
+            RaiseChangeEvent(
+                CarsDomain.Events.Car.UnavailabilitySlotAdded.Create(Id, slot, causedBy, causedByReference));
         }
 
         protected override bool EnsureValidState()
         {
             var isValid = base.EnsureValidState();
 
-            if (OccupiedUntilUtc.HasValue())
+            Unavailabilities.EnsureValidState();
+
+            if (Unavailabilities.Count > 0)
             {
                 if (!Manufacturer.HasValue())
                 {

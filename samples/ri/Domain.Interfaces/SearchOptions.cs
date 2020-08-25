@@ -49,6 +49,12 @@ namespace Domain.Interfaces
             return ApplyWithMetadata(results, SearchOptions<TResult>.DynamicOrderByFunc);
         }
 
+        public void ClearLimitAndOffset()
+        {
+            Offset = NoOffset;
+            Limit = DefaultLimit;
+        }
+
         private SearchResults<TResult> ApplyWithMetadata<TResult>(IEnumerable<TResult> results,
             Func<IEnumerable<TResult>, Sorting, IEnumerable<TResult>> orderByFunc)
         {

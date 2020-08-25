@@ -86,5 +86,68 @@ namespace CarsDomain.Properties {
                 return ResourceManager.GetString("CarEntity_NotRegistered", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The jurisdiction is not known.
+        /// </summary>
+        internal static string LicensePlate_UnknownJurisdiction {
+            get {
+                return ResourceManager.GetString("LicensePlate_UnknownJurisdiction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Year of manufacturer must be between {0} and {1}.
+        /// </summary>
+        internal static string Manufacturer_InvalidYear {
+            get {
+                return ResourceManager.GetString("Manufacturer_InvalidYear", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Make of the manufacturer is unknown.
+        /// </summary>
+        internal static string Manufacturer_UnknownMake {
+            get {
+                return ResourceManager.GetString("Manufacturer_UnknownMake", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Model of the manufacturer is unknown.
+        /// </summary>
+        internal static string Manufacturer_UnknownModel {
+            get {
+                return ResourceManager.GetString("Manufacturer_UnknownModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The To date must be after the From date.
+        /// </summary>
+        internal static string TimeSlot_FromDateBeforeToDate {
+            get {
+                return ResourceManager.GetString("TimeSlot_FromDateBeforeToDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The slot overlaps and existing slot with a different cause or reference.
+        /// </summary>
+        internal static string Unavailability_OverlappingSlot {
+            get {
+                return ResourceManager.GetString("Unavailability_OverlappingSlot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The slot is reserved without a reservation reference.
+        /// </summary>
+        internal static string Unavailability_ReservationWithoutReference {
+            get {
+                return ResourceManager.GetString("Unavailability_ReservationWithoutReference", resourceCulture);
+            }
+        }
     }
 }

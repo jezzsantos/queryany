@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CarsDomain;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
@@ -13,6 +14,6 @@ namespace CarsApplication.Storage
 
         CarEntity Update(CarEntity car);
 
-        List<CarEntity> SearchAvailable(SearchOptions options);
+        List<CarEntity> SearchAvailable(DateTime fromUtc, DateTime toUtc, SearchOptions options);
     }
 }

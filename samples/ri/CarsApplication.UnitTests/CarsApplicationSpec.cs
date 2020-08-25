@@ -64,8 +64,7 @@ namespace CarsApplication.UnitTests
                     && e.Manufacturer.Year == 2010
                     && e.Manufacturer.Make == make
                     && e.Manufacturer.Model == model
-                    && e.Managers.Managers.Single() == "apersonid"
-                    && e.OccupiedUntilUtc == DateTime.MinValue)));
+                    && e.Managers.Managers.Single() == "apersonid")));
         }
 
         [TestMethod]
@@ -88,32 +87,35 @@ namespace CarsApplication.UnitTests
         }
 
         [TestMethod]
-        public void WhenOccupy_ThenOccupiesAndReturnsCar()
+        public void WhenReserve_ThenReservesCar()
         {
-            var untilUtc = DateTime.UtcNow;
+            var fromUtc = DateTime.UtcNow.AddMinutes(1);
+            var toUtc = fromUtc.AddMinutes(1);
             var entity = new CarEntity(this.logger.Object, this.idFactory.Object);
             entity.SetManufacturer(new Manufacturer(2010, Manufacturer.Makes[0], Manufacturer.Models[0]));
             entity.SetOwnership(new CarOwner {Id = "anownerid"});
             entity.Register(new LicensePlate(LicensePlate.Jurisdictions[0], "anumber"));
             this.storage.Setup(s => s.Get(It.Is<Identifier>(i => i == "acarid")))
                 .Returns(entity);
-            this.storage.Setup(s => s.Update(It.Is<CarEntity>(e => e.OccupiedUntilUtc == untilUtc)))
+            this.storage.Setup(s => s.Update(It.Is<CarEntity>(e => e.Unavailabilities.Count == 1)))
                 .Returns(entity);
 
-            var result = this.carsApplication.Occupy(this.caller.Object, "acarid", untilUtc);
+            var result = this.carsApplication.Offline(this.caller.Object, "acarid", fromUtc, toUtc);
 
-            result.OccupiedUntilUtc.Should().Be(untilUtc);
+            result.Should().NotBeNull();
         }
 
         [TestMethod]
         public void WhenSearchAvailable_ThenReturnsAvailableCars()
         {
-            this.storage.Setup(s => s.SearchAvailable(It.IsAny<SearchOptions>()))
+            this.storage.Setup(s =>
+                    s.SearchAvailable(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<SearchOptions>()))
                 .Returns(new List<CarEntity>
                     {new CarEntity(this.logger.Object, this.idFactory.Object)});
 
             var result =
-                this.carsApplication.SearchAvailable(this.caller.Object, new SearchOptions(), new GetOptions());
+                this.carsApplication.SearchAvailable(this.caller.Object, DateTime.MinValue, DateTime.MinValue,
+                    new SearchOptions(), new GetOptions());
 
             result.Results.Count.Should().Be(1);
         }

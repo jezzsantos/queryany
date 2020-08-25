@@ -6,6 +6,7 @@ using CarsDomain;
 using CarsStorage;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
+using Domain.Interfaces.Resources;
 using FluentAssertions;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -22,7 +23,9 @@ namespace CarsApi.IntegrationTests
     {
         private const string ServiceUrl = "http://localhost:2000/";
         private static IWebHost webHost;
-        private static IStorage<CarEntity> storage;
+        private static IStorage<CarEntity> carStorage;
+        private static IStorage<UnavailabilityEntity> unavailabilityStorage;
+        private static int plateCount;
 
         [ClassInitialize]
         public static void InitializeAllTests(TestContext context)
@@ -39,9 +42,14 @@ namespace CarsApi.IntegrationTests
             var container = HostContext.Container;
             container.AddSingleton<IPersonsService, StubPersonsService>();
             container.AddSingleton<ICarStorage>(c =>
-                new CarStorage(c.Resolve<IStorage<CarEntity>>()));
-            storage = CarEntityInMemStorage.Create(container.Resolve<ILogger>(), container.Resolve<IDomainFactory>());
-            container.AddSingleton(storage);
+                new CarStorage(c.Resolve<IStorage<CarEntity>>(), c.Resolve<IStorage<UnavailabilityEntity>>()));
+            carStorage =
+                CarEntityInMemStorage.Create(container.Resolve<ILogger>(), container.Resolve<IDomainFactory>());
+            container.AddSingleton(carStorage);
+            unavailabilityStorage =
+                UnavailabilityEntityInMemStorage.Create(container.Resolve<ILogger>(),
+                    container.Resolve<IDomainFactory>());
+            container.AddSingleton(unavailabilityStorage);
         }
 
         [ClassCleanup]
@@ -53,7 +61,8 @@ namespace CarsApi.IntegrationTests
         [TestInitialize]
         public void Initialize()
         {
-            storage.DestroyAll();
+            carStorage.DestroyAll();
+            unavailabilityStorage.DestroyAll();
         }
 
         [TestMethod]
@@ -71,7 +80,6 @@ namespace CarsApi.IntegrationTests
             car.Manufacturer.Year.Should().Be(2010);
             car.Manufacturer.Make.Should().Be(Manufacturer.Makes[0]);
             car.Manufacturer.Model.Should().Be(Manufacturer.Models[0]);
-            car.OccupiedUntilUtc.Should().Be(DateTime.MinValue);
             car.Owner.Id.Should().Be(CurrentCallerConstants.AnonymousUserId);
             car.Managers.Single().Id.Should().Be(CurrentCallerConstants.AnonymousUserId);
         }
@@ -91,7 +99,30 @@ namespace CarsApi.IntegrationTests
         {
             var client = new JsonServiceClient(ServiceUrl);
 
-            var car = client.Post(new CreateCarRequest
+            var car1 = RegisterCar(client);
+            var car2 = RegisterCar(client);
+
+            var datum = DateTime.UtcNow.AddDays(1);
+            client.Put(new OfflineCarRequest
+            {
+                Id = car1.Id,
+                FromUtc = datum,
+                ToUtc = datum.AddDays(1)
+            });
+
+            var cars = client.Get(new SearchAvailableCarsRequest
+            {
+                FromUtc = datum,
+                ToUtc = datum.AddDays(1)
+            });
+
+            cars.Cars.Count.Should().Be(1);
+            cars.Cars[0].Id.Should().Be(car2.Id);
+        }
+
+        private static Car RegisterCar(IRestClient client)
+        {
+            var car1 = client.Post(new CreateCarRequest
             {
                 Year = 2010,
                 Make = Manufacturer.Makes[0],
@@ -99,20 +130,11 @@ namespace CarsApi.IntegrationTests
             }).Car;
             client.Put(new RegisterCarRequest
             {
-                Id = car.Id,
+                Id = car1.Id,
                 Jurisdiction = "New Zealand",
-                Number = "ABC123"
+                Number = $"ABC{++plateCount:###}"
             });
-            client.Put(new OccupyCarRequest
-            {
-                Id = car.Id,
-                UntilUtc = DateTime.UtcNow.Add(TimeSpan.FromMinutes(1))
-            });
-
-            var cars = client.Get(new SearchAvailableCarsRequest());
-
-            cars.Cars.Count.Should().Be(1);
-            cars.Cars[0].Id.Should().Be(car.Id);
+            return car1;
         }
     }
 }

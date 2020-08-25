@@ -1,4 +1,5 @@
-﻿using Api.Common;
+﻿using System;
+using Api.Common;
 using Api.Interfaces;
 using Api.Interfaces.ServiceOperations;
 using CarsApplication;
@@ -21,8 +22,10 @@ namespace CarsApi.Services.Cars
 
         public SearchAvailableCarsResponse Get(SearchAvailableCarsRequest request)
         {
-            var available = this.carsApplication.SearchAvailable(Request.ToCaller(),
-                request.ToSearchOptions(defaultSort: Reflector<Car>.GetPropertyName(c => c.OccupiedUntilUtc)),
+            var fromUtc = request.FromUtc.GetValueOrDefault(DateTime.MinValue);
+            var toUtc = request.ToUtc.GetValueOrDefault(DateTime.MaxValue);
+            var available = this.carsApplication.SearchAvailable(Request.ToCaller(), fromUtc, toUtc,
+                request.ToSearchOptions(defaultSort: Reflector<Car>.GetPropertyName(c => c.Id)),
                 request.ToGetOptions());
             return new SearchAvailableCarsResponse
             {
@@ -48,11 +51,11 @@ namespace CarsApi.Services.Cars
             };
         }
 
-        public OccupyCarResponse Put(OccupyCarRequest request)
+        public OfflineCarResponse Put(OfflineCarRequest request)
         {
-            return new OccupyCarResponse
+            return new OfflineCarResponse
             {
-                Car = this.carsApplication.Occupy(Request.ToCaller(), request.Id, request.UntilUtc)
+                Car = this.carsApplication.Offline(Request.ToCaller(), request.Id, request.FromUtc, request.ToUtc)
             };
         }
     }

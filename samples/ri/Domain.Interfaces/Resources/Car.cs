@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Domain.Interfaces.Resources
 {
@@ -8,8 +7,6 @@ namespace Domain.Interfaces.Resources
         public CarManufacturer Manufacturer { get; set; }
 
         public CarLicensePlate Plate { get; set; }
-
-        public DateTime OccupiedUntilUtc { get; set; }
 
         public CarOwner Owner { get; set; }
 

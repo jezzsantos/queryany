@@ -72,25 +72,6 @@ namespace CarsDomain
                 }
             }
 
-            public class OccupancyChanged
-            {
-                public string Id { get; set; }
-
-                public DateTime UntilUtc { get; set; }
-
-                public DateTime ModifiedUtc { get; set; }
-
-                public static OccupancyChanged Create(Identifier id, DateTime until)
-                {
-                    return new OccupancyChanged
-                    {
-                        Id = id,
-                        UntilUtc = until,
-                        ModifiedUtc = DateTime.UtcNow
-                    };
-                }
-            }
-
             public class RegistrationChanged
             {
                 public string Id { get; set; }
@@ -108,6 +89,35 @@ namespace CarsDomain
                         Id = id,
                         Jurisdiction = plate.Jurisdiction,
                         Number = plate.Number,
+                        ModifiedUtc = DateTime.UtcNow
+                    };
+                }
+            }
+
+            public class UnavailabilitySlotAdded
+            {
+                public string CarId { get; set; }
+
+                public DateTime From { get; set; }
+
+                public DateTime To { get; set; }
+
+                public UnavailabilityCausedBy CausedBy { get; set; }
+
+                public string CausedByReference { get; set; }
+
+                public DateTime ModifiedUtc { get; set; }
+
+                public static UnavailabilitySlotAdded Create(Identifier carId, TimeSlot slot,
+                    UnavailabilityCausedBy causedBy, string causedById)
+                {
+                    return new UnavailabilitySlotAdded
+                    {
+                        CarId = carId,
+                        From = slot.From,
+                        To = slot.To,
+                        CausedBy = causedBy,
+                        CausedByReference = causedById,
                         ModifiedUtc = DateTime.UtcNow
                     };
                 }

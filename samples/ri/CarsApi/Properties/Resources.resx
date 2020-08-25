@@ -129,16 +129,40 @@
   <data name="AnyValidator_InvalidId" xml:space="preserve">
     <value>The Id of the resource is not a valid identifier</value>
   </data>
-  <data name="OccupyCarRequestValidator_InvalidUntilUtc" xml:space="preserve">
-    <value>The UntilUtc must be a valid date and time</value>
-  </data>
   <data name="RegisterCarRequestValidator_InvalidJurisdiction" xml:space="preserve">
     <value>The license plate jurisdiction is not valid</value>
   </data>
   <data name="RegisterCarRequestValidator_InvalidNumber" xml:space="preserve">
     <value>The license plate number is invalid for this jurisdiction.</value>
   </data>
-  <data name="OccupyCarRequestValidator_PastUntilUtc" xml:space="preserve">
-    <value>The UntilUtc cannot be a date and time in the past</value>
+  <data name="OfflineCarRequestValidator_InvalidTo" xml:space="preserve">
+    <value>The To date must be a valid date and time</value>
+  </data>
+  <data name="OfflineCarRequestValidator_PastTo" xml:space="preserve">
+    <value>The To date cannot be in the past</value>
+  </data>
+  <data name="OfflineCarRequestValidator_PastFrom" xml:space="preserve">
+    <value>The From date cannot be in the past</value>
+  </data>
+  <data name="OfflineCarRequestValidator_FromAfterTo" xml:space="preserve">
+    <value>The From date must be before the To date</value>
+  </data>
+  <data name="OfflineCarRequestValidator_InvalidFrom" xml:space="preserve">
+    <value>The From date must be a valid date and time</value>
+  </data>
+  <data name="SearchAvailableCarsRequestValidator_InvalidTo" xml:space="preserve">
+    <value>The To date must be a valid date and time</value>
+  </data>
+  <data name="SearchAvailableCarsRequestValidator_PastTo" xml:space="preserve">
+    <value>The To date cannot be in the past</value>
+  </data>
+  <data name="SearchAvailableCarsRequestValidator_PastFrom" xml:space="preserve">
+    <value>The From date cannot be in the past</value>
+  </data>
+  <data name="SearchAvailableCarsRequestValidator_FromAfterTo" xml:space="preserve">
+    <value>The From date must be before the To date</value>
+  </data>
+  <data name="SearchAvailableCarsRequestValidator_InvalidFrom" xml:space="preserve">
+    <value>The From date must be a valid date and time</value>
   </data>
 </root>

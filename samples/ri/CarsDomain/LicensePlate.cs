@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CarsDomain.Properties;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using QueryAny.Primitives;
@@ -13,7 +14,8 @@ namespace CarsDomain
         {
             jurisdiction.GuardAgainstNullOrEmpty(nameof(number));
             number.GuardAgainstNullOrEmpty(nameof(number));
-            jurisdiction.GuardAgainstInvalid(val => Jurisdictions.Contains(val), nameof(jurisdiction));
+            jurisdiction.GuardAgainstInvalid(val => Jurisdictions.Contains(val), nameof(jurisdiction),
+                Resources.LicensePlate_UnknownJurisdiction);
             number.GuardAgainstInvalid(Validations.Car.Number, nameof(number));
             Jurisdiction = jurisdiction;
             Number = number;

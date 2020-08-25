@@ -51,10 +51,12 @@ namespace CarsApplication
             return created.ToCar();
         }
 
-        public Car Occupy(ICurrentCaller caller, string id, DateTime untilUtc)
+        public Car Offline(ICurrentCaller caller, string id, DateTime fromUtc, DateTime toUtc)
         {
             caller.GuardAgainstNull(nameof(caller));
             id.GuardAgainstNullOrEmpty(nameof(id));
+            fromUtc.GuardAgainstMinValue(nameof(fromUtc));
+            toUtc.GuardAgainstMinValue(nameof(toUtc));
 
             var car = this.storage.Get(id.ToIdentifier());
             if (id == null)
@@ -62,10 +64,11 @@ namespace CarsApplication
                 throw new ResourceNotFoundException();
             }
 
-            car.Occupy(untilUtc);
+            car.Offline(new TimeSlot(fromUtc, toUtc));
             var updated = this.storage.Update(car);
 
-            this.logger.LogInformation("Car {Id} was occupied until {Until}, by {Caller}", id, untilUtc, caller.Id);
+            this.logger.LogInformation("Car {Id} was taken offline from {From} until {To}, by {Caller}",
+                id, fromUtc, toUtc, caller.Id);
 
             return updated.ToCar();
         }
@@ -90,12 +93,13 @@ namespace CarsApplication
             return updated.ToCar();
         }
 
-        public SearchResults<Car> SearchAvailable(ICurrentCaller caller, SearchOptions searchOptions,
+        public SearchResults<Car> SearchAvailable(ICurrentCaller caller, DateTime fromUtc, DateTime toUtc,
+            SearchOptions searchOptions,
             GetOptions getOptions)
         {
             caller.GuardAgainstNull(nameof(caller));
 
-            var cars = this.storage.SearchAvailable(searchOptions);
+            var cars = this.storage.SearchAvailable(fromUtc, toUtc, searchOptions);
 
             this.logger.LogInformation("Available carsApplication were retrieved by {Caller}", caller.Id);
 

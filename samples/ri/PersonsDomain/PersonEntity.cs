@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace PersonsDomain
 {
-    public class PersonEntity : EntityBase
+    public class PersonEntity : AggregateRootBase
     {
         public PersonEntity(ILogger logger, IIdentifierFactory idFactory, PersonName name) : base(logger, idFactory)
         {

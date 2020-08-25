@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using CarsDomain.Properties;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using QueryAny.Primitives;
 using ServiceStack;
@@ -15,18 +17,10 @@ namespace CarsDomain
 
         public Manufacturer(int year, string make, string model)
         {
-            if (year < MinYear || year > MaxYear)
-            {
-                throw new ArgumentOutOfRangeException(nameof(year));
-            }
-            if (!Makes.Contains(make))
-            {
-                throw new ArgumentOutOfRangeException(nameof(make));
-            }
-            if (!Models.Contains(model))
-            {
-                throw new ArgumentOutOfRangeException(nameof(model));
-            }
+            year.GuardAgainstInvalid(y => y >= MinYear && y <= MaxYear, nameof(year),
+                Resources.Manufacturer_InvalidYear.Format(MinYear, MaxYear));
+            make.GuardAgainstInvalid(m => Makes.Contains(m), nameof(make), Resources.Manufacturer_UnknownMake);
+            model.GuardAgainstInvalid(m => Models.Contains(m), nameof(model), Resources.Manufacturer_UnknownModel);
 
             Year = year;
             Make = make;

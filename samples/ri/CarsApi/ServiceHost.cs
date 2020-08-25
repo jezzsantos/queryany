@@ -47,10 +47,14 @@ namespace CarsApi
                 domainFactory.RegisterTypesFromAssemblies(typeof(CarEntity).Assembly);
                 return domainFactory;
             });
-            container.AddSingleton<ICarStorage>(c => new CarStorage(c.Resolve<IStorage<CarEntity>>()));
             container.AddSingleton<IStorage<CarEntity>>(c =>
                 CarEntityAzureStorage.Create(c.Resolve<ILogger>(), c.Resolve<IAppSettings>(),
                     c.Resolve<IDomainFactory>()));
+            container.AddSingleton<IStorage<UnavailabilityEntity>>(c =>
+                UnavailabilityEntityAzureStorage.Create(c.Resolve<ILogger>(), c.Resolve<IAppSettings>(),
+                    c.Resolve<IDomainFactory>()));
+            container.AddSingleton<ICarStorage>(c =>
+                new CarStorage(c.Resolve<IStorage<CarEntity>>(), c.Resolve<IStorage<UnavailabilityEntity>>()));
             container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
             container.AddSingleton<IPersonsService>(c =>
                 new PersonsService(c.Resolve<IAppSettings>().GetString("PersonsApiBaseUrl")));

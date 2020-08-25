@@ -97,20 +97,47 @@ namespace CarsApi.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The UntilUtc must be a valid date and time.
+        ///   Looks up a localized string similar to The From date must be before the To date.
         /// </summary>
-        internal static string OccupyCarRequestValidator_InvalidUntilUtc {
+        internal static string OfflineCarRequestValidator_FromAfterTo {
             get {
-                return ResourceManager.GetString("OccupyCarRequestValidator_InvalidUntilUtc", resourceCulture);
+                return ResourceManager.GetString("OfflineCarRequestValidator_FromAfterTo", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The UntilUtc cannot be a date and time in the past.
+        ///   Looks up a localized string similar to The From date must be a valid date and time.
         /// </summary>
-        internal static string OccupyCarRequestValidator_PastUntilUtc {
+        internal static string OfflineCarRequestValidator_InvalidFrom {
             get {
-                return ResourceManager.GetString("OccupyCarRequestValidator_PastUntilUtc", resourceCulture);
+                return ResourceManager.GetString("OfflineCarRequestValidator_InvalidFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The To date must be a valid date and time.
+        /// </summary>
+        internal static string OfflineCarRequestValidator_InvalidTo {
+            get {
+                return ResourceManager.GetString("OfflineCarRequestValidator_InvalidTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The From date cannot be in the past.
+        /// </summary>
+        internal static string OfflineCarRequestValidator_PastFrom {
+            get {
+                return ResourceManager.GetString("OfflineCarRequestValidator_PastFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The To date cannot be in the past.
+        /// </summary>
+        internal static string OfflineCarRequestValidator_PastTo {
+            get {
+                return ResourceManager.GetString("OfflineCarRequestValidator_PastTo", resourceCulture);
             }
         }
         
@@ -129,6 +156,51 @@ namespace CarsApi.Properties {
         internal static string RegisterCarRequestValidator_InvalidNumber {
             get {
                 return ResourceManager.GetString("RegisterCarRequestValidator_InvalidNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The From date must be before the To date.
+        /// </summary>
+        internal static string SearchAvailableCarsRequestValidator_FromAfterTo {
+            get {
+                return ResourceManager.GetString("SearchAvailableCarsRequestValidator_FromAfterTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The From date must be a valid date and time.
+        /// </summary>
+        internal static string SearchAvailableCarsRequestValidator_InvalidFrom {
+            get {
+                return ResourceManager.GetString("SearchAvailableCarsRequestValidator_InvalidFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The To date must be a valid date and time.
+        /// </summary>
+        internal static string SearchAvailableCarsRequestValidator_InvalidTo {
+            get {
+                return ResourceManager.GetString("SearchAvailableCarsRequestValidator_InvalidTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The From date cannot be in the past.
+        /// </summary>
+        internal static string SearchAvailableCarsRequestValidator_PastFrom {
+            get {
+                return ResourceManager.GetString("SearchAvailableCarsRequestValidator_PastFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The To date cannot be in the past.
+        /// </summary>
+        internal static string SearchAvailableCarsRequestValidator_PastTo {
+            get {
+                return ResourceManager.GetString("SearchAvailableCarsRequestValidator_PastTo", resourceCulture);
             }
         }
     }

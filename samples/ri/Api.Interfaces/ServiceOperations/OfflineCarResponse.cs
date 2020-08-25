@@ -2,7 +2,7 @@
 
 namespace Api.Interfaces.ServiceOperations
 {
-    public class OccupyCarResponse
+    public class OfflineCarResponse
     {
         public Car Car { get; set; }
     }

@@ -27,4 +27,25 @@
     <data name="CarEntity_NotManufactured" xml:space="preserve">
         <value>The manufacturer details for the car have not yet been defined</value>
     </data>
+    <data name="TimeSlot_FromDateBeforeToDate" xml:space="preserve">
+        <value>The To date must be after the From date</value>
+    </data>
+    <data name="LicensePlate_UnknownJurisdiction" xml:space="preserve">
+        <value>The jurisdiction is not known</value>
+    </data>
+    <data name="Manufacturer_InvalidYear" xml:space="preserve">
+        <value>The Year of manufacturer must be between {0} and {1}</value>
+    </data>
+    <data name="Manufacturer_UnknownMake" xml:space="preserve">
+        <value>The Make of the manufacturer is unknown</value>
+    </data>
+    <data name="Manufacturer_UnknownModel" xml:space="preserve">
+        <value>The Model of the manufacturer is unknown</value>
+    </data>
+    <data name="Unavailability_OverlappingSlot" xml:space="preserve">
+        <value>The slot overlaps and existing slot with a different cause or reference</value>
+    </data>
+    <data name="Unavailability_ReservationWithoutReference" xml:space="preserve">
+        <value>The slot is reserved without a reservation reference</value>
+    </data>
 </root>

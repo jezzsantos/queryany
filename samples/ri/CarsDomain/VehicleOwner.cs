@@ -10,14 +10,16 @@ namespace CarsDomain
             ownerId.GuardAgainstNullOrEmpty(nameof(ownerId));
         }
 
-        public static ValueObjectFactory<VehicleOwner> Instantiate()
-        {
-            return (property, container) => new VehicleOwner(property);
-        }
+        public string OwnerId => Value;
 
         protected override string ToValue(string value)
         {
             return value;
+        }
+
+        public static ValueObjectFactory<VehicleOwner> Instantiate()
+        {
+            return (property, container) => new VehicleOwner(property);
         }
     }
 }
