@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using Api.Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
+using Funq;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using ServiceStack;
 
 namespace Domain.Interfaces.UnitTests
 {
@@ -43,6 +47,7 @@ namespace Domain.Interfaces.UnitTests
         {
             var now = DateTime.UtcNow;
 
+            this.entity.LastPersistedAtUtc.Should().BeNull();
             this.entity.CreatedAtUtc.Should().BeCloseTo(now);
             this.entity.LastModifiedAtUtc.Should().Be(this.entity.CreatedAtUtc);
         }
@@ -65,8 +70,9 @@ namespace Domain.Interfaces.UnitTests
 
             var result = this.entity.Dehydrate();
 
-            result.Count.Should().Be(3);
+            result.Count.Should().Be(4);
             result[nameof(EntityBase.Id)].Should().Be("anid".ToIdentifier());
+            ((DateTime?) result[nameof(EntityBase.LastPersistedAtUtc)]).Should().BeNull();
             ((DateTime) result[nameof(EntityBase.CreatedAtUtc)]).Should().BeCloseTo(now, 500);
             ((DateTime) result[nameof(EntityBase.LastModifiedAtUtc)]).Should().BeCloseTo(now, 500);
         }
@@ -78,6 +84,7 @@ namespace Domain.Interfaces.UnitTests
             var properties = new Dictionary<string, object>
             {
                 {nameof(EntityBase.Id), "anid".ToIdentifier()},
+                {nameof(EntityBase.LastPersistedAtUtc), datum},
                 {nameof(EntityBase.CreatedAtUtc), datum},
                 {nameof(EntityBase.LastModifiedAtUtc), datum}
             };
@@ -85,12 +92,42 @@ namespace Domain.Interfaces.UnitTests
             this.entity.Rehydrate(properties);
 
             this.entity.Id.Should().Be("anid".ToIdentifier());
+            this.entity.LastPersistedAtUtc.Should().Be(datum);
             this.entity.CreatedAtUtc.Should().Be(datum);
             this.entity.LastModifiedAtUtc.Should().Be(datum);
         }
 
         [TestMethod]
-        public void WhenAnyEventRaisedAndSetAggregateEventHandler_ThenEventHandledByHandler()
+        public void WhenInstantiate_ThenRaisesNoEvents()
+        {
+            var datum = DateTime.UtcNow.AddYears(1);
+            var properties = new Dictionary<string, object>
+            {
+                {nameof(EntityBase.Id), "anid".ToIdentifier()},
+                {nameof(EntityBase.LastPersistedAtUtc), datum},
+                {nameof(EntityBase.CreatedAtUtc), datum},
+                {nameof(EntityBase.LastModifiedAtUtc), datum}
+            };
+            var container = new Container();
+            container.AddSingleton<ILogger>(NullLogger.Instance);
+
+            var created = TestEntity.Instantiate()(properties, new FuncDependencyContainer(container));
+
+            created.LastPersistedAtUtc.Should().BeNull();
+            created.CreatedAtUtc.Should().Be(DateTime.MinValue);
+            created.LastModifiedAtUtc.Should().Be(DateTime.MinValue);
+        }
+
+        [TestMethod]
+        public void WhenChangeProperty_ThenModified()
+        {
+            this.entity.ChangeProperty("avalue");
+
+            this.entity.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
+        }
+
+        [TestMethod]
+        public void WhenChangePropertyAndSetAggregateEventHandler_ThenEventHandledByHandler()
         {
             object handledAggregateEvent = null;
             this.entity.SetAggregateEventHandler(o => { handledAggregateEvent = o; });
@@ -101,6 +138,7 @@ namespace Domain.Interfaces.UnitTests
             {
                 APropertyName = "avalue"
             });
+            this.entity.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
         }
     }
 }

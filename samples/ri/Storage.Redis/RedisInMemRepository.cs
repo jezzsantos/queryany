@@ -133,7 +133,7 @@ namespace Storage.Redis
         {
             var primaryEntities = GetRowKeys(client, containerName)
                 .Select(rowKey => FromContainerEntity<TEntity>(client, rowKey, domainFactory))
-                .OrderBy(e => e.CreatedAtUtc)
+                .OrderBy(e => e.LastPersistedAtUtc)
                 .ToList();
 
             var orderByExpression = query.ToDynamicLinqOrderByClause();
@@ -354,13 +354,7 @@ namespace Storage.Redis
                 containerEntityProperties.Add(pair.Key, value);
             }
 
-            var nowUtc = DateTime.UtcNow.ToIso8601();
-            if (!entity.CreatedAtUtc.HasValue())
-            {
-                containerEntityProperties[nameof(IModifiableEntity.CreatedAtUtc)] = nowUtc;
-            }
-
-            containerEntityProperties[nameof(IModifiableEntity.LastModifiedAtUtc)] = nowUtc;
+            containerEntityProperties[nameof(IPersistableEntity.LastPersistedAtUtc)] = DateTime.UtcNow.ToIso8601();
 
             return containerEntityProperties;
         }

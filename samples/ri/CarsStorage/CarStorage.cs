@@ -51,8 +51,11 @@ namespace CarsStorage
                 .ToList()
                 .ForEach(u =>
                 {
-                    var updatedUnavailability = this.unavailabilitiesStorage.Upsert(u);
-                    updatedCar.Unavailabilities.Add(updatedUnavailability);
+                    if (u.RequiresUpsert())
+                    {
+                        var updatedUnavailability = this.unavailabilitiesStorage.Upsert(u);
+                        updatedCar.Unavailabilities.Add(updatedUnavailability);
+                    }
                 });
 
             return updatedCar;

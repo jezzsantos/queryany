@@ -102,11 +102,13 @@ namespace Domain.Interfaces.UnitTests
 
     public class KnownEntity : IIdentifiableEntity
     {
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
         public Identifier Id { get; }
     }
 
     public class UnknownEntity : IIdentifiableEntity
     {
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
         public Identifier Id { get; }
     }
 }

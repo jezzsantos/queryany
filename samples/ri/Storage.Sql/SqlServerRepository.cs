@@ -305,66 +305,65 @@ namespace Storage.Sql
             var properties = entity.Dehydrate();
 
             var tableEntityProperties = new Dictionary<string, object>();
-            foreach (var pair in properties)
+            foreach (var (key, value) in properties)
             {
-                var targetPropertyType = propertyInfo.First(info => info.Name.EqualsOrdinal(pair.Key)).PropertyType;
-                var value = pair.Value;
-                if (value != null)
-                {
-                    if (value is IPersistableValueObject valueObject)
-                    {
-                        value = valueObject.Dehydrate();
-                    }
-
-                    if (value.GetType().IsComplexStorageType())
-                    {
-                        value = value.ToString();
-                    }
-                }
-
-                if (value is DateTime dateTime)
-                {
-                    if (dateTime.HasValue())
-                    {
-                        value = dateTime.IsNotAllowableDate()
-                            ? SqlServerRepository.MinimumAllowableDate
-                            : dateTime.ToUniversalTime();
-                    }
-                    else
-                    {
-                        value = DBNull.Value;
-                    }
-                }
-
-                if (value is Guid guid)
-                {
-                    value = guid.ToString("D");
-                }
-
-                if (value == null)
-                {
-                    if (targetPropertyType == typeof(byte[]))
-                    {
-                        value = SqlBinary.Null;
-                    }
-                    else
-                    {
-                        value = DBNull.Value;
-                    }
-                }
-
-                tableEntityProperties.Add(pair.Key, value);
+                var targetPropertyType = propertyInfo.First(info => info.Name.EqualsOrdinal(key)).PropertyType;
+                tableEntityProperties.Add(key, ToTableEntityProperty(value, targetPropertyType));
             }
 
-            var utcNow = DateTime.UtcNow;
-            if (!entity.CreatedAtUtc.HasValue())
-            {
-                tableEntityProperties[nameof(IModifiableEntity.CreatedAtUtc)] = utcNow;
-            }
-
-            tableEntityProperties[nameof(IModifiableEntity.LastModifiedAtUtc)] = utcNow;
+            tableEntityProperties[nameof(IPersistableEntity.LastPersistedAtUtc)] = DateTime.UtcNow;
 
             return tableEntityProperties;
+        }
+
+        private static object ToTableEntityProperty(object propertyValue, Type targetPropertyType)
+        {
+            var value = propertyValue;
+            if (value != null)
+            {
+                if (value is IPersistableValueObject valueObject)
+                {
+                    value = valueObject.Dehydrate();
+                }
+
+                if (value.GetType().IsComplexStorageType())
+                {
+                    value = value.ToString();
+                }
+            }
+
+            if (value is DateTime dateTime)
+            {
+                if (dateTime.HasValue())
+                {
+                    value = dateTime.IsNotAllowableDate()
+                        ? SqlServerRepository.MinimumAllowableDate
+                        : dateTime.ToUniversalTime();
+                }
+                else
+                {
+                    value = DBNull.Value;
+                }
+            }
+
+            if (value is Guid guid)
+            {
+                value = guid.ToString("D");
+            }
+
+            if (value == null)
+            {
+                if (targetPropertyType == typeof(byte[]))
+                {
+                    value = SqlBinary.Null;
+                }
+                else
+                {
+                    value = DBNull.Value;
+                }
+            }
+
+            return value;
         }
 
         public static TEntity FromTableEntity<TEntity>(this Dictionary<string, object> tableProperties,

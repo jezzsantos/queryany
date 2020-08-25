@@ -11,8 +11,7 @@ namespace Domain.Interfaces.Entities
     ///     Aggregates support being persisted.
     ///     Aggregates operate on all child entities or value objects by raising change events
     /// </summary>
-    public abstract class AggregateRootBase : IPersistableEntity, IPublishingAggregateEntity,
-        IPublishedEntityEventHandler
+    public abstract class AggregateRootBase : IAggregateRootEntity
     {
         internal const string EventsPropertyName = "Events";
         private readonly bool isInstantiating;
@@ -24,11 +23,16 @@ namespace Domain.Interfaces.Entities
             Logger = logger;
             IdFactory = idFactory;
 
-            var now = DateTime.UtcNow;
-            CreatedAtUtc = now;
-            LastModifiedAtUtc = now;
-            Id = idFactory.Create(this);
             this.isInstantiating = !(idFactory is HydrationIdentifierFactory);
+            var now = DateTime.UtcNow;
+            LastPersistedAtUtc = null;
+            CreatedAtUtc = this.isInstantiating
+                ? now
+                : DateTime.MinValue;
+            LastModifiedAtUtc = this.isInstantiating
+                ? now
+                : DateTime.MinValue;
+            Id = idFactory.Create(this);
             Events = new List<object>();
         }
 
@@ -40,6 +44,8 @@ namespace Domain.Interfaces.Entities
 
         public DateTime LastModifiedAtUtc { get; private set; }
 
+        public DateTime? LastPersistedAtUtc { get; private set; }
+
         public Identifier Id { get; private set; }
 
         public virtual Dictionary<string, object> Dehydrate()
@@ -47,6 +53,7 @@ namespace Domain.Interfaces.Entities
             return new Dictionary<string, object>
             {
                 {nameof(Id), Id},
+                {nameof(LastPersistedAtUtc), LastPersistedAtUtc},
                 {nameof(CreatedAtUtc), CreatedAtUtc},
                 {nameof(LastModifiedAtUtc), LastModifiedAtUtc},
                 {EventsPropertyName, Events}
@@ -59,6 +66,7 @@ namespace Domain.Interfaces.Entities
             Id = id.HasValue()
                 ? id
                 : null;
+            LastPersistedAtUtc = properties.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
             CreatedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(CreatedAtUtc));
             LastModifiedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(LastModifiedAtUtc));
             Events = properties.GetValueOrDefault<List<object>>(EventsPropertyName);
@@ -84,6 +92,7 @@ namespace Domain.Interfaces.Entities
             {
                 throw new RuleViolationException($"The entity with {Id} is in an invalid state.");
             }
+            LastModifiedAtUtc = DateTime.UtcNow;
             Events.Add(@event);
         }
 

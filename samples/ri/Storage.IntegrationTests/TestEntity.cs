@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging.Abstractions;
 using QueryAny;
 using QueryAny.Primitives;
 using ServiceStack;
@@ -10,14 +9,15 @@ using ServiceStack;
 namespace Storage.IntegrationTests
 {
     [EntityName("testentities")]
-    public class TestEntity : EntityBase
+    public class TestEntity : IPersistableEntity
     {
         public TestEntity() : this(new GuidIdentifierFactory())
         {
         }
 
-        internal TestEntity(IIdentifierFactory idFactory) : base(NullLogger.Instance, idFactory)
+        internal TestEntity(IIdentifierFactory idFactory)
         {
+            Id = idFactory.Create(this);
         }
 
         public string AStringValue { get; set; }
@@ -56,34 +56,43 @@ namespace Storage.IntegrationTests
 
         public ComplexValueObject AComplexValueObjectValue { get; set; }
 
-        public override Dictionary<string, object> Dehydrate()
+        public Identifier Id { get; private set; }
+
+        public DateTime? LastPersistedAtUtc { get; private set; }
+
+        public Dictionary<string, object> Dehydrate()
         {
-            var properties = base.Dehydrate();
-            properties.Add(nameof(AStringValue), AStringValue);
-            properties.Add(nameof(ABooleanValue), ABooleanValue);
-            properties.Add(nameof(ANullableBooleanValue), ANullableBooleanValue);
-            properties.Add(nameof(ADateTimeUtcValue), ADateTimeUtcValue);
-            properties.Add(nameof(ANullableDateTimeUtcValue), ANullableDateTimeUtcValue);
-            properties.Add(nameof(ADateTimeOffsetValue), ADateTimeOffsetValue);
-            properties.Add(nameof(ANullableDateTimeOffsetValue), ANullableDateTimeOffsetValue);
-            properties.Add(nameof(AGuidValue), AGuidValue);
-            properties.Add(nameof(ANullableGuidValue), ANullableGuidValue);
-            properties.Add(nameof(ADoubleValue), ADoubleValue);
-            properties.Add(nameof(ANullableDoubleValue), ANullableDoubleValue);
-            properties.Add(nameof(AIntValue), AIntValue);
-            properties.Add(nameof(ANullableIntValue), ANullableIntValue);
-            properties.Add(nameof(ALongValue), ALongValue);
-            properties.Add(nameof(ANullableLongValue), ANullableLongValue);
-            properties.Add(nameof(ABinaryValue), ABinaryValue);
-            properties.Add(nameof(AComplexNonValueObjectValue), AComplexNonValueObjectValue);
-            properties.Add(nameof(AComplexValueObjectValue), AComplexValueObjectValue);
+            var properties = new Dictionary<string, object>
+            {
+                {nameof(Id), Id},
+                {nameof(LastPersistedAtUtc), LastPersistedAtUtc},
+                {nameof(AStringValue), AStringValue},
+                {nameof(ABooleanValue), ABooleanValue},
+                {nameof(ANullableBooleanValue), ANullableBooleanValue},
+                {nameof(ADateTimeUtcValue), ADateTimeUtcValue},
+                {nameof(ANullableDateTimeUtcValue), ANullableDateTimeUtcValue},
+                {nameof(ADateTimeOffsetValue), ADateTimeOffsetValue},
+                {nameof(ANullableDateTimeOffsetValue), ANullableDateTimeOffsetValue},
+                {nameof(AGuidValue), AGuidValue},
+                {nameof(ANullableGuidValue), ANullableGuidValue},
+                {nameof(ADoubleValue), ADoubleValue},
+                {nameof(ANullableDoubleValue), ANullableDoubleValue},
+                {nameof(AIntValue), AIntValue},
+                {nameof(ANullableIntValue), ANullableIntValue},
+                {nameof(ALongValue), ALongValue},
+                {nameof(ANullableLongValue), ANullableLongValue},
+                {nameof(ABinaryValue), ABinaryValue},
+                {nameof(AComplexNonValueObjectValue), AComplexNonValueObjectValue},
+                {nameof(AComplexValueObjectValue), AComplexValueObjectValue}
+            };
 
             return properties;
         }
 
-        public override void Rehydrate(IReadOnlyDictionary<string, object> properties)
+        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
-            base.Rehydrate(properties);
+            Id = properties.GetValueOrDefault<Identifier>(nameof(Id));
+            LastPersistedAtUtc = properties.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
             AStringValue = properties.GetValueOrDefault<string>(nameof(AStringValue));
             ABooleanValue = properties.GetValueOrDefault<bool>(nameof(ABooleanValue));
             ANullableBooleanValue = properties.GetValueOrDefault<bool?>(nameof(ANullableBooleanValue));
@@ -107,11 +116,6 @@ namespace Storage.IntegrationTests
                 properties.GetValueOrDefault<ComplexValueObject>(nameof(AComplexValueObjectValue));
         }
 
-        protected override void When(object @event)
-        {
-            throw new NotImplementedException();
-        }
-
         public static EntityFactory<TestEntity> Instantiate()
         {
             return (properties, container) => new TestEntity(new HydrationIdentifierFactory(properties));
@@ -119,39 +123,44 @@ namespace Storage.IntegrationTests
     }
 
     [EntityName("firstjoiningtestentities")]
-    public class FirstJoiningTestEntity : EntityBase
+    public class FirstJoiningTestEntity : IPersistableEntity
     {
         public FirstJoiningTestEntity() : this(new GuidIdentifierFactory())
         {
         }
 
-        private FirstJoiningTestEntity(IIdentifierFactory idFactory) : base(NullLogger.Instance, idFactory)
+        private FirstJoiningTestEntity(IIdentifierFactory idFactory)
         {
+            Id = idFactory.Create(this);
         }
 
         public string AStringValue { get; set; }
 
         public int AIntValue { get; set; }
 
-        public override Dictionary<string, object> Dehydrate()
+        public Identifier Id { get; private set; }
+
+        public DateTime? LastPersistedAtUtc { get; private set; }
+
+        public Dictionary<string, object> Dehydrate()
         {
-            var properties = base.Dehydrate();
-            properties.Add(nameof(AStringValue), AStringValue);
-            properties.Add(nameof(AIntValue), AIntValue);
+            var properties = new Dictionary<string, object>
+            {
+                {nameof(Id), Id},
+                {nameof(LastPersistedAtUtc), LastPersistedAtUtc},
+                {nameof(AStringValue), AStringValue},
+                {nameof(AIntValue), AIntValue}
+            };
 
             return properties;
         }
 
-        public override void Rehydrate(IReadOnlyDictionary<string, object> properties)
+        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
-            base.Rehydrate(properties);
+            Id = properties.GetValueOrDefault<Identifier>(nameof(Id));
+            LastPersistedAtUtc = properties.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
             AStringValue = properties.GetValueOrDefault<string>(nameof(AStringValue));
             AIntValue = properties.GetValueOrDefault<int>(nameof(AIntValue));
-        }
-
-        protected override void When(object @event)
-        {
-            throw new NotImplementedException();
         }
 
         public static EntityFactory<FirstJoiningTestEntity> Instantiate()
@@ -161,14 +170,15 @@ namespace Storage.IntegrationTests
     }
 
     [EntityName("secondjoiningtestentities")]
-    public class SecondJoiningTestEntity : EntityBase
+    public class SecondJoiningTestEntity : IPersistableEntity
     {
         public SecondJoiningTestEntity() : this(new GuidIdentifierFactory())
         {
         }
 
-        private SecondJoiningTestEntity(IIdentifierFactory idFactory) : base(NullLogger.Instance, idFactory)
+        private SecondJoiningTestEntity(IIdentifierFactory idFactory)
         {
+            Id = idFactory.Create(this);
         }
 
         public string AStringValue { get; set; }
@@ -177,27 +187,31 @@ namespace Storage.IntegrationTests
 
         public long ALongValue { get; set; }
 
-        public override Dictionary<string, object> Dehydrate()
+        public Identifier Id { get; private set; }
+
+        public DateTime? LastPersistedAtUtc { get; private set; }
+
+        public Dictionary<string, object> Dehydrate()
         {
-            var properties = base.Dehydrate();
-            properties.Add(nameof(AStringValue), AStringValue);
-            properties.Add(nameof(AIntValue), AIntValue);
-            properties.Add(nameof(ALongValue), ALongValue);
+            var properties = new Dictionary<string, object>
+            {
+                {nameof(Id), Id},
+                {nameof(LastPersistedAtUtc), LastPersistedAtUtc},
+                {nameof(AStringValue), AStringValue},
+                {nameof(AIntValue), AIntValue},
+                {nameof(ALongValue), ALongValue}
+            };
 
             return properties;
         }
 
-        public override void Rehydrate(IReadOnlyDictionary<string, object> properties)
+        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
         {
-            base.Rehydrate(properties);
+            Id = properties.GetValueOrDefault<Identifier>(nameof(Id));
+            LastPersistedAtUtc = properties.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
             AStringValue = properties.GetValueOrDefault<string>(nameof(AStringValue));
             AIntValue = properties.GetValueOrDefault<int>(nameof(AIntValue));
             ALongValue = properties.GetValueOrDefault<long>(nameof(ALongValue));
-        }
-
-        protected override void When(object @event)
-        {
-            throw new NotImplementedException();
         }
 
         public static EntityFactory<SecondJoiningTestEntity> Instantiate()

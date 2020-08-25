@@ -2,7 +2,7 @@
 
 namespace Domain.Interfaces.Entities
 {
-    public interface IModifiableEntity
+    public interface IEntity : IPersistableEntity, IPublishingEntity, IPublishedEntityEventHandler
     {
         DateTime CreatedAtUtc { get; }
 

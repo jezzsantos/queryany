@@ -169,13 +169,7 @@ namespace Storage
                 containerEntityProperties.Add(entityProperty.Key, value);
             }
 
-            var nowUtc = DateTime.UtcNow;
-            if (!entity.CreatedAtUtc.HasValue())
-            {
-                containerEntityProperties[nameof(IModifiableEntity.CreatedAtUtc)] = nowUtc;
-            }
-
-            containerEntityProperties[nameof(IModifiableEntity.LastModifiedAtUtc)] = nowUtc;
+            containerEntityProperties[nameof(IPersistableEntity.LastPersistedAtUtc)] = DateTime.UtcNow;
 
             return containerEntityProperties;
         }

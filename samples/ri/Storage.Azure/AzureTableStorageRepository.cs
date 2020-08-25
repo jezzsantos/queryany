@@ -408,87 +408,98 @@ namespace Storage.Azure
                 .Where(pair => IsNotExcluded(pair.Key));
             var tableEntity = new DynamicTableEntity(options.DefaultPartitionKey, entity.Id)
             {
-                Properties = entityProperties.ToTableEntityProperties(options)
+                Properties = entityProperties.ToTableEntityProperties<TEntity>(options)
             };
 
-            var utcNow = DateTime.UtcNow;
-            if (!entity.CreatedAtUtc.HasValue())
-            {
-                tableEntity.Properties[nameof(IModifiableEntity.CreatedAtUtc)].DateTime = utcNow;
-            }
-
-            tableEntity.Properties[nameof(IModifiableEntity.LastModifiedAtUtc)].DateTime = utcNow;
+            tableEntity.Properties[nameof(IPersistableEntity.LastPersistedAtUtc)].DateTime = DateTime.UtcNow;
 
             return tableEntity;
         }
 
-        private static Dictionary<string, EntityProperty> ToTableEntityProperties(
+        private static Dictionary<string, EntityProperty> ToTableEntityProperties<TEntity>(
             this IEnumerable<KeyValuePair<string, object>> entityProperties,
-            AzureTableStorageRepository.TableStorageApiOptions options)
+            AzureTableStorageRepository.TableStorageApiOptions options) where TEntity : IPersistableEntity
         {
+            var propertyInfo = typeof(TEntity).GetProperties();
+
             return entityProperties
                 .ToDictionary(pair => pair.Key,
-                    pair => ToTableEntityProperty(pair.Value, options));
+                    pair =>
+                    {
+                        var targetPropertyType =
+                            propertyInfo.First(info => info.Name.EqualsOrdinal(pair.Key)).PropertyType;
+                        return ToTableEntityProperty(pair.Value, targetPropertyType, options);
+                    });
         }
 
-        private static EntityProperty ToTableEntityProperty(object property,
+        private static EntityProperty ToTableEntityProperty(object property, Type targetPropertyType,
             AzureTableStorageRepository.TableStorageApiOptions options)
         {
-            switch (property)
+            switch (targetPropertyType)
             {
-                case string text:
-                    return EntityProperty.GeneratePropertyForString(text);
-                case DateTime dateTime:
-                    return EntityProperty.GeneratePropertyForDateTimeOffset(
-                        ToTableEntityDateTimeOffsetProperty(dateTime, options));
-                case DateTimeOffset dateTimeOffset:
-                    return EntityProperty.GeneratePropertyForDateTimeOffset(
-                        ToTableEntityDateTimeOffsetProperty(dateTimeOffset, options));
-                case bool boolean:
-                    return EntityProperty.GeneratePropertyForBool(boolean);
-                case int int32:
-                    return EntityProperty.GeneratePropertyForInt(int32);
-                case long int64:
-                    return EntityProperty.GeneratePropertyForLong(int64);
-                case double @double:
-                    return EntityProperty.GeneratePropertyForDouble(@double);
-                case Guid guid:
-                    return EntityProperty.GeneratePropertyForGuid(guid);
-                case byte[] bytes:
-                    return EntityProperty.GeneratePropertyForByteArray(bytes);
-                case null:
-                    return EntityProperty.CreateEntityPropertyFromObject(AzureTableStorageRepository.NullValue);
-
-                default:
-                    if (property is IPersistableValueObject valueObject)
+                case Type _ when targetPropertyType == typeof(DateTime) || targetPropertyType == typeof(DateTime?):
+                {
+                    DateTimeOffset? dateTimeOffset = null;
+                    var dateTime = (DateTime?) property;
+                    if (dateTime.HasValue)
                     {
-                        return EntityProperty.GeneratePropertyForString(valueObject.Dehydrate());
+                        dateTimeOffset = dateTime.Value.HasValue()
+                            ? dateTime.Value.Kind == DateTimeKind.Utc
+                                ? new DateTimeOffset(dateTime.Value.ToUniversalTime(), TimeSpan.Zero)
+                                : new DateTimeOffset(dateTime.Value.ToLocalTime())
+                            : options.MinimumAllowableUtcDateTime;
                     }
 
-                    return EntityProperty.GeneratePropertyForString(property.ToString());
-            }
-        }
+                    return EntityProperty.GeneratePropertyForDateTimeOffset(dateTimeOffset);
+                }
 
-        private static DateTimeOffset? ToTableEntityDateTimeOffsetProperty(object value,
-            AzureTableStorageRepository.TableStorageApiOptions options)
-        {
-            if (value is DateTime dateTime)
-            {
-                return dateTime.HasValue()
-                    ? dateTime.Kind == DateTimeKind.Utc
-                        ? new DateTimeOffset(dateTime.ToUniversalTime(), TimeSpan.Zero)
-                        : new DateTimeOffset(dateTime.ToLocalTime())
-                    : options.MinimumAllowableUtcDateTime;
-            }
+                case Type _ when targetPropertyType == typeof(DateTimeOffset) ||
+                                 targetPropertyType == typeof(DateTimeOffset?):
+                {
+                    var dateTimeOffset = (DateTimeOffset?) property;
+                    if (dateTimeOffset.HasValue)
+                    {
+                        dateTimeOffset = dateTimeOffset.Value.DateTime.HasValue()
+                            ? dateTimeOffset
+                            : options.MinimumAllowableUtcDateTime;
+                    }
 
-            if (value is DateTimeOffset dateTimeOffset)
-            {
-                return dateTimeOffset.DateTime.HasValue()
-                    ? dateTimeOffset
-                    : options.MinimumAllowableUtcDateTime;
-            }
+                    return EntityProperty.GeneratePropertyForDateTimeOffset(dateTimeOffset);
+                }
 
-            return null;
+                case Type _ when targetPropertyType == typeof(bool) || targetPropertyType == typeof(bool?):
+                    return EntityProperty.GeneratePropertyForBool((bool?) property);
+
+                case Type _ when targetPropertyType == typeof(int) || targetPropertyType == typeof(int?):
+                    return EntityProperty.GeneratePropertyForInt((int?) property);
+
+                case Type _ when targetPropertyType == typeof(long) || targetPropertyType == typeof(long?):
+                    return EntityProperty.GeneratePropertyForLong((long?) property);
+
+                case Type _ when targetPropertyType == typeof(double) || targetPropertyType == typeof(double?):
+                    return EntityProperty.GeneratePropertyForDouble((double?) property);
+
+                case Type _ when targetPropertyType == typeof(Guid) || targetPropertyType == typeof(Guid?):
+                    return EntityProperty.GeneratePropertyForGuid((Guid?) property);
+
+                case Type _ when targetPropertyType == typeof(byte[]):
+                    return EntityProperty.GeneratePropertyForByteArray((byte[]) property);
+
+                default:
+                    if (typeof(IPersistableValueObject).IsAssignableFrom(targetPropertyType))
+                    {
+                        if (property != null)
+                        {
+                            var valueObject = (IPersistableValueObject) property;
+                            return EntityProperty.GeneratePropertyForString(valueObject.Dehydrate());
+                        }
+                    }
+
+                    var @string = property != null
+                        ? property.ToString()
+                        : AzureTableStorageRepository.NullValue;
+                    return EntityProperty.GeneratePropertyForString(@string);
+            }
         }
 
         private static bool IsMinimumAllowableDate(this DateTime dateTime,

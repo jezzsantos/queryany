@@ -32,7 +32,7 @@ namespace Storage
             where TEntity : IPersistableEntity
         {
             return query.IsDefaultOrdering()
-                ? $"{Reflector<TEntity>.GetPropertyName(e => e.CreatedAtUtc)}"
+                ? $"{Reflector<TEntity>.GetPropertyName(e => e.LastPersistedAtUtc)}"
                 : $"{query.ResultOptions.OrderBy.By}";
         }
 
@@ -45,7 +45,7 @@ namespace Storage
                 return true;
             }
 
-            if (by.EqualsOrdinal(nameof(IModifiableEntity.CreatedAtUtc)))
+            if (by.EqualsOrdinal(nameof(IPersistableEntity.LastPersistedAtUtc)))
             {
                 return true;
             }

@@ -322,13 +322,7 @@ namespace Storage.Azure
 
             containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id.ToString());
 
-            var utcNow = DateTime.UtcNow;
-            if (!entity.CreatedAtUtc.HasValue())
-            {
-                containerEntityProperties[nameof(IPersistableEntity.CreatedAtUtc)] = utcNow;
-            }
-
-            containerEntityProperties[nameof(IPersistableEntity.LastModifiedAtUtc)] = utcNow;
+            containerEntityProperties[nameof(IPersistableEntity.LastPersistedAtUtc)] = DateTime.UtcNow;
 
             return containerEntity;
         }

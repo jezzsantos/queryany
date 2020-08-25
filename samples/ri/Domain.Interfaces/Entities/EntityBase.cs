@@ -11,7 +11,7 @@ namespace Domain.Interfaces.Entities
     ///     Entities support being persisted.
     ///     Entities operate on all child entities or value objects by handling raised change events from root aggregates
     /// </summary>
-    public abstract class EntityBase : IPersistableEntity, IPublishingEntity, IPublishedEntityEventHandler
+    public abstract class EntityBase : IEntity
     {
         private Action<object> aggregateEntityEventHandler;
 
@@ -22,9 +22,15 @@ namespace Domain.Interfaces.Entities
             Logger = logger;
             IdFactory = idFactory;
 
+            var isInstantiating = !(idFactory is HydrationIdentifierFactory);
             var now = DateTime.UtcNow;
-            CreatedAtUtc = now;
-            LastModifiedAtUtc = now;
+            LastPersistedAtUtc = null;
+            CreatedAtUtc = isInstantiating
+                ? now
+                : DateTime.MinValue;
+            LastModifiedAtUtc = isInstantiating
+                ? now
+                : DateTime.MinValue;
             Id = idFactory.Create(this);
         }
 
@@ -40,6 +46,8 @@ namespace Domain.Interfaces.Entities
 
         public DateTime LastModifiedAtUtc { get; private set; }
 
+        public DateTime? LastPersistedAtUtc { get; private set; }
+
         public Identifier Id { get; private set; }
 
         public virtual Dictionary<string, object> Dehydrate()
@@ -47,6 +55,7 @@ namespace Domain.Interfaces.Entities
             return new Dictionary<string, object>
             {
                 {nameof(Id), Id},
+                {nameof(LastPersistedAtUtc), LastPersistedAtUtc},
                 {nameof(CreatedAtUtc), CreatedAtUtc},
                 {nameof(LastModifiedAtUtc), LastModifiedAtUtc}
             };
@@ -58,6 +67,7 @@ namespace Domain.Interfaces.Entities
             Id = id.HasValue()
                 ? id
                 : null;
+            LastPersistedAtUtc = properties.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
             CreatedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(CreatedAtUtc));
             LastModifiedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(LastModifiedAtUtc));
         }
@@ -71,6 +81,7 @@ namespace Domain.Interfaces.Entities
         {
             When(@event);
             this.aggregateEntityEventHandler?.Invoke(@event);
+            LastModifiedAtUtc = DateTime.UtcNow;
         }
 
         public void SetAggregateEventHandler(Action<object> handler)

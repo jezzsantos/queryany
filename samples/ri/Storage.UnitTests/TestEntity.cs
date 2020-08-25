@@ -21,10 +21,7 @@ namespace Storage.UnitTests
         internal string AnInternalProperty { get; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
-        public DateTime CreatedAtUtc { get; }
-
-        // ReSharper disable once UnassignedGetOnlyAutoProperty
-        public DateTime LastModifiedAtUtc { get; }
+        public DateTime? LastPersistedAtUtc { get; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         public Identifier Id { get; }

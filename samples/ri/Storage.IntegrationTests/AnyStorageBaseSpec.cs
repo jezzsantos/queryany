@@ -61,9 +61,7 @@ namespace Storage.IntegrationTests
 
             var added = this.storage.Get(entity.Id);
             added.Id.Should().Be(entity.Id);
-            added.CreatedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
-            added.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
-            added.LastModifiedAtUtc.Should().BeAfter(added.CreatedAtUtc);
+            added.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
         }
 
         [TestMethod]
@@ -133,10 +131,8 @@ namespace Storage.IntegrationTests
             var result = this.storage.Get(entity.Id);
 
             result.Id.Should().Be(entity.Id);
-            result.CreatedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
-            result.CreatedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
-            result.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
-            result.LastModifiedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
+            result.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            result.LastPersistedAtUtc.GetValueOrDefault().Kind.Should().Be(DateTimeKind.Utc);
             result.ABinaryValue.SequenceEqual(new byte[] {0x01}).Should().BeTrue();
             result.ABooleanValue.Should().Be(true);
             result.ANullableBooleanValue.Should().Be(true);
@@ -190,10 +186,8 @@ namespace Storage.IntegrationTests
             var result = this.storage.Get(entity.Id);
 
             result.Id.Should().Be(entity.Id);
-            result.CreatedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
-            result.CreatedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
-            result.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
-            result.LastModifiedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
+            result.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            result.LastPersistedAtUtc.GetValueOrDefault().Kind.Should().Be(DateTimeKind.Utc);
             result.ABinaryValue.Should().BeNull();
             result.ABooleanValue.Should().Be(default);
             result.ANullableBooleanValue.Should().Be(null);
@@ -233,9 +227,7 @@ namespace Storage.IntegrationTests
 
             updated.Id.Should().Be(entity.Id);
             updated.AStringValue.Should().Be("updated");
-            updated.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
-            updated.LastModifiedAtUtc.Should().BeAfter(updated.CreatedAtUtc,
-                $"{nameof(IModifiableEntity.LastModifiedAtUtc)} ({updated.LastModifiedAtUtc:O}) is not after {nameof(IModifiableEntity.CreatedAtUtc)} ({updated.CreatedAtUtc:O})");
+            updated.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
         }
 
         [TestMethod]
@@ -250,9 +242,7 @@ namespace Storage.IntegrationTests
             this.storage.Count().Should().Be(1);
 
             added.Id.Should().Be(entity.Id);
-            added.CreatedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
-            added.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
-            added.LastModifiedAtUtc.Should().BeAfter(added.CreatedAtUtc);
+            added.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
         }
 
         [TestMethod]
