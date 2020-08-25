@@ -9,7 +9,7 @@ namespace Storage.Interfaces
 
         TEntity Add(TEntity entity);
 
-        TEntity Update(TEntity entity);
+        TEntity Upsert(TEntity entity);
 
         void Delete(Identifier id);
 

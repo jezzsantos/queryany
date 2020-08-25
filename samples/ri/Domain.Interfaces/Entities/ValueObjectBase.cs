@@ -11,9 +11,17 @@ namespace Domain.Interfaces.Entities
     ///     Value objects are equal when their internal data is the same.
     ///     Value objects support being persisted
     /// </summary>
-    public abstract class ValueObjectBase<TValueObject> : IEquatable<TValueObject>, IPersistableValueObject
+    public abstract class ValueObjectBase<TValueObject> : IEquatable<TValueObject>,
+        IComparable<ValueObjectBase<TValueObject>>, IPersistableValueObject
     {
         protected const string DefaultHydrationDelimiter = "::";
+
+        public int CompareTo(ValueObjectBase<TValueObject> other)
+        {
+            var thisValue = Dehydrate();
+            var otherValue = other.Dehydrate();
+            return string.Compare(thisValue, otherValue, StringComparison.Ordinal);
+        }
 
         public bool Equals(TValueObject other)
         {

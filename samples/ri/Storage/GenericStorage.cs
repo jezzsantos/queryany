@@ -63,7 +63,7 @@ namespace Storage
             return entity;
         }
 
-        public TEntity Update(TEntity entity)
+        public TEntity Upsert(TEntity entity)
         {
             entity.GuardAgainstNull(nameof(entity));
             if (!entity.Id.HasValue())
@@ -74,7 +74,7 @@ namespace Storage
             var latest = Get(entity.Id);
             if (latest == null)
             {
-                throw new ResourceNotFoundException();
+                return Add(entity);
             }
 
             latest.PopulateWithNonDefaultValues(entity);

@@ -320,7 +320,7 @@ namespace Storage.Azure
                 containerEntityProperties.Add(pair.Key, value);
             }
 
-            containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id);
+            containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id.ToString());
 
             var utcNow = DateTime.UtcNow;
             if (!entity.CreatedAtUtc.HasValue())

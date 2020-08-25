@@ -16,7 +16,7 @@ namespace Storage.IntegrationTests
         {
         }
 
-        private TestEntity(IIdentifierFactory idFactory) : base(NullLogger.Instance, idFactory)
+        internal TestEntity(IIdentifierFactory idFactory) : base(NullLogger.Instance, idFactory)
         {
         }
 

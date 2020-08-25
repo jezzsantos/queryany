@@ -223,13 +223,13 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
-        public void WhenUpdateAndExists_ThenReturnsUpdated()
+        public void WhenUpsertAndExists_ThenReturnsUpdated()
         {
             var entity = new TestEntity();
             this.storage.Add(entity);
 
             entity.AStringValue = "updated";
-            var updated = this.storage.Update(entity);
+            var updated = this.storage.Upsert(entity);
 
             updated.Id.Should().Be(entity.Id);
             updated.AStringValue.Should().Be("updated");
@@ -239,23 +239,29 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
-        public void WhenUpdateAndNotExists_ThenThrows()
+        public void WhenUpsertAndNotExists_ThenAdds()
         {
             var entity = new TestEntity
             {
                 AStringValue = "updated"
             };
 
-            this.storage.Invoking(x => x.Update(entity))
-                .Should().Throw<ResourceNotFoundException>();
+            var added = this.storage.Upsert(entity);
+            this.storage.Count().Should().Be(1);
+
+            added.Id.Should().Be(entity.Id);
+            added.CreatedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            added.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            added.LastModifiedAtUtc.Should().BeAfter(added.CreatedAtUtc);
         }
 
         [TestMethod]
-        public void WhenUpdateAndEmptyId_ThenThrows()
+        public void WhenUpsertAndEmptyId_ThenThrows()
         {
-            var entity = new TestEntity();
+            var identifierFactory = new NullIdentifierFactory();
+            var entity = new TestEntity(identifierFactory);
 
-            this.storage.Invoking(x => x.Update(entity))
+            this.storage.Invoking(x => x.Upsert(entity))
                 .Should().Throw<ResourceNotFoundException>();
         }
 
