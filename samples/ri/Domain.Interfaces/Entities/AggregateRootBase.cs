@@ -74,7 +74,7 @@ namespace Domain.Interfaces.Entities
 
         void IPublishedEntityEventHandler.HandleEvent(object @event)
         {
-            When(@event);
+            OnEventRaised(@event);
         }
 
         public List<object> Events { get; private set; }
@@ -86,7 +86,7 @@ namespace Domain.Interfaces.Entities
 
         void IPublishingEntity.RaiseEvent(object @event)
         {
-            When(@event);
+            OnEventRaised(@event);
             var isValid = EnsureValidState();
             if (!isValid)
             {
@@ -96,7 +96,7 @@ namespace Domain.Interfaces.Entities
             Events.Add(@event);
         }
 
-        protected abstract void When(object @event);
+        protected abstract void OnEventRaised(object @event);
 
         protected void RaiseCreateEvent(object @event)
         {

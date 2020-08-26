@@ -74,12 +74,12 @@ namespace Domain.Interfaces.Entities
 
         void IPublishedEntityEventHandler.HandleEvent(object @event)
         {
-            When(@event);
+            OnEventRaised(@event);
         }
 
         void IPublishingEntity.RaiseEvent(object @event)
         {
-            When(@event);
+            OnEventRaised(@event);
             this.aggregateEntityEventHandler?.Invoke(@event);
             LastModifiedAtUtc = DateTime.UtcNow;
         }
@@ -89,7 +89,7 @@ namespace Domain.Interfaces.Entities
             this.aggregateEntityEventHandler = handler;
         }
 
-        protected abstract void When(object @event);
+        protected abstract void OnEventRaised(object @event);
 
         protected void RaiseChangeEvent(object @event)
         {

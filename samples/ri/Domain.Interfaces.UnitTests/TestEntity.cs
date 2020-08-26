@@ -24,7 +24,7 @@ namespace Domain.Interfaces.UnitTests
             APropertyName = properties.GetValueOrDefault<string>(nameof(APropertyName));
         }
 
-        protected override void When(object @event)
+        protected override void OnEventRaised(object @event)
         {
             //Not used in testing
         }
@@ -62,7 +62,7 @@ namespace Domain.Interfaces.UnitTests
             APropertyName = properties.GetValueOrDefault<string>(nameof(APropertyName));
         }
 
-        protected override void When(object @event)
+        protected override void OnEventRaised(object @event)
         {
             //Not used in testing
         }

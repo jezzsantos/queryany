@@ -28,7 +28,7 @@ namespace PersonsDomain
             RaiseChangeEvent(PersonsDomain.Events.Person.PhoneNumberChanged.Create(Id, number));
         }
 
-        protected override void When(object @event)
+        protected override void OnEventRaised(object @event)
         {
             switch (@event)
             {

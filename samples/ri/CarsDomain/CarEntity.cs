@@ -48,7 +48,7 @@ namespace CarsDomain
             Plate = properties.GetValueOrDefault<LicensePlate>(nameof(Plate));
         }
 
-        protected override void When(object @event)
+        protected override void OnEventRaised(object @event)
         {
             switch (@event)
             {

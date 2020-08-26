@@ -124,7 +124,7 @@ namespace Api.Common.UnitTests
             APropertyValue = properties.GetValueOrDefault<string>(nameof(APropertyValue));
         }
 
-        protected override void When(object @event)
+        protected override void OnEventRaised(object @event)
         {
             throw new NotImplementedException();
         }
