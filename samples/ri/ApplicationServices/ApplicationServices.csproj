@@ -2,18 +2,17 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <RootNamespace>CarsApplication</RootNamespace>
+        <RootNamespace>ApplicationServices</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ApplicationServices\ApplicationServices.csproj" />
-      <ProjectReference Include="..\CarsDomain\CarsDomain.csproj" />
+      <ProjectReference Include="..\Api.Interfaces\Api.Interfaces.csproj" />
       <ProjectReference Include="..\Domain.Interfaces\Domain.Interfaces.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.6" />
+      <PackageReference Include="ServiceStack.Client" Version="5.8.0" />
     </ItemGroup>
 
 </Project>

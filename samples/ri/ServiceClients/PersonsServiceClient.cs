@@ -1,22 +1,22 @@
 ﻿using Api.Interfaces.ServiceOperations;
-using Domain.Interfaces.Entities;
+using ApplicationServices;
 using Domain.Interfaces.Resources;
 using QueryAny.Primitives;
 using ServiceStack;
 
 namespace ServiceClients
 {
-    public class PersonsService : IPersonsService
+    public class PersonsServiceClient : IPersonsService
     {
         private readonly string baseUrl;
 
-        public PersonsService(string serviceBaseUrl)
+        public PersonsServiceClient(string serviceBaseUrl)
         {
             serviceBaseUrl.GuardAgainstNullOrEmpty(nameof(serviceBaseUrl));
             this.baseUrl = serviceBaseUrl;
         }
 
-        public Person Get(Identifier id)
+        public Person Get(string id)
         {
             var client = new JsonServiceClient(this.baseUrl);
 

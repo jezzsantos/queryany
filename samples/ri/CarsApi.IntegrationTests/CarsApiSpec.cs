@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Api.Interfaces.ServiceOperations;
+using ApplicationServices;
 using CarsApplication.Storage;
 using CarsDomain;
 using CarsStorage;
@@ -12,7 +13,6 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ServiceClients;
 using ServiceStack;
 using Storage.Interfaces;
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ApplicationServices;
 using CarsApplication.Storage;
 using CarsDomain;
 using Domain.Interfaces;
@@ -10,7 +11,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using ServiceClients;
 
 namespace CarsApplication.UnitTests
 {
@@ -46,7 +46,7 @@ namespace CarsApplication.UnitTests
         {
             var person = new Person
                 {Id = "apersonid"};
-            this.personService.Setup(ps => ps.Get(It.IsAny<Identifier>()))
+            this.personService.Setup(ps => ps.Get(It.IsAny<string>()))
                 .Returns(person);
             var make = Manufacturer.Makes[0];
             var model = Manufacturer.Models[0];

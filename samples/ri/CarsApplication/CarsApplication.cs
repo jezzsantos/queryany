@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ApplicationServices;
 using CarsApplication.Storage;
 using CarsDomain;
 using Domain.Interfaces;
@@ -8,7 +9,6 @@ using Domain.Interfaces.Entities;
 using Domain.Interfaces.Resources;
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
-using ServiceClients;
 using ServiceStack;
 
 namespace CarsApplication
@@ -37,7 +37,7 @@ namespace CarsApplication
         {
             caller.GuardAgainstNull(nameof(caller));
 
-            var owner = this.personsService.Get(caller.Id.ToIdentifier())
+            var owner = this.personsService.Get(caller.Id)
                 .ToOwner();
 
             var car = new CarEntity(this.logger, this.idFactory);

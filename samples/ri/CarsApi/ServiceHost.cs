@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Api.Common;
 using Api.Common.Validators;
+using ApplicationServices;
 using CarsApplication;
 using CarsApplication.Storage;
 using CarsDomain;
@@ -56,7 +57,7 @@ namespace CarsApi
                 new CarStorage(c.Resolve<IStorage<CarEntity>>(), c.Resolve<IStorage<UnavailabilityEntity>>()));
             container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
             container.AddSingleton<IPersonsService>(c =>
-                new PersonsService(c.Resolve<IAppSettings>().GetString("PersonsApiBaseUrl")));
+                new PersonsServiceClient(c.Resolve<IAppSettings>().GetString("PersonsApiBaseUrl")));
         }
 
         private void RegisterValidators(Container container)
