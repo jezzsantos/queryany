@@ -3,6 +3,7 @@ using Api.Common;
 using Api.Common.Validators;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
+using DomainServices;
 using Funq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -50,6 +51,7 @@ namespace PersonsApi
                 PersonEntityAzureStorage.Create(c.Resolve<ILogger>(), c.Resolve<IAppSettings>(),
                     c.Resolve<IDomainFactory>()));
             container.AddSingleton<IPersonsApplication, PersonsApplication.PersonsApplication>();
+            container.AddSingleton<IEmailService, EmailService>();
         }
 
         private void RegisterValidators(Container container)

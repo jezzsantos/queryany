@@ -1,14 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
+using DomainServices;
 using Microsoft.Extensions.Logging;
+using PersonsDomain.Properties;
+using QueryAny.Primitives;
 
 namespace PersonsDomain
 {
     public class PersonEntity : AggregateRootBase
     {
-        public PersonEntity(ILogger logger, IIdentifierFactory idFactory, PersonName name) : base(logger, idFactory)
+        private readonly IEmailService emailService;
+
+        public PersonEntity(ILogger logger, IIdentifierFactory idFactory, IEmailService emailService,
+            PersonName name) : base(logger, idFactory)
         {
+            emailService.GuardAgainstNull(nameof(emailService));
+            this.emailService = emailService;
             RaiseCreateEvent(PersonsDomain.Events.Person.Created.Create(Id, name));
         }
 
@@ -66,6 +75,21 @@ namespace PersonsDomain
             }
         }
 
+        protected override bool EnsureValidState()
+        {
+            var isValid = base.EnsureValidState();
+
+            if (Email.HasValue())
+            {
+                if (!this.emailService.EnsureEmailIsUnique(Email, Id))
+                {
+                    throw new RuleViolationException(Resources.PersonEntity_EmailNotUnique);
+                }
+            }
+
+            return isValid;
+        }
+
         public override Dictionary<string, object> Dehydrate()
         {
             var properties = base.Dehydrate();
@@ -89,6 +113,7 @@ namespace PersonsDomain
         {
             return (properties, container) =>
                 new PersonEntity(container.Resolve<ILogger>(), new HydrationIdentifierFactory(properties),
+                    container.Resolve<IEmailService>(),
                     properties.GetValueOrDefault<PersonName>(nameof(Name)));
         }
     }

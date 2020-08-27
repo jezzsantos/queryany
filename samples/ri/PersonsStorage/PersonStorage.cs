@@ -1,6 +1,8 @@
-﻿using Domain.Interfaces.Entities;
+﻿using System.Linq;
+using Domain.Interfaces.Entities;
 using PersonsApplication.Storage;
 using PersonsDomain;
+using QueryAny;
 using QueryAny.Primitives;
 using Storage.Interfaces;
 
@@ -24,6 +26,13 @@ namespace PersonsStorage
         public PersonEntity Create(PersonEntity person)
         {
             return this.storage.Add(person);
+        }
+
+        public PersonEntity FindByEmailAddress(string emailAddress)
+        {
+            var persons = this.storage.Query(Query.From<PersonEntity>()
+                .Where(e => e.Email, ConditionOperator.EqualTo, emailAddress));
+            return persons.Results.FirstOrDefault();
         }
     }
 }

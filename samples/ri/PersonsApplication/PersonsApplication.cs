@@ -1,6 +1,7 @@
 ﻿using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Domain.Interfaces.Resources;
+using DomainServices;
 using Microsoft.Extensions.Logging;
 using PersonsApplication.Storage;
 using PersonsDomain;
@@ -12,25 +13,30 @@ namespace PersonsApplication
 {
     public class PersonsApplication : IPersonsApplication
     {
+        private readonly IEmailService emailService;
         private readonly IIdentifierFactory idFactory;
         private readonly ILogger logger;
         private readonly IPersonStorage storage;
 
-        public PersonsApplication(ILogger logger, IIdentifierFactory idFactory, IPersonStorage storage)
+        public PersonsApplication(ILogger logger, IIdentifierFactory idFactory, IPersonStorage storage,
+            IEmailService emailService)
         {
             logger.GuardAgainstNull(nameof(logger));
             idFactory.GuardAgainstNull(nameof(idFactory));
             storage.GuardAgainstNull(nameof(storage));
+            emailService.GuardAgainstNull(nameof(emailService));
             this.logger = logger;
             this.idFactory = idFactory;
             this.storage = storage;
+            this.emailService = emailService;
         }
 
         public Person Create(ICurrentCaller caller, string firstName, string lastName)
         {
             caller.GuardAgainstNull(nameof(caller));
 
-            var person = new PersonEntity(this.logger, this.idFactory, new PersonName(firstName, lastName));
+            var person = new PersonEntity(this.logger, this.idFactory, this.emailService,
+                new PersonName(firstName, lastName));
 
             var created = this.storage.Create(person);
 
@@ -65,6 +71,7 @@ namespace PersonsApplication
         {
             var dto = entity.ConvertTo<Person>();
             dto.Id = entity.Id;
+            dto.DisplayName = entity.DisplayName.DisplayName;
             return dto;
         }
     }

@@ -1,8 +1,11 @@
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
+using DomainServices;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using PersonsDomain.Properties;
 
 namespace PersonsDomain.UnitTests
 {
@@ -12,6 +15,7 @@ namespace PersonsDomain.UnitTests
         private PersonEntity entity;
         private Mock<IIdentifierFactory> identifierFactory;
         private Mock<ILogger> logger;
+        private Mock<IEmailService> uniqueEmailService;
 
         [TestInitialize]
         public void Initialize()
@@ -20,7 +24,11 @@ namespace PersonsDomain.UnitTests
             this.identifierFactory = new Mock<IIdentifierFactory>();
             this.identifierFactory.Setup(f => f.Create(It.IsAny<IIdentifiableEntity>()))
                 .Returns("apersonid".ToIdentifier);
+            this.uniqueEmailService = new Mock<IEmailService>();
+            this.uniqueEmailService.Setup(ues => ues.EnsureEmailIsUnique(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(true);
             this.entity = new PersonEntity(this.logger.Object, this.identifierFactory.Object,
+                this.uniqueEmailService.Object,
                 new PersonName("afirstname", "alastname"));
         }
 
@@ -47,6 +55,18 @@ namespace PersonsDomain.UnitTests
 
             this.entity.Email.Should().Be(new Email("anemail@company.com"));
             this.entity.Events[1].Should().BeOfType<Events.Person.EmailChanged>();
+        }
+
+        [TestMethod]
+        public void WhenSetEmailAndNotUnique_ThenThrows()
+        {
+            this.uniqueEmailService.Setup(ues => ues.EnsureEmailIsUnique(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(false);
+
+            this.entity
+                .Invoking(x =>
+                    x.SetEmail(new Email("anemail@company.com")))
+                .Should().Throw<RuleViolationException>(Resources.PersonEntity_EmailNotUnique);
         }
 
         [TestMethod]

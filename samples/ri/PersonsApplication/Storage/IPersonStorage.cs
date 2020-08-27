@@ -8,5 +8,7 @@ namespace PersonsApplication.Storage
         PersonEntity Get(Identifier toIdentifier);
 
         PersonEntity Create(PersonEntity person);
+
+        PersonEntity FindByEmailAddress(string emailAddress);
     }
 }

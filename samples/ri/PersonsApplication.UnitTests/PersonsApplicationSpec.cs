@@ -1,5 +1,6 @@
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
+using DomainServices;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -17,6 +18,7 @@ namespace PersonsApplication.UnitTests
         private Mock<IIdentifierFactory> idFactory;
         private Mock<ILogger> logger;
         private Mock<IPersonStorage> storage;
+        private Mock<IEmailService> uniqueEmailService;
 
         [TestInitialize]
         public void Initialize()
@@ -26,16 +28,20 @@ namespace PersonsApplication.UnitTests
             this.idFactory.Setup(idf => idf.Create(It.IsAny<IIdentifiableEntity>()))
                 .Returns("anid".ToIdentifier());
             this.storage = new Mock<IPersonStorage>();
+            this.uniqueEmailService = new Mock<IEmailService>();
+            this.uniqueEmailService.Setup(ues => ues.EnsureEmailIsUnique(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(true);
             this.caller = new Mock<ICurrentCaller>();
             this.caller.Setup(c => c.Id).Returns("acallerid");
             this.carsApplication =
-                new PersonsApplication(this.logger.Object, this.idFactory.Object, this.storage.Object);
+                new PersonsApplication(this.logger.Object, this.idFactory.Object, this.storage.Object,
+                    this.uniqueEmailService.Object);
         }
 
         [TestMethod]
         public void WhenCreate_ThenReturnsPerson()
         {
-            var entity = new PersonEntity(this.logger.Object, this.idFactory.Object,
+            var entity = new PersonEntity(this.logger.Object, this.idFactory.Object, this.uniqueEmailService.Object,
                 new PersonName("afirstname", "alastname"));
             this.storage.Setup(s =>
                     s.Create(It.IsAny<PersonEntity>()))
@@ -54,7 +60,7 @@ namespace PersonsApplication.UnitTests
         public void WhenGet_ThenReturnsPerson()
         {
             this.storage.Setup(s => s.Get(It.IsAny<Identifier>()))
-                .Returns(new PersonEntity(this.logger.Object, this.idFactory.Object,
+                .Returns(new PersonEntity(this.logger.Object, this.idFactory.Object, this.uniqueEmailService.Object,
                     new PersonName("afirstname", "alastname")));
 
             var result =
