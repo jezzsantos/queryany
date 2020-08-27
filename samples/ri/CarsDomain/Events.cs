@@ -96,6 +96,8 @@ namespace CarsDomain
 
             public class UnavailabilitySlotAdded
             {
+                public string Id { get; set; }
+
                 public string CarId { get; set; }
 
                 public DateTime From { get; set; }

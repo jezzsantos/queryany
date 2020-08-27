@@ -118,6 +118,7 @@ namespace CarsDomain.UnitTests
             this.entity.Unavailabilities[0].CausedBy.Should().Be(UnavailabilityCausedBy.Offline);
             this.entity.Unavailabilities[0].CausedByReference.Should().BeNull();
             this.entity.Events[4].Should().BeOfType<Events.Car.UnavailabilitySlotAdded>();
+            this.entity.Events[4].As<Events.Car.UnavailabilitySlotAdded>().Id.Should().Be("anunavailbilityid1");
         }
 
         [TestMethod]

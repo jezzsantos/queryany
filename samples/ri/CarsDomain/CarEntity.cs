@@ -78,6 +78,7 @@ namespace CarsDomain
 
                 case Events.Car.UnavailabilitySlotAdded added:
                     var unavailability = new UnavailabilityEntity(Logger, IdFactory);
+                    added.Id = unavailability.Id;
                     unavailability.SetAggregateEventHandler(RaiseChangeEvent);
                     RaiseToEntity(unavailability, @event);
                     Unavailabilities.Add(unavailability);
