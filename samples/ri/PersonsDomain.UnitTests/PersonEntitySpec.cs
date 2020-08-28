@@ -28,15 +28,17 @@ namespace PersonsDomain.UnitTests
             this.uniqueEmailService.Setup(ues => ues.EnsureEmailIsUnique(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(true);
             this.entity = new PersonEntity(this.logger.Object, this.identifierFactory.Object,
-                this.uniqueEmailService.Object,
-                new PersonName("afirstname", "alastname"));
+                this.uniqueEmailService.Object);
         }
 
         [TestMethod]
-        public void WhenConstructed_ThenDisplayNameAssigned()
+        public void WhenSetName_ThenNameAndDisplayNameAssigned()
         {
+            this.entity.SetName(new PersonName("afirstname", "alastname"));
+
             this.entity.Name.Should().Be(new PersonName("afirstname", "alastname"));
             this.entity.DisplayName.Should().Be(new PersonDisplayName("afirstname"));
+            this.entity.Events[1].Should().BeOfType<Events.Person.NameChanged>();
         }
 
         [TestMethod]

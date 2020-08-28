@@ -41,8 +41,7 @@ namespace PersonsApplication.UnitTests
         [TestMethod]
         public void WhenCreate_ThenReturnsPerson()
         {
-            var entity = new PersonEntity(this.logger.Object, this.idFactory.Object, this.uniqueEmailService.Object,
-                new PersonName("afirstname", "alastname"));
+            var entity = new PersonEntity(this.logger.Object, this.idFactory.Object, this.uniqueEmailService.Object);
             this.storage.Setup(s =>
                     s.Create(It.IsAny<PersonEntity>()))
                 .Returns(entity);

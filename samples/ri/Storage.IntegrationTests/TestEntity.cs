@@ -11,13 +11,13 @@ namespace Storage.IntegrationTests
     [EntityName("testentities")]
     public class TestEntity : IPersistableEntity
     {
-        public TestEntity() : this(new GuidIdentifierFactory())
+        public TestEntity() : this(new GuidIdentifierFactory().Create(null))
         {
         }
 
-        internal TestEntity(IIdentifierFactory idFactory)
+        internal TestEntity(Identifier identifier)
         {
-            Id = idFactory.Create(this);
+            Id = identifier;
         }
 
         public string AStringValue { get; set; }
@@ -118,20 +118,20 @@ namespace Storage.IntegrationTests
 
         public static EntityFactory<TestEntity> Instantiate()
         {
-            return (properties, container) => new TestEntity(new HydrationIdentifierFactory(properties));
+            return (identifier, container) => new TestEntity(identifier);
         }
     }
 
     [EntityName("firstjoiningtestentities")]
     public class FirstJoiningTestEntity : IPersistableEntity
     {
-        public FirstJoiningTestEntity() : this(new GuidIdentifierFactory())
+        public FirstJoiningTestEntity() : this(new GuidIdentifierFactory().Create(null))
         {
         }
 
-        private FirstJoiningTestEntity(IIdentifierFactory idFactory)
+        private FirstJoiningTestEntity(Identifier identifier)
         {
-            Id = idFactory.Create(this);
+            Id = identifier;
         }
 
         public string AStringValue { get; set; }
@@ -165,20 +165,20 @@ namespace Storage.IntegrationTests
 
         public static EntityFactory<FirstJoiningTestEntity> Instantiate()
         {
-            return (properties, container) => new FirstJoiningTestEntity(new HydrationIdentifierFactory(properties));
+            return (identifier, container) => new FirstJoiningTestEntity(identifier);
         }
     }
 
     [EntityName("secondjoiningtestentities")]
     public class SecondJoiningTestEntity : IPersistableEntity
     {
-        public SecondJoiningTestEntity() : this(new GuidIdentifierFactory())
+        public SecondJoiningTestEntity() : this(new GuidIdentifierFactory().Create(null))
         {
         }
 
-        private SecondJoiningTestEntity(IIdentifierFactory idFactory)
+        private SecondJoiningTestEntity(Identifier identifier)
         {
-            Id = idFactory.Create(this);
+            Id = identifier;
         }
 
         public string AStringValue { get; set; }
@@ -216,7 +216,7 @@ namespace Storage.IntegrationTests
 
         public static EntityFactory<SecondJoiningTestEntity> Instantiate()
         {
-            return (properties, container) => new SecondJoiningTestEntity(new HydrationIdentifierFactory(properties));
+            return (identifier, container) => new SecondJoiningTestEntity(identifier);
         }
     }
 

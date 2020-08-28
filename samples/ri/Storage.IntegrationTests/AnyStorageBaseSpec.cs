@@ -248,8 +248,7 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenUpsertAndEmptyId_ThenThrows()
         {
-            var identifierFactory = new NullIdentifierFactory();
-            var entity = new TestEntity(identifierFactory);
+            var entity = new TestEntity(Identifier.Empty());
 
             this.storage.Invoking(x => x.Upsert(entity))
                 .Should().Throw<ResourceNotFoundException>();

@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace Domain.Interfaces.UnitTests
 {
-    public class TestEntity : EntityBase
+    public class TestAggregateRoot : AggregateRootBase
     {
-        public TestEntity(ILogger logger, IIdentifierFactory idFactory)
+        public TestAggregateRoot(ILogger logger, IIdentifierFactory idFactory)
             : base(logger, idFactory)
         {
         }
 
-        private TestEntity(ILogger logger, IIdentifierFactory idFactory, Identifier identifier)
+        private TestAggregateRoot(ILogger logger, IIdentifierFactory idFactory, Identifier identifier)
             : base(logger, idFactory, identifier)
         {
         }
@@ -30,33 +29,20 @@ namespace Domain.Interfaces.UnitTests
             APropertyName = properties.GetValueOrDefault<string>(nameof(APropertyName));
         }
 
-        protected override void OnEventRaised(object @event)
+        protected override void OnStateChanged(object @event)
         {
             //Not used in testing
         }
 
-        public static EntityFactory<TestEntity> Instantiate()
+        public static EntityFactory<TestAggregateRoot> Instantiate()
         {
-            return (identifier, container) => new TestEntity(container.Resolve<ILogger>(),
+            return (identifier, container) => new TestAggregateRoot(container.Resolve<ILogger>(),
                 container.Resolve<IIdentifierFactory>(), identifier);
         }
 
         public class ChangeEvent
         {
             public string APropertyName { get; set; }
-        }
-    }
-
-    public class NullIdentifierFactory : IIdentifierFactory
-    {
-        public Identifier Create(IIdentifiableEntity entity)
-        {
-            return null;
-        }
-
-        public bool IsValid(Identifier value)
-        {
-            throw new NotImplementedException();
         }
     }
 }

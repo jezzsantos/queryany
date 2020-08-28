@@ -39,7 +39,7 @@ namespace PersonsApplication.UnitTests
         {
             this.storage.Setup(s => s.FindByEmailAddress(It.IsAny<string>()))
                 .Returns(new PersonEntity(NullLogger.Instance, new FakeIdentifierFactory("anotherpersonid"),
-                    Mock.Of<IEmailService>(), new PersonName("afirstname", "alastname")));
+                    Mock.Of<IEmailService>()));
 
             var result = this.service.EnsureEmailIsUnique("anemailaddress", "apersonid");
 
@@ -51,7 +51,7 @@ namespace PersonsApplication.UnitTests
         {
             this.storage.Setup(s => s.FindByEmailAddress(It.IsAny<string>()))
                 .Returns(new PersonEntity(NullLogger.Instance, new FakeIdentifierFactory("apersonid"),
-                    Mock.Of<IEmailService>(), new PersonName("afirstname", "alastname")));
+                    Mock.Of<IEmailService>()));
 
             var result = this.service.EnsureEmailIsUnique("anemailaddress", "apersonid");
 

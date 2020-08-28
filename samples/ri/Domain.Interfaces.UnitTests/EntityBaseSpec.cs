@@ -55,10 +55,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenInstantiateAndCreates_ThenReturnsInstance()
         {
-            var result = TestEntity.Instantiate()(new Dictionary<string, object>
-            {
-                {nameof(IIdentifiableEntity.Id), "anid".ToIdentifier()}
-            }, this.dependencyContainer.Object);
+            var result = TestEntity.Instantiate()("anid".ToIdentifier(), this.dependencyContainer.Object);
 
             result.Id.Should().Be("anid".ToIdentifier());
         }
@@ -100,18 +97,11 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenInstantiate_ThenRaisesNoEvents()
         {
-            var datum = DateTime.UtcNow.AddYears(1);
-            var properties = new Dictionary<string, object>
-            {
-                {nameof(EntityBase.Id), "anid".ToIdentifier()},
-                {nameof(EntityBase.LastPersistedAtUtc), datum},
-                {nameof(EntityBase.CreatedAtUtc), datum},
-                {nameof(EntityBase.LastModifiedAtUtc), datum}
-            };
             var container = new Container();
             container.AddSingleton<ILogger>(NullLogger.Instance);
+            container.AddSingleton<IIdentifierFactory>(new NullIdentifierFactory());
 
-            var created = TestEntity.Instantiate()(properties, new FuncDependencyContainer(container));
+            var created = TestEntity.Instantiate()("anid".ToIdentifier(), new FuncDependencyContainer(container));
 
             created.LastPersistedAtUtc.Should().BeNull();
             created.CreatedAtUtc.Should().Be(DateTime.MinValue);

@@ -15,14 +15,21 @@ namespace Domain.Interfaces.Entities
     {
         private Action<object> aggregateEntityEventHandler;
 
-        protected EntityBase(ILogger logger, IIdentifierFactory idFactory)
+        protected EntityBase(ILogger logger, IIdentifierFactory idFactory) : this(logger, idFactory, Identifier.Empty())
+        {
+            Id = idFactory.Create(this);
+        }
+
+        protected EntityBase(ILogger logger, IIdentifierFactory idFactory, Identifier identifier)
         {
             logger.GuardAgainstNull(nameof(logger));
             idFactory.GuardAgainstNull(nameof(idFactory));
+            identifier.GuardAgainstNull(nameof(identifier));
             Logger = logger;
             IdFactory = idFactory;
+            Id = identifier;
 
-            var isInstantiating = !(idFactory is HydrationIdentifierFactory);
+            var isInstantiating = identifier == Identifier.Empty();
             var now = DateTime.UtcNow;
             LastPersistedAtUtc = null;
             CreatedAtUtc = isInstantiating
@@ -31,15 +38,10 @@ namespace Domain.Interfaces.Entities
             LastModifiedAtUtc = isInstantiating
                 ? now
                 : DateTime.MinValue;
-            Id = idFactory.Create(this);
         }
 
-        // ReSharper disable once MemberCanBePrivate.Global
-        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         protected ILogger Logger { get; }
 
-        // ReSharper disable once UnusedAutoPropertyAccessor.Global
-        // ReSharper disable once MemberCanBePrivate.Global
         protected IIdentifierFactory IdFactory { get; }
 
         public DateTime CreatedAtUtc { get; private set; }
@@ -113,7 +115,7 @@ namespace Domain.Interfaces.Entities
                 return false;
             }
 
-            return entity.Id.Equals(Id);
+            return entity.Id == Id;
         }
 
         public override int GetHashCode()

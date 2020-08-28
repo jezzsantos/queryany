@@ -9,6 +9,15 @@ namespace Domain.Interfaces.Entities
             identifier.GuardAgainstNullOrEmpty(nameof(identifier));
         }
 
+        private Identifier() : base(string.Empty)
+        {
+        }
+
+        public static Identifier Empty()
+        {
+            return new Identifier();
+        }
+
         public static Identifier Create(string value)
         {
             return new Identifier(value);

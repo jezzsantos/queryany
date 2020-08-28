@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-
-namespace Domain.Interfaces.Entities
+﻿namespace Domain.Interfaces.Entities
 {
-    public delegate TEntity EntityFactory<out TEntity>(IReadOnlyDictionary<string, object> hydratingProperties,
+    public delegate TEntity EntityFactory<out TEntity>(Identifier identifier,
         IDependencyContainer container)
         where TEntity : IPersistableEntity;
 

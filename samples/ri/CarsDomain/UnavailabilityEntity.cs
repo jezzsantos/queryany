@@ -14,6 +14,11 @@ namespace CarsDomain
         {
         }
 
+        private UnavailabilityEntity(ILogger logger, IIdentifierFactory idFactory, Identifier identifier) : base(logger,
+            idFactory, identifier)
+        {
+        }
+
         public Identifier CarId { get; private set; }
 
         public TimeSlot Slot { get; private set; }
@@ -64,8 +69,8 @@ namespace CarsDomain
 
         public static EntityFactory<UnavailabilityEntity> Instantiate()
         {
-            return (properties, container) =>
-                new UnavailabilityEntity(container.Resolve<ILogger>(), new HydrationIdentifierFactory(properties));
+            return (identifier, container) => new UnavailabilityEntity(container.Resolve<ILogger>(),
+                container.Resolve<IIdentifierFactory>(), identifier);
         }
     }
 }

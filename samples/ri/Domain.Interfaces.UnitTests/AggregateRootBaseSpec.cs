@@ -64,10 +64,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenInstantiateAndCreates_ThenReturnsInstance()
         {
-            var result = TestAggregateRoot.Instantiate()(new Dictionary<string, object>
-            {
-                {nameof(IIdentifiableEntity.Id), "anid".ToIdentifier()}
-            }, this.dependencyContainer.Object);
+            var result = TestAggregateRoot.Instantiate()("anid".ToIdentifier(), this.dependencyContainer.Object);
 
             result.Id.Should().Be("anid".ToIdentifier());
         }

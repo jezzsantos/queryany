@@ -14,8 +14,11 @@ namespace CarsDomain
     {
         public CarEntity(ILogger logger, IIdentifierFactory idFactory) : base(logger, idFactory)
         {
-            Unavailabilities = new Unavailabilities();
-            RaiseCreateEvent(CarsDomain.Events.Car.Created.Create(Id));
+        }
+
+        private CarEntity(ILogger logger, IIdentifierFactory idFactory, Identifier identifier) : base(logger, idFactory,
+            identifier)
+        {
         }
 
         public Manufacturer Manufacturer { get; private set; }
@@ -26,7 +29,7 @@ namespace CarsDomain
 
         public LicensePlate Plate { get; private set; }
 
-        public Unavailabilities Unavailabilities { get; }
+        public Unavailabilities Unavailabilities { get; } = new Unavailabilities();
 
         public override Dictionary<string, object> Dehydrate()
         {
@@ -48,7 +51,7 @@ namespace CarsDomain
             Plate = properties.GetValueOrDefault<LicensePlate>(nameof(Plate));
         }
 
-        protected override void OnEventRaised(object @event)
+        protected override void OnStateChanged(object @event)
         {
             switch (@event)
             {
@@ -145,8 +148,8 @@ namespace CarsDomain
 
         public static EntityFactory<CarEntity> Instantiate()
         {
-            return (hydratingProperties, container) => new CarEntity(container.Resolve<ILogger>(),
-                new HydrationIdentifierFactory(hydratingProperties));
+            return (identifier, container) => new CarEntity(container.Resolve<ILogger>(),
+                container.Resolve<IIdentifierFactory>(), identifier);
         }
     }
 }

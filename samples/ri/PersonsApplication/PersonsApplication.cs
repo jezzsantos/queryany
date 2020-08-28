@@ -35,8 +35,8 @@ namespace PersonsApplication
         {
             caller.GuardAgainstNull(nameof(caller));
 
-            var person = new PersonEntity(this.logger, this.idFactory, this.emailService,
-                new PersonName(firstName, lastName));
+            var person = new PersonEntity(this.logger, this.idFactory, this.emailService);
+            person.SetName(new PersonName(firstName, lastName));
 
             var created = this.storage.Create(person);
 
@@ -71,7 +71,7 @@ namespace PersonsApplication
         {
             var dto = entity.ConvertTo<Person>();
             dto.Id = entity.Id;
-            dto.DisplayName = entity.DisplayName.DisplayName;
+            dto.DisplayName = entity.DisplayName?.DisplayName;
             return dto;
         }
     }

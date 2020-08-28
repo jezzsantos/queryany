@@ -8,22 +8,32 @@ namespace Domain.Interfaces.Entities
     /// <summary>
     ///     Defines an DDD aggregate root, which has an identifier.
     ///     Aggregates are equal when their identities are equal.
-    ///     Aggregates support being persisted.
-    ///     Aggregates operate on all child entities or value objects by raising change events
+    ///     Aggregates support being persisted, and are loaded and saved with eventing.
+    ///     Aggregates operate on all child entities or value objects by raising change events for them and itself.
     /// </summary>
     public abstract class AggregateRootBase : IAggregateRootEntity
     {
-        internal const string EventsPropertyName = "Events";
         private readonly bool isInstantiating;
 
-        protected AggregateRootBase(ILogger logger, IIdentifierFactory idFactory)
+        protected AggregateRootBase(ILogger logger, IIdentifierFactory idFactory) : this(logger, idFactory,
+            Identifier.Empty())
+
+        {
+            Id = idFactory.Create(this);
+            RaiseCreateEvent(Entities.Events.Any.Created.Create(Id));
+        }
+
+        protected AggregateRootBase(ILogger logger, IIdentifierFactory idFactory, Identifier identifier)
         {
             logger.GuardAgainstNull(nameof(logger));
             idFactory.GuardAgainstNull(nameof(idFactory));
+            identifier.GuardAgainstNull(nameof(identifier));
             Logger = logger;
             IdFactory = idFactory;
+            Id = identifier;
+            this.events = new List<object>();
+            this.isInstantiating = identifier == Identifier.Empty();
 
-            this.isInstantiating = !(idFactory is HydrationIdentifierFactory);
             var now = DateTime.UtcNow;
             LastPersistedAtUtc = null;
             CreatedAtUtc = this.isInstantiating
@@ -32,8 +42,6 @@ namespace Domain.Interfaces.Entities
             LastModifiedAtUtc = this.isInstantiating
                 ? now
                 : DateTime.MinValue;
-            Id = idFactory.Create(this);
-            Events = new List<object>();
         }
 
         protected ILogger Logger { get; }
@@ -74,7 +82,7 @@ namespace Domain.Interfaces.Entities
 
         void IPublishedEntityEventHandler.HandleEvent(object @event)
         {
-            OnEventRaised(@event);
+            OnStateChanged(@event);
         }
 
         public List<object> Events { get; private set; }
@@ -86,7 +94,7 @@ namespace Domain.Interfaces.Entities
 
         void IPublishingEntity.RaiseEvent(object @event)
         {
-            OnEventRaised(@event);
+            OnStateChanged(@event);
             var isValid = EnsureValidState();
             if (!isValid)
             {
@@ -96,7 +104,7 @@ namespace Domain.Interfaces.Entities
             Events.Add(@event);
         }
 
-        protected abstract void OnEventRaised(object @event);
+        protected abstract void OnStateChanged(object @event);
 
         protected void RaiseCreateEvent(object @event)
         {
@@ -116,7 +124,7 @@ namespace Domain.Interfaces.Entities
             return Id.HasValue();
         }
 
-        protected void RaiseToEntity(IPublishedEntityEventHandler entity, object @event)
+        protected static void RaiseToEntity(IPublishedEntityEventHandler entity, object @event)
         {
             entity?.HandleEvent(@event);
         }

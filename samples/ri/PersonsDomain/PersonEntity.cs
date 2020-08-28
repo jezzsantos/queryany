@@ -13,12 +13,19 @@ namespace PersonsDomain
     {
         private readonly IEmailService emailService;
 
-        public PersonEntity(ILogger logger, IIdentifierFactory idFactory, IEmailService emailService,
-            PersonName name) : base(logger, idFactory)
+        public PersonEntity(ILogger logger, IIdentifierFactory idFactory, IEmailService emailService) : base(logger,
+            idFactory)
         {
             emailService.GuardAgainstNull(nameof(emailService));
             this.emailService = emailService;
-            RaiseCreateEvent(PersonsDomain.Events.Person.Created.Create(Id, name));
+        }
+
+        private PersonEntity(ILogger logger, IIdentifierFactory idFactory, IEmailService emailService,
+            Identifier identifier) : base(logger,
+            idFactory, identifier)
+        {
+            emailService.GuardAgainstNull(nameof(emailService));
+            this.emailService = emailService;
         }
 
         public PersonName Name { get; private set; }
@@ -28,6 +35,11 @@ namespace PersonsDomain
         public Email Email { get; private set; }
 
         public PhoneNumber Phone { get; private set; }
+
+        public void SetName(PersonName name)
+        {
+            RaiseChangeEvent(PersonsDomain.Events.Person.NameChanged.Create(Id, name));
+        }
 
         public void SetDisplayName(PersonDisplayName name)
         {
@@ -44,15 +56,23 @@ namespace PersonsDomain
             RaiseChangeEvent(PersonsDomain.Events.Person.PhoneNumberChanged.Create(Id, number));
         }
 
-        protected override void OnEventRaised(object @event)
+        protected override void OnStateChanged(object @event)
         {
             switch (@event)
             {
-                case Events.Person.Created created:
-                    Name = new PersonName(created.FirstName, created.LastName);
-                    DisplayName = new PersonDisplayName(created.FirstName);
-                    Logger.LogDebug("Person {Id} created with name {FirstName}, {LastName}", Id, created.FirstName,
-                        created.LastName);
+                case Domain.Interfaces.Entities.Events.Any.Created _:
+                    break;
+
+                case Events.Person.NameChanged changed:
+                    Name = new PersonName(changed.FirstName, changed.LastName);
+                    DisplayName = new PersonDisplayName(changed.FirstName);
+                    Logger.LogDebug("Person {Id} changed name to {FirstName}, {LastName}", Id, changed.FirstName,
+                        changed.LastName);
+                    break;
+
+                case Events.Person.DisplayNameChanged changed:
+                    DisplayName = new PersonDisplayName(changed.DisplayName);
+                    Logger.LogDebug("Person {Id} changed display name to {DisplayName}", Id, changed.DisplayName);
                     break;
 
                 case Events.Person.EmailChanged changed:
@@ -64,12 +84,6 @@ namespace PersonsDomain
                     Phone = new PhoneNumber(changed.PhoneNumber);
                     Logger.LogDebug("Person {Id} changed phone number to {PhoneNumber}", Id, changed.PhoneNumber);
                     break;
-
-                case Events.Person.DisplayNameChanged changed:
-                    DisplayName = new PersonDisplayName(changed.DisplayName);
-                    Logger.LogDebug("Person {Id} changed display name to {DisplayName}", Id, changed.DisplayName);
-                    break;
-
                 default:
                     throw new InvalidOperationException($"Unknown event {@event.GetType()}");
             }
@@ -111,10 +125,9 @@ namespace PersonsDomain
 
         public static EntityFactory<PersonEntity> Instantiate()
         {
-            return (properties, container) =>
-                new PersonEntity(container.Resolve<ILogger>(), new HydrationIdentifierFactory(properties),
-                    container.Resolve<IEmailService>(),
-                    properties.GetValueOrDefault<PersonName>(nameof(Name)));
+            return (identifier, container) =>
+                new PersonEntity(container.Resolve<ILogger>(), container.Resolve<IIdentifierFactory>(),
+                    container.Resolve<IEmailService>(), identifier);
         }
     }
 }
