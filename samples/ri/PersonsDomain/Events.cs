@@ -7,28 +7,6 @@ namespace PersonsDomain
     {
         public static class Person
         {
-            public class Created
-            {
-                public string Id { get; set; }
-
-                public DateTime CreatedUtc { get; set; }
-
-                public string FirstName { get; set; }
-
-                public string LastName { get; set; }
-
-                public static Created Create(Identifier id, PersonName name)
-                {
-                    return new Created
-                    {
-                        Id = id,
-                        FirstName = name.FirstName,
-                        LastName = name.LastName,
-                        CreatedUtc = DateTime.UtcNow
-                    };
-                }
-            }
-
             public class PhoneNumberChanged
             {
                 public string Id { get; set; }
@@ -62,6 +40,28 @@ namespace PersonsDomain
                     {
                         Id = id,
                         EmailAddress = email,
+                        ModifiedUtc = DateTime.UtcNow
+                    };
+                }
+            }
+
+            public class NameChanged
+            {
+                public string Id { get; set; }
+
+                public string FirstName { get; set; }
+
+                public string LastName { get; set; }
+
+                public DateTime ModifiedUtc { get; set; }
+
+                public static NameChanged Create(Identifier id, PersonName name)
+                {
+                    return new NameChanged
+                    {
+                        Id = id,
+                        FirstName = name.FirstName,
+                        LastName = name.LastName,
                         ModifiedUtc = DateTime.UtcNow
                     };
                 }

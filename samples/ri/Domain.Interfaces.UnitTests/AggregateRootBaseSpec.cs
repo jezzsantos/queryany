@@ -16,8 +16,8 @@ namespace Domain.Interfaces.UnitTests
     [TestClass, TestCategory("Unit")]
     public class AggregateRootBaseSpec
     {
+        private TestAggregateRoot aggregate;
         private Mock<IDependencyContainer> dependencyContainer;
-        private TestAggregateRoot entity;
         private Mock<IIdentifierFactory> idFactory;
         private Mock<ILogger> logger;
 
@@ -34,13 +34,13 @@ namespace Domain.Interfaces.UnitTests
             this.dependencyContainer.Setup(dc => dc.Resolve<IIdentifierFactory>())
                 .Returns(this.idFactory.Object);
 
-            this.entity = new TestAggregateRoot(this.logger.Object, this.idFactory.Object);
+            this.aggregate = new TestAggregateRoot(this.logger.Object, this.idFactory.Object);
         }
 
         [TestMethod]
         public void WhenConstructed_ThenIdentifierIsAssigned()
         {
-            this.entity.Id.Should().Be("anid".ToIdentifier());
+            this.aggregate.Id.Should().Be("anid".ToIdentifier());
         }
 
         [TestMethod]
@@ -48,23 +48,17 @@ namespace Domain.Interfaces.UnitTests
         {
             var now = DateTime.UtcNow;
 
-            this.entity.LastPersistedAtUtc.Should().BeNull();
-            this.entity.CreatedAtUtc.Should().BeCloseTo(now);
-            this.entity.LastModifiedAtUtc.Should().BeAfter(this.entity.CreatedAtUtc);
+            this.aggregate.LastPersistedAtUtc.Should().BeNull();
+            this.aggregate.CreatedAtUtc.Should().BeCloseTo(now);
+            this.aggregate.LastModifiedAtUtc.Should().BeAfter(this.aggregate.CreatedAtUtc);
         }
 
         [TestMethod]
         public void WhenConstructed_ThenRaisesEvent()
         {
-            this.entity.Events.Count().Should().Be(1);
-            this.entity.Events.Should().BeEquivalentTo(new List<object>
-            {
-                new TestAggregateRoot.CreateEvent
-                {
-                    APropertyName = "acreatedvalue"
-                }
-            });
-            this.entity.LastModifiedAtUtc.Should().BeAfter(this.entity.CreatedAtUtc);
+            this.aggregate.Events.Count().Should().Be(1);
+            this.aggregate.Events[0].Should().BeOfType<Events.Any.Created>();
+            this.aggregate.LastModifiedAtUtc.Should().BeAfter(this.aggregate.CreatedAtUtc);
         }
 
         [TestMethod]
@@ -83,46 +77,17 @@ namespace Domain.Interfaces.UnitTests
         {
             var now = DateTime.UtcNow;
 
-            var result = this.entity.Dehydrate();
+            var result = this.aggregate.Dehydrate();
 
-            result.Count.Should().Be(5);
+            result.Count.Should().Be(4);
             result[nameof(EntityBase.Id)].Should().Be("anid".ToIdentifier());
             ((DateTime?) result[nameof(EntityBase.LastPersistedAtUtc)]).Should().BeNull();
             ((DateTime) result[nameof(EntityBase.CreatedAtUtc)]).Should().BeCloseTo(now, 500);
             ((DateTime) result[nameof(EntityBase.LastModifiedAtUtc)]).Should().BeCloseTo(now, 500);
-            ((List<object>) result[AggregateRootBase.EventsPropertyName]).Single().Should()
-                .BeEquivalentTo(new TestAggregateRoot.CreateEvent {APropertyName = "acreatedvalue"});
         }
 
         [TestMethod]
         public void WhenRehydrate_ThenBasePropertiesHydrated()
-        {
-            var datum = DateTime.UtcNow.AddYears(1);
-            var changes = new List<object>
-            {
-                new TestAggregateRoot.CreateEvent {APropertyName = "acreatedvalue"}
-            };
-            var properties = new Dictionary<string, object>
-            {
-                {nameof(EntityBase.Id), "anid".ToIdentifier()},
-                {nameof(EntityBase.LastPersistedAtUtc), datum},
-                {nameof(EntityBase.CreatedAtUtc), datum},
-                {nameof(EntityBase.LastModifiedAtUtc), datum},
-                {AggregateRootBase.EventsPropertyName, changes}
-            };
-
-            this.entity.Rehydrate(properties);
-
-            this.entity.Id.Should().Be("anid".ToIdentifier());
-            this.entity.LastPersistedAtUtc.Should().Be(datum);
-            this.entity.CreatedAtUtc.Should().Be(datum);
-            this.entity.LastModifiedAtUtc.Should().Be(datum);
-            this.entity.Events.Count().Should().Be(1);
-            this.entity.Events.Should().BeEquivalentTo(changes);
-        }
-
-        [TestMethod]
-        public void WhenInstantiate_ThenRaisesNoEvents()
         {
             var datum = DateTime.UtcNow.AddYears(1);
             var properties = new Dictionary<string, object>
@@ -132,12 +97,28 @@ namespace Domain.Interfaces.UnitTests
                 {nameof(EntityBase.CreatedAtUtc), datum},
                 {nameof(EntityBase.LastModifiedAtUtc), datum}
             };
+
+            this.aggregate.Rehydrate(properties);
+
+            this.aggregate.Id.Should().Be("anid".ToIdentifier());
+            this.aggregate.LastPersistedAtUtc.Should().Be(datum);
+            this.aggregate.CreatedAtUtc.Should().Be(datum);
+            this.aggregate.LastModifiedAtUtc.Should().Be(datum);
+            this.aggregate.Events.Count().Should().Be(1);
+            this.aggregate.Events[0].Should().BeOfType<Events.Any.Created>();
+        }
+
+        [TestMethod]
+        public void WhenInstantiate_ThenRaisesNoEvents()
+        {
             var container = new Container();
             container.AddSingleton<ILogger>(NullLogger.Instance);
+            container.AddSingleton<IIdentifierFactory>(new NullIdentifierFactory());
 
-            var created = TestAggregateRoot.Instantiate()(properties, new FuncDependencyContainer(container));
+            var created =
+                TestAggregateRoot.Instantiate()("anid".ToIdentifier(), new FuncDependencyContainer(container));
 
-            created.Events.Should().BeEmpty();
+            created.GetChanges().Should().BeEmpty();
             created.LastPersistedAtUtc.Should().BeNull();
             created.CreatedAtUtc.Should().Be(DateTime.MinValue);
             created.LastModifiedAtUtc.Should().Be(DateTime.MinValue);
@@ -146,21 +127,13 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenChangeProperty_ThenRaisesEventAndModified()
         {
-            this.entity.ChangeProperty("achangedvalue");
+            this.aggregate.ChangeProperty("achangedvalue");
 
-            this.entity.Events.Count().Should().Be(2);
-            this.entity.Events.Should().BeEquivalentTo(new List<object>
-            {
-                new TestAggregateRoot.CreateEvent
-                {
-                    APropertyName = "acreatedvalue"
-                },
-                new TestAggregateRoot.ChangeEvent
-                {
-                    APropertyName = "achangedvalue"
-                }
-            });
-            this.entity.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
+            this.aggregate.Events.Count().Should().Be(2);
+            this.aggregate.Events[0].Should().BeOfType<Events.Any.Created>();
+            this.aggregate.Events[1].Should().BeEquivalentTo(new TestAggregateRoot.ChangeEvent
+                {APropertyName = "achangedvalue"});
+            this.aggregate.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
         }
     }
 }

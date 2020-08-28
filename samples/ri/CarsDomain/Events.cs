@@ -9,22 +9,6 @@ namespace CarsDomain
     {
         public static class Car
         {
-            public class Created
-            {
-                public string Id { get; set; }
-
-                public DateTime CreatedUtc { get; set; }
-
-                public static Created Create(Identifier id)
-                {
-                    return new Created
-                    {
-                        Id = id,
-                        CreatedUtc = DateTime.UtcNow
-                    };
-                }
-            }
-
             public class ManufacturerChanged
             {
                 public string Id { get; set; }

@@ -52,7 +52,7 @@ namespace CarsDomain
         {
             switch (@event)
             {
-                case Events.Car.Created _:
+                case Domain.Interfaces.Entities.Events.Any.Created _:
                     break;
 
                 case Events.Car.ManufacturerChanged changed:
