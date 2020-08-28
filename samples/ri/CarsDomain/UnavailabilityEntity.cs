@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
+using QueryAny;
 
 namespace CarsDomain
 {
+    [EntityName("Unavailability")]
     public class UnavailabilityEntity : EntityBase
     {
         public UnavailabilityEntity(ILogger logger, IIdentifierFactory idFactory) : base(logger,

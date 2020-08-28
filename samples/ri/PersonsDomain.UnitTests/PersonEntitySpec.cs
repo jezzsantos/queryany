@@ -25,13 +25,28 @@ namespace PersonsDomain.UnitTests
         }
 
         [TestMethod]
+        public void WhenConstructed_ThenDisplayNameAssigned()
+        {
+            this.entity.Name.Should().Be(new PersonName("afirstname", "alastname"));
+            this.entity.DisplayName.Should().Be(new PersonDisplayName("afirstname"));
+        }
+
+        [TestMethod]
+        public void WhenSetDisplayName_ThenEmailAssigned()
+        {
+            this.entity.SetDisplayName(new PersonDisplayName("adisplayname"));
+
+            this.entity.DisplayName.Should().Be(new PersonDisplayName("adisplayname"));
+            this.entity.Events[1].Should().BeOfType<Events.Person.DisplayNameChanged>();
+        }
+
+        [TestMethod]
         public void WhenSetEmail_ThenEmailAssigned()
         {
             this.entity.SetEmail(new Email("anemail@company.com"));
 
-            var result = this.entity.Email;
-
-            result.Should().Be(new Email("anemail@company.com"));
+            this.entity.Email.Should().Be(new Email("anemail@company.com"));
+            this.entity.Events[1].Should().BeOfType<Events.Person.EmailChanged>();
         }
 
         [TestMethod]
@@ -39,9 +54,8 @@ namespace PersonsDomain.UnitTests
         {
             this.entity.SetPhoneNumber(new PhoneNumber("+64277888111"));
 
-            var result = this.entity.Phone;
-
-            result.Should().Be(new PhoneNumber("+64277888111"));
+            this.entity.Phone.Should().Be(new PhoneNumber("+64277888111"));
+            this.entity.Events[1].Should().BeOfType<Events.Person.PhoneNumberChanged>();
         }
     }
 }

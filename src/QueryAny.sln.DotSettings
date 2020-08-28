@@ -31,6 +31,43 @@
 	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002ECSharpPlaceEmbeddedOnSameLineMigration/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002ECSharpUseContinuousIndentInsideBracesMigration/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002ESettingsUpgrade_002EMigrateBlankLinesAroundFieldToBlankLinesAroundProperty/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Description/@EntryValue">Creates a ValueObject with single property</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Field/=Name/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Field/=Name/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Field/=parameter/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Field/=Parameter/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Field/=parameter/Expression/@EntryValue">decapitalize(Parameter)</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Field/=parameter/Order/@EntryValue">3</s:Int64>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Field/=Parameter/Order/@EntryValue">2</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Field/=Type/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Field/=Type/Expression/@EntryValue">constant("string")</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Field/=Type/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Shortcut/@EntryValue">valueobjectsingle</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=10604BA5A23B9B4DAEE6F9E04C2575D7/Text/@EntryValue">public class $Name$ : SingleValueObjectBase&lt;$Name$, $Type$&gt;
+    {
+        public $Name$($Type$ $parameter$) : base($parameter$)
+        {
+        }
+        
+        public $Type$ $Parameter$ =&gt; Value;
+
+        protected override string ToValue(string value)
+        {
+            return value;
+        }
+
+        public static ValueObjectFactory&lt;$Name$&gt; Instantiate()
+        {
+            return (property, container) =&gt; new $Name$(property);
+        }
+    }</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=2ED828C00A95424ABCAEED55E016946C/@KeyIndexDefined">True</s:Boolean>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=2ED828C00A95424ABCAEED55E016946C/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=2ED828C00A95424ABCAEED55E016946C/Description/@EntryValue">Guards a variable against null</s:String>
@@ -82,6 +119,68 @@
             return new[] {this.$name$};
         }
     }</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B55A54749EB18F45ADC493B4E28A3C42/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B55A54749EB18F45ADC493B4E28A3C42/Field/=name/@KeyIndexDefined">False</s:Boolean>
+	
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B55A54749EB18F45ADC493B4E28A3C42/Field/=parameter/Expression/@EntryValue"></s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B55A54749EB18F45ADC493B4E28A3C42/Field/=parameter/Order/@EntryValue">2</s:Int64>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B55A54749EB18F45ADC493B4E28A3C42/Field/=Parameter/Order/@EntryValue">1</s:Int64>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B55A54749EB18F45ADC493B4E28A3C42/Text/@EntryValue">[EntityName("$Name$")]
+    public class $Name$Entity : AggregateRootBase
+    {
+        public $Name$Entity(ILogger logger, IIdentifierFactory idFactory, string $parameter$) : base(logger, idFactory)
+        {
+            $parameter$.GuardAgainstNullOrEmpty(nameof($parameter$));
+
+            $Parameter$ = $parameter$;
+
+            RaiseCreateEvent(YourDomain.Events.$Name$.Created.Create(Id, Parameter));
+        }
+
+        public string $Parameter$ { get; private set; }
+
+        protected override void OnEventRaised(object @event)
+        {
+            switch (@event)
+            {
+                case YourDomain.Events.Something.Created _:
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unknown event {@event.GetType()}");
+            }
+        }
+
+        protected override bool EnsureValidState()
+        {
+            var isValid = base.EnsureValidState();
+
+            //Additional validation rules that apply to all variations
+
+            return isValid;
+        }
+
+        public override Dictionary&lt;string, object&gt; Dehydrate()
+        {
+            var properties = base.Dehydrate();
+            properties.Add(nameof($Parameter$), $Parameter$);
+
+            return properties;
+        }
+
+        public override void Rehydrate(IReadOnlyDictionary&lt;string, object&gt; properties)
+        {
+            base.Rehydrate(properties);
+            $Parameter$ = properties.GetValueOrDefault&lt;string&gt;(nameof($Parameter$));
+        }
+
+        public static EntityFactory&lt;$Name$Entity&gt; Instantiate()
+        {
+            return (properties, container) =&gt;
+                new $Name$Entity(container.Resolve&lt;ILogger&gt;(), new HydrationIdentifierFactory(properties),
+                    properties.GetValueOrDefault&lt;string&gt;(nameof($Parameter$)));
+        }
+    }</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B5B67AA54D94E24BB2DE70741925D27A/@KeyIndexDefined">True</s:Boolean>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B5B67AA54D94E24BB2DE70741925D27A/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B5B67AA54D94E24BB2DE70741925D27A/Description/@EntryValue">Creates an Entity</s:String>
@@ -98,7 +197,8 @@
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B5B67AA54D94E24BB2DE70741925D27A/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B5B67AA54D94E24BB2DE70741925D27A/Shortcut/@EntryValue">entity</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B5B67AA54D94E24BB2DE70741925D27A/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
-	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B5B67AA54D94E24BB2DE70741925D27A/Text/@EntryValue">    public class $Name$Entity : EntityBase
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B5B67AA54D94E24BB2DE70741925D27A/Text/@EntryValue">    [EntityName("$Name$")]
+    public class $Name$Entity : EntityBase
     {
         public $Name$Entity(ILogger logger, IIdentifierFactory idFactory, string $parameter$) : base(logger, idFactory)
         {
@@ -110,7 +210,7 @@
 
         public string $Parameter$ { get; private set; }
 
-        protected override void When(object @event)
+        protected override void OnEventRaised(object @event)
         {
             switch (@event)
             {

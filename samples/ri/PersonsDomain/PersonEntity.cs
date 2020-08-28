@@ -14,9 +14,16 @@ namespace PersonsDomain
 
         public PersonName Name { get; private set; }
 
+        public PersonDisplayName DisplayName { get; private set; }
+
         public Email Email { get; private set; }
 
         public PhoneNumber Phone { get; private set; }
+
+        public void SetDisplayName(PersonDisplayName name)
+        {
+            RaiseChangeEvent(PersonsDomain.Events.Person.DisplayNameChanged.Create(Id, name));
+        }
 
         public void SetEmail(Email email)
         {
@@ -34,14 +41,24 @@ namespace PersonsDomain
             {
                 case Events.Person.Created created:
                     Name = new PersonName(created.FirstName, created.LastName);
+                    DisplayName = new PersonDisplayName(created.FirstName);
+                    Logger.LogDebug("Person {Id} created with name {FirstName}, {LastName}", Id, created.FirstName,
+                        created.LastName);
                     break;
 
                 case Events.Person.EmailChanged changed:
                     Email = new Email(changed.EmailAddress);
+                    Logger.LogDebug("Person {Id} changed email to {EmailAddress}", Id, changed.EmailAddress);
                     break;
 
                 case Events.Person.PhoneNumberChanged changed:
-                    Phone = new PhoneNumber(changed.Number);
+                    Phone = new PhoneNumber(changed.PhoneNumber);
+                    Logger.LogDebug("Person {Id} changed phone number to {PhoneNumber}", Id, changed.PhoneNumber);
+                    break;
+
+                case Events.Person.DisplayNameChanged changed:
+                    DisplayName = new PersonDisplayName(changed.DisplayName);
+                    Logger.LogDebug("Person {Id} changed display name to {DisplayName}", Id, changed.DisplayName);
                     break;
 
                 default:
@@ -53,6 +70,7 @@ namespace PersonsDomain
         {
             var properties = base.Dehydrate();
             properties.Add(nameof(Name), Name);
+            properties.Add(nameof(DisplayName), DisplayName);
             properties.Add(nameof(Email), Email);
             properties.Add(nameof(Phone), Phone);
             return properties;
@@ -62,6 +80,7 @@ namespace PersonsDomain
         {
             base.Rehydrate(properties);
             Name = properties.GetValueOrDefault<PersonName>(nameof(Name));
+            DisplayName = properties.GetValueOrDefault<PersonDisplayName>(nameof(DisplayName));
             Email = properties.GetValueOrDefault<Email>(nameof(Email));
             Phone = properties.GetValueOrDefault<PhoneNumber>(nameof(Phone));
         }
