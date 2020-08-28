@@ -32,6 +32,33 @@ namespace Domain.Interfaces.Entities
             return valueObject.Value;
         }
 
+        public static bool operator ==(SingleValueObjectBase<TValueObject, TValue> obj1,
+            SingleValueObjectBase<TValueObject, TValue> obj2)
+        {
+            if ((object) obj1 == null)
+            {
+                return (object) obj2 == null;
+            }
+
+            return obj1.Equals(obj2);
+        }
+
+        public static bool operator !=(SingleValueObjectBase<TValueObject, TValue> obj1,
+            SingleValueObjectBase<TValueObject, TValue> obj2)
+        {
+            return !(obj1 == obj2);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
+        }
+
         protected override IEnumerable<object> GetAtomicValues()
         {
             return new object[] {this.value};

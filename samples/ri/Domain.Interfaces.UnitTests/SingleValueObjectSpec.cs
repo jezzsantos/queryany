@@ -17,9 +17,41 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenAssignInstanceToString_ThenValueAssigned()
         {
-            var stringValue = (string) this.valueObject;
+            string stringValue = this.valueObject;
 
             stringValue.Should().Be("avalue");
+        }
+
+        [TestMethod]
+        public void WhenEquateWithSameValueObject_ThenReturnsTrue()
+        {
+            var result = this.valueObject == new TestSingleStringValueObject("avalue");
+
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void WhenEquateWithDifferentValueObject_ThenReturnsFalse()
+        {
+            var result = this.valueObject == new TestSingleStringValueObject("anothervalue");
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void WhenEquateWithSameStringValue_ThenReturnsTrue()
+        {
+            var result = this.valueObject == "avalue";
+
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void WhenEquateWithDifferentStringValue_ThenReturnsFalse()
+        {
+            var result = this.valueObject == "anothervalue";
+
+            result.Should().BeFalse();
         }
     }
 }

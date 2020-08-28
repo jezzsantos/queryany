@@ -14,7 +14,7 @@ namespace Domain.Interfaces.Entities
     public abstract class ValueObjectBase<TValueObject> : IEquatable<TValueObject>,
         IComparable<ValueObjectBase<TValueObject>>, IPersistableValueObject
     {
-        protected const string DefaultHydrationDelimiter = "::";
+        private const string DefaultHydrationDelimiter = "::";
 
         public int CompareTo(ValueObjectBase<TValueObject> other)
         {
@@ -35,7 +35,7 @@ namespace Domain.Interfaces.Entities
             {
                 return null;
             }
-            if (parts.Count() == 1)
+            if (parts.Count == 1)
             {
                 return parts[0].ToString();
             }
@@ -97,27 +97,28 @@ namespace Domain.Interfaces.Entities
 
             var other = (ValueObjectBase<TValueObject>) obj;
 
-            // ReSharper disable once GenericEnumeratorNotDisposed
-            var thisValues = GetAtomicValues().GetEnumerator();
-
-            // ReSharper disable once GenericEnumeratorNotDisposed
-            var otherValues = other.GetAtomicValues().GetEnumerator();
-            while (thisValues.MoveNext() && otherValues.MoveNext())
+            using (var thisValues = GetAtomicValues().GetEnumerator())
             {
-                if (ReferenceEquals(thisValues.Current, null) ^
-                    ReferenceEquals(otherValues.Current, null))
+                using (var otherValues = other.GetAtomicValues().GetEnumerator())
                 {
-                    return false;
-                }
+                    while (thisValues.MoveNext() && otherValues.MoveNext())
+                    {
+                        if (ReferenceEquals(thisValues.Current, null) ^
+                            ReferenceEquals(otherValues.Current, null))
+                        {
+                            return false;
+                        }
 
-                if (thisValues.Current != null &&
-                    !thisValues.Current.Equals(otherValues.Current))
-                {
-                    return false;
+                        if (thisValues.Current != null &&
+                            !thisValues.Current.Equals(otherValues.Current))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return !thisValues.MoveNext() && !otherValues.MoveNext();
                 }
             }
-
-            return !thisValues.MoveNext() && !otherValues.MoveNext();
         }
 
         public bool Equals(string other)
