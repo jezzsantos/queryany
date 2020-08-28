@@ -52,14 +52,14 @@ namespace CarsApplication.UnitTests
             var model = Manufacturer.Models[0];
             var entity = new CarEntity(this.logger.Object, this.idFactory.Object);
             this.storage.Setup(s =>
-                    s.Create(It.IsAny<CarEntity>()))
+                    s.Save(It.IsAny<CarEntity>()))
                 .Returns(entity);
 
             var result = this.carsApplication.Create(this.caller.Object, 2010, make, model);
 
             result.Id.Should().Be("anid");
             this.storage.Verify(s =>
-                s.Create(It.Is<CarEntity>(e =>
+                s.Save(It.Is<CarEntity>(e =>
                     e.Owner == "apersonid"
                     && e.Manufacturer.Year == 2010
                     && e.Manufacturer.Make == make
@@ -71,10 +71,10 @@ namespace CarsApplication.UnitTests
         public void WhenRegister_ThenRegistersCar()
         {
             var entity = new CarEntity(this.logger.Object, this.idFactory.Object);
-            this.storage.Setup(s => s.Get(It.Is<Identifier>(i => i == "acarid")))
+            this.storage.Setup(s => s.Load(It.Is<Identifier>(i => i == "acarid")))
                 .Returns(entity);
             this.storage.Setup(s =>
-                    s.Update(It.Is<CarEntity>(
+                    s.Save(It.Is<CarEntity>(
                         e => e.Plate == new LicensePlate(LicensePlate.Jurisdictions[0], "anumber"))))
                 .Returns(entity);
 
@@ -95,9 +95,9 @@ namespace CarsApplication.UnitTests
             entity.SetManufacturer(new Manufacturer(2010, Manufacturer.Makes[0], Manufacturer.Models[0]));
             entity.SetOwnership(new CarOwner {Id = "anownerid"});
             entity.Register(new LicensePlate(LicensePlate.Jurisdictions[0], "anumber"));
-            this.storage.Setup(s => s.Get(It.Is<Identifier>(i => i == "acarid")))
+            this.storage.Setup(s => s.Load(It.Is<Identifier>(i => i == "acarid")))
                 .Returns(entity);
-            this.storage.Setup(s => s.Update(It.Is<CarEntity>(e => e.Unavailabilities.Count == 1)))
+            this.storage.Setup(s => s.Save(It.Is<CarEntity>(e => e.Unavailabilities.Count == 1)))
                 .Returns(entity);
 
             var result = this.carsApplication.Offline(this.caller.Object, "acarid", fromUtc, toUtc);

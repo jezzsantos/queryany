@@ -42,11 +42,8 @@ namespace CarsApi
             container.AddSingleton<IDependencyContainer>(new FuncDependencyContainer(container));
             container.AddSingleton<IIdentifierFactory, CarIdentifierFactory>();
             container.AddSingleton<IDomainFactory>(c =>
-            {
-                var domainFactory = new DomainFactory(c.Resolve<IDependencyContainer>());
-                domainFactory.RegisterTypesFromAssemblies(typeof(CarEntity).Assembly);
-                return domainFactory;
-            });
+                DomainFactory.CreateRegistered(c.Resolve<IDependencyContainer>(), typeof(EventEntity).Assembly,
+                    typeof(CarEntity).Assembly));
             container.AddSingleton<IStorage<CarEntity>>(c =>
                 CarEntityAzureStorage.Create(c.Resolve<ILogger>(), c.Resolve<IAppSettings>(),
                     c.Resolve<IDomainFactory>()));

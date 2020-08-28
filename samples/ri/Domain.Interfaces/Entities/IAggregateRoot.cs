@@ -2,7 +2,7 @@
 
 namespace Domain.Interfaces.Entities
 {
-    public interface IAggregateRootEntity : IPersistableEntity, IPublishingAggregateEntity, IPublishedEntityEventHandler
+    public interface IAggregateRootEntity : IPersistableAggregateRoot, IPublishingEntity, IPublishedEntityEventHandler
     {
         DateTime CreatedAtUtc { get; }
 

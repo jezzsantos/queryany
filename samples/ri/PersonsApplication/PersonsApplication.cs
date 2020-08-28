@@ -38,7 +38,7 @@ namespace PersonsApplication
             var person = new PersonEntity(this.logger, this.idFactory, this.emailService);
             person.SetName(new PersonName(firstName, lastName));
 
-            var created = this.storage.Create(person);
+            var created = this.storage.Save(person);
 
             this.logger.LogInformation("Person {Id} was created by {Caller}", created.Id, caller.Id);
 
@@ -55,7 +55,7 @@ namespace PersonsApplication
                 return Person.Anonymous;
             }
 
-            var person = this.storage.Get(id.ToIdentifier());
+            var person = this.storage.Load(id.ToIdentifier());
             if (id == null)
             {
                 throw new ResourceNotFoundException();

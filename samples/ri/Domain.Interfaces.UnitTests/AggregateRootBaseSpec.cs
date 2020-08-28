@@ -132,5 +132,47 @@ namespace Domain.Interfaces.UnitTests
                 {APropertyName = "achangedvalue"});
             this.aggregate.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
         }
+
+        [TestMethod]
+        public void WhenGetChanges_ThenReturnsEventEntities()
+        {
+            this.aggregate.ChangeProperty("avalue1");
+
+            var result = this.aggregate.GetChanges();
+
+            result.Count.Should().Be(2);
+            result[0].TypeName.Should().Be(nameof(Events.Any.Created));
+            result[0].StreamName.Should().Be("testaggregateroot_anid");
+            result[0].Metadata.Fqn.Should().Be(typeof(Events.Any.Created).AssemblyQualifiedName);
+            result[1].TypeName.Should().Be(nameof(TestAggregateRoot.ChangeEvent));
+            result[1].StreamName.Should().Be("testaggregateroot_anid");
+            result[1].Metadata.Fqn.Should().Be(typeof(TestAggregateRoot.ChangeEvent).AssemblyQualifiedName);
+        }
+
+        [TestMethod]
+        public void WhenToEventAfterGetChanges_ThenReturnsOriginalEvent()
+        {
+            this.aggregate.ChangeProperty("avalue");
+
+            var entities = this.aggregate.GetChanges();
+
+            var created = entities[0].ToEvent();
+
+            created.Should().BeOfType<Events.Any.Created>();
+            created.As<Events.Any.Created>().Id.Should().Be("anid");
+
+            var changed = entities[1].ToEvent();
+
+            changed.Should().BeOfType<TestAggregateRoot.ChangeEvent>();
+            changed.As<TestAggregateRoot.ChangeEvent>().APropertyName.Should().Be("avalue");
+        }
+
+        [TestMethod]
+        public void WhenClearChanges_ThenResetsLastPersisted()
+        {
+            this.aggregate.ClearChanges();
+
+            this.aggregate.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
+        }
     }
 }

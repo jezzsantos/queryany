@@ -18,14 +18,15 @@ namespace PersonsStorage
             this.storage = storage;
         }
 
-        public PersonEntity Get(Identifier id)
+        public PersonEntity Load(Identifier id)
         {
-            return this.storage.Get(id);
+            return this.storage.Load<PersonEntity>(id);
         }
 
-        public PersonEntity Create(PersonEntity person)
+        public PersonEntity Save(PersonEntity person)
         {
-            return this.storage.Add(person);
+            this.storage.Save(person);
+            return person;
         }
 
         public PersonEntity FindByEmailAddress(string emailAddress)

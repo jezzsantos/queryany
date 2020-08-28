@@ -5,9 +5,9 @@ namespace PersonsApplication.Storage
 {
     public interface IPersonStorage
     {
-        PersonEntity Get(Identifier toIdentifier);
+        PersonEntity Load(Identifier id);
 
-        PersonEntity Create(PersonEntity person);
+        PersonEntity Save(PersonEntity car);
 
         PersonEntity FindByEmailAddress(string emailAddress);
     }

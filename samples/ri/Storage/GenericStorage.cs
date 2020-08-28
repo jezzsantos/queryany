@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
@@ -27,6 +29,52 @@ namespace Storage
         protected abstract string ContainerName { get; }
 
         public IDomainFactory DomainFactory { get; }
+
+        public TAggregateRoot Load<TAggregateRoot>(Identifier id) where TAggregateRoot : IPersistableAggregateRoot
+        {
+            id.GuardAgainstNull(nameof(id));
+
+            var streamName = GetEventStreamName(id);
+            var containerName = GetEventContainerName();
+
+            var events = this.repository.Query(containerName,
+                QueryAny.Query.From<EventEntity>()
+                    .Where(ee => ee.StreamName, ConditionOperator.EqualTo, streamName)
+                    .OrderBy(ee => ee.LastPersistedAtUtc), DomainFactory);
+            if (!events.Any())
+            {
+                return RehydrateAggregateRoot<TAggregateRoot>(id, null);
+            }
+
+            var lastPersistedAtUtc = events.Last().LastPersistedAtUtc;
+            var aggregate = RehydrateAggregateRoot<TAggregateRoot>(id, lastPersistedAtUtc);
+            aggregate.LoadChanges(events);
+
+            return aggregate;
+        }
+
+        public void Save<TAggregateRoot>(TAggregateRoot aggregate) where TAggregateRoot : IPersistableAggregateRoot
+        {
+            aggregate.GuardAgainstNull(nameof(aggregate));
+
+            if (!aggregate.Id.HasValue())
+            {
+                throw new ResourceConflictException("The aggregate does not have an Identifier");
+            }
+
+            var changes = aggregate.GetChanges();
+            if (!changes.Any())
+            {
+                return;
+            }
+
+            var containerName = GetEventContainerName();
+
+            changes.ForEach(change =>
+                this.repository.Add(containerName, change));
+
+            aggregate.ClearChanges();
+        }
 
         public TEntity Add(TEntity entity)
         {
@@ -86,6 +134,22 @@ namespace Storage
             return updated;
         }
 
+        public QueryResults<TEntity> Query(QueryClause<TEntity> query)
+        {
+            if (query == null || query.Options.IsEmpty)
+            {
+                this.logger.LogDebug("No entities were retrieved from repository");
+
+                return new QueryResults<TEntity>(new List<TEntity>());
+            }
+
+            var entities = this.repository.Query(ContainerName, query, DomainFactory);
+
+            this.logger.LogDebug("Entities were retrieved from repository");
+
+            return new QueryResults<TEntity>(entities.ConvertAll(e => e));
+        }
+
         public long Count()
         {
             return this.repository.Count(ContainerName);
@@ -97,22 +161,24 @@ namespace Storage
             this.logger.LogDebug("All entities were deleted from repository");
         }
 
-        public QueryResults<TEntity> Query(QueryClause<TEntity> query)
+        private string GetEventStreamName(Identifier id)
         {
-            query.GuardAgainstNull(nameof(query));
+            return $"{ContainerName}_{id}";
+        }
 
-            if (query == null || query.Options.IsEmpty)
+        private string GetEventContainerName()
+        {
+            return $"{ContainerName}_Events";
+        }
+
+        private TAggregateRoot RehydrateAggregateRoot<TAggregateRoot>(Identifier id, DateTime? lastPersistedAtUtc)
+            where TAggregateRoot : IPersistableAggregateRoot
+        {
+            return (TAggregateRoot) DomainFactory.RehydrateEntity(typeof(TAggregateRoot), new Dictionary<string, object>
             {
-                this.logger.LogDebug("No entities were retrieved from repository");
-
-                return new QueryResults<TEntity>(new List<TEntity>());
-            }
-
-            var resultEntities = this.repository.Query(ContainerName, query, DomainFactory);
-
-            this.logger.LogDebug("Entities were retrieved from repository");
-
-            return new QueryResults<TEntity>(resultEntities.ConvertAll(e => e));
+                {nameof(IPersistableEntity.Id), id},
+                {nameof(IPersistableEntity.LastPersistedAtUtc), lastPersistedAtUtc}
+            });
         }
     }
 }

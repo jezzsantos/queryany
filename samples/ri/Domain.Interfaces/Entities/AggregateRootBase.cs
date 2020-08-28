@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Logging;
+using QueryAny;
 using QueryAny.Primitives;
 
 namespace Domain.Interfaces.Entities
@@ -13,6 +15,7 @@ namespace Domain.Interfaces.Entities
     /// </summary>
     public abstract class AggregateRootBase : IAggregateRootEntity
     {
+        private readonly List<object> events;
         private readonly bool isInstantiating;
 
         protected AggregateRootBase(ILogger logger, IIdentifierFactory idFactory) : this(logger, idFactory,
@@ -48,6 +51,11 @@ namespace Domain.Interfaces.Entities
 
         protected IIdentifierFactory IdFactory { get; }
 
+        // ReSharper disable once MemberCanBePrivate.Global
+        protected int ChangeVersion { get; private set; }
+
+        public IReadOnlyList<object> Events => this.events;
+
         public DateTime CreatedAtUtc { get; private set; }
 
         public DateTime LastModifiedAtUtc { get; private set; }
@@ -63,8 +71,7 @@ namespace Domain.Interfaces.Entities
                 {nameof(Id), Id},
                 {nameof(LastPersistedAtUtc), LastPersistedAtUtc},
                 {nameof(CreatedAtUtc), CreatedAtUtc},
-                {nameof(LastModifiedAtUtc), LastModifiedAtUtc},
-                {EventsPropertyName, Events}
+                {nameof(LastModifiedAtUtc), LastModifiedAtUtc}
             };
         }
 
@@ -77,7 +84,6 @@ namespace Domain.Interfaces.Entities
             LastPersistedAtUtc = properties.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
             CreatedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(CreatedAtUtc));
             LastModifiedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(LastModifiedAtUtc));
-            Events = properties.GetValueOrDefault<List<object>>(EventsPropertyName);
         }
 
         void IPublishedEntityEventHandler.HandleEvent(object @event)
@@ -85,11 +91,42 @@ namespace Domain.Interfaces.Entities
             OnStateChanged(@event);
         }
 
-        public List<object> Events { get; private set; }
-
-        public void ClearEvents()
+        public List<EventEntity> GetChanges()
         {
-            Events.Clear();
+            var entityName = GetType().GetEntityNameSafe();
+            var streamName = $"{entityName}_{Id}";
+            return this.events.Select(e =>
+            {
+                var entity = new EventEntity(IdFactory);
+                entity.SetEvent(streamName, e);
+                return entity;
+            }).ToList();
+        }
+
+        public void ClearChanges()
+        {
+            LastPersistedAtUtc = DateTime.UtcNow;
+            this.events.Clear();
+        }
+
+        int IPersistableAggregateRoot.ChangeVersion
+        {
+            set => ChangeVersion = value;
+        }
+
+        void IPersistableAggregateRoot.OnStateChanged(object @event)
+        {
+            OnStateChanged(@event);
+        }
+
+        void IPersistableAggregateRoot.LoadChanges(IEnumerable<EventEntity> history)
+        {
+            foreach (var entity in history)
+            {
+                var @event = entity.ToEvent();
+                OnStateChanged(@event);
+                ChangeVersion++;
+            }
         }
 
         void IPublishingEntity.RaiseEvent(object @event)
@@ -101,7 +138,7 @@ namespace Domain.Interfaces.Entities
                 throw new RuleViolationException($"The entity with {Id} is in an invalid state.");
             }
             LastModifiedAtUtc = DateTime.UtcNow;
-            Events.Add(@event);
+            this.events.Add(@event);
         }
 
         protected abstract void OnStateChanged(object @event);

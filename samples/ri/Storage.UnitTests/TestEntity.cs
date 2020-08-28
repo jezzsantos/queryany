@@ -9,6 +9,11 @@ namespace Storage.UnitTests
     [EntityName("testentities")]
     public class TestEntity : IPersistableEntity
     {
+        public TestEntity(Identifier identifier)
+        {
+            Id = identifier;
+        }
+
         public string AStringValue { get; set; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty

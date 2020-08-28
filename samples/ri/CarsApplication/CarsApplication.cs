@@ -44,7 +44,7 @@ namespace CarsApplication
             car.SetOwnership(owner);
             car.SetManufacturer(new Manufacturer(year, make, model));
 
-            var created = this.storage.Create(car);
+            var created = this.storage.Save(car);
 
             this.logger.LogInformation("Car {Id} was created by {Caller}", created.Id, caller.Id);
 
@@ -58,14 +58,14 @@ namespace CarsApplication
             fromUtc.GuardAgainstMinValue(nameof(fromUtc));
             toUtc.GuardAgainstMinValue(nameof(toUtc));
 
-            var car = this.storage.Get(id.ToIdentifier());
+            var car = this.storage.Load(id.ToIdentifier());
             if (id == null)
             {
                 throw new ResourceNotFoundException();
             }
 
             car.Offline(new TimeSlot(fromUtc, toUtc));
-            var updated = this.storage.Update(car);
+            var updated = this.storage.Save(car);
 
             this.logger.LogInformation("Car {Id} was taken offline from {From} until {To}, by {Caller}",
                 id, fromUtc, toUtc, caller.Id);
@@ -78,7 +78,7 @@ namespace CarsApplication
             caller.GuardAgainstNull(nameof(caller));
             id.GuardAgainstNullOrEmpty(nameof(id));
 
-            var car = this.storage.Get(id.ToIdentifier());
+            var car = this.storage.Load(id.ToIdentifier());
             if (id == null)
             {
                 throw new ResourceNotFoundException();
@@ -86,7 +86,7 @@ namespace CarsApplication
 
             var plate = new LicensePlate(jurisdiction, number);
             car.Register(plate);
-            var updated = this.storage.Update(car);
+            var updated = this.storage.Save(car);
 
             this.logger.LogInformation("Car {Id} was registered with plate {Plate}, by {Caller}", id, plate, caller.Id);
 

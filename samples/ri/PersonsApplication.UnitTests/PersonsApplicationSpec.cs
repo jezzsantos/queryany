@@ -43,24 +43,24 @@ namespace PersonsApplication.UnitTests
         {
             var entity = new PersonEntity(this.logger.Object, this.idFactory.Object, this.uniqueEmailService.Object);
             this.storage.Setup(s =>
-                    s.Create(It.IsAny<PersonEntity>()))
+                    s.Save(It.IsAny<PersonEntity>()))
                 .Returns(entity);
 
             var result = this.carsApplication.Create(this.caller.Object, "afirstname", "alastname");
 
             result.Id.Should().Be("anid");
             this.storage.Verify(s =>
-                s.Create(It.Is<PersonEntity>(e =>
+                s.Save(It.Is<PersonEntity>(e =>
                     e.Name == new PersonName("afirstname", "alastname")
+                    && e.DisplayName == new PersonDisplayName("afirstname")
                 )));
         }
 
         [TestMethod]
         public void WhenGet_ThenReturnsPerson()
         {
-            this.storage.Setup(s => s.Get(It.IsAny<Identifier>()))
-                .Returns(new PersonEntity(this.logger.Object, this.idFactory.Object, this.uniqueEmailService.Object,
-                    new PersonName("afirstname", "alastname")));
+            this.storage.Setup(s => s.Load(It.IsAny<Identifier>()))
+                .Returns(new PersonEntity(this.logger.Object, this.idFactory.Object, this.uniqueEmailService.Object));
 
             var result =
                 this.carsApplication.Get(this.caller.Object, "anid", new GetOptions());

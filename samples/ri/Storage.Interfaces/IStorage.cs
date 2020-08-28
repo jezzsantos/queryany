@@ -7,6 +7,10 @@ namespace Storage.Interfaces
     {
         IDomainFactory DomainFactory { get; }
 
+        TAggregateRoot Load<TAggregateRoot>(Identifier id) where TAggregateRoot : IPersistableAggregateRoot;
+
+        void Save<TAggregateRoot>(TAggregateRoot aggregate) where TAggregateRoot : IPersistableAggregateRoot;
+
         TEntity Add(TEntity entity);
 
         TEntity Upsert(TEntity entity);

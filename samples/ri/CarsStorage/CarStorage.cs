@@ -24,27 +24,15 @@ namespace CarsStorage
             this.unavailabilitiesStorage = unavailabilitiesStorage;
         }
 
-        public CarEntity Create(CarEntity car)
+        public CarEntity Load(Identifier id)
         {
-            return this.carStorage.Add(car);
+            return this.carStorage.Load<CarEntity>(id);
         }
 
-        public CarEntity Get(Identifier id)
+        public CarEntity Save(CarEntity car)
         {
-            var car = this.carStorage.Get(id);
+            this.carStorage.Save(car);
 
-            var unavailabilities = this.unavailabilitiesStorage
-                .Query(Query.From<UnavailabilityEntity>()
-                    .Where(e => e.CarId, ConditionOperator.EqualTo, car.Id))
-                .Results;
-            unavailabilities.ForEach(u =>
-                car.Unavailabilities.Add(u));
-
-            return car;
-        }
-
-        public CarEntity Update(CarEntity car)
-        {
             var updatedCar = this.carStorage.Upsert(car);
 
             car.Unavailabilities
@@ -78,7 +66,7 @@ namespace CarsStorage
                 .Results;
 
             return cars
-                .Where(car => !unavailabilities.Any(unavailability => unavailability.CarId.Equals(car.Id)))
+                .Where(car => unavailabilities.All(unavailability => unavailability.CarId != car.Id))
                 .Skip(offset)
                 .Take(limit)
                 .ToList();

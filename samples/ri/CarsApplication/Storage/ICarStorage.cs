@@ -8,11 +8,9 @@ namespace CarsApplication.Storage
 {
     public interface ICarStorage
     {
-        CarEntity Create(CarEntity car);
+        CarEntity Load(Identifier id);
 
-        CarEntity Get(Identifier toIdentifier);
-
-        CarEntity Update(CarEntity car);
+        CarEntity Save(CarEntity car);
 
         List<CarEntity> SearchAvailable(DateTime fromUtc, DateTime toUtc, SearchOptions options);
     }
