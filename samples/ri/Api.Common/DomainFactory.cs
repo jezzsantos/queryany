@@ -40,7 +40,8 @@ namespace Api.Common
                 throw new InvalidOperationException(Resources.DomainFactory_EntityTypeNotFound.Format(entityType.Name));
             }
 
-            var entity = this.entityFactories[entityType](rehydratingPropertyValues, this.container);
+            var identifier = (Identifier) rehydratingPropertyValues[nameof(IIdentifiableEntity.Id)];
+            var entity = this.entityFactories[entityType](identifier, this.container);
             entity.Rehydrate(rehydratingPropertyValues);
             return entity;
         }
@@ -138,6 +139,14 @@ namespace Api.Common
             }
         }
 
+        public static DomainFactory CreateRegistered(IDependencyContainer container,
+            params Assembly[] assembliesContainingFactories)
+        {
+            var domainFactory = new DomainFactory(container);
+            domainFactory.RegisterTypesFromAssemblies(assembliesContainingFactories);
+            return domainFactory;
+        }
+
         private static bool IsWrongNamedOrHasParameters(MethodBase method)
         {
             return method.Name.NotEqualsOrdinal(FactoryMethodName)
@@ -146,7 +155,7 @@ namespace Api.Common
 
         private static bool IsEntity(Type type)
         {
-            return typeof(IPersistableEntity).IsAssignableFrom(type);
+            return !type.IsAbstract && typeof(IPersistableEntity).IsAssignableFrom(type);
         }
 
         private static MethodInfo GetEntityFactoryMethod(Type type)
@@ -167,7 +176,7 @@ namespace Api.Common
 
         private static bool IsValueObject(Type type)
         {
-            return type.IsGenericInterfaceTypeOf(typeof(ValueObjectBase<>));
+            return !type.IsAbstract && type.IsGenericInterfaceTypeOf(typeof(ValueObjectBase<>));
         }
 
         private static MethodInfo GetValueObjectFactoryMethod(Type type)
