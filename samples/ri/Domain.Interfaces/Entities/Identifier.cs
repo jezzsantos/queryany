@@ -18,6 +18,11 @@ namespace Domain.Interfaces.Entities
             return new Identifier();
         }
 
+        public bool IsEmpty()
+        {
+            return !Value.HasValue();
+        }
+
         public static Identifier Create(string value)
         {
             return new Identifier(value);

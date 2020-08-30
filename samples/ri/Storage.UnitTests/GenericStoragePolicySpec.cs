@@ -74,6 +74,14 @@ namespace Storage.UnitTests
         }
 
         [TestMethod]
+        public void WhenUpsertAndEntityIdIsEmpty_ThenThrowsNotFound()
+        {
+            this.commandStorage
+                .Invoking(x => x.Upsert(new TestEntity(Identifier.Empty())))
+                .Should().Throw<ResourceNotFoundException>();
+        }
+
+        [TestMethod]
         public void WhenUpsertAndEntityNotExists_ThenAddsToRepository()
         {
             var entity = new TestEntity("anid".ToIdentifier());

@@ -57,7 +57,7 @@ namespace Storage
         {
             aggregate.GuardAgainstNull(nameof(aggregate));
 
-            if (!aggregate.Id.HasValue())
+            if (!aggregate.Id.HasValue() || aggregate.Id.IsEmpty())
             {
                 throw new ResourceConflictException("The aggregate does not have an Identifier");
             }
@@ -114,7 +114,7 @@ namespace Storage
         public TEntity Upsert(TEntity entity)
         {
             entity.GuardAgainstNull(nameof(entity));
-            if (!entity.Id.HasValue())
+            if (!entity.Id.HasValue() || entity.Id.IsEmpty())
             {
                 throw new ResourceNotFoundException("Entity has empty identifier");
             }
