@@ -12,12 +12,12 @@ using QueryAny;
 namespace Storage.UnitTests
 {
     [TestClass, TestCategory("Unit")]
-    public class GenericStoragePolicySpec
+    public class GenericCommandStoragePolicySpec
     {
+        private GenericCommandStorage<TestEntity> commandStorage;
         private Mock<IDomainFactory> domainFactory;
         private Mock<ILogger> logger;
         private Mock<IRepository> repository;
-        private GenericStorage<TestEntity> storage;
 
         [TestInitialize]
         public void Initialize()
@@ -25,33 +25,14 @@ namespace Storage.UnitTests
             this.logger = new Mock<ILogger>();
             this.domainFactory = new Mock<IDomainFactory>();
             this.repository = new Mock<IRepository>();
-            this.storage = new TestStorage(this.logger.Object, this.domainFactory.Object, this.repository.Object);
-        }
-
-        [TestMethod]
-        public void WhenAddAndEntityIdNotExists_ThenThrowsConflict()
-        {
-            this.storage
-                .Invoking(x => x.Add(new TestEntity(null)))
-                .Should().Throw<ResourceConflictException>();
-        }
-
-        [TestMethod]
-        public void WhenAddAndEntityExists_ThenAddsAndRetrievesFromRepository()
-        {
-            var entity = new TestEntity("anid".ToIdentifier());
-
-            this.storage.Add(entity);
-
-            this.repository.Verify(repo => repo.Add("acontainername", entity));
-            this.repository.Verify(repo =>
-                repo.Retrieve<TestEntity>("acontainername", "anid".ToIdentifier(), this.domainFactory.Object));
+            this.commandStorage =
+                new TestCommandStorage(this.logger.Object, this.domainFactory.Object, this.repository.Object);
         }
 
         [TestMethod]
         public void WhenDelete_ThenRemovesFromRepository()
         {
-            this.storage.Delete("anid".ToIdentifier());
+            this.commandStorage.Delete("anid".ToIdentifier());
 
             this.repository.Verify(repo => repo.Remove<TestEntity>("acontainername", "anid".ToIdentifier()));
         }
@@ -59,7 +40,7 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenGet_ThenRetrievesFromRepository()
         {
-            this.storage.Get("anid".ToIdentifier());
+            this.commandStorage.Get("anid".ToIdentifier());
 
             this.repository.Verify(repo =>
                 repo.Retrieve<TestEntity>("acontainername", "anid".ToIdentifier(), this.domainFactory.Object));
@@ -68,7 +49,7 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenUpsertAndEntityIdNotExists_ThenThrowsNotFound()
         {
-            this.storage
+            this.commandStorage
                 .Invoking(x => x.Upsert(new TestEntity(null)))
                 .Should().Throw<ResourceNotFoundException>();
         }
@@ -86,7 +67,7 @@ namespace Storage.UnitTests
         {
             var entity = new TestEntity("anid".ToIdentifier());
 
-            this.storage.Upsert(entity);
+            this.commandStorage.Upsert(entity);
 
             this.repository.Verify(repo =>
                 repo.Retrieve<TestEntity>("acontainername", "anid".ToIdentifier(), this.domainFactory.Object));
@@ -106,7 +87,7 @@ namespace Storage.UnitTests
                     repo.Replace("acontainername", "anid".ToIdentifier(), fetchedEntity, this.domainFactory.Object))
                 .Returns(updatedEntity);
 
-            var result = this.storage.Upsert(upsertedEntity);
+            var result = this.commandStorage.Upsert(upsertedEntity);
 
             result.Should().Be(updatedEntity);
             this.repository.Verify(repo =>
@@ -120,7 +101,7 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenCount_ThenGetsCountFromRepo()
         {
-            this.storage.Count();
+            this.commandStorage.Count();
 
             this.repository.Verify(repo => repo.Count("acontainername"));
         }
@@ -128,47 +109,9 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenDestroyAll_ThenGetsCountFromRepo()
         {
-            this.storage.DestroyAll();
+            this.commandStorage.DestroyAll();
 
             this.repository.Verify(repo => repo.DestroyAll("acontainername"));
-        }
-
-        [TestMethod]
-        public void WhenQueryWithNullQuery_ThenReturnsEmptyResults()
-        {
-            var result = this.storage.Query(null);
-
-            result.Should().NotBeNull();
-            result.Results.Should().BeEmpty();
-            this.repository.Verify(
-                repo => repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<TestEntity>>(), It.IsAny<IDomainFactory>()),
-                Times.Never);
-        }
-
-        [TestMethod]
-        public void WhenQueryWithEmptyQuery_ThenReturnsEmptyResults()
-        {
-            var query = Query.Empty<TestEntity>();
-            var result = this.storage.Query(query);
-
-            result.Should().NotBeNull();
-            result.Results.Should().BeEmpty();
-            this.repository.Verify(
-                repo => repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<TestEntity>>(), It.IsAny<IDomainFactory>()),
-                Times.Never);
-        }
-
-        [TestMethod]
-        public void WhenQuery_ThenQueriesRepo()
-        {
-            var query = Query.From<TestEntity>().WhereAll();
-            var results = new List<TestEntity>();
-            this.repository.Setup(repo => repo.Query("acontainername", query, this.domainFactory.Object))
-                .Returns(results);
-
-            var result = this.storage.Query(query);
-
-            result.Results.Should().BeEquivalentTo(results);
         }
 
         [TestMethod]
@@ -181,7 +124,7 @@ namespace Storage.UnitTests
             this.domainFactory.Setup(df => df.RehydrateEntity(It.IsAny<Type>(), It.IsAny<Dictionary<string, object>>()))
                 .Returns(aggregate);
 
-            var result = this.storage.Load<TestAggregateRoot>("anid".ToIdentifier());
+            var result = this.commandStorage.Load<TestAggregateRoot>("anid".ToIdentifier());
 
             result.Should().Be(aggregate);
             result.LoadedChanges.Should().BeNull();
@@ -215,7 +158,7 @@ namespace Storage.UnitTests
             this.domainFactory.Setup(df => df.RehydrateEntity(It.IsAny<Type>(), It.IsAny<Dictionary<string, object>>()))
                 .Returns(aggregate);
 
-            var result = this.storage.Load<TestAggregateRoot>("anid".ToIdentifier());
+            var result = this.commandStorage.Load<TestAggregateRoot>("anid".ToIdentifier());
 
             result.Should().Be(aggregate);
             result.LoadedChanges.Should().BeEquivalentTo(events);
@@ -237,7 +180,7 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenSaveAndAggregateHasNoIdentifier_ThenThrowsConflict()
         {
-            this.storage
+            this.commandStorage
                 .Invoking(x => x.Save(new TestAggregateRoot(null)))
                 .Should().Throw<ResourceConflictException>();
         }
@@ -246,7 +189,7 @@ namespace Storage.UnitTests
         public void WhenSaveAndNoEvents_ThenDoesNothing()
         {
             var aggregate = new TestAggregateRoot("anid".ToIdentifier());
-            this.storage.Save(aggregate);
+            this.commandStorage.Save(aggregate);
 
             aggregate.ClearedChanges.Should().BeFalse();
         }
@@ -264,7 +207,7 @@ namespace Storage.UnitTests
                 }
             };
 
-            this.storage.Save(aggregate);
+            this.commandStorage.Save(aggregate);
 
             this.repository.Verify(repo => repo.Add("acontainername_Events", It.IsAny<EventEntity>()),
                 Times.Exactly(3));

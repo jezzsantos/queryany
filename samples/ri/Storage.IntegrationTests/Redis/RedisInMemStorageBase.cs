@@ -5,16 +5,16 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Storage.IntegrationTests.Redis
 {
-    public abstract class RedisInMemStorageBaseSpec : AnyStorageBaseSpec
+    public static class RedisInMemStorageBase
     {
         private const string RedisServerServiceName = @"redis";
 
-        protected static void InitializeAllTests(TestContext context)
+        public static void InitializeAllTests(TestContext context)
         {
             EnsureRedisServerIsStarted();
         }
 
-        protected static void CleanupAllTests()
+        public static void CleanupAllTests()
         {
             ShutdownRedisServer(false);
         }

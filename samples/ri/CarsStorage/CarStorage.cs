@@ -13,27 +13,35 @@ namespace CarsStorage
 {
     public class CarStorage : ICarStorage
     {
-        private readonly IStorage<CarEntity> carStorage;
-        private readonly IStorage<UnavailabilityEntity> unavailabilitiesStorage;
+        private readonly ICommandStorage<CarEntity> carCommandStorage;
+        private readonly IQueryStorage<CarEntity> carQueryStorage;
+        private readonly ICommandStorage<UnavailabilityEntity> unavailabilitiesCommandStorage;
+        private readonly IQueryStorage<UnavailabilityEntity> unavailabilitiesQueryStorage;
 
-        public CarStorage(IStorage<CarEntity> carStorage, IStorage<UnavailabilityEntity> unavailabilitiesStorage)
+        public CarStorage(ICommandStorage<CarEntity> carCommandStorage, IQueryStorage<CarEntity> carQueryStorage,
+            ICommandStorage<UnavailabilityEntity> unavailabilitiesCommandStorage,
+            IQueryStorage<UnavailabilityEntity> unavailabilitiesQueryStorage)
         {
-            carStorage.GuardAgainstNull(nameof(carStorage));
-            unavailabilitiesStorage.GuardAgainstNull(nameof(unavailabilitiesStorage));
-            this.carStorage = carStorage;
-            this.unavailabilitiesStorage = unavailabilitiesStorage;
+            carCommandStorage.GuardAgainstNull(nameof(carCommandStorage));
+            unavailabilitiesCommandStorage.GuardAgainstNull(nameof(unavailabilitiesCommandStorage));
+            unavailabilitiesQueryStorage.GuardAgainstNull(nameof(unavailabilitiesQueryStorage));
+            carQueryStorage.GuardAgainstNull(nameof(carQueryStorage));
+            this.carCommandStorage = carCommandStorage;
+            this.unavailabilitiesCommandStorage = unavailabilitiesCommandStorage;
+            this.unavailabilitiesQueryStorage = unavailabilitiesQueryStorage;
+            this.carQueryStorage = carQueryStorage;
         }
 
         public CarEntity Load(Identifier id)
         {
-            return this.carStorage.Load<CarEntity>(id);
+            return this.carCommandStorage.Load<CarEntity>(id);
         }
 
         public CarEntity Save(CarEntity car)
         {
-            this.carStorage.Save(car);
+            this.carCommandStorage.Save(car);
 
-            var updatedCar = this.carStorage.Upsert(car);
+            var updatedCar = this.carCommandStorage.Upsert(car);
 
             car.Unavailabilities
                 .ToList()
@@ -41,7 +49,7 @@ namespace CarsStorage
                 {
                     if (u.RequiresUpsert())
                     {
-                        var updatedUnavailability = this.unavailabilitiesStorage.Upsert(u);
+                        var updatedUnavailability = this.unavailabilitiesCommandStorage.Upsert(u);
                         updatedCar.Unavailabilities.Add(updatedUnavailability);
                     }
                 });
@@ -51,7 +59,7 @@ namespace CarsStorage
 
         public List<CarEntity> SearchAvailable(DateTime fromUtc, DateTime toUtc, SearchOptions options)
         {
-            var unavailabilities = this.unavailabilitiesStorage.Query(Query.From<UnavailabilityEntity>()
+            var unavailabilities = this.unavailabilitiesQueryStorage.Query(Query.From<UnavailabilityEntity>()
                     .Where(e => e.SlotFrom, ConditionOperator.LessThanEqualTo, fromUtc)
                     .AndWhere(e => e.SlotTo, ConditionOperator.GreaterThanEqualTo, toUtc))
                 .Results;
@@ -60,7 +68,7 @@ namespace CarsStorage
             var offset = options.Offset;
             options.ClearLimitAndOffset();
 
-            var cars = this.carStorage.Query(Query.From<CarEntity>()
+            var cars = this.carQueryStorage.Query(Query.From<CarEntity>()
                     .WhereAll()
                     .WithSearchOptions(options))
                 .Results;

@@ -9,6 +9,7 @@ using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json.Linq;
 using QueryAny;
 using QueryAny.Primitives;
+using ServiceStack.Configuration;
 
 namespace Storage.Azure
 {
@@ -155,6 +156,18 @@ namespace Storage.Azure
             var container = EnsureContainer(containerName);
             container.DeleteContainerAsync().GetAwaiter().GetResult();
             this.containers.Remove(containerName);
+        }
+
+        public static AzureCosmosSqlApiRepository FromAppSettings(IAppSettings settings, string databaseName)
+        {
+            settings.GuardAgainstNull(nameof(settings));
+            databaseName.GuardAgainstNullOrEmpty(nameof(databaseName));
+
+            var accountKey = settings.GetString("AzureCosmosDbAccountKey");
+            var hostName = settings.GetString("AzureCosmosDbHostName");
+            var localEmulatorConnectionString = $"AccountEndpoint=https://{hostName}:8081/;AccountKey={accountKey}";
+
+            return new AzureCosmosSqlApiRepository(localEmulatorConnectionString, databaseName);
         }
 
         private List<JObject> QueryPrimaryResults<TEntity>(QueryClause<TEntity> query, Container container,

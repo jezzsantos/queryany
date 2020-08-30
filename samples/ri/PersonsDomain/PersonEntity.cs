@@ -5,10 +5,12 @@ using Domain.Interfaces.Entities;
 using DomainServices;
 using Microsoft.Extensions.Logging;
 using PersonsDomain.Properties;
+using QueryAny;
 using QueryAny.Primitives;
 
 namespace PersonsDomain
 {
+    [EntityName("Person")]
     public class PersonEntity : AggregateRootBase
     {
         private readonly IEmailService emailService;

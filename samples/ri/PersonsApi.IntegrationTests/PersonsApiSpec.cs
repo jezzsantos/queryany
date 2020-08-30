@@ -9,7 +9,9 @@ using PersonsApplication.Storage;
 using PersonsDomain;
 using PersonsStorage;
 using ServiceStack;
+using Storage;
 using Storage.Interfaces;
+using IRepository = Storage.IRepository;
 
 namespace PersonsApi.IntegrationTests
 {
@@ -18,7 +20,9 @@ namespace PersonsApi.IntegrationTests
     {
         private const string ServiceUrl = "http://localhost:2000/";
         private static IWebHost webHost;
-        private static IStorage<PersonEntity> storage;
+        private static ICommandStorage<PersonEntity> commandStorage;
+        private static IQueryStorage<PersonEntity> queryStorage;
+        private static IRepository inMemRepository;
 
         [ClassInitialize]
         public static void InitializeAllTests(TestContext context)
@@ -33,20 +37,35 @@ namespace PersonsApi.IntegrationTests
 
             // Override services for testing
             var container = HostContext.Container;
+            inMemRepository = new InProcessInMemRepository();
+            commandStorage = PersonEntityInMemCommandStorage.Create(container.Resolve<ILogger>(),
+                container.Resolve<IDomainFactory>(), inMemRepository);
+            container.AddSingleton(commandStorage);
+            container.AddSingleton<ICommandStorage<PersonEntity>>(c =>
+                PersonEntityInMemCommandStorage.Create(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
+                    inMemRepository));
+            queryStorage = PersonEntityInMemQueryStorage.Create(container.Resolve<ILogger>(),
+                container.Resolve<IDomainFactory>(), inMemRepository);
+            container.AddSingleton(queryStorage);
+            container.AddSingleton<IQueryStorage<PersonEntity>>(c =>
+                PersonEntityInMemQueryStorage.Create(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
+                    inMemRepository));
             container.AddSingleton<IPersonStorage>(c =>
-                new PersonStorage(c.Resolve<IStorage<PersonEntity>>()));
-            storage = PersonEntityInMemStorage.Create(container.Resolve<ILogger>(),
-                container.Resolve<IDomainFactory>());
-            container.AddSingleton(storage);
-
-            container.AddSingleton<IStorage<PersonEntity>>(c =>
-                PersonEntityInMemStorage.Create(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>()));
+                new PersonStorage(c.Resolve<ICommandStorage<PersonEntity>>(),
+                    c.Resolve<IQueryStorage<PersonEntity>>()));
         }
 
         [ClassCleanup]
         public static void CleanupAllTests()
         {
             webHost?.StopAsync().GetAwaiter().GetResult();
+        }
+
+        [TestInitialize]
+        public void Initialize()
+        {
+            commandStorage.DestroyAll();
+            queryStorage.DestroyAll();
         }
 
         [TestMethod]

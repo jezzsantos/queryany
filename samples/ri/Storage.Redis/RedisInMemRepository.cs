@@ -6,6 +6,7 @@ using Domain.Interfaces.Entities;
 using QueryAny;
 using QueryAny.Primitives;
 using ServiceStack;
+using ServiceStack.Configuration;
 using ServiceStack.Redis;
 using StringExtensions = ServiceStack.StringExtensions;
 
@@ -125,6 +126,12 @@ namespace Storage.Redis
             {
                 client.RemoveAll(rowKeys);
             }
+        }
+
+        public static RedisInMemRepository FromAppSettings(IAppSettings settings)
+        {
+            var localServerConnectionString = settings.GetString("RedisConnectionString");
+            return new RedisInMemRepository(localServerConnectionString);
         }
 
         private List<TEntity> QueryPrimaryEntities<TEntity>(IRedisClient client, string containerName,

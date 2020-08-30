@@ -8,44 +8,36 @@ using QueryAny.Primitives;
 namespace Storage.IntegrationTests.Azure
 {
     // ReSharper disable once InconsistentNaming
-    public abstract class AzureCosmosStorageBaseSpec : AnyStorageBaseSpec
+    public static class AzureStorageAccountBase
     {
-        // ReSharper disable once InconsistentNaming
-        private const string EmulatorProcessName = @"Microsoft.Azure.Cosmos.Emulator";
+        private const string EmulatorProcessName = @"AzureStorageEmulator";
+        private const string EmulatorStartupArgs = @"start";
+        private const string EmulatorResetArgs = @"clear all";
+        private const string EmulatorShutdownArgs = @"stop";
 
-        private const string EmulatorStartupArgs =
-            @"/NoExplorer /DisableRateLimiting";
-
-        private const string EmulatorResetArgs = @"/ResetDataPath";
-        private const string EmulatorShutdownArgs = @"/Shutdown";
-
-        protected static void InitializeAllTests(TestContext context, string startupArguments)
+        public static void InitializeAllTests(TestContext context)
         {
-            EnsureAzureCosmosDbEmulatorIsStarted(startupArguments);
+            EnsureAzureStorageEmulatorIsStarted();
         }
 
-        protected static void CleanupAllTests()
+        public static void CleanupAllTests()
         {
-            ShutdownCosmosDbEmulator();
+            ShutdownAzureStorageEmulator();
         }
 
-        private static void EnsureAzureCosmosDbEmulatorIsStarted(string moreStartupArguments)
+        private static void EnsureAzureStorageEmulatorIsStarted()
         {
-            ShutdownCosmosDbEmulator();
+            ShutdownAzureStorageEmulator();
 
             ExecuteEmulatorCommand(EmulatorResetArgs);
 
             var startupArgs = EmulatorStartupArgs;
-            if (moreStartupArguments.HasValue())
-            {
-                startupArgs = $"{startupArgs} {moreStartupArguments.Trim()}";
-            }
 
             ExecuteEmulatorCommand(startupArgs, false);
             Thread.Sleep(TimeSpan.FromSeconds(10));
         }
 
-        private static void ShutdownCosmosDbEmulator()
+        private static void ShutdownAzureStorageEmulator()
         {
             if (IsEmulatorRunning())
             {
@@ -68,7 +60,8 @@ namespace Storage.IntegrationTests.Azure
             var process = Process.Start(new ProcessStartInfo
             {
                 Arguments = command,
-                FileName = $"C:\\Program Files\\Azure Cosmos DB Emulator\\{EmulatorProcessName}.exe",
+                FileName =
+                    $"C:\\Program Files (x86)\\Microsoft SDKs\\Azure\\Storage Emulator\\{EmulatorProcessName}.exe",
                 WindowStyle = ProcessWindowStyle.Hidden,
                 Verb = "runas",
                 UseShellExecute = true

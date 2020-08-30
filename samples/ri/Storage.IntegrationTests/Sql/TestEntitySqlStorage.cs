@@ -2,12 +2,12 @@
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 
-namespace Storage.IntegrationTests.Azure
+namespace Storage.IntegrationTests.Sql
 {
-    public class TestEntityAzureCommandStorage<TEntity> : GenericCommandStorage<TEntity>
+    public class TestEntitySqlCommandStorage<TEntity> : GenericCommandStorage<TEntity>
         where TEntity : IPersistableEntity
     {
-        public TestEntityAzureCommandStorage(ILogger logger, IDomainFactory domainFactory,
+        public TestEntitySqlCommandStorage(ILogger logger, IDomainFactory domainFactory,
             IRepository repository, string containerName) : base(
             logger, domainFactory, repository)
         {
@@ -18,9 +18,10 @@ namespace Storage.IntegrationTests.Azure
         protected override string ContainerName { get; }
     }
 
-    public class TestEntityAzureQueryStorage<TEntity> : GenericQueryStorage<TEntity> where TEntity : IPersistableEntity
+    public class TestEntitySqlQueryStorage<TEntity> : GenericQueryStorage<TEntity>
+        where TEntity : IPersistableEntity
     {
-        public TestEntityAzureQueryStorage(ILogger logger, IDomainFactory domainFactory,
+        public TestEntitySqlQueryStorage(ILogger logger, IDomainFactory domainFactory,
             IRepository repository, string containerName) : base(
             logger, domainFactory, repository)
         {

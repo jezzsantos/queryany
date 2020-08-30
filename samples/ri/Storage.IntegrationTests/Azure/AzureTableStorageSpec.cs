@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using QueryAny.Primitives;
+using ServiceStack;
 using Storage.Azure;
 using Storage.Interfaces;
 
@@ -11,40 +11,85 @@ namespace Storage.IntegrationTests.Azure
     [TestClass, TestCategory("Integration.Storage")]
 
     // ReSharper disable once InconsistentNaming
-    public class AzureTableStorageSpec : AzureStorageAccountBaseSpec
+    public class AzureTableCommandStorageSpec : AnyCommandStorageBaseSpec
     {
         private static AzureTableStorageRepository repository;
-        private readonly Dictionary<string, object> stores = new Dictionary<string, object>();
+        private readonly Dictionary<string, object> commandStores = new Dictionary<string, object>();
 
         [ClassInitialize]
-        public new static void InitializeAllTests(TestContext context)
+        public static void InitializeAllTests(TestContext context)
         {
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
-            var accountKey = config["AzureTableStorageAccountKey"];
-            var hostName = config["AzureTableStorageHostName"];
-            var localEmulatorConnectionString = accountKey.HasValue()
-                ? $"DefaultEndpointsProtocol=https;AccountName={hostName};AccountKey={accountKey};EndpointSuffix=core.windows.net"
-                : "UseDevelopmentStorage=true";
-            repository = new AzureTableStorageRepository(localEmulatorConnectionString);
-            AzureStorageAccountBaseSpec.InitializeAllTests(context);
+            var settings = new NetCoreAppSettings(config);
+            repository = AzureTableStorageRepository.FromSettings(settings);
+            AzureStorageAccountBase.InitializeAllTests(context);
         }
 
         [ClassCleanup]
-        public new static void CleanupAllTests()
+        public static void CleanupAllTests()
         {
-            AzureStorageAccountBaseSpec.CleanupAllTests();
+            AzureStorageAccountBase.CleanupAllTests();
         }
 
-        protected override IStorage<TEntity> GetStore<TEntity>(string containerName,
+        protected override ICommandStorage<TEntity> GetCommandStore<TEntity>(string containerName,
             IDomainFactory domainFactory)
         {
-            if (!this.stores.ContainsKey(containerName))
+            if (!this.commandStores.ContainsKey(containerName))
             {
-                this.stores.Add(containerName, new TestEntityAzureStorage<TEntity>(Logger, domainFactory,
+                this.commandStores.Add(containerName, new TestEntityAzureCommandStorage<TEntity>(Logger, domainFactory,
                     repository, containerName));
             }
 
-            return (IStorage<TEntity>) this.stores[containerName];
+            return (ICommandStorage<TEntity>) this.commandStores[containerName];
+        }
+    }
+
+    [TestClass, TestCategory("Integration.Storage")]
+
+    // ReSharper disable once InconsistentNaming
+    public class AzureTableQueryStorageSpec : AnyQueryStorageBaseSpec
+    {
+        private static AzureTableStorageRepository repository;
+        private readonly Dictionary<string, object> commandStores = new Dictionary<string, object>();
+        private readonly Dictionary<string, object> queryStores = new Dictionary<string, object>();
+
+        [ClassInitialize]
+        public static void InitializeAllTests(TestContext context)
+        {
+            var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
+            var settings = new NetCoreAppSettings(config);
+            repository = AzureTableStorageRepository.FromSettings(settings);
+            AzureStorageAccountBase.InitializeAllTests(context);
+        }
+
+        [ClassCleanup]
+        public static void CleanupAllTests()
+        {
+            AzureStorageAccountBase.CleanupAllTests();
+        }
+
+        protected override ICommandStorage<TEntity> GetCommandStore<TEntity>(string containerName,
+            IDomainFactory domainFactory)
+        {
+            if (!this.commandStores.ContainsKey(containerName))
+            {
+                this.commandStores.Add(containerName, new TestEntityAzureCommandStorage<TEntity>(Logger, domainFactory,
+                    repository, containerName));
+            }
+
+            return (ICommandStorage<TEntity>) this.commandStores[containerName];
+        }
+
+        protected override IQueryStorage<TEntity> GetQueryStore<TEntity>(string containerName,
+            IDomainFactory domainFactory)
+        {
+            if (!this.queryStores.ContainsKey(containerName))
+            {
+                this.queryStores.Add(containerName, new TestEntityAzureQueryStorage<TEntity>(Logger, domainFactory,
+                    repository, containerName));
+            }
+
+            return (IQueryStorage<TEntity>) this.queryStores[containerName];
         }
     }
 }

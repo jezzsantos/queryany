@@ -11,6 +11,7 @@ using Microsoft.Azure.Cosmos.Table.Protocol;
 using QueryAny;
 using QueryAny.Primitives;
 using ServiceStack;
+using ServiceStack.Configuration;
 
 namespace Storage.Azure
 {
@@ -21,6 +22,7 @@ namespace Storage.Azure
         private readonly string connectionString;
         private readonly TableStorageApiOptions options;
         private readonly Dictionary<string, bool> tableExistenceChecks = new Dictionary<string, bool>();
+
         private CloudTableClient client;
 
         public AzureTableStorageRepository(string connectionString) : this(
@@ -203,6 +205,18 @@ namespace Storage.Azure
                 DeleteInBatches(remaining);
                 remaining = GetRemaining();
             }
+        }
+
+        public static AzureTableStorageRepository FromSettings(IAppSettings settings)
+        {
+            settings.GuardAgainstNull(nameof(settings));
+
+            var accountKey = settings.GetString("AzureTableStorageAccountKey");
+            var hostName = settings.GetString("AzureTableStorageHostName");
+            var localEmulatorConnectionString = accountKey.HasValue()
+                ? $"DefaultEndpointsProtocol=https;AccountName={hostName};AccountKey={accountKey};EndpointSuffix=core.windows.net"
+                : "UseDevelopmentStorage=true";
+            return new AzureTableStorageRepository(localEmulatorConnectionString);
         }
 
         private List<TEntity> QueryPrimaryEntities<TEntity>(CloudTable table,

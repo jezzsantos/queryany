@@ -7,18 +7,18 @@ using QueryAny.Primitives;
 
 namespace Storage.IntegrationTests.Sql
 {
-    public abstract class SqlServerStorageBaseSpec : AnyStorageBaseSpec
+    public static class SqlServerStorageBase
     {
         private const string SqlCommandLineTool = @"SQLCMD";
         private const string CreateDatabaseCommandArgs = "-Q \"CREATE DATABASE {0}\"";
         private const string RegenerateScriptCommandArgs = "-i \"{0}\\Sql\\RegenerateDatabase.sql\"";
 
-        protected static void InitializeAllTests(TestContext context, string serviceName, string databaseName)
+        public static void InitializeAllTests(TestContext context, string serviceName, string databaseName)
         {
             EnsureSqlServerServerIsStarted(context.DeploymentDirectory, serviceName, databaseName);
         }
 
-        protected static void CleanupAllTests(string serviceName)
+        public static void CleanupAllTests(string serviceName)
         {
             ShutdownSqlServerServer(serviceName, false);
         }

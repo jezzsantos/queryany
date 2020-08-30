@@ -44,14 +44,23 @@ namespace CarsApi
             container.AddSingleton<IDomainFactory>(c =>
                 DomainFactory.CreateRegistered(c.Resolve<IDependencyContainer>(), typeof(EventEntity).Assembly,
                     typeof(CarEntity).Assembly));
-            container.AddSingleton<IStorage<CarEntity>>(c =>
-                CarEntityAzureStorage.Create(c.Resolve<ILogger>(), c.Resolve<IAppSettings>(),
+            container.AddSingleton<ICommandStorage<CarEntity>>(c =>
+                CarEntityAzureCommandStorage.Create(c.Resolve<ILogger>(), c.Resolve<IAppSettings>(),
                     c.Resolve<IDomainFactory>()));
-            container.AddSingleton<IStorage<UnavailabilityEntity>>(c =>
-                UnavailabilityEntityAzureStorage.Create(c.Resolve<ILogger>(), c.Resolve<IAppSettings>(),
+            container.AddSingleton<IQueryStorage<CarEntity>>(c =>
+                CarEntityAzureQueryStorage.Create(c.Resolve<ILogger>(), c.Resolve<IAppSettings>(),
+                    c.Resolve<IDomainFactory>()));
+            container.AddSingleton<ICommandStorage<UnavailabilityEntity>>(c =>
+                UnavailabilityEntityAzureCommandStorage.Create(c.Resolve<ILogger>(), c.Resolve<IAppSettings>(),
+                    c.Resolve<IDomainFactory>()));
+            container.AddSingleton<IQueryStorage<UnavailabilityEntity>>(c =>
+                UnavailabilityEntityAzureQueryStorage.Create(c.Resolve<ILogger>(), c.Resolve<IAppSettings>(),
                     c.Resolve<IDomainFactory>()));
             container.AddSingleton<ICarStorage>(c =>
-                new CarStorage(c.Resolve<IStorage<CarEntity>>(), c.Resolve<IStorage<UnavailabilityEntity>>()));
+                new CarStorage(c.Resolve<ICommandStorage<CarEntity>>(),
+                    c.Resolve<IQueryStorage<CarEntity>>(),
+                    c.Resolve<ICommandStorage<UnavailabilityEntity>>(),
+                    c.Resolve<IQueryStorage<UnavailabilityEntity>>()));
             container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
             container.AddSingleton<IPersonsService>(c =>
                 new PersonsServiceClient(c.Resolve<IAppSettings>().GetString("PersonsApiBaseUrl")));

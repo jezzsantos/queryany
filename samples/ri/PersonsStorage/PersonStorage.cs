@@ -10,28 +10,31 @@ namespace PersonsStorage
 {
     public class PersonStorage : IPersonStorage
     {
-        private readonly IStorage<PersonEntity> storage;
+        private readonly ICommandStorage<PersonEntity> commandStorage;
+        private readonly IQueryStorage<PersonEntity> queryStorage;
 
-        public PersonStorage(IStorage<PersonEntity> storage)
+        public PersonStorage(ICommandStorage<PersonEntity> commandStorage, IQueryStorage<PersonEntity> queryStorage)
         {
-            storage.GuardAgainstNull(nameof(storage));
-            this.storage = storage;
+            commandStorage.GuardAgainstNull(nameof(commandStorage));
+            queryStorage.GuardAgainstNull(nameof(queryStorage));
+            this.commandStorage = commandStorage;
+            this.queryStorage = queryStorage;
         }
 
         public PersonEntity Load(Identifier id)
         {
-            return this.storage.Load<PersonEntity>(id);
+            return this.commandStorage.Load<PersonEntity>(id);
         }
 
         public PersonEntity Save(PersonEntity person)
         {
-            this.storage.Save(person);
+            this.commandStorage.Save(person);
             return person;
         }
 
         public PersonEntity FindByEmailAddress(string emailAddress)
         {
-            var persons = this.storage.Query(Query.From<PersonEntity>()
+            var persons = this.queryStorage.Query(Query.From<PersonEntity>()
                 .Where(e => e.Email, ConditionOperator.EqualTo, emailAddress));
             return persons.Results.FirstOrDefault();
         }

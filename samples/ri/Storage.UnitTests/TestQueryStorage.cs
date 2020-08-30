@@ -3,9 +3,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Storage.UnitTests
 {
-    public class TestStorage : GenericStorage<TestEntity>
+    public class TestQueryStorage : GenericQueryStorage<TestEntity>
     {
-        public TestStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository) : base(logger,
+        public TestQueryStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository) : base(logger,
             domainFactory, repository)
         {
         }

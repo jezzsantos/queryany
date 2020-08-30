@@ -7,14 +7,18 @@ using Domain.Interfaces.Entities;
 using Microsoft.Data.SqlClient;
 using QueryAny;
 using QueryAny.Primitives;
+using ServiceStack.Configuration;
 
 namespace Storage.Sql
 {
     public class SqlServerRepository : IRepository
     {
         internal const string PrimaryTableAlias = @"t";
+
         internal const string JoinedEntityFieldAliasPrefix = @"je_";
+
         public static readonly DateTime MinimumAllowableDate = SqlDateTime.MinValue.Value;
+
         private readonly string connectionString;
 
         public SqlServerRepository(string connectionString)
@@ -82,6 +86,17 @@ namespace Storage.Sql
         public void DestroyAll(string tableName)
         {
             ExecuteCommand($"DELETE FROM {tableName}");
+        }
+
+        public static SqlServerRepository FromSettings(IAppSettings settings, string databaseName)
+        {
+            settings.GuardAgainstNull(nameof(settings));
+            databaseName.GuardAgainstNull(nameof(databaseName));
+
+            var serverName = settings.GetString("SqlServerDbServerName");
+            var credentials = settings.GetString("SqlServerDbCredentials");
+            return new SqlServerRepository(
+                $"Persist Security Info=False;Integrated Security=true;Initial Catalog={databaseName};Server={serverName}{(credentials.HasValue() ? ";" + credentials : "")}");
         }
 
         private List<Dictionary<string, object>> ExecuteMultiSelect(string commandText, bool throwOnError = true)

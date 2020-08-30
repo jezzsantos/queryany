@@ -6,21 +6,39 @@ using Storage;
 
 namespace PersonsStorage
 {
-    public class PersonEntityInMemStorage : GenericStorage<PersonEntity>
+    public class PersonEntityInMemCommandStorage : GenericCommandStorage<PersonEntity>
     {
-        private PersonEntityInMemStorage(ILogger logger, IDomainFactory domainFactory,
-            InProcessInMemRepository repository) : base(logger, domainFactory, repository)
+        private PersonEntityInMemCommandStorage(ILogger logger, IDomainFactory domainFactory,
+            IRepository repository) : base(logger, domainFactory, repository)
         {
         }
 
-        protected override string ContainerName => "Person";
-
-        public static PersonEntityInMemStorage Create(ILogger logger, IDomainFactory domainFactory)
+        public static PersonEntityInMemCommandStorage Create(ILogger logger, IDomainFactory domainFactory,
+            IRepository repository)
         {
             logger.GuardAgainstNull(nameof(logger));
+            domainFactory.GuardAgainstNull(nameof(domainFactory));
+            repository.GuardAgainstNull(nameof(repository));
 
-            return new PersonEntityInMemStorage(logger, domainFactory,
-                new InProcessInMemRepository());
+            return new PersonEntityInMemCommandStorage(logger, domainFactory, repository);
+        }
+    }
+
+    public class PersonEntityInMemQueryStorage : GenericQueryStorage<PersonEntity>
+    {
+        private PersonEntityInMemQueryStorage(ILogger logger, IDomainFactory domainFactory,
+            IRepository repository) : base(logger, domainFactory, repository)
+        {
+        }
+
+        public static PersonEntityInMemQueryStorage Create(ILogger logger, IDomainFactory domainFactory,
+            IRepository repository)
+        {
+            logger.GuardAgainstNull(nameof(logger));
+            domainFactory.GuardAgainstNull(nameof(domainFactory));
+            repository.GuardAgainstNull(nameof(repository));
+
+            return new PersonEntityInMemQueryStorage(logger, domainFactory, repository);
         }
     }
 }

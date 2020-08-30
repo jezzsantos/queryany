@@ -1,39 +1,46 @@
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using QueryAny.Primitives;
 using Storage.Interfaces;
 
 namespace Storage.IntegrationTests
 {
     [TestClass, TestCategory("Integration.Storage")]
-    public class InProcessInMemStorageSpec : AnyStorageBaseSpec
+    public class InProcessInMemCommandStorageSpec : AnyCommandStorageBaseSpec
     {
         private readonly InProcessInMemRepository repository;
 
-        public InProcessInMemStorageSpec()
+        public InProcessInMemCommandStorageSpec()
         {
             this.repository = new InProcessInMemRepository();
         }
 
-        protected override IStorage<TEntity> GetStore<TEntity>(string containerName,
+        protected override ICommandStorage<TEntity> GetCommandStore<TEntity>(string containerName,
             IDomainFactory domainFactory)
         {
-            return new TestEntityInMemStorage<TEntity>(Logger, domainFactory, this.repository, containerName);
+            return new TestEntityInMemCommandStorage<TEntity>(Logger, domainFactory, this.repository, containerName);
+        }
+    }
+
+    [TestClass, TestCategory("Integration.Storage")]
+    public class InProcessInMemQueryStorageSpec : AnyQueryStorageBaseSpec
+    {
+        private readonly InProcessInMemRepository repository;
+
+        public InProcessInMemQueryStorageSpec()
+        {
+            this.repository = new InProcessInMemRepository();
         }
 
-        private class TestEntityInMemStorage<TEntity> : GenericStorage<TEntity>
-            where TEntity : IPersistableEntity
+        protected override ICommandStorage<TEntity> GetCommandStore<TEntity>(string containerName,
+            IDomainFactory domainFactory)
         {
-            public TestEntityInMemStorage(ILogger logger, IDomainFactory domainFactory,
-                InProcessInMemRepository repository, string containerName) :
-                base(logger, domainFactory, repository)
-            {
-                containerName.GuardAgainstNullOrEmpty(nameof(containerName));
-                ContainerName = containerName;
-            }
+            return new TestEntityInMemCommandStorage<TEntity>(Logger, domainFactory, this.repository, containerName);
+        }
 
-            protected override string ContainerName { get; }
+        protected override IQueryStorage<TEntity> GetQueryStore<TEntity>(string containerName,
+            IDomainFactory domainFactory)
+        {
+            return new TestEntityInMemQueryStorage<TEntity>(Logger, domainFactory, this.repository, containerName);
         }
     }
 }

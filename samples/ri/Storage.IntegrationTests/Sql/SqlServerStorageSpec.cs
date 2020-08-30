@@ -1,66 +1,101 @@
 ﻿using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using QueryAny.Primitives;
+using ServiceStack;
 using Storage.Interfaces;
 using Storage.Sql;
 
 namespace Storage.IntegrationTests.Sql
 {
     [TestClass, TestCategory("Integration.Storage")]
-    public class SqlServerStorageSpec : SqlServerStorageBaseSpec
+    public class SqlServerStorageCommandSpec : AnyCommandStorageBaseSpec
     {
         private static SqlServerRepository repository;
-        private readonly Dictionary<string, object> stores = new Dictionary<string, object>();
+        private readonly Dictionary<string, object> commandStores = new Dictionary<string, object>();
 
         [ClassInitialize]
         public static void InitializeAllTests(TestContext context)
         {
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
-            var serverName = config["SqlServerDbServerName"];
-            var credentials = config["SqlServerDbCredentials"];
-            var serviceName = config["SqlServerServiceName"];
+            var settings = new NetCoreAppSettings(config);
+            var serviceName = settings.GetString("SqlServerServiceName");
             var databaseName = "TestDatabase";
-            repository =
-                new SqlServerRepository(
-                    $"Persist Security Info=False;Integrated Security=true;Initial Catalog={databaseName};Server={serverName}{(credentials.HasValue() ? ";" + credentials : "")}");
-            InitializeAllTests(context, serviceName, databaseName);
+            repository = SqlServerRepository.FromSettings(settings, databaseName);
+            SqlServerStorageBase.InitializeAllTests(context, serviceName, databaseName);
         }
 
         [ClassCleanup]
         public static void CleanupAllTests()
         {
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
-            var serviceName = config["SqlServerServiceName"];
-            CleanupAllTests(serviceName);
+            var settings = new NetCoreAppSettings(config);
+            var serviceName = settings.GetString("SqlServerServiceName");
+            SqlServerStorageBase.CleanupAllTests(serviceName);
         }
 
-        protected override IStorage<TEntity> GetStore<TEntity>(string containerName,
+        protected override ICommandStorage<TEntity> GetCommandStore<TEntity>(string containerName,
             IDomainFactory domainFactory)
         {
-            if (!this.stores.ContainsKey(containerName))
+            if (!this.commandStores.ContainsKey(containerName))
             {
-                this.stores.Add(containerName,
-                    new TestEntitySqlStorage<TEntity>(Logger, domainFactory, repository, containerName));
+                this.commandStores.Add(containerName,
+                    new TestEntitySqlCommandStorage<TEntity>(Logger, domainFactory, repository, containerName));
             }
 
-            return (IStorage<TEntity>) this.stores[containerName];
+            return (ICommandStorage<TEntity>) this.commandStores[containerName];
+        }
+    }
+
+    [TestClass, TestCategory("Integration.Storage")]
+    public class SqlServerStorageQuerySpec : AnyQueryStorageBaseSpec
+    {
+        private static SqlServerRepository repository;
+        private readonly Dictionary<string, object> commandStores = new Dictionary<string, object>();
+        private readonly Dictionary<string, object> queryStores = new Dictionary<string, object>();
+
+        [ClassInitialize]
+        public static void InitializeAllTests(TestContext context)
+        {
+            var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
+            var settings = new NetCoreAppSettings(config);
+            var serviceName = settings.GetString("SqlServerServiceName");
+            var databaseName = "TestDatabase";
+            repository = SqlServerRepository.FromSettings(settings, databaseName);
+            SqlServerStorageBase.InitializeAllTests(context, serviceName, databaseName);
         }
 
-        private class TestEntitySqlStorage<TEntity> : GenericStorage<TEntity>
-            where TEntity : IPersistableEntity
+        [ClassCleanup]
+        public static void CleanupAllTests()
         {
-            public TestEntitySqlStorage(ILogger logger, IDomainFactory domainFactory,
-                IRepository repository, string containerName) : base(
-                logger, domainFactory, repository)
+            var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
+            var settings = new NetCoreAppSettings(config);
+            var serviceName = settings.GetString("SqlServerServiceName");
+            SqlServerStorageBase.CleanupAllTests(serviceName);
+        }
+
+        protected override ICommandStorage<TEntity> GetCommandStore<TEntity>(string containerName,
+            IDomainFactory domainFactory)
+        {
+            if (!this.commandStores.ContainsKey(containerName))
             {
-                containerName.GuardAgainstNullOrEmpty(nameof(containerName));
-                ContainerName = containerName;
+                this.commandStores.Add(containerName,
+                    new TestEntitySqlCommandStorage<TEntity>(Logger, domainFactory, repository, containerName));
             }
 
-            protected override string ContainerName { get; }
+            return (ICommandStorage<TEntity>) this.commandStores[containerName];
+        }
+
+        protected override IQueryStorage<TEntity> GetQueryStore<TEntity>(string containerName,
+            IDomainFactory domainFactory)
+        {
+            if (!this.queryStores.ContainsKey(containerName))
+            {
+                this.queryStores.Add(containerName,
+                    new TestEntitySqlQueryStorage<TEntity>(Logger, domainFactory, repository, containerName));
+            }
+
+            return (IQueryStorage<TEntity>) this.queryStores[containerName];
         }
     }
 }

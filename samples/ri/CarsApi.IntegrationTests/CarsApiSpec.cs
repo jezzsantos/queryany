@@ -14,7 +14,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ServiceStack;
+using Storage;
 using Storage.Interfaces;
+using IRepository = Storage.IRepository;
 
 namespace CarsApi.IntegrationTests
 {
@@ -23,9 +25,12 @@ namespace CarsApi.IntegrationTests
     {
         private const string ServiceUrl = "http://localhost:2000/";
         private static IWebHost webHost;
-        private static IStorage<CarEntity> carStorage;
-        private static IStorage<UnavailabilityEntity> unavailabilityStorage;
+        private static ICommandStorage<CarEntity> carCommandStorage;
+        private static IQueryStorage<CarEntity> carQueryStorage;
+        private static ICommandStorage<UnavailabilityEntity> unavailabilityCommandStorage;
+        private static IQueryStorage<UnavailabilityEntity> unavailabilityQueryStorage;
         private static int plateCount;
+        private static IRepository inMemRepository;
 
         [ClassInitialize]
         public static void InitializeAllTests(TestContext context)
@@ -41,15 +46,27 @@ namespace CarsApi.IntegrationTests
             // Override services for testing
             var container = HostContext.Container;
             container.AddSingleton<IPersonsService, StubPersonsService>();
+            inMemRepository = new InProcessInMemRepository();
+            carCommandStorage =
+                CarEntityInMemCommandStorage.Create(container.Resolve<ILogger>(), container.Resolve<IDomainFactory>(),
+                    inMemRepository);
+            container.AddSingleton(carCommandStorage);
+            carQueryStorage =
+                CarEntityInMemQueryStorage.Create(container.Resolve<ILogger>(), container.Resolve<IDomainFactory>(),
+                    inMemRepository);
+            container.AddSingleton(carQueryStorage);
+            unavailabilityCommandStorage =
+                UnavailabilityEntityInMemCommandStorage.Create(container.Resolve<ILogger>(),
+                    container.Resolve<IDomainFactory>(), inMemRepository);
+            container.AddSingleton(unavailabilityCommandStorage);
+            unavailabilityQueryStorage =
+                UnavailabilityEntityInMemQueryStorage.Create(container.Resolve<ILogger>(),
+                    container.Resolve<IDomainFactory>(), inMemRepository);
+            container.AddSingleton(unavailabilityQueryStorage);
             container.AddSingleton<ICarStorage>(c =>
-                new CarStorage(c.Resolve<IStorage<CarEntity>>(), c.Resolve<IStorage<UnavailabilityEntity>>()));
-            carStorage =
-                CarEntityInMemStorage.Create(container.Resolve<ILogger>(), container.Resolve<IDomainFactory>());
-            container.AddSingleton(carStorage);
-            unavailabilityStorage =
-                UnavailabilityEntityInMemStorage.Create(container.Resolve<ILogger>(),
-                    container.Resolve<IDomainFactory>());
-            container.AddSingleton(unavailabilityStorage);
+                new CarStorage(c.Resolve<ICommandStorage<CarEntity>>(), c.Resolve<IQueryStorage<CarEntity>>(),
+                    c.Resolve<ICommandStorage<UnavailabilityEntity>>(),
+                    c.Resolve<IQueryStorage<UnavailabilityEntity>>()));
         }
 
         [ClassCleanup]
@@ -61,8 +78,10 @@ namespace CarsApi.IntegrationTests
         [TestInitialize]
         public void Initialize()
         {
-            carStorage.DestroyAll();
-            unavailabilityStorage.DestroyAll();
+            carCommandStorage.DestroyAll();
+            carQueryStorage.DestroyAll();
+            unavailabilityCommandStorage.DestroyAll();
+            unavailabilityQueryStorage.DestroyAll();
         }
 
         [TestMethod]

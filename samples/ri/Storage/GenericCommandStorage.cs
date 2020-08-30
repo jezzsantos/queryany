@@ -11,12 +11,16 @@ using Storage.Interfaces;
 
 namespace Storage
 {
-    public abstract class GenericStorage<TEntity> : IStorage<TEntity> where TEntity : IPersistableEntity
+    /// <summary>
+    ///     Storage for either eventing or traditional storage for commands
+    /// </summary>
+    /// <typeparam name="TEntity"></typeparam>
+    public abstract class GenericCommandStorage<TEntity> : ICommandStorage<TEntity> where TEntity : IPersistableEntity
     {
         private readonly ILogger logger;
         private readonly IRepository repository;
 
-        protected GenericStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
+        protected GenericCommandStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
         {
             logger.GuardAgainstNull(nameof(logger));
             repository.GuardAgainstNull(nameof(repository));
@@ -26,7 +30,7 @@ namespace Storage
             DomainFactory = domainFactory;
         }
 
-        protected abstract string ContainerName { get; }
+        protected virtual string ContainerName => typeof(TEntity).GetEntityNameSafe();
 
         public IDomainFactory DomainFactory { get; }
 
@@ -38,7 +42,7 @@ namespace Storage
             var containerName = GetEventContainerName();
 
             var events = this.repository.Query(containerName,
-                QueryAny.Query.From<EventEntity>()
+                Query.From<EventEntity>()
                     .Where(ee => ee.StreamName, ConditionOperator.EqualTo, streamName)
                     .OrderBy(ee => ee.LastPersistedAtUtc), DomainFactory);
             if (!events.Any())
@@ -76,22 +80,6 @@ namespace Storage
             aggregate.ClearChanges();
         }
 
-        public TEntity Add(TEntity entity)
-        {
-            entity.GuardAgainstNull(nameof(entity));
-
-            if (!entity.Id.HasValue())
-            {
-                throw new ResourceConflictException("The entity does not have an Identifier");
-            }
-
-            this.repository.Add(ContainerName, entity);
-
-            this.logger.LogDebug("Entity {Id} was added to repository", entity.Id);
-
-            return this.repository.Retrieve<TEntity>(ContainerName, entity.Id, DomainFactory);
-        }
-
         public void Delete(Identifier id)
         {
             id.GuardAgainstNull(nameof(id));
@@ -122,7 +110,11 @@ namespace Storage
             var latest = Get(entity.Id);
             if (latest == null)
             {
-                return Add(entity);
+                this.repository.Add(ContainerName, entity);
+
+                this.logger.LogDebug("Entity {Id} was added to repository", entity.Id);
+
+                return this.repository.Retrieve<TEntity>(ContainerName, entity.Id, DomainFactory);
             }
 
             latest.PopulateWithNonDefaultValues(entity);
@@ -132,22 +124,6 @@ namespace Storage
             this.logger.LogDebug("Entity {Id} was updated in repository", entity.Id);
 
             return updated;
-        }
-
-        public QueryResults<TEntity> Query(QueryClause<TEntity> query)
-        {
-            if (query == null || query.Options.IsEmpty)
-            {
-                this.logger.LogDebug("No entities were retrieved from repository");
-
-                return new QueryResults<TEntity>(new List<TEntity>());
-            }
-
-            var entities = this.repository.Query(ContainerName, query, DomainFactory);
-
-            this.logger.LogDebug("Entities were retrieved from repository");
-
-            return new QueryResults<TEntity>(entities.ConvertAll(e => e));
         }
 
         public long Count()

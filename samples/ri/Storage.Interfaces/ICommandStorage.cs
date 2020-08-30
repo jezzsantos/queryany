@@ -1,25 +1,27 @@
 ﻿using Domain.Interfaces.Entities;
-using QueryAny;
 
 namespace Storage.Interfaces
 {
-    public interface IStorage<TEntity> where TEntity : IPersistableEntity
+    public interface IEventingCommandStorage
     {
-        IDomainFactory DomainFactory { get; }
-
         TAggregateRoot Load<TAggregateRoot>(Identifier id) where TAggregateRoot : IPersistableAggregateRoot;
 
         void Save<TAggregateRoot>(TAggregateRoot aggregate) where TAggregateRoot : IPersistableAggregateRoot;
+    }
 
-        TEntity Add(TEntity entity);
-
+    public interface ISnapshotCommandStorage<TEntity> where TEntity : IPersistableEntity
+    {
         TEntity Upsert(TEntity entity);
 
         void Delete(Identifier id);
 
         TEntity Get(Identifier id);
+    }
 
-        QueryResults<TEntity> Query(QueryClause<TEntity> query);
+    public interface ICommandStorage<TEntity> : IEventingCommandStorage, ISnapshotCommandStorage<TEntity>
+        where TEntity : IPersistableEntity
+    {
+        IDomainFactory DomainFactory { get; }
 
         long Count();
 
