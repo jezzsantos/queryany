@@ -27,6 +27,7 @@ namespace CarsApi.IntegrationTests
         private static IWebHost webHost;
         private static ICommandStorage<CarEntity> carCommandStorage;
         private static IQueryStorage<CarEntity> carQueryStorage;
+        private static IEventingStorage<CarEntity> carEventingStorage;
         private static ICommandStorage<UnavailabilityEntity> unavailabilityCommandStorage;
         private static IQueryStorage<UnavailabilityEntity> unavailabilityQueryStorage;
         private static int plateCount;
@@ -47,26 +48,22 @@ namespace CarsApi.IntegrationTests
             var container = HostContext.Container;
             container.AddSingleton<IPersonsService, StubPersonsService>();
             inMemRepository = new InProcessInMemRepository();
+
             carCommandStorage =
-                CarEntityInMemCommandStorage.Create(container.Resolve<ILogger>(), container.Resolve<IDomainFactory>(),
+                new GeneralCommandStorage<CarEntity>(container.Resolve<ILogger>(), container.Resolve<IDomainFactory>(),
                     inMemRepository);
-            container.AddSingleton(carCommandStorage);
-            carQueryStorage =
-                CarEntityInMemQueryStorage.Create(container.Resolve<ILogger>(), container.Resolve<IDomainFactory>(),
-                    inMemRepository);
-            container.AddSingleton(carQueryStorage);
-            unavailabilityCommandStorage =
-                UnavailabilityEntityInMemCommandStorage.Create(container.Resolve<ILogger>(),
-                    container.Resolve<IDomainFactory>(), inMemRepository);
-            container.AddSingleton(unavailabilityCommandStorage);
-            unavailabilityQueryStorage =
-                UnavailabilityEntityInMemQueryStorage.Create(container.Resolve<ILogger>(),
-                    container.Resolve<IDomainFactory>(), inMemRepository);
-            container.AddSingleton(unavailabilityQueryStorage);
+            carQueryStorage = new GeneralQueryStorage<CarEntity>(container.Resolve<ILogger>(),
+                container.Resolve<IDomainFactory>(), inMemRepository);
+            carEventingStorage = new GeneralEventingStorage<CarEntity>(container.Resolve<ILogger>(),
+                container.Resolve<IDomainFactory>(), inMemRepository);
+            unavailabilityCommandStorage = new GeneralCommandStorage<UnavailabilityEntity>(container.Resolve<ILogger>(),
+                container.Resolve<IDomainFactory>(),
+                inMemRepository);
+            unavailabilityQueryStorage = new GeneralQueryStorage<UnavailabilityEntity>(container.Resolve<ILogger>(),
+                container.Resolve<IDomainFactory>(), inMemRepository);
             container.AddSingleton<ICarStorage>(c =>
-                new CarStorage(c.Resolve<ICommandStorage<CarEntity>>(), c.Resolve<IQueryStorage<CarEntity>>(),
-                    c.Resolve<ICommandStorage<UnavailabilityEntity>>(),
-                    c.Resolve<IQueryStorage<UnavailabilityEntity>>()));
+                new CarStorage(carCommandStorage, carQueryStorage, carEventingStorage,
+                    unavailabilityCommandStorage, unavailabilityQueryStorage));
         }
 
         [ClassCleanup]
@@ -80,6 +77,7 @@ namespace CarsApi.IntegrationTests
         {
             carCommandStorage.DestroyAll();
             carQueryStorage.DestroyAll();
+            carEventingStorage.DestroyAll();
             unavailabilityCommandStorage.DestroyAll();
             unavailabilityQueryStorage.DestroyAll();
         }

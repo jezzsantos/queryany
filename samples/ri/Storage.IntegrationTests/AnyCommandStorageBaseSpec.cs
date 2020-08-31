@@ -8,7 +8,6 @@ using Funq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using QueryAny;
 using ServiceStack;
 using Storage.Interfaces;
 
@@ -30,12 +29,11 @@ namespace Storage.IntegrationTests
             this.domainFactory = new DomainFactory(new FuncDependencyContainer(this.container));
             this.domainFactory.RegisterTypesFromAssemblies(typeof(AnyCommandStorageBaseSpec).Assembly);
             this.commandStorage =
-                GetCommandStore<TestEntity>(typeof(TestEntity).GetEntityNameSafe(), this.domainFactory);
+                GetCommandStore<TestEntity>(this.domainFactory);
             this.commandStorage.DestroyAll();
         }
 
-        protected abstract ICommandStorage<TEntity> GetCommandStore<TEntity>(string containerName,
-            IDomainFactory domainFactory)
+        protected abstract ICommandStorage<TEntity> GetCommandStore<TEntity>(IDomainFactory domainFactory)
             where TEntity : IPersistableEntity;
 
         [TestMethod]

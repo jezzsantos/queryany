@@ -7,12 +7,13 @@ using Storage.Interfaces;
 
 namespace Storage
 {
-    public abstract class GenericQueryStorage<TEntity> : IQueryStorage<TEntity> where TEntity : IPersistableEntity
+    public class GeneralQueryStorage<TEntity> : IQueryStorage<TEntity> where TEntity : IPersistableEntity
     {
+        private readonly string containerName;
         private readonly ILogger logger;
         private readonly IRepository repository;
 
-        protected GenericQueryStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
+        public GeneralQueryStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
         {
             logger.GuardAgainstNull(nameof(logger));
             repository.GuardAgainstNull(nameof(repository));
@@ -20,9 +21,8 @@ namespace Storage
             this.logger = logger;
             this.repository = repository;
             DomainFactory = domainFactory;
+            this.containerName = typeof(TEntity).GetEntityNameSafe();
         }
-
-        protected virtual string ContainerName => typeof(TEntity).GetEntityNameSafe();
 
         public IDomainFactory DomainFactory { get; }
 
@@ -35,7 +35,7 @@ namespace Storage
                 return new QueryResults<TEntity>(new List<TEntity>());
             }
 
-            var entities = this.repository.Query(ContainerName, query, DomainFactory);
+            var entities = this.repository.Query(this.containerName, query, DomainFactory);
 
             this.logger.LogDebug("Entities were retrieved from repository");
 
@@ -44,12 +44,12 @@ namespace Storage
 
         public long Count()
         {
-            return this.repository.Count(ContainerName);
+            return this.repository.Count(this.containerName);
         }
 
         public void DestroyAll()
         {
-            this.repository.DestroyAll(ContainerName);
+            this.repository.DestroyAll(this.containerName);
             this.logger.LogDebug("All entities were deleted from repository");
         }
     }

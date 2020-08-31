@@ -9,11 +9,11 @@ using QueryAny;
 namespace Storage.UnitTests
 {
     [TestClass, TestCategory("Unit")]
-    public class GenericQueryStoragePolicySpec
+    public class GeneralQueryStorageSpec
     {
         private Mock<IDomainFactory> domainFactory;
         private Mock<ILogger> logger;
-        private GenericQueryStorage<TestEntity> queryStorage;
+        private GeneralQueryStorage<TestEntity> queryStorage;
         private Mock<IRepository> repository;
 
         [TestInitialize]
@@ -23,7 +23,8 @@ namespace Storage.UnitTests
             this.domainFactory = new Mock<IDomainFactory>();
             this.repository = new Mock<IRepository>();
             this.queryStorage =
-                new TestQueryStorage(this.logger.Object, this.domainFactory.Object, this.repository.Object);
+                new GeneralQueryStorage<TestEntity>(this.logger.Object, this.domainFactory.Object,
+                    this.repository.Object);
         }
 
         [TestMethod]

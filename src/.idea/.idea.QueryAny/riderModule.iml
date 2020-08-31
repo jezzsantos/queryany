@@ -32,6 +32,7 @@
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.Azure" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.IntegrationTests" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.Interfaces" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.ReadModels" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.Redis" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.Sql" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Storage.UnitTests" />

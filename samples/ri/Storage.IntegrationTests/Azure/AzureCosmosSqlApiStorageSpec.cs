@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Configuration;
@@ -14,7 +15,7 @@ namespace Storage.IntegrationTests.Azure
     public class AzureCosmosSqlApiCommandStorageSpec : AnyCommandStorageBaseSpec
     {
         private static AzureCosmosSqlApiRepository repository;
-        private readonly Dictionary<string, object> commandStores = new Dictionary<string, object>();
+        private readonly Dictionary<Type, object> commandStores = new Dictionary<Type, object>();
 
         [ClassInitialize]
         public static void InitializeAllTests(TestContext context)
@@ -31,16 +32,16 @@ namespace Storage.IntegrationTests.Azure
             AzureCosmosStorageBase.CleanupAllTests();
         }
 
-        protected override ICommandStorage<TEntity> GetCommandStore<TEntity>(string containerName,
-            IDomainFactory domainFactory)
+        protected override ICommandStorage<TEntity> GetCommandStore<TEntity>(IDomainFactory domainFactory)
         {
-            if (!this.commandStores.ContainsKey(containerName))
+            if (!this.commandStores.ContainsKey(typeof(TEntity)))
             {
-                this.commandStores.Add(containerName, new TestEntityAzureCommandStorage<TEntity>(Logger, domainFactory,
-                    repository, containerName));
+                this.commandStores.Add(typeof(TEntity),
+                    new GeneralCommandStorage<TEntity>(Logger, domainFactory,
+                        repository));
             }
 
-            return (ICommandStorage<TEntity>) this.commandStores[containerName];
+            return (ICommandStorage<TEntity>) this.commandStores[typeof(TEntity)];
         }
     }
 
@@ -50,8 +51,8 @@ namespace Storage.IntegrationTests.Azure
     public class AzureCosmosSqlApiQueryStorageSpec : AnyQueryStorageBaseSpec
     {
         private static AzureCosmosSqlApiRepository repository;
-        private readonly Dictionary<string, object> commandStores = new Dictionary<string, object>();
-        private readonly Dictionary<string, object> queryStores = new Dictionary<string, object>();
+        private readonly Dictionary<Type, object> commandStores = new Dictionary<Type, object>();
+        private readonly Dictionary<Type, object> queryStores = new Dictionary<Type, object>();
 
         [ClassInitialize]
         public static void InitializeAllTests(TestContext context)
@@ -68,28 +69,27 @@ namespace Storage.IntegrationTests.Azure
             AzureCosmosStorageBase.CleanupAllTests();
         }
 
-        protected override ICommandStorage<TEntity> GetCommandStore<TEntity>(string containerName,
-            IDomainFactory domainFactory)
+        protected override ICommandStorage<TEntity> GetCommandStore<TEntity>(IDomainFactory domainFactory)
         {
-            if (!this.commandStores.ContainsKey(containerName))
+            if (!this.commandStores.ContainsKey(typeof(TEntity)))
             {
-                this.commandStores.Add(containerName, new TestEntityAzureCommandStorage<TEntity>(Logger, domainFactory,
-                    repository, containerName));
+                this.commandStores.Add(typeof(TEntity),
+                    new GeneralCommandStorage<TEntity>(Logger, domainFactory,
+                        repository));
             }
 
-            return (ICommandStorage<TEntity>) this.commandStores[containerName];
+            return (ICommandStorage<TEntity>) this.commandStores[typeof(TEntity)];
         }
 
-        protected override IQueryStorage<TEntity> GetQueryStore<TEntity>(string containerName,
-            IDomainFactory domainFactory)
+        protected override IQueryStorage<TEntity> GetQueryStore<TEntity>(IDomainFactory domainFactory)
         {
-            if (!this.queryStores.ContainsKey(containerName))
+            if (!this.queryStores.ContainsKey(typeof(TEntity)))
             {
-                this.queryStores.Add(containerName, new TestEntityAzureQueryStorage<TEntity>(Logger, domainFactory,
-                    repository, containerName));
+                this.queryStores.Add(typeof(TEntity),
+                    new GeneralQueryStorage<TEntity>(Logger, domainFactory, repository));
             }
 
-            return (IQueryStorage<TEntity>) this.queryStores[containerName];
+            return (IQueryStorage<TEntity>) this.queryStores[typeof(TEntity)];
         }
     }
 }

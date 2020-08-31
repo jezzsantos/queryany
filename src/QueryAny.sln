@@ -104,6 +104,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceClients", "..\sample
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DomainServices", "..\samples\ri\DomainServices\DomainServices.csproj", "{486EC6F2-5CC4-48EB-9CA6-6B8FF26B2110}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage.ReadModels", "..\samples\ri\Storage.ReadModels\Storage.ReadModels.csproj", "{8C13F83E-9262-46A7-8C1E-B307B48CAC35}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -250,6 +252,10 @@ Global
 		{486EC6F2-5CC4-48EB-9CA6-6B8FF26B2110}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{486EC6F2-5CC4-48EB-9CA6-6B8FF26B2110}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{486EC6F2-5CC4-48EB-9CA6-6B8FF26B2110}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C13F83E-9262-46A7-8C1E-B307B48CAC35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C13F83E-9262-46A7-8C1E-B307B48CAC35}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C13F83E-9262-46A7-8C1E-B307B48CAC35}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C13F83E-9262-46A7-8C1E-B307B48CAC35}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -300,6 +306,7 @@ Global
 		{03BA38E2-8ECA-4A51-A60B-93B4190CF283} = {08E8B670-C69E-4F8E-BEB8-26CA3FC9CA52}
 		{972B82A1-81D3-4986-9C15-65B1B2476D3E} = {E6711455-2661-4F8A-B4AD-9BC8D1B714E7}
 		{486EC6F2-5CC4-48EB-9CA6-6B8FF26B2110} = {08E8B670-C69E-4F8E-BEB8-26CA3FC9CA52}
+		{8C13F83E-9262-46A7-8C1E-B307B48CAC35} = {0A22EC73-6FA4-4295-A7B7-9F45533F646E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B441AF2E-2F75-434D-8F61-6DFE23D2935C}

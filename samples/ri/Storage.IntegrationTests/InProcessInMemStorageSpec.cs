@@ -14,10 +14,9 @@ namespace Storage.IntegrationTests
             this.repository = new InProcessInMemRepository();
         }
 
-        protected override ICommandStorage<TEntity> GetCommandStore<TEntity>(string containerName,
-            IDomainFactory domainFactory)
+        protected override ICommandStorage<TEntity> GetCommandStore<TEntity>(IDomainFactory domainFactory)
         {
-            return new TestEntityInMemCommandStorage<TEntity>(Logger, domainFactory, this.repository, containerName);
+            return new GeneralCommandStorage<TEntity>(Logger, domainFactory, this.repository);
         }
     }
 
@@ -31,16 +30,15 @@ namespace Storage.IntegrationTests
             this.repository = new InProcessInMemRepository();
         }
 
-        protected override ICommandStorage<TEntity> GetCommandStore<TEntity>(string containerName,
-            IDomainFactory domainFactory)
+        protected override ICommandStorage<TEntity> GetCommandStore<TEntity>(IDomainFactory domainFactory)
         {
-            return new TestEntityInMemCommandStorage<TEntity>(Logger, domainFactory, this.repository, containerName);
+            return new GeneralCommandStorage<TEntity>(Logger, domainFactory,
+                this.repository);
         }
 
-        protected override IQueryStorage<TEntity> GetQueryStore<TEntity>(string containerName,
-            IDomainFactory domainFactory)
+        protected override IQueryStorage<TEntity> GetQueryStore<TEntity>(IDomainFactory domainFactory)
         {
-            return new TestEntityInMemQueryStorage<TEntity>(Logger, domainFactory, this.repository, containerName);
+            return new GeneralQueryStorage<TEntity>(Logger, domainFactory, this.repository);
         }
     }
 }

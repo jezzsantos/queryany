@@ -1,0 +1,92 @@
+﻿using Domain.Interfaces;
+using Domain.Interfaces.Entities;
+using Microsoft.Extensions.Logging;
+using QueryAny;
+using QueryAny.Primitives;
+using ServiceStack;
+using Storage.Interfaces;
+
+namespace Storage
+{
+    /// <summary>
+    ///     Storage for commands and eventing
+    /// </summary>
+    public class GeneralCommandStorage<TEntity> : ICommandStorage<TEntity>
+        where TEntity : IPersistableEntity
+    {
+        private readonly string containerName;
+        private readonly ILogger logger;
+        private readonly IRepository repository;
+
+        public GeneralCommandStorage(ILogger logger, IDomainFactory domainFactory,
+            IRepository repository)
+        {
+            logger.GuardAgainstNull(nameof(logger));
+            domainFactory.GuardAgainstNull(nameof(domainFactory));
+            repository.GuardAgainstNull(nameof(repository));
+            this.logger = logger;
+            DomainFactory = domainFactory;
+            this.repository = repository;
+            this.containerName = typeof(TEntity).GetEntityNameSafe();
+        }
+
+        public IDomainFactory DomainFactory { get; }
+
+        public void Delete(Identifier id)
+        {
+            id.GuardAgainstNull(nameof(id));
+
+            this.repository.Remove<TEntity>(this.containerName, id);
+            this.logger.LogDebug("Entity {Id} was deleted from repository", id);
+        }
+
+        public TEntity Get(Identifier id)
+        {
+            id.GuardAgainstNull(nameof(id));
+
+            var entity = this.repository.Retrieve<TEntity>(this.containerName, id, DomainFactory);
+
+            this.logger.LogDebug("Entity {Id} was retrieved from repository", id);
+
+            return entity;
+        }
+
+        public TEntity Upsert(TEntity entity)
+        {
+            entity.GuardAgainstNull(nameof(entity));
+            if (!entity.Id.HasValue() || entity.Id.IsEmpty())
+            {
+                throw new ResourceNotFoundException("Entity has empty identifier");
+            }
+
+            var latest = Get(entity.Id);
+            if (latest == null)
+            {
+                this.repository.Add(this.containerName, entity);
+
+                this.logger.LogDebug("Entity {Id} was added to repository", entity.Id);
+
+                return this.repository.Retrieve<TEntity>(this.containerName, entity.Id, DomainFactory);
+            }
+
+            latest.PopulateWithNonDefaultValues(entity);
+
+            var updated = this.repository.Replace(this.containerName, entity.Id, latest, DomainFactory);
+
+            this.logger.LogDebug("Entity {Id} was updated in repository", entity.Id);
+
+            return updated;
+        }
+
+        public long Count()
+        {
+            return this.repository.Count(this.containerName);
+        }
+
+        public void DestroyAll()
+        {
+            this.repository.DestroyAll(this.containerName);
+            this.logger.LogDebug("All entities were deleted from repository");
+        }
+    }
+}

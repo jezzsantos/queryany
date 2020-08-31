@@ -1,34 +1,42 @@
 ﻿using System.Linq;
 using Domain.Interfaces.Entities;
+using Microsoft.Extensions.Logging;
 using PersonsApplication.Storage;
 using PersonsDomain;
 using QueryAny;
 using QueryAny.Primitives;
+using Storage;
 using Storage.Interfaces;
 
 namespace PersonsStorage
 {
     public class PersonStorage : IPersonStorage
     {
-        private readonly ICommandStorage<PersonEntity> commandStorage;
+        private readonly IEventingStorage<PersonEntity> eventingStorage;
         private readonly IQueryStorage<PersonEntity> queryStorage;
 
-        public PersonStorage(ICommandStorage<PersonEntity> commandStorage, IQueryStorage<PersonEntity> queryStorage)
+        public PersonStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
         {
-            commandStorage.GuardAgainstNull(nameof(commandStorage));
+            this.queryStorage = new GeneralQueryStorage<PersonEntity>(logger, domainFactory, repository);
+            this.eventingStorage = new GeneralEventingStorage<PersonEntity>(logger, domainFactory, repository);
+        }
+
+        public PersonStorage(IEventingStorage<PersonEntity> eventingStorage, IQueryStorage<PersonEntity> queryStorage)
+        {
             queryStorage.GuardAgainstNull(nameof(queryStorage));
-            this.commandStorage = commandStorage;
+            eventingStorage.GuardAgainstNull(nameof(eventingStorage));
             this.queryStorage = queryStorage;
+            this.eventingStorage = eventingStorage;
         }
 
         public PersonEntity Load(Identifier id)
         {
-            return this.commandStorage.Load<PersonEntity>(id);
+            return this.eventingStorage.Load(id);
         }
 
         public PersonEntity Save(PersonEntity person)
         {
-            this.commandStorage.Save(person);
+            this.eventingStorage.Save(person);
             return person;
         }
 

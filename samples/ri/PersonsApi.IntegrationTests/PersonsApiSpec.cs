@@ -20,7 +20,7 @@ namespace PersonsApi.IntegrationTests
     {
         private const string ServiceUrl = "http://localhost:2000/";
         private static IWebHost webHost;
-        private static ICommandStorage<PersonEntity> commandStorage;
+        private static IEventingStorage<PersonEntity> eventingStorage;
         private static IQueryStorage<PersonEntity> queryStorage;
         private static IRepository inMemRepository;
 
@@ -38,21 +38,12 @@ namespace PersonsApi.IntegrationTests
             // Override services for testing
             var container = HostContext.Container;
             inMemRepository = new InProcessInMemRepository();
-            commandStorage = PersonEntityInMemCommandStorage.Create(container.Resolve<ILogger>(),
+            eventingStorage = new GeneralEventingStorage<PersonEntity>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
-            container.AddSingleton(commandStorage);
-            container.AddSingleton<ICommandStorage<PersonEntity>>(c =>
-                PersonEntityInMemCommandStorage.Create(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
-                    inMemRepository));
-            queryStorage = PersonEntityInMemQueryStorage.Create(container.Resolve<ILogger>(),
+            queryStorage = new GeneralQueryStorage<PersonEntity>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
-            container.AddSingleton(queryStorage);
-            container.AddSingleton<IQueryStorage<PersonEntity>>(c =>
-                PersonEntityInMemQueryStorage.Create(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
-                    inMemRepository));
             container.AddSingleton<IPersonStorage>(c =>
-                new PersonStorage(c.Resolve<ICommandStorage<PersonEntity>>(),
-                    c.Resolve<IQueryStorage<PersonEntity>>()));
+                new PersonStorage(eventingStorage, queryStorage));
         }
 
         [ClassCleanup]
@@ -64,7 +55,7 @@ namespace PersonsApi.IntegrationTests
         [TestInitialize]
         public void Initialize()
         {
-            commandStorage.DestroyAll();
+            eventingStorage.DestroyAll();
             queryStorage.DestroyAll();
         }
 

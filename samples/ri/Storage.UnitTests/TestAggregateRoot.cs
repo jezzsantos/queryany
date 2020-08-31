@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Domain.Interfaces.Entities;
+using QueryAny;
 
 namespace Storage.UnitTests
 {
+    [EntityName("acontainername")]
     public class TestAggregateRoot : IPersistableAggregateRoot
     {
         public TestAggregateRoot(Identifier identifier)

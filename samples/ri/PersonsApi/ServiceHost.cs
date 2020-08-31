@@ -14,7 +14,7 @@ using PersonsStorage;
 using ServiceStack;
 using ServiceStack.Configuration;
 using ServiceStack.Validation;
-using Storage.Interfaces;
+using Storage.Azure;
 
 namespace PersonsApi
 {
@@ -43,15 +43,9 @@ namespace PersonsApi
             container.AddSingleton<IDomainFactory>(c =>
                 DomainFactory.CreateRegistered(c.Resolve<IDependencyContainer>(), typeof(EventEntity).Assembly,
                     typeof(PersonEntity).Assembly));
-            container.AddSingleton<ICommandStorage<PersonEntity>>(c =>
-                PersonEntityAzureCommandStorage.Create(c.Resolve<ILogger>(), c.Resolve<IAppSettings>(),
-                    c.Resolve<IDomainFactory>()));
-            container.AddSingleton<IQueryStorage<PersonEntity>>(c =>
-                PersonEntityAzureQueryStorage.Create(c.Resolve<ILogger>(), c.Resolve<IAppSettings>(),
-                    c.Resolve<IDomainFactory>()));
             container.AddSingleton<IPersonStorage>(c =>
-                new PersonStorage(c.Resolve<ICommandStorage<PersonEntity>>(),
-                    c.Resolve<IQueryStorage<PersonEntity>>()));
+                new PersonStorage(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
+                    AzureCosmosSqlApiRepository.FromAppSettings(c.Resolve<IAppSettings>(), "Production")));
             container.AddSingleton<IPersonsApplication, PersonsApplication.PersonsApplication>();
             container.AddSingleton<IEmailService, EmailService>();
         }

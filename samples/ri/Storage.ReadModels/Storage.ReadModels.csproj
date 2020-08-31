@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <RootNamespace>Storage.ReadModels</RootNamespace>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Domain.Interfaces\Domain.Interfaces.csproj" />
+      <ProjectReference Include="..\Storage.Interfaces\Storage.Interfaces.csproj" />
+    </ItemGroup>
+
+</Project>

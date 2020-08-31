@@ -5,13 +5,16 @@ using QueryAny.Primitives;
 
 namespace Storage.Interfaces
 {
-    public interface IEventingCommandStorage
+    public interface IEventingStorage<TAggregateRoot>
+        where TAggregateRoot : IPersistableAggregateRoot
     {
-        TAggregateRoot Load<TAggregateRoot>(Identifier id) where TAggregateRoot : IPersistableAggregateRoot;
+        TAggregateRoot Load(Identifier id);
 
-        void Save<TAggregateRoot>(TAggregateRoot aggregate) where TAggregateRoot : IPersistableAggregateRoot;
+        void Save(TAggregateRoot aggregate);
 
         event EventStreamStateChanged OnEventStreamStateChanged;
+
+        void DestroyAll();
     }
 
     public delegate void EventStreamStateChanged(object sender, EventStreamStateChangedArgs args);

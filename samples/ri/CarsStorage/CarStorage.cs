@@ -5,8 +5,10 @@ using CarsApplication.Storage;
 using CarsDomain;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
+using Microsoft.Extensions.Logging;
 using QueryAny;
 using QueryAny.Primitives;
+using Storage;
 using Storage.Interfaces;
 
 namespace CarsStorage
@@ -14,33 +16,54 @@ namespace CarsStorage
     public class CarStorage : ICarStorage
     {
         private readonly ICommandStorage<CarEntity> carCommandStorage;
+        private readonly IEventingStorage<CarEntity> carEventingStorage;
         private readonly IQueryStorage<CarEntity> carQueryStorage;
         private readonly ICommandStorage<UnavailabilityEntity> unavailabilitiesCommandStorage;
         private readonly IQueryStorage<UnavailabilityEntity> unavailabilitiesQueryStorage;
 
-        public CarStorage(ICommandStorage<CarEntity> carCommandStorage, IQueryStorage<CarEntity> carQueryStorage,
+        public CarStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
+        {
+            logger.GuardAgainstNull(nameof(logger));
+            domainFactory.GuardAgainstNull(nameof(domainFactory));
+            repository.GuardAgainstNull(nameof(repository));
+
+            this.carCommandStorage = new GeneralCommandStorage<CarEntity>(logger, domainFactory, repository);
+            this.carQueryStorage = new GeneralQueryStorage<CarEntity>(logger, domainFactory, repository);
+            this.carEventingStorage = new GeneralEventingStorage<CarEntity>(logger, domainFactory, repository);
+            this.unavailabilitiesCommandStorage =
+                new GeneralCommandStorage<UnavailabilityEntity>(logger, domainFactory, repository);
+            this.unavailabilitiesQueryStorage =
+                new GeneralQueryStorage<UnavailabilityEntity>(logger, domainFactory, repository);
+        }
+
+        public CarStorage(ICommandStorage<CarEntity> carCommandStorage,
+            IQueryStorage<CarEntity> carQueryStorage,
+            IEventingStorage<CarEntity> carEventingStorage,
             ICommandStorage<UnavailabilityEntity> unavailabilitiesCommandStorage,
             IQueryStorage<UnavailabilityEntity> unavailabilitiesQueryStorage)
         {
             carCommandStorage.GuardAgainstNull(nameof(carCommandStorage));
+            carQueryStorage.GuardAgainstNull(nameof(carQueryStorage));
+            carEventingStorage.GuardAgainstNull(nameof(carEventingStorage));
             unavailabilitiesCommandStorage.GuardAgainstNull(nameof(unavailabilitiesCommandStorage));
             unavailabilitiesQueryStorage.GuardAgainstNull(nameof(unavailabilitiesQueryStorage));
-            carQueryStorage.GuardAgainstNull(nameof(carQueryStorage));
             this.carCommandStorage = carCommandStorage;
+            this.carQueryStorage = carQueryStorage;
+            this.carEventingStorage = carEventingStorage;
             this.unavailabilitiesCommandStorage = unavailabilitiesCommandStorage;
             this.unavailabilitiesQueryStorage = unavailabilitiesQueryStorage;
-            this.carQueryStorage = carQueryStorage;
         }
 
         public CarEntity Load(Identifier id)
         {
-            return this.carCommandStorage.Load<CarEntity>(id);
+            return this.carEventingStorage.Load(id);
         }
 
         public CarEntity Save(CarEntity car)
         {
-            this.carCommandStorage.Save(car);
+            this.carEventingStorage.Save(car);
 
+            //TODO: replace with ReadModel
             var updatedCar = this.carCommandStorage.Upsert(car);
 
             car.Unavailabilities

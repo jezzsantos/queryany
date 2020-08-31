@@ -36,34 +36,28 @@ namespace Storage.IntegrationTests
             this.domainFactory = new DomainFactory(new FuncDependencyContainer(this.container));
             this.domainFactory.RegisterTypesFromAssemblies(typeof(AnyQueryStorageBaseSpec).Assembly);
             this.commandStorage =
-                GetCommandStore<TestEntity>(typeof(TestEntity).GetEntityNameSafe(), this.domainFactory);
+                GetCommandStore<TestEntity>(this.domainFactory);
             this.commandStorage.DestroyAll();
-            this.queryStorage = GetQueryStore<TestEntity>(typeof(TestEntity).GetEntityNameSafe(), this.domainFactory);
+            this.queryStorage = GetQueryStore<TestEntity>(this.domainFactory);
             this.queryStorage.DestroyAll();
             this.firstJoiningQueryStorage =
-                GetQueryStore<FirstJoiningTestEntity>(typeof(FirstJoiningTestEntity).GetEntityNameSafe(),
-                    this.domainFactory);
+                GetQueryStore<FirstJoiningTestEntity>(this.domainFactory);
             this.firstJoiningQueryStorage.DestroyAll();
             this.firstJoiningCommandStorage =
-                GetCommandStore<FirstJoiningTestEntity>(typeof(FirstJoiningTestEntity).GetEntityNameSafe(),
-                    this.domainFactory);
+                GetCommandStore<FirstJoiningTestEntity>(this.domainFactory);
             this.firstJoiningCommandStorage.DestroyAll();
             this.secondJoiningCommandStorage =
-                GetCommandStore<SecondJoiningTestEntity>(typeof(SecondJoiningTestEntity).GetEntityNameSafe(),
-                    this.domainFactory);
+                GetCommandStore<SecondJoiningTestEntity>(this.domainFactory);
             this.secondJoiningCommandStorage.DestroyAll();
             this.secondJoiningQueryStorage =
-                GetQueryStore<SecondJoiningTestEntity>(typeof(SecondJoiningTestEntity).GetEntityNameSafe(),
-                    this.domainFactory);
+                GetQueryStore<SecondJoiningTestEntity>(this.domainFactory);
             this.secondJoiningQueryStorage.DestroyAll();
         }
 
-        protected abstract ICommandStorage<TEntity> GetCommandStore<TEntity>(string containerName,
-            IDomainFactory domainFactory)
+        protected abstract ICommandStorage<TEntity> GetCommandStore<TEntity>(IDomainFactory domainFactory)
             where TEntity : IPersistableEntity;
 
-        protected abstract IQueryStorage<TEntity> GetQueryStore<TEntity>(string containerName,
-            IDomainFactory domainFactory)
+        protected abstract IQueryStorage<TEntity> GetQueryStore<TEntity>(IDomainFactory domainFactory)
             where TEntity : IPersistableEntity;
 
         [TestMethod]
