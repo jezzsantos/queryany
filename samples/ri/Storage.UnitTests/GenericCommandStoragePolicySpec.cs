@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using QueryAny;
+using Storage.Interfaces;
 
 namespace Storage.UnitTests
 {
@@ -113,6 +114,29 @@ namespace Storage.UnitTests
 
             this.repository.Verify(repo => repo.DestroyAll("acontainername"));
         }
+    }
+
+    [TestClass, TestCategory("Unit")]
+    public class GenericEventingCommandStoragePolicySpec
+    {
+        private GenericCommandStorage<TestEntity> commandStorage;
+        private Mock<IDomainFactory> domainFactory;
+        private Mock<ILogger> logger;
+        private Mock<IRepository> repository;
+        private EventStreamStateChangedArgs stateChangedEvent;
+
+        [TestInitialize]
+        public void Initialize()
+        {
+            this.logger = new Mock<ILogger>();
+            this.domainFactory = new Mock<IDomainFactory>();
+            this.repository = new Mock<IRepository>();
+            this.commandStorage =
+                new TestCommandStorage(this.logger.Object, this.domainFactory.Object, this.repository.Object);
+
+            this.stateChangedEvent = null;
+            this.commandStorage.OnEventStreamStateChanged += (sender, args) => { this.stateChangedEvent = args; };
+        }
 
         [TestMethod]
         public void WhenLoadAndNoEventsFound_ThenReturnsNewEntity()
@@ -148,9 +172,9 @@ namespace Storage.UnitTests
             var aggregate = new TestAggregateRoot(null);
             var events = new List<EventEntity>
             {
-                CreateEventEntity("aneventid1", DateTime.MinValue),
-                CreateEventEntity("aneventid2", DateTime.MinValue),
-                CreateEventEntity("aneventid3", lastPersisted)
+                CreateEventEntity("aneventid1", 1, DateTime.MinValue),
+                CreateEventEntity("aneventid2", 2, DateTime.MinValue),
+                CreateEventEntity("aneventid3", 3, lastPersisted)
             };
             this.repository.Setup(repo => repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<EventEntity>>(),
                     this.domainFactory.Object))
@@ -192,6 +216,7 @@ namespace Storage.UnitTests
             this.commandStorage.Save(aggregate);
 
             aggregate.ClearedChanges.Should().BeFalse();
+            this.stateChangedEvent.Should().BeNull();
         }
 
         [TestMethod]
@@ -201,9 +226,9 @@ namespace Storage.UnitTests
             {
                 Events = new List<EventEntity>
                 {
-                    CreateEventEntity("aneventid1", DateTime.UtcNow),
-                    CreateEventEntity("aneventid2", DateTime.UtcNow),
-                    CreateEventEntity("aneventid3", DateTime.UtcNow)
+                    CreateEventEntity("aneventid1", 1, DateTime.UtcNow),
+                    CreateEventEntity("aneventid2", 2, DateTime.UtcNow),
+                    CreateEventEntity("aneventid3", 3, DateTime.UtcNow)
                 }
             };
 
@@ -212,16 +237,44 @@ namespace Storage.UnitTests
             this.repository.Verify(repo => repo.Add("acontainername_Events", It.IsAny<EventEntity>()),
                 Times.Exactly(3));
             aggregate.ClearedChanges.Should().BeTrue();
+            this.stateChangedEvent.Should().BeEquivalentTo(new EventStreamStateChangedArgs("astreamname",
+                new List<EventStreamStateChangeEvent>
+                {
+                    new EventStreamStateChangeEvent
+                    {
+                        Id = "aneventid1",
+                        Type = "atypename",
+                        Data = "somejson",
+                        Version = 1
+                    },
+                    new EventStreamStateChangeEvent
+                    {
+                        Id = "aneventid2",
+                        Type = "atypename",
+                        Data = "somejson",
+                        Version = 2
+                    },
+                    new EventStreamStateChangeEvent
+                    {
+                        Id = "aneventid3",
+                        Type = "atypename",
+                        Data = "somejson",
+                        Version = 3
+                    }
+                }));
         }
 
-        private static EventEntity CreateEventEntity(string id, DateTime lastPersisted)
+        private static EventEntity CreateEventEntity(string id, long version, DateTime lastPersisted)
         {
             var entity = new EventEntity(new FixedIdentifierFactory(id));
-
             entity.Rehydrate(new Dictionary<string, object>
             {
                 {nameof(IIdentifiableEntity.Id), id.ToIdentifier()},
-                {nameof(IPersistableEntity.LastPersistedAtUtc), lastPersisted}
+                {nameof(IPersistableEntity.LastPersistedAtUtc), lastPersisted},
+                {nameof(EventEntity.StreamName), "astreamname"},
+                {nameof(EventEntity.Version), version},
+                {nameof(EventEntity.TypeName), "atypename"},
+                {nameof(EventEntity.Data), "somejson"}
             });
 
             return entity;

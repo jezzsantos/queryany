@@ -66,19 +66,38 @@ namespace Storage
                 throw new ResourceConflictException("The aggregate does not have an Identifier");
             }
 
-            var changes = aggregate.GetChanges();
-            if (!changes.Any())
+            var events = aggregate.GetChanges();
+            if (!events.Any())
             {
                 return;
             }
 
             var containerName = GetEventContainerName();
 
-            changes.ForEach(change =>
+            events.ForEach(change =>
                 this.repository.Add(containerName, change));
+
+            if (OnEventStreamStateChanged != null)
+            {
+                var streamName = events.First().StreamName;
+                var changes = events
+                    .Select(ToStateChange)
+                    .ToList();
+                try
+                {
+                    OnEventStreamStateChanged.Invoke(this, new EventStreamStateChangedArgs(streamName, changes));
+                }
+                catch (Exception ex)
+                {
+                    //Ignore exception and continue
+                    this.logger.LogError(ex, $"Handling of event stream failed. Error was: {ex}");
+                }
+            }
 
             aggregate.ClearChanges();
         }
+
+        public event EventStreamStateChanged OnEventStreamStateChanged;
 
         public void Delete(Identifier id)
         {
@@ -145,6 +164,15 @@ namespace Storage
         private string GetEventContainerName()
         {
             return $"{ContainerName}_Events";
+        }
+
+        private static EventStreamStateChangeEvent ToStateChange(EventEntity @event)
+        {
+            var change = @event.ConvertTo<EventStreamStateChangeEvent>();
+            change.Id = @event.Id;
+            change.Type = @event.TypeName;
+            change.Version = @event.Version;
+            return change;
         }
 
         private TAggregateRoot RehydrateAggregateRoot<TAggregateRoot>(Identifier id, DateTime? lastPersistedAtUtc)

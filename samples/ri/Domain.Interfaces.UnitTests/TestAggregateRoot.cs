@@ -16,6 +16,8 @@ namespace Domain.Interfaces.UnitTests
         {
         }
 
+        public new long ChangeVersion => base.ChangeVersion;
+
         public string APropertyName { get; private set; }
 
         public void ChangeProperty(string value)

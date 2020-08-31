@@ -54,6 +54,12 @@ namespace Domain.Interfaces.UnitTests
         }
 
         [TestMethod]
+        public void WhenConstructed_ThenChangeVersion0()
+        {
+            this.aggregate.ChangeVersion.Should().Be(0);
+        }
+
+        [TestMethod]
         public void WhenConstructed_ThenRaisesEvent()
         {
             this.aggregate.Events.Count().Should().Be(1);
@@ -76,11 +82,12 @@ namespace Domain.Interfaces.UnitTests
 
             var result = this.aggregate.Dehydrate();
 
-            result.Count.Should().Be(4);
-            result[nameof(EntityBase.Id)].Should().Be("anid".ToIdentifier());
-            ((DateTime?) result[nameof(EntityBase.LastPersistedAtUtc)]).Should().BeNull();
-            ((DateTime) result[nameof(EntityBase.CreatedAtUtc)]).Should().BeCloseTo(now, 500);
-            ((DateTime) result[nameof(EntityBase.LastModifiedAtUtc)]).Should().BeCloseTo(now, 500);
+            result.Count.Should().Be(5);
+            result[nameof(AggregateRootBase.Id)].Should().Be("anid".ToIdentifier());
+            ((DateTime?) result[nameof(AggregateRootBase.LastPersistedAtUtc)]).Should().BeNull();
+            ((DateTime) result[nameof(AggregateRootBase.CreatedAtUtc)]).Should().BeCloseTo(now, 500);
+            ((DateTime) result[nameof(AggregateRootBase.LastModifiedAtUtc)]).Should().BeCloseTo(now, 500);
+            ((long) result["ChangeVersion"]).Should().Be(0);
         }
 
         [TestMethod]
@@ -143,10 +150,25 @@ namespace Domain.Interfaces.UnitTests
             result.Count.Should().Be(2);
             result[0].TypeName.Should().Be(nameof(Events.Any.Created));
             result[0].StreamName.Should().Be("testaggregateroot_anid");
+            result[0].Version.Should().Be(1);
             result[0].Metadata.Fqn.Should().Be(typeof(Events.Any.Created).AssemblyQualifiedName);
             result[1].TypeName.Should().Be(nameof(TestAggregateRoot.ChangeEvent));
             result[1].StreamName.Should().Be("testaggregateroot_anid");
+            result[1].Version.Should().Be(2);
             result[1].Metadata.Fqn.Should().Be(typeof(TestAggregateRoot.ChangeEvent).AssemblyQualifiedName);
+        }
+
+        [TestMethod]
+        public void WhenLoadChanges_ThenSetsEventsAndUpdatesVersion()
+        {
+            ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EventEntity>
+            {
+                CreateEventEntity("aneventid1", 1),
+                CreateEventEntity("aneventid2", 2),
+                CreateEventEntity("aneventid3", 3)
+            });
+
+            this.aggregate.ChangeVersion.Should().Be(3);
         }
 
         [TestMethod]
@@ -173,6 +195,22 @@ namespace Domain.Interfaces.UnitTests
             this.aggregate.ClearChanges();
 
             this.aggregate.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
+        }
+
+        private static EventEntity CreateEventEntity(string id, long version)
+        {
+            var entity = new EventEntity(new FixedIdentifierFactory(id));
+            entity.Rehydrate(new Dictionary<string, object>
+            {
+                {nameof(IIdentifiableEntity.Id), id.ToIdentifier()},
+                {nameof(IPersistableEntity.LastPersistedAtUtc), DateTime.MinValue},
+                {nameof(EventEntity.StreamName), "astreamname"},
+                {nameof(EventEntity.Version), version},
+                {nameof(EventEntity.Data), new TestEvent {APropertyValue = "avalue"}.ToJson()},
+                {nameof(EventEntity.Metadata), new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)}
+            });
+
+            return entity;
         }
     }
 }

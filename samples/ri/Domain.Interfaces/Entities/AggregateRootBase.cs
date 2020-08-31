@@ -45,6 +45,7 @@ namespace Domain.Interfaces.Entities
             LastModifiedAtUtc = this.isInstantiating
                 ? now
                 : DateTime.MinValue;
+            ChangeVersion = 0;
         }
 
         protected ILogger Logger { get; }
@@ -52,7 +53,7 @@ namespace Domain.Interfaces.Entities
         protected IIdentifierFactory IdFactory { get; }
 
         // ReSharper disable once MemberCanBePrivate.Global
-        protected int ChangeVersion { get; private set; }
+        protected long ChangeVersion { get; private set; }
 
         public IReadOnlyList<object> Events => this.events;
 
@@ -71,7 +72,8 @@ namespace Domain.Interfaces.Entities
                 {nameof(Id), Id},
                 {nameof(LastPersistedAtUtc), LastPersistedAtUtc},
                 {nameof(CreatedAtUtc), CreatedAtUtc},
-                {nameof(LastModifiedAtUtc), LastModifiedAtUtc}
+                {nameof(LastModifiedAtUtc), LastModifiedAtUtc},
+                {nameof(ChangeVersion), ChangeVersion}
             };
         }
 
@@ -84,6 +86,7 @@ namespace Domain.Interfaces.Entities
             LastPersistedAtUtc = properties.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
             CreatedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(CreatedAtUtc));
             LastModifiedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(LastModifiedAtUtc));
+            ChangeVersion = properties.GetValueOrDefault<long>(nameof(ChangeVersion));
         }
 
         void IPublishedEntityEventHandler.HandleEvent(object @event)
@@ -95,10 +98,11 @@ namespace Domain.Interfaces.Entities
         {
             var entityName = GetType().GetEntityNameSafe();
             var streamName = $"{entityName}_{Id}";
+            var version = ChangeVersion;
             return this.events.Select(e =>
             {
                 var entity = new EventEntity(IdFactory);
-                entity.SetEvent(streamName, e);
+                entity.SetEvent(streamName, ++version, e);
                 return entity;
             }).ToList();
         }
@@ -125,7 +129,14 @@ namespace Domain.Interfaces.Entities
             {
                 var @event = entity.ToEvent();
                 OnStateChanged(@event);
-                ChangeVersion++;
+
+                var expectedVersion = ChangeVersion + 1;
+                if (entity.Version != expectedVersion)
+                {
+                    throw new InvalidOperationException(
+                        $"The version of this loaded change ('{entity.Version}') was not expected. Expected version '{expectedVersion}'. Perhaps a missing change or this change was replayed out of order?");
+                }
+                ChangeVersion = expectedVersion;
             }
         }
 
@@ -143,7 +154,7 @@ namespace Domain.Interfaces.Entities
 
         protected abstract void OnStateChanged(object @event);
 
-        protected void RaiseCreateEvent(object @event)
+        private void RaiseCreateEvent(object @event)
         {
             if (this.isInstantiating)
             {

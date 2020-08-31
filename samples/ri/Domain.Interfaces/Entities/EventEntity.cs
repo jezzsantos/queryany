@@ -13,6 +13,8 @@ namespace Domain.Interfaces.Entities
             Id = idFactory.Create(this);
         }
 
+        public long Version { get; private set; }
+
         public string TypeName { get; private set; }
 
         public string Data { get; private set; }
@@ -32,6 +34,7 @@ namespace Domain.Interfaces.Entities
                 {nameof(Id), Id},
                 {nameof(LastPersistedAtUtc), LastPersistedAtUtc},
                 {nameof(StreamName), StreamName},
+                {nameof(Version), Version},
                 {nameof(TypeName), TypeName},
                 {nameof(Data), Data},
                 {nameof(Metadata), Metadata}
@@ -46,16 +49,19 @@ namespace Domain.Interfaces.Entities
                 : null;
             LastPersistedAtUtc = properties.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
             StreamName = properties.GetValueOrDefault<string>(nameof(StreamName));
+            Version = properties.GetValueOrDefault<long>(nameof(Version));
             TypeName = properties.GetValueOrDefault<string>(nameof(TypeName));
             Data = properties.GetValueOrDefault<string>(nameof(Data));
             Metadata = properties.GetValueOrDefault<EventMetadata>(nameof(Metadata));
         }
 
-        public void SetEvent(string streamName, object @event)
+        public void SetEvent(string streamName, long version, object @event)
         {
             streamName.GuardAgainstNullOrEmpty(nameof(streamName));
             @event.GuardAgainstNull(nameof(@event));
+
             StreamName = streamName;
+            Version = version;
             TypeName = @event.GetType().Name;
             Data = @event.ToJson();
             Metadata = new EventMetadata(@event.GetType().AssemblyQualifiedName);
@@ -64,8 +70,20 @@ namespace Domain.Interfaces.Entities
         public object ToEvent()
         {
             var eventType = Type.GetType(Metadata.Fqn);
+            if (eventType == null)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to deserialize event '{Id}', the type: '{Metadata.Fqn}' cannot be found in this codebase. Perhaps it has been renamed or deleted?");
+            }
             var eventData = Data;
-            return JsonSerializer.DeserializeFromString(eventData, eventType);
+            try
+            {
+                return JsonSerializer.DeserializeFromString(eventData, eventType);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to deserialize event '{Id}' as type: '{eventType}'", ex);
+            }
         }
 
         public static EntityFactory<EventEntity> Instantiate()
