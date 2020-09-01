@@ -78,7 +78,7 @@ namespace Storage
             var eventContainerName = GetEventContainerName();
 
             events.ForEach(change =>
-                this.repository.Add(eventContainerName, change));
+                this.repository.Add(eventContainerName, change, this.domainFactory));
 
             if (OnEventStreamStateChanged != null)
             {

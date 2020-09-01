@@ -63,12 +63,15 @@ namespace Storage.UnitTests
         public void WhenUpsertAndEntityNotExists_ThenAddsToRepository()
         {
             var entity = new TestEntity("anid".ToIdentifier());
+            this.repository.Setup(repo =>
+                    repo.Add(It.IsAny<string>(), It.IsAny<TestEntity>(), It.IsAny<IDomainFactory>()))
+                .Returns(entity);
 
             this.commandStorage.Upsert(entity);
 
             this.repository.Verify(repo =>
                 repo.Retrieve<TestEntity>("acontainername", "anid".ToIdentifier(), this.domainFactory.Object));
-            this.repository.Verify(repo => repo.Add("acontainername", entity));
+            this.repository.Verify(repo => repo.Add("acontainername", entity, this.domainFactory.Object));
         }
 
         [TestMethod]

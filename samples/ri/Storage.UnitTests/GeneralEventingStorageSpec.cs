@@ -131,7 +131,8 @@ namespace Storage.UnitTests
 
             this.commandStorage.Save(aggregate);
 
-            this.repository.Verify(repo => repo.Add("acontainername_Events", It.IsAny<EventEntity>()),
+            this.repository.Verify(
+                repo => repo.Add("acontainername_Events", It.IsAny<EventEntity>(), It.IsAny<IDomainFactory>()),
                 Times.Exactly(3));
             aggregate.ClearedChanges.Should().BeTrue();
             this.stateChangedEvent.Should().BeEquivalentTo(new EventStreamStateChangedArgs("astreamname",

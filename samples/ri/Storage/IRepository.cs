@@ -8,7 +8,8 @@ namespace Storage
     {
         int MaxQueryResults { get; }
 
-        void Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity;
+        TEntity Add<TEntity>(string containerName, TEntity entity, IDomainFactory domainFactory)
+            where TEntity : IPersistableEntity;
 
         void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity;
 

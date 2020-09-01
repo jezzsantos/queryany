@@ -30,14 +30,14 @@ namespace Storage
         {
             if (query == null || query.Options.IsEmpty)
             {
-                this.logger.LogDebug("No entities were retrieved from repository");
+                this.logger.LogDebug("No entities were retrieved from repository, the query is empty");
 
                 return new QueryResults<TEntity>(new List<TEntity>());
             }
 
             var entities = this.repository.Query(this.containerName, query, DomainFactory);
 
-            this.logger.LogDebug("Entities were retrieved from repository");
+            this.logger.LogDebug($" {entities.Count} Entities were retrieved from repository");
 
             return new QueryResults<TEntity>(entities.ConvertAll(e => e));
         }

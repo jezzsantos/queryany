@@ -16,7 +16,8 @@ namespace Storage
 
         public int MaxQueryResults => 1000;
 
-        public void Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
+        public TEntity Add<TEntity>(string containerName, TEntity entity, IDomainFactory domainFactory)
+            where TEntity : IPersistableEntity
         {
             if (!this.containers.ContainsKey(containerName))
             {
@@ -24,6 +25,8 @@ namespace Storage
             }
 
             this.containers[containerName].Add(entity.Id, entity.ToContainerProperties());
+
+            return this.containers[containerName][entity.Id].FromContainerProperties<TEntity>(domainFactory);
         }
 
         public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity
@@ -83,6 +86,11 @@ namespace Storage
             IDomainFactory domainFactory)
             where TEntity : IPersistableEntity
         {
+            if (query == null || query.Options.IsEmpty)
+            {
+                return new List<TEntity>();
+            }
+
             if (!this.containers.ContainsKey(containerName))
             {
                 return new List<TEntity>();

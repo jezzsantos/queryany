@@ -29,9 +29,12 @@ namespace Storage.Sql
 
         public int MaxQueryResults => 1000;
 
-        public void Add<TEntity>(string tableName, TEntity entity) where TEntity : IPersistableEntity
+        public TEntity Add<TEntity>(string tableName, TEntity entity, IDomainFactory domainFactory)
+            where TEntity : IPersistableEntity
         {
             ExecuteInsert(tableName, entity.ToTableEntity());
+
+            return Retrieve<TEntity>(tableName, entity.Id, domainFactory);
         }
 
         public void Remove<TEntity>(string tableName, Identifier id) where TEntity : IPersistableEntity
@@ -69,6 +72,11 @@ namespace Storage.Sql
         public List<TEntity> Query<TEntity>(string tableName, QueryClause<TEntity> query,
             IDomainFactory domainFactory) where TEntity : IPersistableEntity
         {
+            if (query == null || query.Options.IsEmpty)
+            {
+                return new List<TEntity>();
+            }
+
             var take = query.GetDefaultTake(this);
             if (take == 0)
             {

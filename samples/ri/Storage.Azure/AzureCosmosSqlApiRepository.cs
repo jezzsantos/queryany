@@ -36,11 +36,14 @@ namespace Storage.Azure
 
         public int MaxQueryResults => 1000;
 
-        public void Add<TEntity>(string containerName, TEntity entity) where TEntity : IPersistableEntity
+        public TEntity Add<TEntity>(string containerName, TEntity entity, IDomainFactory domainFactory)
+            where TEntity : IPersistableEntity
         {
             var container = EnsureContainer(containerName);
 
             container.CreateItemAsync<dynamic>(entity.ToContainerEntity()).GetAwaiter().GetResult();
+
+            return Retrieve<TEntity>(containerName, entity.Id, domainFactory);
         }
 
         public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity
@@ -101,6 +104,11 @@ namespace Storage.Azure
             IDomainFactory domainFactory)
             where TEntity : IPersistableEntity
         {
+            if (query == null || query.Options.IsEmpty)
+            {
+                return new List<TEntity>();
+            }
+
             var container = EnsureContainer(containerName);
 
             try

@@ -62,17 +62,15 @@ namespace Storage
             var latest = Get(entity.Id);
             if (latest == null)
             {
-                this.repository.Add(this.containerName, entity);
+                var added = this.repository.Add(this.containerName, entity, DomainFactory);
+                this.logger.LogDebug("Entity {Id} was added to repository", added.Id);
 
-                this.logger.LogDebug("Entity {Id} was added to repository", entity.Id);
-
-                return this.repository.Retrieve<TEntity>(this.containerName, entity.Id, DomainFactory);
+                return added;
             }
 
             latest.PopulateWithNonDefaultValues(entity);
 
             var updated = this.repository.Replace(this.containerName, entity.Id, latest, DomainFactory);
-
             this.logger.LogDebug("Entity {Id} was updated in repository", entity.Id);
 
             return updated;
