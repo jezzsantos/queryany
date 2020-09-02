@@ -94,7 +94,7 @@ namespace CarsApplication.UnitTests
             var toUtc = fromUtc.AddMinutes(1);
             var entity = new CarEntity(this.logger.Object, this.idFactory.Object);
             entity.SetManufacturer(new Manufacturer(2010, Manufacturer.Makes[0], Manufacturer.Models[0]));
-            entity.SetOwnership(new CarOwner {Id = "anownerid"});
+            entity.SetOwnership(new VehicleOwner("anownerid"));
             entity.Register(new LicensePlate(LicensePlate.Jurisdictions[0], "anumber"));
             this.storage.Setup(s => s.Load(It.Is<Identifier>(i => i == "acarid")))
                 .Returns(entity);

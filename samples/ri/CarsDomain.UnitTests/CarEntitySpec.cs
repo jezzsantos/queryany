@@ -3,7 +3,6 @@ using System.Linq;
 using CarsDomain.Properties;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Domain.Interfaces.Resources;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -51,10 +50,10 @@ namespace CarsDomain.UnitTests
         [TestMethod]
         public void WhenSetOwnership_ThenOwnedAndManaged()
         {
-            var owner = new CarOwner {Id = "anownerid"};
+            var owner = new VehicleOwner("anownerid");
             this.entity.SetOwnership(owner);
 
-            this.entity.Owner.Should().Be(new VehicleOwner(owner.Id));
+            this.entity.Owner.Should().Be(new VehicleOwner(owner.OwnerId));
             this.entity.Managers.Managers.Single().Should().Be("anownerid".ToIdentifier());
             this.entity.Events[1].Should().BeOfType<Events.Car.OwnershipChanged>();
         }
@@ -71,7 +70,7 @@ namespace CarsDomain.UnitTests
         [TestMethod]
         public void WhenOfflineAndNotManufactured_ThenThrows()
         {
-            this.entity.SetOwnership(new CarOwner {Id = "anownerid"});
+            this.entity.SetOwnership(new VehicleOwner("anownerid"));
             this.entity.Register(new LicensePlate(LicensePlate.Jurisdictions[0], "anumber"));
 
             this.entity.Invoking(x => x.Offline(new TimeSlot(DateTime.UtcNow, DateTime.UtcNow.AddSeconds(1))))
@@ -96,7 +95,7 @@ namespace CarsDomain.UnitTests
         {
             this.entity.SetManufacturer(new Manufacturer(Manufacturer.MinYear + 1, Manufacturer.Makes[0],
                 Manufacturer.Models[0]));
-            this.entity.SetOwnership(new CarOwner {Id = "anownerid"});
+            this.entity.SetOwnership(new VehicleOwner("anownerid"));
 
             this.entity.Invoking(x => x.Offline(new TimeSlot(DateTime.UtcNow, DateTime.UtcNow.AddSeconds(1))))
                 .Should().Throw<RuleViolationException>()
@@ -287,7 +286,7 @@ namespace CarsDomain.UnitTests
         {
             this.entity.SetManufacturer(new Manufacturer(Manufacturer.MinYear + 1, Manufacturer.Makes[0],
                 Manufacturer.Models[0]));
-            this.entity.SetOwnership(new CarOwner {Id = "anownerid"});
+            this.entity.SetOwnership(new VehicleOwner("anownerid"));
             this.entity.Register(new LicensePlate(LicensePlate.Jurisdictions[0], "anumber"));
         }
     }

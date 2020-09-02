@@ -41,7 +41,7 @@ namespace CarsApplication
                 .ToOwner();
 
             var car = new CarEntity(this.logger, this.idFactory);
-            car.SetOwnership(owner);
+            car.SetOwnership(new VehicleOwner(owner.Id));
             car.SetManufacturer(new Manufacturer(year, make, model));
 
             var created = this.storage.Save(car);

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using CarsDomain.Properties;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Domain.Interfaces.Resources;
 using Microsoft.Extensions.Logging;
 using QueryAny;
 
@@ -99,7 +98,7 @@ namespace CarsDomain
             RaiseChangeEvent(CarsDomain.Events.Car.ManufacturerChanged.Create(Id, manufacturer));
         }
 
-        public void SetOwnership(CarOwner owner)
+        public void SetOwnership(VehicleOwner owner)
         {
             RaiseChangeEvent(CarsDomain.Events.Car.OwnershipChanged.Create(Id, owner));
         }
