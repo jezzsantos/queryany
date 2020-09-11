@@ -5,6 +5,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PersonsApplication.ReadModels;
 using PersonsApplication.Storage;
 using PersonsDomain;
 using PersonsStorage;
@@ -21,7 +22,7 @@ namespace PersonsApi.IntegrationTests
         private const string ServiceUrl = "http://localhost:2000/";
         private static IWebHost webHost;
         private static IEventingStorage<PersonEntity> eventingStorage;
-        private static IQueryStorage<PersonEntity> queryStorage;
+        private static IQueryStorage<Person> queryStorage;
         private static IRepository inMemRepository;
 
         [ClassInitialize]
@@ -40,7 +41,7 @@ namespace PersonsApi.IntegrationTests
             inMemRepository = new InProcessInMemRepository();
             eventingStorage = new GeneralEventingStorage<PersonEntity>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
-            queryStorage = new GeneralQueryStorage<PersonEntity>(container.Resolve<ILogger>(),
+            queryStorage = new GeneralQueryStorage<Person>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
             container.AddSingleton<IPersonStorage>(c =>
                 new PersonStorage(eventingStorage, queryStorage));

@@ -4,7 +4,7 @@ using Moq;
 using QueryAny;
 using Storage.Azure;
 
-namespace Storage.UnitTests
+namespace Storage.UnitTests.Azure
 {
     [TestClass, TestCategory("Unit")]
 

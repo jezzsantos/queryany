@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace QueryAny.Primitives
 {
+    [DebuggerStepThrough]
     public static class GeneralExtensions
     {
         public static void GuardAgainstNull(this object instance, string parameterName = null)

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
+using PersonsApplication.ReadModels;
 using PersonsApplication.Storage;
 using PersonsDomain;
 using QueryAny;
@@ -13,15 +14,15 @@ namespace PersonsStorage
     public class PersonStorage : IPersonStorage
     {
         private readonly IEventingStorage<PersonEntity> eventingStorage;
-        private readonly IQueryStorage<PersonEntity> queryStorage;
+        private readonly IQueryStorage<Person> queryStorage;
 
         public PersonStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
         {
-            this.queryStorage = new GeneralQueryStorage<PersonEntity>(logger, domainFactory, repository);
+            this.queryStorage = new GeneralQueryStorage<Person>(logger, domainFactory, repository);
             this.eventingStorage = new GeneralEventingStorage<PersonEntity>(logger, domainFactory, repository);
         }
 
-        public PersonStorage(IEventingStorage<PersonEntity> eventingStorage, IQueryStorage<PersonEntity> queryStorage)
+        public PersonStorage(IEventingStorage<PersonEntity> eventingStorage, IQueryStorage<Person> queryStorage)
         {
             queryStorage.GuardAgainstNull(nameof(queryStorage));
             eventingStorage.GuardAgainstNull(nameof(eventingStorage));
@@ -40,9 +41,9 @@ namespace PersonsStorage
             return person;
         }
 
-        public PersonEntity FindByEmailAddress(string emailAddress)
+        public Person FindByEmailAddress(string emailAddress)
         {
-            var persons = this.queryStorage.Query(Query.From<PersonEntity>()
+            var persons = this.queryStorage.Query(Query.From<Person>()
                 .Where(e => e.Email, ConditionOperator.EqualTo, emailAddress));
             return persons.Results.FirstOrDefault();
         }

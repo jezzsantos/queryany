@@ -1,11 +1,12 @@
-﻿namespace Storage.Interfaces
+﻿using System;
+
+namespace Storage.Interfaces
 {
-    public interface IReadModelStorage
+    public interface IReadModelStorage<TDto>
+        where TDto : IReadModelEntity, new()
     {
-        long ReadCheckpoint(string streamName);
+        TDto Create(string id, Action<TDto> action = null);
 
-        void WriteCheckPoint(string streamName, in long checkpoint);
-
-        void WriteEvent(object @event);
+        TDto Update(string id, Action<TDto> action);
     }
 }

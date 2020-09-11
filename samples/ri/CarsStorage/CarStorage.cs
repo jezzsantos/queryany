@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CarsApplication.ReadModels;
 using CarsApplication.Storage;
 using CarsDomain;
 using Domain.Interfaces;
@@ -17,9 +18,9 @@ namespace CarsStorage
     {
         private readonly ICommandStorage<CarEntity> carCommandStorage;
         private readonly IEventingStorage<CarEntity> carEventingStorage;
-        private readonly IQueryStorage<CarEntity> carQueryStorage;
+        private readonly IQueryStorage<Car> carQueryStorage;
         private readonly ICommandStorage<UnavailabilityEntity> unavailabilitiesCommandStorage;
-        private readonly IQueryStorage<UnavailabilityEntity> unavailabilitiesQueryStorage;
+        private readonly IQueryStorage<Unavailability> unavailabilitiesQueryStorage;
 
         public CarStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
         {
@@ -28,19 +29,19 @@ namespace CarsStorage
             repository.GuardAgainstNull(nameof(repository));
 
             this.carCommandStorage = new GeneralCommandStorage<CarEntity>(logger, domainFactory, repository);
-            this.carQueryStorage = new GeneralQueryStorage<CarEntity>(logger, domainFactory, repository);
+            this.carQueryStorage = new GeneralQueryStorage<Car>(logger, domainFactory, repository);
             this.carEventingStorage = new GeneralEventingStorage<CarEntity>(logger, domainFactory, repository);
             this.unavailabilitiesCommandStorage =
                 new GeneralCommandStorage<UnavailabilityEntity>(logger, domainFactory, repository);
             this.unavailabilitiesQueryStorage =
-                new GeneralQueryStorage<UnavailabilityEntity>(logger, domainFactory, repository);
+                new GeneralQueryStorage<Unavailability>(logger, domainFactory, repository);
         }
 
         public CarStorage(ICommandStorage<CarEntity> carCommandStorage,
-            IQueryStorage<CarEntity> carQueryStorage,
+            IQueryStorage<Car> carQueryStorage,
             IEventingStorage<CarEntity> carEventingStorage,
             ICommandStorage<UnavailabilityEntity> unavailabilitiesCommandStorage,
-            IQueryStorage<UnavailabilityEntity> unavailabilitiesQueryStorage)
+            IQueryStorage<Unavailability> unavailabilitiesQueryStorage)
         {
             carCommandStorage.GuardAgainstNull(nameof(carCommandStorage));
             carQueryStorage.GuardAgainstNull(nameof(carQueryStorage));
@@ -80,18 +81,18 @@ namespace CarsStorage
             return updatedCar;
         }
 
-        public List<CarEntity> SearchAvailable(DateTime fromUtc, DateTime toUtc, SearchOptions options)
+        public List<Car> SearchAvailable(DateTime fromUtc, DateTime toUtc, SearchOptions options)
         {
-            var unavailabilities = this.unavailabilitiesQueryStorage.Query(Query.From<UnavailabilityEntity>()
-                    .Where(e => e.SlotFrom, ConditionOperator.LessThanEqualTo, fromUtc)
-                    .AndWhere(e => e.SlotTo, ConditionOperator.GreaterThanEqualTo, toUtc))
+            var unavailabilities = this.unavailabilitiesQueryStorage.Query(Query.From<Unavailability>()
+                    .Where(e => e.From, ConditionOperator.LessThanEqualTo, fromUtc)
+                    .AndWhere(e => e.To, ConditionOperator.GreaterThanEqualTo, toUtc))
                 .Results;
 
             var limit = options.Limit;
             var offset = options.Offset;
             options.ClearLimitAndOffset();
 
-            var cars = this.carQueryStorage.Query(Query.From<CarEntity>()
+            var cars = this.carQueryStorage.Query(Query.From<Car>()
                     .WhereAll()
                     .WithSearchOptions(options))
                 .Results;

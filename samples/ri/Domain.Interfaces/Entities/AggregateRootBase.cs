@@ -94,15 +94,16 @@ namespace Domain.Interfaces.Entities
             OnStateChanged(@event);
         }
 
-        public List<EventEntity> GetChanges()
+        public List<EntityEvent> GetChanges()
         {
             var entityName = GetType().GetEntityNameSafe();
             var streamName = $"{entityName}_{Id}";
             var version = ChangeVersion;
             return this.events.Select(e =>
             {
-                var entity = new EventEntity(IdFactory);
-                entity.SetEvent(streamName, ++version, e);
+                var entity = new EntityEvent();
+                entity.Id = IdFactory.Create(entity);
+                entity.SetEvent(streamName, GetType().Name, ++version, e);
                 return entity;
             }).ToList();
         }
@@ -123,7 +124,7 @@ namespace Domain.Interfaces.Entities
             OnStateChanged(@event);
         }
 
-        void IPersistableAggregateRoot.LoadChanges(IEnumerable<EventEntity> history)
+        void IPersistableAggregateRoot.LoadChanges(IEnumerable<EntityEvent> history)
         {
             foreach (var entity in history)
             {

@@ -11,6 +11,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Car = CarsApplication.ReadModels.Car;
 
 namespace CarsApplication.UnitTests
 {
@@ -110,8 +111,8 @@ namespace CarsApplication.UnitTests
         {
             this.storage.Setup(s =>
                     s.SearchAvailable(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<SearchOptions>()))
-                .Returns(new List<CarEntity>
-                    {new CarEntity(this.logger.Object, this.idFactory.Object)});
+                .Returns(new List<Car>
+                    {new Car()});
 
             var result =
                 this.carsApplication.SearchAvailable(this.caller.Object, DateTime.MinValue, DateTime.MinValue,

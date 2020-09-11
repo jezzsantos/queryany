@@ -2,12 +2,12 @@ using System;
 using System.Linq;
 using Api.Interfaces.ServiceOperations;
 using ApplicationServices;
+using CarsApplication.ReadModels;
 using CarsApplication.Storage;
 using CarsDomain;
 using CarsStorage;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Domain.Interfaces.Resources;
 using FluentAssertions;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -26,10 +26,10 @@ namespace CarsApi.IntegrationTests
         private const string ServiceUrl = "http://localhost:2000/";
         private static IWebHost webHost;
         private static ICommandStorage<CarEntity> carCommandStorage;
-        private static IQueryStorage<CarEntity> carQueryStorage;
+        private static IQueryStorage<Car> carQueryStorage;
         private static IEventingStorage<CarEntity> carEventingStorage;
         private static ICommandStorage<UnavailabilityEntity> unavailabilityCommandStorage;
-        private static IQueryStorage<UnavailabilityEntity> unavailabilityQueryStorage;
+        private static IQueryStorage<Unavailability> unavailabilityQueryStorage;
         private static int plateCount;
         private static IRepository inMemRepository;
 
@@ -52,14 +52,14 @@ namespace CarsApi.IntegrationTests
             carCommandStorage =
                 new GeneralCommandStorage<CarEntity>(container.Resolve<ILogger>(), container.Resolve<IDomainFactory>(),
                     inMemRepository);
-            carQueryStorage = new GeneralQueryStorage<CarEntity>(container.Resolve<ILogger>(),
+            carQueryStorage = new GeneralQueryStorage<Car>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
             carEventingStorage = new GeneralEventingStorage<CarEntity>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
             unavailabilityCommandStorage = new GeneralCommandStorage<UnavailabilityEntity>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(),
                 inMemRepository);
-            unavailabilityQueryStorage = new GeneralQueryStorage<UnavailabilityEntity>(container.Resolve<ILogger>(),
+            unavailabilityQueryStorage = new GeneralQueryStorage<Unavailability>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
             container.AddSingleton<ICarStorage>(c =>
                 new CarStorage(carCommandStorage, carQueryStorage, carEventingStorage,
@@ -137,7 +137,7 @@ namespace CarsApi.IntegrationTests
             cars.Cars[0].Id.Should().Be(car2.Id);
         }
 
-        private static Car RegisterCar(IRestClient client)
+        private static Domain.Interfaces.Resources.Car RegisterCar(IRestClient client)
         {
             var car1 = client.Post(new CreateCarRequest
             {

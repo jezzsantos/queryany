@@ -135,31 +135,9 @@ namespace Storage.UnitTests
                 repo => repo.Add("acontainername_Events", It.IsAny<EventEntity>(), It.IsAny<IDomainFactory>()),
                 Times.Exactly(3));
             aggregate.ClearedChanges.Should().BeTrue();
-            this.stateChangedEvent.Should().BeEquivalentTo(new EventStreamStateChangedArgs("astreamname",
-                new List<EventStreamStateChangeEvent>
-                {
-                    new EventStreamStateChangeEvent
-                    {
-                        Id = "aneventid1",
-                        Type = "atypename",
-                        Data = "somejson",
-                        Version = 1
-                    },
-                    new EventStreamStateChangeEvent
-                    {
-                        Id = "aneventid2",
-                        Type = "atypename",
-                        Data = "somejson",
-                        Version = 2
-                    },
-                    new EventStreamStateChangeEvent
-                    {
-                        Id = "aneventid3",
-                        Type = "atypename",
-                        Data = "somejson",
-                        Version = 3
-                    }
-                }));
+            this.stateChangedEvent.Events[0].Id.Should().Be("aneventid1");
+            this.stateChangedEvent.Events[1].Id.Should().Be("aneventid2");
+            this.stateChangedEvent.Events[2].Id.Should().Be("aneventid3");
         }
 
         private static EventEntity CreateEventEntity(string id, long version, DateTime lastPersisted)
@@ -171,7 +149,7 @@ namespace Storage.UnitTests
                 {nameof(IPersistableEntity.LastPersistedAtUtc), lastPersisted},
                 {nameof(EventEntity.StreamName), "astreamname"},
                 {nameof(EventEntity.Version), version},
-                {nameof(EventEntity.TypeName), "atypename"},
+                {nameof(EventEntity.EventType), "atypename"},
                 {nameof(EventEntity.Data), "somejson"}
             });
 

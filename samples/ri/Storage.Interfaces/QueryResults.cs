@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using Domain.Interfaces.Entities;
+using QueryAny;
 
 namespace Storage.Interfaces
 {
-    public class QueryResults<TEntity> where TEntity : IIdentifiableEntity
+    public class QueryResults<TEntity> where TEntity : IQueryableEntity
     {
         public QueryResults(List<TEntity> results)
         {

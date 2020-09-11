@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using CarsApplication.ReadModels;
 using CarsDomain;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
@@ -12,6 +13,6 @@ namespace CarsApplication.Storage
 
         CarEntity Save(CarEntity car);
 
-        List<CarEntity> SearchAvailable(DateTime fromUtc, DateTime toUtc, SearchOptions options);
+        List<Car> SearchAvailable(DateTime fromUtc, DateTime toUtc, SearchOptions options);
     }
 }

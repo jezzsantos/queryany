@@ -1,9 +1,6 @@
-﻿using Domain.Interfaces.Entities;
-
-namespace Storage.ReadModels
+﻿namespace Storage.ReadModels
 {
-    public interface IReadModelSubscription<TAggregateRoot>
-        where TAggregateRoot : IPersistableAggregateRoot
+    public interface IReadModelSubscription
     {
     }
 }

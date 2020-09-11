@@ -7,7 +7,7 @@ using Storage.Interfaces;
 
 namespace Storage
 {
-    public class GeneralQueryStorage<TEntity> : IQueryStorage<TEntity> where TEntity : IPersistableEntity
+    public class GeneralQueryStorage<TDto> : IQueryStorage<TDto> where TDto : IQueryableEntity
     {
         private readonly string containerName;
         private readonly ILogger logger;
@@ -21,25 +21,25 @@ namespace Storage
             this.logger = logger;
             this.repository = repository;
             DomainFactory = domainFactory;
-            this.containerName = typeof(TEntity).GetEntityNameSafe();
+            this.containerName = typeof(TDto).GetEntityNameSafe();
         }
 
         public IDomainFactory DomainFactory { get; }
 
-        public QueryResults<TEntity> Query(QueryClause<TEntity> query)
+        public QueryResults<TDto> Query(QueryClause<TDto> query)
         {
             if (query == null || query.Options.IsEmpty)
             {
                 this.logger.LogDebug("No entities were retrieved from repository, the query is empty");
 
-                return new QueryResults<TEntity>(new List<TEntity>());
+                return new QueryResults<TDto>(new List<TDto>());
             }
 
             var entities = this.repository.Query(this.containerName, query, DomainFactory);
 
             this.logger.LogDebug($" {entities.Count} Entities were retrieved from repository");
 
-            return new QueryResults<TEntity>(entities.ConvertAll(e => e));
+            return new QueryResults<TDto>(entities.ConvertAll(e => e));
         }
 
         public long Count()

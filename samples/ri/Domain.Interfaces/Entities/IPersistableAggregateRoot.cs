@@ -6,12 +6,12 @@ namespace Domain.Interfaces.Entities
     {
         int ChangeVersion { set; }
 
-        List<EventEntity> GetChanges();
+        List<EntityEvent> GetChanges();
 
         void ClearChanges();
 
         void OnStateChanged(object @event);
 
-        void LoadChanges(IEnumerable<EventEntity> history);
+        void LoadChanges(IEnumerable<EntityEvent> history);
     }
 }

@@ -26,7 +26,7 @@ namespace Domain.Interfaces.UnitTests
         {
             this.logger = new Mock<ILogger>();
             this.idFactory = new Mock<IIdentifierFactory>();
-            this.idFactory.Setup(idf => idf.Create(It.IsAny<TestAggregateRoot>()))
+            this.idFactory.Setup(idf => idf.Create(It.IsAny<IIdentifiableEntity>()))
                 .Returns("anid".ToIdentifier());
             this.dependencyContainer = new Mock<IDependencyContainer>();
             this.dependencyContainer.Setup(dc => dc.Resolve<ILogger>())
@@ -148,11 +148,11 @@ namespace Domain.Interfaces.UnitTests
             var result = this.aggregate.GetChanges();
 
             result.Count.Should().Be(2);
-            result[0].TypeName.Should().Be(nameof(Events.Any.Created));
+            result[0].EventType.Should().Be(nameof(Events.Any.Created));
             result[0].StreamName.Should().Be("testaggregateroot_anid");
             result[0].Version.Should().Be(1);
             result[0].Metadata.Fqn.Should().Be(typeof(Events.Any.Created).AssemblyQualifiedName);
-            result[1].TypeName.Should().Be(nameof(TestAggregateRoot.ChangeEvent));
+            result[1].EventType.Should().Be(nameof(TestAggregateRoot.ChangeEvent));
             result[1].StreamName.Should().Be("testaggregateroot_anid");
             result[1].Version.Should().Be(2);
             result[1].Metadata.Fqn.Should().Be(typeof(TestAggregateRoot.ChangeEvent).AssemblyQualifiedName);
@@ -161,7 +161,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenLoadChanges_ThenSetsEventsAndUpdatesVersion()
         {
-            ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EventEntity>
+            ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
             {
                 CreateEventEntity("aneventid1", 1),
                 CreateEventEntity("aneventid2", 2),
@@ -197,18 +197,10 @@ namespace Domain.Interfaces.UnitTests
             this.aggregate.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
         }
 
-        private static EventEntity CreateEventEntity(string id, long version)
+        private static EntityEvent CreateEventEntity(string id, long version)
         {
-            var entity = new EventEntity(new FixedIdentifierFactory(id));
-            entity.Rehydrate(new Dictionary<string, object>
-            {
-                {nameof(IIdentifiableEntity.Id), id.ToIdentifier()},
-                {nameof(IPersistableEntity.LastPersistedAtUtc), DateTime.MinValue},
-                {nameof(EventEntity.StreamName), "astreamname"},
-                {nameof(EventEntity.Version), version},
-                {nameof(EventEntity.Data), new TestEvent {APropertyValue = "avalue"}.ToJson()},
-                {nameof(EventEntity.Metadata), new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)}
-            });
+            var entity = new EntityEvent {Id = id.ToIdentifier()};
+            entity.SetEvent("astreamname", "anentitytype", version, new TestEvent {APropertyValue = "avalue"});
 
             return entity;
         }

@@ -1,13 +1,10 @@
-﻿using Domain.Interfaces.Entities;
-using QueryAny;
+﻿using QueryAny;
 
 namespace Storage.Interfaces
 {
-    public interface IQueryStorage<TEntity> where TEntity : IPersistableEntity
+    public interface IQueryStorage<TDto> where TDto : IQueryableEntity, new()
     {
-        IDomainFactory DomainFactory { get; }
-
-        QueryResults<TEntity> Query(QueryClause<TEntity> query);
+        QueryResults<TDto> Query(QueryClause<TDto> query);
 
         long Count();
 

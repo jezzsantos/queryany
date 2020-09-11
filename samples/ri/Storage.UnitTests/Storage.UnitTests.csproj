@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Storage.Azure\Storage.Azure.csproj" />
+    <ProjectReference Include="..\Storage.ReadModels\Storage.ReadModels.csproj" />
     <ProjectReference Include="..\Storage\Storage.csproj" />
   </ItemGroup>
 

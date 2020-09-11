@@ -1,4 +1,5 @@
 ﻿using Domain.Interfaces.Entities;
+using PersonsApplication.ReadModels;
 using PersonsDomain;
 
 namespace PersonsApplication.Storage
@@ -9,6 +10,6 @@ namespace PersonsApplication.Storage
 
         PersonEntity Save(PersonEntity car);
 
-        PersonEntity FindByEmailAddress(string emailAddress);
+        Person FindByEmailAddress(string emailAddress);
     }
 }

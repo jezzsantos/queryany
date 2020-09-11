@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
@@ -7,68 +8,125 @@ using Storage.Interfaces;
 
 namespace Storage.ReadModels
 {
-    public class ReadModelSubscription<TAggregateRoot> : IReadModelSubscription<TAggregateRoot>, IDisposable
+    public class ReadModelSubscription<TAggregateRoot> : IReadModelSubscription, IDisposable
         where TAggregateRoot : IPersistableAggregateRoot
     {
         private readonly ILogger logger;
-        private readonly IReadModelStorage readModelStorage;
+        private readonly IReadModelProjector readModelProjector;
         private readonly IEventingStorage<TAggregateRoot> storage;
 
         public ReadModelSubscription(ILogger logger, IEventingStorage<TAggregateRoot> storage,
-            IReadModelStorage readModelStorage)
+            IReadModelProjector readModelProjector)
         {
             logger.GuardAgainstNull(nameof(logger));
             storage.GuardAgainstNull(nameof(storage));
-            readModelStorage.GuardAgainstNull(nameof(readModelStorage));
+            readModelProjector.GuardAgainstNull(nameof(readModelProjector));
 
             this.logger = logger;
             this.storage = storage;
-            this.readModelStorage = readModelStorage;
+            this.readModelProjector = readModelProjector;
+            ProcessingErrors = new List<EventProcessingError>();
 
             this.storage.OnEventStreamStateChanged += OnEventStreamStateChanged;
         }
+
+        internal List<EventProcessingError> ProcessingErrors { get; }
 
         public void Dispose()
         {
             this.storage.OnEventStreamStateChanged -= OnEventStreamStateChanged;
         }
 
-        private void OnEventStreamStateChanged(object sender, EventStreamStateChangedArgs args)
+        internal void OnEventStreamStateChanged(object sender, EventStreamStateChangedArgs args)
         {
-            var streamName = args.StreamName;
-            var startingAt = args.StartingAt;
-            try
+            var allEvents = args.Events;
+            if (!allEvents.Any())
             {
-                var checkpoint = this.readModelStorage.ReadCheckpoint(streamName);
-                EnsureVersion(streamName, checkpoint, startingAt);
-                ReadEvents(streamName, checkpoint, args.Events);
+                return;
             }
-            catch (Exception ex)
-            {
-                this.logger.LogError(ex, $"Failed to update ReadModel for: '{streamName}'");
-                throw;
-            }
-        }
 
-        private static void EnsureVersion(string streamName, long checkpoint, long startingAt)
-        {
-            if (startingAt > checkpoint + 1)
+            WithProcessMonitoring(() =>
             {
-                //TODO: load whole stream first
-                throw new InvalidOperationException(
-                    $"The event stream {streamName} is at checkpoint '{checkpoint}', but new events are at version {startingAt}. Perhaps some event history is missing?");
-            }
-        }
+                var eventsStreams = allEvents.GroupBy(e => e.StreamName)
+                    .Select(grp => grp.AsEnumerable())
+                    .Select(grp => grp.OrderBy(e => e.Version).ToList());
 
-        private void ReadEvents(string streamName, long checkpoint, List<EventStreamStateChangeEvent> events)
-        {
-            events.ForEach(@event =>
-            {
-                this.readModelStorage.WriteEvent(@event);
-                checkpoint++;
+                foreach (var eventStream in eventsStreams)
+                {
+                    var firstEvent = eventStream.First();
+                    var streamName = firstEvent.StreamName;
+
+                    try
+                    {
+                        EnsureContiguousVersions(streamName, eventStream);
+                        this.readModelProjector.WriteEventStream(streamName, eventStream);
+                    }
+                    catch (Exception ex)
+                    {
+                        ProcessingErrors.Add(new EventProcessingError(ex, streamName));
+
+                        //Continue onto next stream
+                    }
+                }
             });
+        }
 
-            this.readModelStorage.WriteCheckPoint(streamName, checkpoint);
+        private static void EnsureContiguousVersions(string streamName, List<EventStreamStateChangeEvent> eventStream)
+        {
+            if (!eventStream.HasContiguousVersions())
+            {
+                throw new InvalidOperationException(
+                    $"The event stream {streamName} contains events with out of order versions.");
+            }
+        }
+
+        private void WithProcessMonitoring(Action process)
+        {
+            ProcessingErrors.Clear();
+
+            process.Invoke();
+
+            if (ProcessingErrors.Any())
+            {
+                ProcessingErrors.ForEach(error =>
+                    this.logger.LogError(error.Exception,
+                        $"Failed to relay new events to ReadModel for: '{error.StreamName}'"));
+            }
+        }
+
+        internal class EventProcessingError
+        {
+            public EventProcessingError(Exception ex, string streamName)
+            {
+                Exception = ex;
+                StreamName = streamName;
+            }
+
+            public string StreamName { get; }
+
+            public Exception Exception { get; }
+        }
+    }
+
+    internal static class EventStreamExtensions
+    {
+        public static bool HasContiguousVersions(this List<EventStreamStateChangeEvent> events)
+        {
+            if (!events.Any())
+            {
+                return true;
+            }
+
+            static IEnumerable<long> GetRange(long start, long count)
+            {
+                for (long next = 0; next < count; next++)
+                {
+                    yield return start + next;
+                }
+            }
+
+            var expectedRange = GetRange(events.First().Version, events.Count);
+            return events.Select(e => e.Version).SequenceEqual(expectedRange);
         }
     }
 }

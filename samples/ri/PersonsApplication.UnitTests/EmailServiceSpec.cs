@@ -1,12 +1,10 @@
 ﻿using System;
 using Domain.Interfaces.Entities;
-using DomainServices;
 using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using PersonsApplication.ReadModels;
 using PersonsApplication.Storage;
-using PersonsDomain;
 
 namespace PersonsApplication.UnitTests
 {
@@ -27,7 +25,7 @@ namespace PersonsApplication.UnitTests
         public void WhenEnsureEmailIsUniqueAndNoPersons_ThenReturnsTrue()
         {
             this.storage.Setup(s => s.FindByEmailAddress(It.IsAny<string>()))
-                .Returns((PersonEntity) null);
+                .Returns((Person) null);
 
             var result = this.service.EnsureEmailIsUnique("anemailaddress", "apersonid");
 
@@ -38,8 +36,7 @@ namespace PersonsApplication.UnitTests
         public void WhenEnsureEmailIsUniqueAndNotPersonId_ThenReturnsFalse()
         {
             this.storage.Setup(s => s.FindByEmailAddress(It.IsAny<string>()))
-                .Returns(new PersonEntity(NullLogger.Instance, new FakeIdentifierFactory("anotherpersonid"),
-                    Mock.Of<IEmailService>()));
+                .Returns(new Person {Id = "anotherpersonid"});
 
             var result = this.service.EnsureEmailIsUnique("anemailaddress", "apersonid");
 
@@ -50,8 +47,7 @@ namespace PersonsApplication.UnitTests
         public void WhenEnsureEmailIsUniqueAndMatchesPersonId_ThenReturnsTrue()
         {
             this.storage.Setup(s => s.FindByEmailAddress(It.IsAny<string>()))
-                .Returns(new PersonEntity(NullLogger.Instance, new FakeIdentifierFactory("apersonid"),
-                    Mock.Of<IEmailService>()));
+                .Returns(new Person {Id = "apersonid"});
 
             var result = this.service.EnsureEmailIsUnique("anemailaddress", "apersonid");
 

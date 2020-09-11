@@ -15,7 +15,7 @@ namespace Domain.Interfaces.Entities
         {
             prefixes.GuardAgainstNull(nameof(prefixes));
 
-            this.prefixes = new Dictionary<Type, string>(prefixes) {{typeof(EventEntity), "evt"}};
+            this.prefixes = new Dictionary<Type, string>(prefixes) {{typeof(EntityEvent), "evt"}};
         }
 
         public Identifier Create(IIdentifiableEntity entity)

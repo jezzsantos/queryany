@@ -41,7 +41,7 @@ namespace PersonsApi
             container.AddSingleton<IDependencyContainer>(new FuncDependencyContainer(container));
             container.AddSingleton<IIdentifierFactory, PersonIdentifierFactory>();
             container.AddSingleton<IDomainFactory>(c =>
-                DomainFactory.CreateRegistered(c.Resolve<IDependencyContainer>(), typeof(EventEntity).Assembly,
+                DomainFactory.CreateRegistered(c.Resolve<IDependencyContainer>(), typeof(EntityEvent).Assembly,
                     typeof(PersonEntity).Assembly));
             container.AddSingleton<IPersonStorage>(c =>
                 new PersonStorage(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),

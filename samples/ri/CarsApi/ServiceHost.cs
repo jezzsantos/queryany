@@ -42,7 +42,7 @@ namespace CarsApi
             container.AddSingleton<IDependencyContainer>(new FuncDependencyContainer(container));
             container.AddSingleton<IIdentifierFactory, CarIdentifierFactory>();
             container.AddSingleton<IDomainFactory>(c =>
-                DomainFactory.CreateRegistered(c.Resolve<IDependencyContainer>(), typeof(EventEntity).Assembly,
+                DomainFactory.CreateRegistered(c.Resolve<IDependencyContainer>(), typeof(EntityEvent).Assembly,
                     typeof(CarEntity).Assembly));
             container.AddSingleton<ICarStorage>(c =>
                 new CarStorage(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),

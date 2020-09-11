@@ -7,8 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Domain.Interfaces\Domain.Interfaces.csproj" />
       <ProjectReference Include="..\Storage.Interfaces\Storage.Interfaces.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>Storage.UnitTests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
 </Project>

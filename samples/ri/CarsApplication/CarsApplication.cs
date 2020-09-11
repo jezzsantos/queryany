@@ -117,6 +117,22 @@ namespace CarsApplication
 
     public static class CarConversionExtensions
     {
+        public static Car ToCar(this ReadModels.Car readModel)
+        {
+            var dto = readModel.ConvertTo<Car>();
+            dto.Owner = new CarOwner {Id = readModel.VehicleOwnerId};
+            dto.Managers = readModel.ManagerIds?.Select(id => new CarManager {Id = id}).ToList();
+            dto.Manufacturer = new CarManufacturer
+            {
+                Year = readModel.ManufactureYear,
+                Make = readModel.ManufactureMake,
+                Model = readModel.ManufactureModel
+            };
+            dto.Plate = new CarLicensePlate
+                {Jurisdiction = readModel.LicenseJurisdiction, Number = readModel.LicenseNumber};
+            return null;
+        }
+
         public static Car ToCar(this CarEntity entity)
         {
             var dto = entity.ConvertTo<Car>();

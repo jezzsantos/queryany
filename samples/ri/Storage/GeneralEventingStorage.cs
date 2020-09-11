@@ -82,13 +82,12 @@ namespace Storage
 
             if (OnEventStreamStateChanged != null)
             {
-                var streamName = events.First().StreamName;
                 var changes = events
                     .Select(ToStateChange)
                     .ToList();
                 try
                 {
-                    OnEventStreamStateChanged.Invoke(this, new EventStreamStateChangedArgs(streamName, changes));
+                    OnEventStreamStateChanged.Invoke(this, new EventStreamStateChangedArgs(changes));
                 }
                 catch (Exception ex)
                 {
@@ -113,9 +112,7 @@ namespace Storage
         private static EventStreamStateChangeEvent ToStateChange(EventEntity @event)
         {
             var change = @event.ConvertTo<EventStreamStateChangeEvent>();
-            change.Id = @event.Id;
-            change.Type = @event.TypeName;
-            change.Version = @event.Version;
+            change.Id = @event.Id.ToString();
             return change;
         }
 
