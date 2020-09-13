@@ -1,14 +1,13 @@
 ﻿using Api.Common;
-using Castle.Core.Logging;
-using Domain.Interfaces;
+using Domain.Interfaces.Entities;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using PersonsDomain;
 
-namespace PersonsApi.UnitTests
+namespace Domain.Interfaces.UnitTests
 {
     [TestClass, TestCategory("Unit")]
-    public class AllEntitiesSpec
+    public class AllDomainTypesSpec
     {
         private Mock<IDependencyContainer> dependencyContainer;
         private DomainFactory domainFactory;
@@ -26,7 +25,7 @@ namespace PersonsApi.UnitTests
         [TestMethod]
         public void WhenRegisterAllEntities_ThenAllEntitiesRegistered()
         {
-            this.domainFactory.RegisterTypesFromAssemblies(typeof(PersonEntity).Assembly);
+            this.domainFactory.RegisterDomainTypesFromAssemblies(typeof(EntityEvent).Assembly);
         }
     }
 }

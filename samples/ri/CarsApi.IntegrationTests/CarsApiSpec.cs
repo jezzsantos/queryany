@@ -62,8 +62,7 @@ namespace CarsApi.IntegrationTests
             unavailabilityQueryStorage = new GeneralQueryStorage<Unavailability>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
             container.AddSingleton<ICarStorage>(c =>
-                new CarStorage(carCommandStorage, carQueryStorage, carEventingStorage,
-                    unavailabilityCommandStorage, unavailabilityQueryStorage));
+                new CarStorage(carQueryStorage, carEventingStorage, unavailabilityQueryStorage));
         }
 
         [ClassCleanup]

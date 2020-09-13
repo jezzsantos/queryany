@@ -32,6 +32,11 @@ namespace Domain.Interfaces.Entities
         {
             return value;
         }
+
+        public static ValueObjectFactory<Identifier> Instantiate()
+        {
+            return (property, container) => new Identifier(property);
+        }
     }
 
     public static class IdentifierExtensions

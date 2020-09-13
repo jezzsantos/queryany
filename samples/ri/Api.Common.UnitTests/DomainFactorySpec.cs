@@ -38,7 +38,7 @@ namespace Api.Common.UnitTests
         [TestMethod]
         public void WhenRegisterAndNoAssemblies_ThenRegistersNone()
         {
-            this.factory.RegisterTypesFromAssemblies();
+            this.factory.RegisterDomainTypesFromAssemblies();
 
             this.factory.EntityFactories.Count.Should().Be(0);
             this.factory.ValueObjectFactories.Count.Should().Be(0);
@@ -47,7 +47,7 @@ namespace Api.Common.UnitTests
         [TestMethod]
         public void WhenRegisterAndAssemblyContainsNoFactories_ThenRegistersNone()
         {
-            this.factory.RegisterTypesFromAssemblies(typeof(Exactly).Assembly);
+            this.factory.RegisterDomainTypesFromAssemblies(typeof(Exactly).Assembly);
 
             this.factory.EntityFactories.Count.Should().Be(0);
             this.factory.ValueObjectFactories.Count.Should().Be(0);
@@ -56,7 +56,7 @@ namespace Api.Common.UnitTests
         [TestMethod]
         public void WhenRegisterAndAssemblyContainsFactories_ThenRegistersFactories()
         {
-            this.factory.RegisterTypesFromAssemblies(typeof(DomainFactorySpec).Assembly);
+            this.factory.RegisterDomainTypesFromAssemblies(typeof(DomainFactorySpec).Assembly);
 
             this.factory.EntityFactories.Count.Should().Be(1);
             this.factory.EntityFactories.First().Key.Should().Be(typeof(TestEntity));
@@ -77,7 +77,7 @@ namespace Api.Common.UnitTests
         [TestMethod]
         public void WhenCreateEntityAndExists_ThenReturnsEntityInstance()
         {
-            this.factory.RegisterTypesFromAssemblies(typeof(DomainFactorySpec).Assembly);
+            this.factory.RegisterDomainTypesFromAssemblies(typeof(DomainFactorySpec).Assembly);
 
             var result = (TestEntity) this.factory.RehydrateEntity(typeof(TestEntity), new Dictionary<string, object>
             {
@@ -102,7 +102,7 @@ namespace Api.Common.UnitTests
         [TestMethod]
         public void WhenCreateValueObjectAndExists_ThenReturnsEntityInstance()
         {
-            this.factory.RegisterTypesFromAssemblies(typeof(DomainFactorySpec).Assembly);
+            this.factory.RegisterDomainTypesFromAssemblies(typeof(DomainFactorySpec).Assembly);
 
             var result = (TestValueObject) this.factory.RehydrateValueObject(typeof(TestValueObject), "avalue");
 

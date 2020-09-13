@@ -11,6 +11,6 @@ namespace Domain.Interfaces.Entities
 
         IPersistableValueObject RehydrateValueObject(Type valueObjectType, string rehydratingPropertyValue);
 
-        void RegisterTypesFromAssemblies(params Assembly[] assembliesContainingFactories);
+        void RegisterDomainTypesFromAssemblies(params Assembly[] assembliesContainingFactories);
     }
 }

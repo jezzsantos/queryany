@@ -8,7 +8,7 @@ using Moq;
 namespace CarsApi.UnitTests
 {
     [TestClass, TestCategory("Unit")]
-    public class AllEntitiesSpec
+    public class AllDomainTypesSpec
     {
         private Mock<IDependencyContainer> dependencyContainer;
         private DomainFactory domainFactory;
@@ -26,7 +26,7 @@ namespace CarsApi.UnitTests
         [TestMethod]
         public void WhenRegisterAllEntities_ThenAllEntitiesRegistered()
         {
-            this.domainFactory.RegisterTypesFromAssemblies(typeof(CarEntity).Assembly);
+            this.domainFactory.RegisterDomainTypesFromAssemblies(typeof(CarEntity).Assembly);
         }
     }
 }

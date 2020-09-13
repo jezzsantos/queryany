@@ -62,7 +62,7 @@ namespace Api.Common
             return valueObject;
         }
 
-        public void RegisterTypesFromAssemblies(params Assembly[] assembliesContainingFactories)
+        public void RegisterDomainTypesFromAssemblies(params Assembly[] assembliesContainingFactories)
         {
             assembliesContainingFactories.GuardAgainstNull(nameof(assembliesContainingFactories));
 
@@ -73,7 +73,10 @@ namespace Api.Common
 
             foreach (var assembly in assembliesContainingFactories)
             {
-                foreach (var type in assembly.GetTypes().Where(t => IsEntity(t) || IsValueObject(t)))
+                var domainTypes = assembly.GetTypes()
+                    .Where(t => IsEntity(t) || IsValueObject(t))
+                    .ToList();
+                foreach (var type in domainTypes)
                 {
                     if (IsEntity(type))
                     {
@@ -143,7 +146,7 @@ namespace Api.Common
             params Assembly[] assembliesContainingFactories)
         {
             var domainFactory = new DomainFactory(container);
-            domainFactory.RegisterTypesFromAssemblies(assembliesContainingFactories);
+            domainFactory.RegisterDomainTypesFromAssemblies(assembliesContainingFactories);
             return domainFactory;
         }
 
@@ -176,7 +179,8 @@ namespace Api.Common
 
         private static bool IsValueObject(Type type)
         {
-            return !type.IsAbstract && type.IsGenericInterfaceTypeOf(typeof(ValueObjectBase<>));
+            return !type.IsAbstract
+                   && type.IsSubclassOfRawGeneric(typeof(ValueObjectBase<>));
         }
 
         private static MethodInfo GetValueObjectFactoryMethod(Type type)
@@ -190,17 +194,9 @@ namespace Api.Common
                                           && method.ReturnType.IsGenericType
                                           && method.ReturnType.GenericTypeArguments.Any()
                                           && method.ReturnType.GenericTypeArguments[0]
-                                              .IsGenericInterfaceTypeOf(typeof(ValueObjectBase<>))
+                                              .IsSubclassOfRawGeneric(typeof(ValueObjectBase<>))
                                           && method.ReturnType.GetGenericTypeDefinition()
                                               .IsAssignableFrom(typeof(ValueObjectFactory<>)));
-        }
-    }
-
-    public static class ReflectionExtensions
-    {
-        public static bool IsGenericInterfaceTypeOf(this Type type, Type genericTypeDefinition)
-        {
-            return type.GetTypeWithGenericTypeDefinitionOf(genericTypeDefinition) != null;
         }
     }
 }
