@@ -26,7 +26,7 @@ namespace Storage.UnitTests
 
             var result = wheres.ToDynamicLinqWhereClause();
 
-            result.Should().Be("afield1 == \"astringvalue\"");
+            result.Should().Be("String(Value[\"afield1\"]) == \"astringvalue\"");
         }
 
         [TestMethod]
@@ -57,7 +57,9 @@ namespace Storage.UnitTests
 
             var result = wheres.ToDynamicLinqWhereClause();
 
-            result.Should().Be("afield1 == \"astringvalue\" and afield2 >= \"astringvalue\"");
+            result.Should()
+                .Be(
+                    "String(Value[\"afield1\"]) == \"astringvalue\" and String(Value[\"afield2\"]) >= \"astringvalue\"");
         }
 
         [TestMethod]
@@ -105,7 +107,8 @@ namespace Storage.UnitTests
             var result = wheres.ToDynamicLinqWhereClause();
 
             result.Should()
-                .Be("afield1 == \"astringvalue\" and (afield2 == \"astringvalue2\" or afield3 == \"astringvalue3\")");
+                .Be(
+                    "String(Value[\"afield1\"]) == \"astringvalue\" and (String(Value[\"afield2\"]) == \"astringvalue2\" or String(Value[\"afield3\"]) == \"astringvalue3\")");
         }
     }
 }

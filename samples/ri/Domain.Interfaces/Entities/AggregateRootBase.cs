@@ -102,7 +102,7 @@ namespace Domain.Interfaces.Entities
             return this.events.Select(e =>
             {
                 var entity = new EntityEvent();
-                entity.Id = IdFactory.Create(entity);
+                entity.SetIdentifier(IdFactory);
                 entity.SetEvent(streamName, GetType().Name, ++version, e);
                 return entity;
             }).ToList();

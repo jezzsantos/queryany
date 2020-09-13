@@ -8,23 +8,19 @@ namespace Storage
     {
         int MaxQueryResults { get; }
 
-        TEntity Add<TEntity>(string containerName, TEntity entity, IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity;
+        CommandEntity Add(string containerName, CommandEntity entity);
 
-        void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity;
+        void Remove(string containerName, Identifier id);
 
-        TEntity Retrieve<TEntity>(string containerName, Identifier id, IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity;
+        CommandEntity Retrieve(string containerName, Identifier id, RepositoryEntityMetadata metadata);
 
-        TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity,
-            IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity;
+        CommandEntity Replace(string containerName, Identifier id, CommandEntity entity);
 
         long Count(string containerName);
 
-        List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query,
-            IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity;
+        List<QueryEntity> Query<TQueryableEntity>(string containerName, QueryClause<TQueryableEntity> query,
+            RepositoryEntityMetadata metadata)
+            where TQueryableEntity : IQueryableEntity;
 
         void DestroyAll(string containerName);
     }

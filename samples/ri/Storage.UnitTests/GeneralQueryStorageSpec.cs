@@ -13,7 +13,7 @@ namespace Storage.UnitTests
     {
         private Mock<IDomainFactory> domainFactory;
         private Mock<ILogger> logger;
-        private GeneralQueryStorage<TestEntity> queryStorage;
+        private GeneralQueryStorage<TestDto> queryStorage;
         private Mock<IRepository> repository;
 
         [TestInitialize]
@@ -23,7 +23,7 @@ namespace Storage.UnitTests
             this.domainFactory = new Mock<IDomainFactory>();
             this.repository = new Mock<IRepository>();
             this.queryStorage =
-                new GeneralQueryStorage<TestEntity>(this.logger.Object, this.domainFactory.Object,
+                new GeneralQueryStorage<TestDto>(this.logger.Object, this.domainFactory.Object,
                     this.repository.Object);
         }
 
@@ -51,29 +51,33 @@ namespace Storage.UnitTests
             result.Should().NotBeNull();
             result.Results.Should().BeEmpty();
             this.repository.Verify(
-                repo => repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<TestEntity>>(), It.IsAny<IDomainFactory>()),
+                repo => repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<IQueryableEntity>>(),
+                    It.IsAny<RepositoryEntityMetadata>()),
                 Times.Never);
         }
 
         [TestMethod]
         public void WhenQueryWithEmptyQuery_ThenReturnsEmptyResults()
         {
-            var query = Query.Empty<TestEntity>();
+            var query = Query.Empty<TestDto>();
             var result = this.queryStorage.Query(query);
 
             result.Should().NotBeNull();
             result.Results.Should().BeEmpty();
             this.repository.Verify(
-                repo => repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<TestEntity>>(), It.IsAny<IDomainFactory>()),
+                repo => repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<TestDto>>(),
+                    It.IsAny<RepositoryEntityMetadata>()),
                 Times.Never);
         }
 
         [TestMethod]
         public void WhenQuery_ThenQueriesRepo()
         {
-            var query = Query.From<TestEntity>().WhereAll();
-            var results = new List<TestEntity>();
-            this.repository.Setup(repo => repo.Query("acontainername", query, this.domainFactory.Object))
+            var query = Query.From<TestDto>().WhereAll();
+            var results = new List<QueryEntity>();
+            this.repository.Setup(repo =>
+                    repo.Query("acontainername", It.IsAny<QueryClause<TestDto>>(),
+                        It.IsAny<RepositoryEntityMetadata>()))
                 .Returns(results);
 
             var result = this.queryStorage.Query(query);

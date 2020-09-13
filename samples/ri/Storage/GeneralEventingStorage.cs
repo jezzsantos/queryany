@@ -45,9 +45,9 @@ namespace Storage
             var eventContainerName = GetEventContainerName();
 
             var events = this.repository.Query(eventContainerName,
-                Query.From<EventEntity>()
+                Query.From<EntityEvent>()
                     .Where(ee => ee.StreamName, ConditionOperator.EqualTo, streamName)
-                    .OrderBy(ee => ee.LastPersistedAtUtc), this.domainFactory);
+                    .OrderBy(ee => ee.LastPersistedAtUtc), RepositoryEntityMetadata.FromType<EntityEvent>());
             if (!events.Any())
             {
                 return RehydrateAggregateRoot(id, null);
@@ -55,7 +55,7 @@ namespace Storage
 
             var lastPersistedAtUtc = events.Last().LastPersistedAtUtc;
             var aggregate = RehydrateAggregateRoot(id, lastPersistedAtUtc);
-            aggregate.LoadChanges(events);
+            aggregate.LoadChanges(events.ConvertAll(@event => @event.ToEntity<EntityEvent>(this.domainFactory)));
 
             return aggregate;
         }
@@ -77,8 +77,7 @@ namespace Storage
 
             var eventContainerName = GetEventContainerName();
 
-            events.ForEach(change =>
-                this.repository.Add(eventContainerName, change, this.domainFactory));
+            events.ForEach(change => { this.repository.Add(eventContainerName, CommandEntity.FromType(change)); });
 
             if (OnEventStreamStateChanged != null)
             {
@@ -109,10 +108,10 @@ namespace Storage
             return $"{this.containerName}_Events";
         }
 
-        private static EventStreamStateChangeEvent ToStateChange(EventEntity @event)
+        private static EventStreamStateChangeEvent ToStateChange(EntityEvent entityEvent)
         {
-            var change = @event.ConvertTo<EventStreamStateChangeEvent>();
-            change.Id = @event.Id.ToString();
+            var change = entityEvent.ConvertTo<EventStreamStateChangeEvent>();
+            change.Id = entityEvent.Id.ToString();
             return change;
         }
 

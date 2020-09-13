@@ -1,4 +1,6 @@
-﻿using Domain.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -31,16 +33,22 @@ namespace Storage.UnitTests
         {
             this.commandStorage.Delete("anid".ToIdentifier());
 
-            this.repository.Verify(repo => repo.Remove<TestEntity>("acontainername", "anid".ToIdentifier()));
+            this.repository.Verify(repo => repo.Remove("acontainername", "anid".ToIdentifier()));
         }
 
         [TestMethod]
         public void WhenGet_ThenRetrievesFromRepository()
         {
+            this.repository.Setup(repo =>
+                    repo.Retrieve("acontainername", "anid".ToIdentifier(),
+                        It.IsAny<RepositoryEntityMetadata>()))
+                .Returns(new CommandEntity("anid"));
+
             this.commandStorage.Get("anid".ToIdentifier());
 
             this.repository.Verify(repo =>
-                repo.Retrieve<TestEntity>("acontainername", "anid".ToIdentifier(), this.domainFactory.Object));
+                repo.Retrieve("acontainername", "anid".ToIdentifier(),
+                    It.IsAny<RepositoryEntityMetadata>()));
         }
 
         [TestMethod]
@@ -63,39 +71,48 @@ namespace Storage.UnitTests
         public void WhenUpsertAndEntityNotExists_ThenAddsToRepository()
         {
             var entity = new TestEntity("anid".ToIdentifier());
-            this.repository.Setup(repo =>
-                    repo.Add(It.IsAny<string>(), It.IsAny<TestEntity>(), It.IsAny<IDomainFactory>()))
-                .Returns(entity);
+            var addedEntity = new CommandEntity("anid");
+            var fetchedEntity = new CommandEntity("anid");
+            this.repository.Setup(repo => repo.Retrieve("acontainername", "anid".ToIdentifier(),
+                    It.IsAny<RepositoryEntityMetadata>()))
+                .Returns(fetchedEntity);
+            this.repository.Setup(repo => repo.Add(It.IsAny<string>(), It.IsAny<CommandEntity>()))
+                .Returns(addedEntity);
 
             this.commandStorage.Upsert(entity);
 
             this.repository.Verify(repo =>
-                repo.Retrieve<TestEntity>("acontainername", "anid".ToIdentifier(), this.domainFactory.Object));
-            this.repository.Verify(repo => repo.Add("acontainername", entity, this.domainFactory.Object));
+                repo.Retrieve("acontainername", "anid".ToIdentifier(),
+                    It.IsAny<RepositoryEntityMetadata>()));
+            this.repository.Verify(repo => repo.Add("acontainername", It.IsAny<CommandEntity>()));
         }
 
         [TestMethod]
         public void WhenUpsertAndEntityExists_ThenReplacesInRepository()
         {
-            var upsertedEntity = new TestEntity("anid".ToIdentifier()) {AStringValue = "anewvalue"};
-            var fetchedEntity = new TestEntity("anid".ToIdentifier());
-            var updatedEntity = new TestEntity("anid".ToIdentifier());
+            var entity = new TestEntity("anupsertedid".ToIdentifier()) {AStringValue = "anewvalue"};
+            var fetchedEntity = new CommandEntity("anid");
+            var updatedEntity = new CommandEntity("anid");
+            var hydratedEntity = new TestEntity("anid".ToIdentifier());
             this.repository.Setup(repo =>
-                    repo.Retrieve<TestEntity>("acontainername", "anid".ToIdentifier(), this.domainFactory.Object))
+                    repo.Retrieve("acontainername", It.IsAny<Identifier>(),
+                        It.IsAny<RepositoryEntityMetadata>()))
                 .Returns(fetchedEntity);
             this.repository.Setup(repo =>
-                    repo.Replace("acontainername", "anid".ToIdentifier(), fetchedEntity, this.domainFactory.Object))
+                    repo.Replace("acontainername", It.IsAny<Identifier>(), It.IsAny<CommandEntity>()))
                 .Returns(updatedEntity);
+            this.domainFactory.Setup(df =>
+                    df.RehydrateEntity(It.IsAny<Type>(), It.IsAny<IReadOnlyDictionary<string, object>>()))
+                .Returns(hydratedEntity);
 
-            var result = this.commandStorage.Upsert(upsertedEntity);
+            var result = this.commandStorage.Upsert(entity);
 
-            result.Should().Be(updatedEntity);
+            result.Should().BeEquivalentTo(hydratedEntity);
             this.repository.Verify(repo =>
-                repo.Retrieve<TestEntity>("acontainername", "anid".ToIdentifier(), this.domainFactory.Object));
+                repo.Retrieve("acontainername", "anupsertedid".ToIdentifier(),
+                    It.IsAny<RepositoryEntityMetadata>()));
             this.repository.Verify(repo =>
-                repo.Replace("acontainername", "anid".ToIdentifier(), It.Is<TestEntity>(entity =>
-                    entity.AStringValue == "anewvalue"
-                ), this.domainFactory.Object));
+                repo.Replace("acontainername", "anupsertedid".ToIdentifier(), It.IsAny<CommandEntity>()));
         }
 
         [TestMethod]

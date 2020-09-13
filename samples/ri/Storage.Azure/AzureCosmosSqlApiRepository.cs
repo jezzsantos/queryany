@@ -36,18 +36,24 @@ namespace Storage.Azure
 
         public int MaxQueryResults => 1000;
 
-        public TEntity Add<TEntity>(string containerName, TEntity entity, IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        public CommandEntity Add(string containerName, CommandEntity entity)
+
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            entity.GuardAgainstNull(nameof(entity));
+
             var container = EnsureContainer(containerName);
 
             container.CreateItemAsync<dynamic>(entity.ToContainerEntity()).GetAwaiter().GetResult();
 
-            return Retrieve<TEntity>(containerName, entity.Id, domainFactory);
+            return Retrieve(containerName, entity.Id, entity.Metadata);
         }
 
-        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity
+        public void Remove(string containerName, Identifier id)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            id.GuardAgainstNull(nameof(id));
+
             var container = EnsureContainer(containerName);
 
             if (Exists(container, id))
@@ -57,29 +63,37 @@ namespace Storage.Azure
             }
         }
 
-        public TEntity Retrieve<TEntity>(string containerName, Identifier id, IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        public CommandEntity Retrieve(string containerName, Identifier id, RepositoryEntityMetadata metadata)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            id.GuardAgainstNull(nameof(id));
+            metadata.GuardAgainstNull(nameof(metadata));
+
             var container = EnsureContainer(containerName);
 
-            var containerEntity = RetrieveContainerEntitySafe<TEntity>(container, id, domainFactory);
+            var containerEntity = RetrieveContainerEntitySafe(container, id, metadata);
 
             return containerEntity;
         }
 
-        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity,
-            IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        public CommandEntity Replace(string containerName, Identifier id, CommandEntity entity)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            id.GuardAgainstNull(nameof(id));
+            entity.GuardAgainstNull(nameof(entity));
+
             var container = EnsureContainer(containerName);
 
             var result = container.UpsertItemAsync<dynamic>(entity.ToContainerEntity()).GetAwaiter().GetResult();
 
-            return ((JObject) result.Resource).FromContainerEntity<TEntity>(domainFactory);
+            return CommandEntity.FromCommandEntity(((JObject) result.Resource).FromContainerEntity(entity.Metadata),
+                entity);
         }
 
         public long Count(string containerName)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+
             var container = EnsureContainer(containerName);
 
             try
@@ -100,13 +114,13 @@ namespace Storage.Azure
             }
         }
 
-        public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query,
-            IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        public List<QueryEntity> Query<TQueryableEntity>(string containerName, QueryClause<TQueryableEntity> query,
+            RepositoryEntityMetadata metadata)
+            where TQueryableEntity : IQueryableEntity
         {
             if (query == null || query.Options.IsEmpty)
             {
-                return new List<TEntity>();
+                return new List<QueryEntity>();
             }
 
             var container = EnsureContainer(containerName);
@@ -125,7 +139,8 @@ namespace Storage.Azure
                     });
 
                 var primaryEntities = primaryResults
-                    .ConvertAll(r => r.FromContainerEntity<TEntity>(domainFactory));
+                    .ConvertAll(r =>
+                        QueryEntity.FromProperties(r.FromContainerEntity(metadata), metadata));
 
                 if (joinedTables.Any())
                 {
@@ -133,26 +148,26 @@ namespace Storage.Azure
                     {
                         var joinedEntity = joinedTable.Value.JoinedEntity;
                         var join = joinedEntity.Join;
-                        var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.Dehydrate());
+                        var leftEntities = primaryEntities.ToDictionary(e => e.Id.ToString(), e => e.Properties);
                         var rightEntities = joinedTable.Value.Collection.ToDictionary(
-                            e => e[IdentifierPropertyName].Value<string>().ToIdentifier(),
-                            e => e.FromContainerEntity(join.Right.EntityType, domainFactory)
-                                .Dehydrate());
+                            e => e[IdentifierPropertyName].Value<string>(),
+                            e => e.FromContainerEntity(
+                                RepositoryEntityMetadata.FromType(join.Right.EntityType)));
 
                         primaryEntities = join
-                            .JoinResults<TEntity>(leftEntities, rightEntities, domainFactory,
+                            .JoinResults(leftEntities, rightEntities, metadata,
                                 joinedEntity.Selects.ProjectSelectedJoinedProperties());
                     }
                 }
 
-                return primaryEntities.CherryPickSelectedProperties(query, domainFactory,
+                return primaryEntities.CherryPickSelectedProperties(query, metadata,
                     new[] {IdentifierPropertyName});
             }
             catch (CosmosException ex)
             {
                 if (ex.StatusCode == HttpStatusCode.NotFound)
                 {
-                    return new List<TEntity>();
+                    return new List<QueryEntity>();
                 }
 
                 throw;
@@ -161,6 +176,8 @@ namespace Storage.Azure
 
         public void DestroyAll(string containerName)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+
             var container = EnsureContainer(containerName);
             container.DeleteContainerAsync().GetAwaiter().GetResult();
             this.containers.Remove(containerName);
@@ -178,9 +195,10 @@ namespace Storage.Azure
             return new AzureCosmosSqlApiRepository(localEmulatorConnectionString, databaseName);
         }
 
-        private List<JObject> QueryPrimaryResults<TEntity>(QueryClause<TEntity> query, Container container,
+        private List<JObject> QueryPrimaryResults<TQueryableEntity>(QueryClause<TQueryableEntity> query,
+            Container container,
             string containerName)
-            where TEntity : IPersistableEntity
+            where TQueryableEntity : IQueryableEntity
         {
             var containerQuery = new QueryDefinition(query.ToAzureCosmosSqlApiQueryClause(containerName, this));
 
@@ -275,21 +293,18 @@ namespace Storage.Azure
             }
         }
 
-        private static TEntity RetrieveContainerEntitySafe<TEntity>(Container container, Identifier id,
-            IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        private static CommandEntity RetrieveContainerEntitySafe(Container container, Identifier id,
+            RepositoryEntityMetadata metadata)
+
         {
             try
             {
                 var entity = container.ReadItemAsync<object>(id, new PartitionKey(id))
                     .GetAwaiter()
                     .GetResult();
-                if (entity != null)
-                {
-                    return ((JObject) entity.Resource).FromContainerEntity<TEntity>(domainFactory);
-                }
-
-                return default;
+                return CommandEntity.FromCommandEntity(
+                    ((JObject) entity?.Resource)?.FromContainerEntity(metadata),
+                    metadata);
             }
             catch (Exception)
             {
@@ -301,29 +316,24 @@ namespace Storage.Azure
     // ReSharper disable once InconsistentNaming
     internal static class AzureCosmosSqlApiExtensions
     {
-        public static dynamic ToContainerEntity<TEntity>(this TEntity entity) where TEntity : IPersistableEntity
+        public static dynamic ToContainerEntity(this CommandEntity entity)
         {
             bool IsNotExcluded(string propertyName)
             {
-                var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id)};
+                var excludedPropertyNames = new[] {nameof(CommandEntity.Id)};
 
                 return !excludedPropertyNames.Contains(propertyName);
             }
 
             var containerEntity = new ExpandoObject();
             var containerEntityProperties = (IDictionary<string, object>) containerEntity;
-            var entityProperties = entity.Dehydrate()
+            var entityProperties = entity.Properties
                 .Where(pair => IsNotExcluded(pair.Key));
             foreach (var pair in entityProperties)
             {
                 var value = pair.Value;
                 if (value != null)
                 {
-                    if (value is IPersistableValueObject valueObject)
-                    {
-                        value = valueObject.Dehydrate();
-                    }
-
                     if (value.GetType().IsComplexStorageType())
                     {
                         value = value.ToString();
@@ -342,41 +352,28 @@ namespace Storage.Azure
             }
 
             containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id.ToString());
-
-            containerEntityProperties[nameof(IPersistableEntity.LastPersistedAtUtc)] = DateTime.UtcNow;
+            containerEntityProperties[nameof(CommandEntity.LastPersistedAtUtc)] = DateTime.UtcNow;
 
             return containerEntity;
         }
 
-        public static TEntity FromContainerEntity<TEntity>(this JObject containerEntity,
-            IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
-        {
-            return (TEntity) containerEntity.FromContainerEntity(typeof(TEntity),
-                domainFactory);
-        }
+        public static IReadOnlyDictionary<string, object> FromContainerEntity(this JObject containerEntity,
+            RepositoryEntityMetadata metadata)
 
-        public static IPersistableEntity FromContainerEntity(this JObject containerEntity, Type entityType,
-            IDomainFactory domainFactory)
         {
-            var entityPropertyTypeInfo = entityType.GetProperties();
-
             var containerEntityProperties = containerEntity.ToObject<Dictionary<string, object>>()
                 .Where(pair =>
-                    entityPropertyTypeInfo.Any(prop => prop.Name.EqualsOrdinal(pair.Key)) &&
-                    pair.Value != null)
+                    metadata.HasType(pair.Key) && pair.Value != null)
                 .ToDictionary(pair => pair.Key,
-                    pair => pair.Value.FromContainerEntityProperty(entityPropertyTypeInfo
-                        .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType, domainFactory));
+                    pair => pair.Value.FromContainerEntityProperty(metadata.GetPropertyType(pair.Key)));
 
             var id = containerEntity[AzureCosmosSqlApiRepository.IdentifierPropertyName].ToString().ToIdentifier();
-            containerEntityProperties[nameof(IIdentifiableEntity.Id)] = id;
+            containerEntityProperties[nameof(CommandEntity.Id)] = id;
 
-            return containerEntityProperties.EntityFromContainerProperties(entityType, domainFactory);
+            return containerEntityProperties;
         }
 
-        private static object FromContainerEntityProperty(this object property, Type targetPropertyType,
-            IDomainFactory domainFactory)
+        private static object FromContainerEntityProperty(this object property, Type targetPropertyType)
         {
             var value = property;
             switch (value)
@@ -400,11 +397,6 @@ namespace Storage.Azure
                         }
 
                         return Guid.Empty;
-                    }
-
-                    if (typeof(IPersistableValueObject).IsAssignableFrom(targetPropertyType))
-                    {
-                        return text.ValueObjectFromContainerProperty(targetPropertyType, domainFactory);
                     }
 
                     if (targetPropertyType.IsComplexStorageType())
@@ -481,8 +473,8 @@ namespace Storage.Azure
     // ReSharper disable once InconsistentNaming
     public static class AzureCosmosSqlApiQueryExtensions
     {
-        public static string ToAzureCosmosSqlApiQueryClause<TEntity>(this QueryClause<TEntity> query,
-            string containerName, IRepository repository) where TEntity : IPersistableEntity
+        public static string ToAzureCosmosSqlApiQueryClause<TQueryableEntity>(this QueryClause<TQueryableEntity> query,
+            string containerName, IRepository repository) where TQueryableEntity : IQueryableEntity
         {
             var builder = new StringBuilder();
             builder.Append($"SELECT {query.ToAzureCosmosSqlApiSelectClause()}");
@@ -507,8 +499,9 @@ namespace Storage.Azure
             return builder.ToString();
         }
 
-        private static string ToAzureCosmosSqlApiSelectClause<TEntity>(this QueryClause<TEntity> query)
-            where TEntity : IPersistableEntity
+        private static string ToAzureCosmosSqlApiSelectClause<TQueryableEntity>(
+            this QueryClause<TQueryableEntity> query)
+            where TQueryableEntity : IQueryableEntity
         {
             if (query.PrimaryEntity.Selects.Any())
             {
@@ -527,8 +520,9 @@ namespace Storage.Azure
             return @"*";
         }
 
-        private static string ToAzureCosmosSqlApiOrderByClause<TEntity>(this QueryClause<TEntity> query)
-            where TEntity : IPersistableEntity
+        private static string ToAzureCosmosSqlApiOrderByClause<TQueryableEntity>(
+            this QueryClause<TQueryableEntity> query)
+            where TQueryableEntity : IQueryableEntity
         {
             var orderBy = query.ResultOptions.OrderBy;
             var direction = orderBy.Direction == OrderDirection.Ascending
@@ -622,7 +616,7 @@ namespace Storage.Azure
         private static string ToAzureCosmosSqlApiConditionClause(this WhereCondition condition)
         {
             var fieldName = condition.FieldName;
-            if (fieldName.EqualsOrdinal(nameof(IPersistableEntity.Id)))
+            if (fieldName.EqualsOrdinal(nameof(QueryEntity.Id)))
             {
                 fieldName = AzureCosmosSqlApiRepository.IdentifierPropertyName;
             }

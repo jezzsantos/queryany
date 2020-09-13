@@ -26,7 +26,7 @@ namespace Storage.IntegrationTests
     {
         private static readonly ILogger Logger = new Logger<AnyRepositoryBaseSpec>(new NullLoggerFactory());
         private static Container container;
-        private static IDomainFactory domainFactory;
+        private IDomainFactory domainFactory;
         private RepoInfo firstJoiningRepo;
         private RepoInfo repo;
         private RepoInfo secondJoiningRepo;
@@ -35,40 +35,73 @@ namespace Storage.IntegrationTests
         {
             container = new Container();
             container.AddSingleton(Logger);
-            domainFactory = new DomainFactory(new FuncDependencyContainer(container));
-            domainFactory.RegisterTypesFromAssemblies(typeof(TestEntity).Assembly);
         }
 
         [TestInitialize]
         public void Initialize()
         {
+            this.domainFactory = DomainFactory.CreateRegistered(new FuncDependencyContainer(container),
+                typeof(TestEntity).Assembly);
             this.repo = GetRepository<TestEntity>();
             this.repo.Repository.DestroyAll(this.repo.ContainerName);
-            this.firstJoiningRepo = GetRepository<FirstJoiningTestEntity>();
+            this.firstJoiningRepo = GetRepository<FirstJoiningTestQueryableEntity>();
             this.firstJoiningRepo.Repository.DestroyAll(this.firstJoiningRepo.ContainerName);
-            this.secondJoiningRepo = GetRepository<SecondJoiningTestEntity>();
+            this.secondJoiningRepo = GetRepository<SecondJoiningTestQueryableEntity>();
             this.secondJoiningRepo.Repository.DestroyAll(this.secondJoiningRepo.ContainerName);
         }
 
-        protected abstract RepoInfo GetRepository<TEntity>()
-            where TEntity : IPersistableEntity;
+        protected abstract RepoInfo GetRepository<TQueryableEntity>()
+            where TQueryableEntity : IQueryableEntity;
+
+        [TestMethod]
+        public void WhenAddWithNullEntity_ThenThrows()
+        {
+            this.repo.Repository
+                .Invoking(x => x.Add(this.repo.ContainerName, null))
+                .Should().Throw<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void WhenAddWithNullContainer_ThenThrows()
+        {
+            var entity = new CommandEntity("anid");
+            this.repo.Repository
+                .Invoking(x => x.Add(null, entity))
+                .Should().Throw<ArgumentNullException>();
+        }
 
         [TestMethod]
         public void WhenAdd_ThenAddsEntity()
         {
-            var entity = new TestEntity();
-            this.repo.Repository.Add(this.repo.ContainerName, entity, domainFactory);
+            var entity = new CommandEntity("anid");
+            this.repo.Repository.Add(this.repo.ContainerName, entity);
 
             this.repo.Repository.Count(this.repo.ContainerName).Should().Be(1);
         }
 
         [TestMethod]
+        public void WhenRemoveWithNullId_ThenThrows()
+        {
+            this.repo.Repository
+                .Invoking(x => x.Remove(this.repo.ContainerName, null))
+                .Should().Throw<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void WhenRemoveWithNullContainer_ThenThrows()
+        {
+            this.repo.Repository
+                .Invoking(x => x.Remove(null, "anid".ToIdentifier()))
+                .Should().Throw<ArgumentNullException>();
+        }
+
+        [TestMethod]
         public void WhenRemoveAndEntityExists_ThenDeletesEntity()
         {
-            var entity = new TestEntity();
-            this.repo.Repository.Add(this.repo.ContainerName, entity, domainFactory);
+            var entity = new CommandEntity("anid");
+            this.repo.Repository.Add(this.repo.ContainerName, entity);
 
-            this.repo.Repository.Remove<TestEntity>(this.repo.ContainerName, entity.Id);
+            this.repo.Repository.Remove(this.repo.ContainerName, entity.Id);
 
             this.repo.Repository.Count(this.repo.ContainerName).Should().Be(0);
         }
@@ -76,25 +109,49 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenRemoveAndEntityNotExists_ThenReturns()
         {
-            this.repo.Repository.Remove<TestEntity>(this.repo.ContainerName, "anid".ToIdentifier());
+            this.repo.Repository.Remove(this.repo.ContainerName, "anid".ToIdentifier());
 
             this.repo.Repository.Count(this.repo.ContainerName).Should().Be(0);
         }
 
         [TestMethod]
-        public void WhenGetAndNotExists_ThenReturnsNull()
+        public void WhenRetrieveWithNullId_ThenThrows()
+        {
+            this.repo.Repository
+                .Invoking(x => x.Retrieve(this.repo.ContainerName, null, RepositoryEntityMetadata.Empty))
+                .Should().Throw<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void WhenRetrieveWithNullContainer_ThenThrows()
+        {
+            this.repo.Repository
+                .Invoking(x => x.Retrieve(null, "anid".ToIdentifier(), RepositoryEntityMetadata.Empty))
+                .Should().Throw<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void WhenRetrieveWithNullMetadata_ThenThrows()
+        {
+            this.repo.Repository
+                .Invoking(x => x.Retrieve(this.repo.ContainerName, "anid".ToIdentifier(), null))
+                .Should().Throw<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void WhenRetrieveAndNotExists_ThenReturnsNull()
         {
             var entity =
-                this.repo.Repository.Retrieve<TestEntity>(this.repo.ContainerName, "anid".ToIdentifier(),
-                    domainFactory);
+                this.repo.Repository.Retrieve(this.repo.ContainerName, "anid".ToIdentifier(),
+                    RepositoryEntityMetadata.FromType<TestEntity>());
 
             entity.Should().BeNull();
         }
 
         [TestMethod]
-        public void WhenGetAndExists_ThenReturnsEntity()
+        public void WhenRetrieveAndExists_ThenReturnsEntity()
         {
-            var entity = new TestEntity
+            var entity = CommandEntity.FromType(new TestEntity
             {
                 ABinaryValue = new byte[] {0x01},
                 ABooleanValue = true,
@@ -117,44 +174,56 @@ namespace Storage.IntegrationTests
                     APropertyValue = "avalue"
                 },
                 AComplexValueObjectValue = ComplexValueObject.Create("avalue", 25, true)
-            };
+            });
 
-            this.repo.Repository.Add(this.repo.ContainerName, entity, domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName, entity);
 
             var result =
-                this.repo.Repository.Retrieve<TestEntity>(this.repo.ContainerName, entity.Id,
-                    domainFactory);
+                this.repo.Repository.Retrieve(this.repo.ContainerName, entity.Id,
+                    RepositoryEntityMetadata.FromType<TestEntity>());
 
             result.Id.Should().Be(entity.Id);
             result.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
             result.LastPersistedAtUtc.GetValueOrDefault().Kind.Should().Be(DateTimeKind.Utc);
-            result.ABinaryValue.SequenceEqual(new byte[] {0x01}).Should().BeTrue();
-            result.ABooleanValue.Should().Be(true);
-            result.ANullableBooleanValue.Should().Be(true);
-            result.AGuidValue.Should().Be(new Guid("12345678-1111-2222-3333-123456789012"));
-            result.ANullableGuidValue.Should().Be(new Guid("12345678-1111-2222-3333-123456789012"));
-            result.AIntValue.Should().Be(1);
-            result.ANullableIntValue.Should().Be(1);
-            result.ALongValue.Should().Be(2);
-            result.ANullableLongValue.Should().Be(2);
-            result.ADoubleValue.Should().Be(0.1);
-            result.ANullableDoubleValue.Should().Be(0.1);
-            result.AStringValue.Should().Be("astringvalue");
-            result.ADateTimeUtcValue.Should().Be(DateTime.Today.ToUniversalTime());
-            result.ADateTimeUtcValue.Kind.Should().Be(DateTimeKind.Utc);
-            result.ANullableDateTimeUtcValue.Should().Be(DateTime.Today.ToUniversalTime());
-            result.ANullableDateTimeUtcValue.GetValueOrDefault().Kind.Should().Be(DateTimeKind.Utc);
-            result.ADateTimeOffsetValue.Should().Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
-            result.ANullableDateTimeOffsetValue.Should().Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
-            result.AComplexNonValueObjectValue.ToString().Should()
-                .Be(new ComplexNonValueObject {APropertyValue = "avalue"}.ToString());
-            result.AComplexValueObjectValue.Should().Be(ComplexValueObject.Create("avalue", 25, true));
+            result.GetValueOrDefault<byte[]>(nameof(TestEntity.ABinaryValue)).SequenceEqual(new byte[] {0x01})
+                .Should().BeTrue();
+            result.GetValueOrDefault<bool>(nameof(TestEntity.ABooleanValue)).Should().Be(true);
+            result.GetValueOrDefault<bool?>(nameof(TestEntity.ANullableBooleanValue)).Should().Be(true);
+            result.GetValueOrDefault<Guid>(nameof(TestEntity.AGuidValue)).Should()
+                .Be(new Guid("12345678-1111-2222-3333-123456789012"));
+            result.GetValueOrDefault<Guid?>(nameof(TestEntity.ANullableGuidValue)).Should()
+                .Be(new Guid("12345678-1111-2222-3333-123456789012"));
+            result.GetValueOrDefault<int>(nameof(TestEntity.AIntValue)).Should().Be(1);
+            result.GetValueOrDefault<int?>(nameof(TestEntity.ANullableIntValue)).Should().Be(1);
+            result.GetValueOrDefault<long>(nameof(TestEntity.ALongValue)).Should().Be(2);
+            result.GetValueOrDefault<long?>(nameof(TestEntity.ANullableLongValue)).Should().Be(2);
+            result.GetValueOrDefault<double>(nameof(TestEntity.ADoubleValue)).Should().Be(0.1);
+            result.GetValueOrDefault<double?>(nameof(TestEntity.ANullableDoubleValue)).Should().Be(0.1);
+            result.GetValueOrDefault<string>(nameof(TestEntity.AStringValue)).Should().Be("astringvalue");
+            result.GetValueOrDefault<DateTime>(nameof(TestEntity.ADateTimeUtcValue)).Should()
+                .Be(DateTime.Today.ToUniversalTime());
+            result.GetValueOrDefault<DateTime>(nameof(TestEntity.ADateTimeUtcValue)).Kind.Should()
+                .Be(DateTimeKind.Utc);
+            result.GetValueOrDefault<DateTime?>(nameof(TestEntity.ANullableDateTimeUtcValue)).Should()
+                .Be(DateTime.Today.ToUniversalTime());
+            result.GetValueOrDefault<DateTime?>(nameof(TestEntity.ANullableDateTimeUtcValue))
+                .GetValueOrDefault()
+                .Kind.Should().Be(DateTimeKind.Utc);
+            result.GetValueOrDefault<DateTimeOffset>(nameof(TestEntity.ADateTimeOffsetValue)).Should()
+                .Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
+            result.GetValueOrDefault<DateTimeOffset?>(nameof(TestEntity.ANullableDateTimeOffsetValue)).Should()
+                .Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
+            result.GetValueOrDefault<ComplexNonValueObject>(nameof(TestEntity.AComplexNonValueObjectValue))
+                .ToString().Should().Be(new ComplexNonValueObject {APropertyValue = "avalue"}.ToString());
+            result.GetValueOrDefault<ComplexValueObject>(nameof(TestEntity.AComplexValueObjectValue),
+                    this.domainFactory).Should()
+                .Be(ComplexValueObject.Create("avalue", 25, true));
         }
 
         [TestMethod]
-        public void WhenGetAndExistsWithDefaultValues_ThenReturnsEntity()
+        public void WhenRetrieveAndExistsWithDefaultValues_ThenReturnsEntity()
         {
-            var entity = new TestEntity
+            var entity = CommandEntity.FromType(new TestEntity
             {
                 ABinaryValue = default,
                 ABooleanValue = default,
@@ -174,51 +243,92 @@ namespace Storage.IntegrationTests
                 ANullableDateTimeOffsetValue = default,
                 AComplexNonValueObjectValue = default,
                 AComplexValueObjectValue = default
-            };
+            });
 
-            this.repo.Repository.Add(this.repo.ContainerName, entity, domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName, entity);
 
             var result =
-                this.repo.Repository.Retrieve<TestEntity>(this.repo.ContainerName, entity.Id,
-                    domainFactory);
+                this.repo.Repository.Retrieve(this.repo.ContainerName, entity.Id,
+                    RepositoryEntityMetadata.FromType<TestEntity>());
 
             result.Id.Should().Be(entity.Id);
             result.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
             result.LastPersistedAtUtc.GetValueOrDefault().Kind.Should().Be(DateTimeKind.Utc);
-            result.ABinaryValue.Should().BeNull();
-            result.ABooleanValue.Should().Be(default);
-            result.ANullableBooleanValue.Should().Be(null);
-            result.AGuidValue.Should().Be(Guid.Empty);
-            result.ANullableGuidValue.Should().Be(null);
-            result.AIntValue.Should().Be(default);
-            result.ANullableIntValue.Should().Be(null);
-            result.ALongValue.Should().Be(default);
-            result.ANullableLongValue.Should().Be(null);
-            result.ADoubleValue.Should().Be(default);
-            result.ANullableDoubleValue.Should().Be(null);
-            result.AStringValue.Should().Be(default);
-            result.ADateTimeUtcValue.Should().Be(DateTime.MinValue);
-            result.ADateTimeUtcValue.Kind.Should().Be(DateTimeKind.Unspecified);
-            result.ANullableDateTimeUtcValue.Should().Be(null);
-            result.ADateTimeOffsetValue.Should().Be(default);
-            result.ANullableDateTimeOffsetValue.Should().Be(null);
-            result.AComplexNonValueObjectValue.Should().Be(default);
-            result.AComplexValueObjectValue.Should().Be(default);
+            result.GetValueOrDefault<byte[]>(nameof(TestEntity.ABinaryValue)).Should().BeNull();
+            result.GetValueOrDefault<bool>(nameof(TestEntity.ABooleanValue)).Should().Be(default);
+            result.GetValueOrDefault<bool?>(nameof(TestEntity.ANullableBooleanValue)).Should().Be(null);
+            result.GetValueOrDefault<Guid>(nameof(TestEntity.AGuidValue)).Should().Be(Guid.Empty);
+            result.GetValueOrDefault<Guid?>(nameof(TestEntity.ANullableGuidValue)).Should().Be(null);
+            result.GetValueOrDefault<int>(nameof(TestEntity.AIntValue)).Should().Be(default);
+            result.GetValueOrDefault<int?>(nameof(TestEntity.ANullableIntValue)).Should().Be(null);
+            result.GetValueOrDefault<long>(nameof(TestEntity.ALongValue)).Should().Be(default);
+            result.GetValueOrDefault<long?>(nameof(TestEntity.ANullableLongValue)).Should().Be(null);
+            result.GetValueOrDefault<double>(nameof(TestEntity.ADoubleValue)).Should().Be(default);
+            result.GetValueOrDefault<double?>(nameof(TestEntity.ANullableDoubleValue)).Should().Be(null);
+            result.GetValueOrDefault<string>(nameof(TestEntity.AStringValue)).Should().Be(default);
+            result.GetValueOrDefault<DateTime>(nameof(TestEntity.ADateTimeUtcValue)).Should()
+                .Be(DateTime.MinValue);
+            result.GetValueOrDefault<DateTime>(nameof(TestEntity.ADateTimeUtcValue)).Kind.Should()
+                .Be(DateTimeKind.Unspecified);
+            result.GetValueOrDefault<DateTime?>(nameof(TestEntity.ANullableDateTimeUtcValue)).Should()
+                .Be(null);
+            result.GetValueOrDefault<DateTimeOffset>(nameof(TestEntity.ADateTimeOffsetValue)).Should()
+                .Be(default);
+            result.GetValueOrDefault<DateTimeOffset?>(nameof(TestEntity.ANullableDateTimeOffsetValue)).Should()
+                .Be(null);
+            result.GetValueOrDefault<ComplexNonValueObject>(nameof(TestEntity.AComplexNonValueObjectValue))
+                .Should()
+                .Be(default);
+            result.GetValueOrDefault<ComplexValueObject>(nameof(TestEntity.AComplexValueObjectValue),
+                    this.domainFactory).Should()
+                .Be(default);
+        }
+
+        [TestMethod]
+        public void WhenReplaceWithNullId_ThenThrows()
+        {
+            this.repo.Repository
+                .Invoking(x => x.Replace(this.repo.ContainerName, null, new CommandEntity("anid")))
+                .Should().Throw<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void WhenReplaceWithNullContainer_ThenThrows()
+        {
+            this.repo.Repository
+                .Invoking(x => x.Replace(null, "anid".ToIdentifier(), new CommandEntity("anid")))
+                .Should().Throw<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void WhenReplaceWithNullEntity_ThenThrows()
+        {
+            this.repo.Repository
+                .Invoking(x => x.Replace(this.repo.ContainerName, "anid".ToIdentifier(), null))
+                .Should().Throw<ArgumentNullException>();
         }
 
         [TestMethod]
         public void WhenReplaceExisting_ThenReturnsUpdated()
         {
-            var entity = new TestEntity();
-            this.repo.Repository.Add(this.repo.ContainerName, entity, domainFactory);
+            var entity = new CommandEntity("anid");
+            this.repo.Repository.Add(this.repo.ContainerName, entity);
 
-            entity.AStringValue = "updated";
-            var updated = this.repo.Repository.Replace(this.repo.ContainerName, entity.Id, entity,
-                domainFactory);
+            entity.Add(nameof(TestEntity.AStringValue), "updated", typeof(string));
+            var updated = this.repo.Repository.Replace(this.repo.ContainerName, entity.Id, entity);
 
             updated.Id.Should().Be(entity.Id);
-            updated.AStringValue.Should().Be("updated");
+            updated.Properties.GetValueOrDefault<string>(nameof(TestEntity.AStringValue)).Should()
+                .Be("updated");
             updated.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+        }
+
+        [TestMethod]
+        public void WhenCountWithNullContainer_ThenThrows()
+        {
+            this.repo.Repository
+                .Invoking(x => x.Count(null))
+                .Should().Throw<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -232,8 +342,8 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenCountAndNotEmpty_ThenReturnsCount()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity(), domainFactory);
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity(), domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName, new CommandEntity("anid1"));
+            this.repo.Repository.Add(this.repo.ContainerName, new CommandEntity("anid2"));
 
             var count = this.repo.Repository.Count(this.repo.ContainerName);
 
@@ -241,15 +351,24 @@ namespace Storage.IntegrationTests
         }
 
         [TestMethod]
+        public void WhenDestroyAllWithNullContainer_ThenThrows()
+        {
+            this.repo.Repository
+                .Invoking(x => x.DestroyAll(null))
+                .Should().Throw<ArgumentNullException>();
+        }
+
+        [TestMethod]
         public void WhenQueryAndQueryIsNull_ThenReturnsEmptyResults()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity
+            this.repo.Repository.Add(this.repo.ContainerName, CommandEntity.FromType(new TestEntity
             {
                 AStringValue = "avalue"
-            }, domainFactory);
+            }));
 
             var results =
-                this.repo.Repository.Query<TestEntity>(this.repo.ContainerName, null, domainFactory);
+                this.repo.Repository.Query<TestEntity>(this.repo.ContainerName, null,
+                    RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(0);
         }
@@ -258,12 +377,13 @@ namespace Storage.IntegrationTests
         public void WhenQueryAndEmpty_ThenReturnsEmptyResults()
         {
             var query = Query.Empty<TestEntity>();
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity
+            this.repo.Repository.Add(this.repo.ContainerName, CommandEntity.FromType(new TestEntity
             {
                 AStringValue = "avalue"
-            }, domainFactory);
+            }));
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(0);
         }
@@ -273,12 +393,13 @@ namespace Storage.IntegrationTests
         {
             var query = Query.From<TestEntity>()
                 .WhereAll();
-            var entity = this.repo.Repository.Add(this.repo.ContainerName, new TestEntity
+            var entity = this.repo.Repository.Add(this.repo.ContainerName, CommandEntity.FromType(new TestEntity
             {
                 AStringValue = "avalue"
-            }, domainFactory);
+            }));
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity.Id);
@@ -287,9 +408,11 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryAndNoEntities_ThenReturnsEmptyResults()
         {
-            var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue");
+            var query = Query.From<TestEntity>()
+                .Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue");
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(0);
         }
@@ -297,13 +420,15 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryAndNoMatch_ThenReturnsEmptyResults()
         {
-            var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, "anothervalue");
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity
+            var query = Query.From<TestEntity>()
+                .Where(e => e.AStringValue, ConditionOperator.EqualTo, "anothervalue");
+            this.repo.Repository.Add(this.repo.ContainerName, CommandEntity.FromType(new TestEntity
             {
                 AStringValue = "avalue"
-            }, domainFactory);
+            }));
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(0);
         }
@@ -311,14 +436,16 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryAndMatchOne_ThenReturnsResult()
         {
-            var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue");
-            var entity = new TestEntity
+            var query = Query.From<TestEntity>()
+                .Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue");
+            var entity = CommandEntity.FromType(new TestEntity
             {
                 AStringValue = "avalue"
-            };
-            this.repo.Repository.Add(this.repo.ContainerName, entity, domainFactory);
+            });
+            this.repo.Repository.Add(this.repo.ContainerName, entity);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity.Id);
@@ -327,17 +454,19 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryAndMatchMany_ThenReturnsResults()
         {
-            var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue");
-            var entity1 = this.repo.Repository.Add(this.repo.ContainerName, new TestEntity
+            var query = Query.From<TestEntity>()
+                .Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue");
+            var entity1 = this.repo.Repository.Add(this.repo.ContainerName, CommandEntity.FromType(new TestEntity
             {
                 AStringValue = "avalue"
-            }, domainFactory);
-            var entity2 = this.repo.Repository.Add(this.repo.ContainerName, new TestEntity
+            }));
+            var entity2 = this.repo.Repository.Add(this.repo.ContainerName, CommandEntity.FromType(new TestEntity
             {
                 AStringValue = "avalue"
-            }, domainFactory);
+            }));
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(2);
             results[0].Id.Should().Be(entity1.Id);
@@ -347,13 +476,14 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryWithId_ThenReturnsResult()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {AStringValue = "avalue1"},
-                domainFactory);
-            var entity2 = new TestEntity {AStringValue = "avalue2"};
-            this.repo.Repository.Add(this.repo.ContainerName, entity2, domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue1"}));
+            var entity2 = CommandEntity.FromType(new TestEntity {AStringValue = "avalue2"});
+            this.repo.Repository.Add(this.repo.ContainerName, entity2);
             var query = Query.From<TestEntity>().Where(e => e.Id, ConditionOperator.EqualTo, entity2.Id);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -362,13 +492,15 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryForStringValue_ThenReturnsResult()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {AStringValue = "avalue1"},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue1"}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AStringValue = "avalue2"}, domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue2");
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue2"}));
+            var query = Query.From<TestEntity>()
+                .Where(e => e.AStringValue, ConditionOperator.EqualTo, "avalue2");
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -377,13 +509,14 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryForNullStringValue_ThenReturnsResult()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {AStringValue = "avalue1"},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue1"}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AStringValue = null}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AStringValue = null}));
             var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.EqualTo, null);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -393,12 +526,14 @@ namespace Storage.IntegrationTests
         public void WhenQueryForNotNullStringValue_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AStringValue = "avalue1"}, domainFactory);
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {AStringValue = null},
-                domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.NotEqualTo, null);
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue1"}));
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {AStringValue = null}));
+            var query =
+                Query.From<TestEntity>().Where(e => e.AStringValue, ConditionOperator.NotEqualTo, null);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -410,12 +545,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeUtcValue = dateTime1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeUtcValue = dateTime1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeUtcValue = dateTime2}, domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.ADateTimeUtcValue, ConditionOperator.EqualTo, dateTime2);
+                CommandEntity.FromType(new TestEntity {ADateTimeUtcValue = dateTime2}));
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ADateTimeUtcValue, ConditionOperator.EqualTo, dateTime2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -427,13 +564,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeUtcValue = dateTime1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeUtcValue = dateTime1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeUtcValue = dateTime2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeUtcValue = dateTime2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableDateTimeUtcValue, ConditionOperator.EqualTo, dateTime2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -445,13 +583,14 @@ namespace Storage.IntegrationTests
             var dateTimeOffset1 = DateTimeOffset.UtcNow;
             var dateTimeOffset2 = DateTimeOffset.UtcNow.AddDays(1);
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeOffsetValue = dateTimeOffset1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeOffsetValue = dateTimeOffset1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeOffsetValue = dateTimeOffset2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeOffsetValue = dateTimeOffset2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeOffsetValue, ConditionOperator.EqualTo, dateTimeOffset2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -463,13 +602,14 @@ namespace Storage.IntegrationTests
             var dateTimeOffset1 = DateTimeOffset.UtcNow;
             var dateTimeOffset2 = DateTimeOffset.UtcNow.AddDays(1);
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableDateTimeOffsetValue, ConditionOperator.EqualTo, dateTimeOffset2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -481,12 +621,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.MinValue;
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeUtcValue = dateTime1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeUtcValue = dateTime1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeUtcValue = dateTime2}, domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.ADateTimeUtcValue, ConditionOperator.EqualTo, dateTime2);
+                CommandEntity.FromType(new TestEntity {ADateTimeUtcValue = dateTime2}));
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ADateTimeUtcValue, ConditionOperator.EqualTo, dateTime2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -498,13 +640,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.MinValue;
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeUtcValue = dateTime1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeUtcValue = dateTime1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeUtcValue = dateTime2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeUtcValue = dateTime2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableDateTimeUtcValue, ConditionOperator.EqualTo, dateTime2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -516,13 +659,14 @@ namespace Storage.IntegrationTests
             var dateTimeOffset1 = DateTimeOffset.Now;
             var dateTimeOffset2 = DateTimeOffset.MinValue;
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableDateTimeOffsetValue, ConditionOperator.EqualTo, dateTimeOffset2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -534,13 +678,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeUtcValue = dateTime1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeUtcValue = dateTime1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeUtcValue = dateTime2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeUtcValue = dateTime2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeUtcValue, ConditionOperator.GreaterThan, dateTime1);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -552,13 +697,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeUtcValue = dateTime1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeUtcValue = dateTime1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeUtcValue = dateTime2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeUtcValue = dateTime2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeUtcValue, ConditionOperator.GreaterThanEqualTo, dateTime1);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(2);
             results[0].Id.Should().Be(entity1.Id);
@@ -571,12 +717,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeUtcValue = dateTime1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeUtcValue = dateTime1}));
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeUtcValue = dateTime2}, domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.ADateTimeUtcValue, ConditionOperator.LessThan, dateTime2);
+                CommandEntity.FromType(new TestEntity {ADateTimeUtcValue = dateTime2}));
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ADateTimeUtcValue, ConditionOperator.LessThan, dateTime2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -588,13 +736,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeUtcValue = dateTime1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeUtcValue = dateTime1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeUtcValue = dateTime2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeUtcValue = dateTime2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeUtcValue, ConditionOperator.LessThanEqualTo, dateTime2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(2);
             results[0].Id.Should().Be(entity1.Id);
@@ -607,13 +756,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeUtcValue = dateTime1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeUtcValue = dateTime1}));
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeUtcValue = dateTime2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeUtcValue = dateTime2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeUtcValue, ConditionOperator.NotEqualTo, dateTime2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -625,13 +775,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeUtcValue = dateTime1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeUtcValue = dateTime1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeUtcValue = dateTime2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeUtcValue = dateTime2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableDateTimeUtcValue, ConditionOperator.GreaterThan, dateTime1);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -643,13 +794,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeUtcValue = dateTime1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeUtcValue = dateTime1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeUtcValue = dateTime2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeUtcValue = dateTime2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableDateTimeUtcValue, ConditionOperator.GreaterThanEqualTo, dateTime1);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(2);
             results[0].Id.Should().Be(entity1.Id);
@@ -662,13 +814,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeUtcValue = dateTime1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeUtcValue = dateTime1}));
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeUtcValue = dateTime2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeUtcValue = dateTime2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableDateTimeUtcValue, ConditionOperator.LessThan, dateTime2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -680,13 +833,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeUtcValue = dateTime1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeUtcValue = dateTime1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeUtcValue = dateTime2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeUtcValue = dateTime2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableDateTimeUtcValue, ConditionOperator.LessThanEqualTo, dateTime2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(2);
             results[0].Id.Should().Be(entity1.Id);
@@ -699,13 +853,14 @@ namespace Storage.IntegrationTests
             var dateTime1 = DateTime.UtcNow;
             var dateTime2 = DateTime.UtcNow.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeUtcValue = dateTime1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeUtcValue = dateTime1}));
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeUtcValue = dateTime2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeUtcValue = dateTime2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableDateTimeUtcValue, ConditionOperator.NotEqualTo, dateTime2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -717,13 +872,14 @@ namespace Storage.IntegrationTests
             var dateTimeOffset1 = DateTimeOffset.Now;
             var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeOffsetValue = dateTimeOffset1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeOffsetValue = dateTimeOffset1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeOffsetValue = dateTimeOffset2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeOffsetValue = dateTimeOffset2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeOffsetValue, ConditionOperator.GreaterThan, dateTimeOffset1);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -735,13 +891,14 @@ namespace Storage.IntegrationTests
             var dateTimeOffset1 = DateTimeOffset.Now;
             var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeOffsetValue = dateTimeOffset1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeOffsetValue = dateTimeOffset1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeOffsetValue = dateTimeOffset2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeOffsetValue = dateTimeOffset2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeOffsetValue, ConditionOperator.GreaterThanEqualTo, dateTimeOffset1);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(2);
             results[0].Id.Should().Be(entity1.Id);
@@ -754,13 +911,14 @@ namespace Storage.IntegrationTests
             var dateTimeOffset1 = DateTimeOffset.Now;
             var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeOffsetValue = dateTimeOffset1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeOffsetValue = dateTimeOffset1}));
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeOffsetValue = dateTimeOffset2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeOffsetValue = dateTimeOffset2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeOffsetValue, ConditionOperator.LessThan, dateTimeOffset2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -772,13 +930,14 @@ namespace Storage.IntegrationTests
             var dateTimeOffset1 = DateTimeOffset.Now;
             var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeOffsetValue = dateTimeOffset1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeOffsetValue = dateTimeOffset1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeOffsetValue = dateTimeOffset2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeOffsetValue = dateTimeOffset2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeOffsetValue, ConditionOperator.LessThanEqualTo, dateTimeOffset2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(2);
             results[0].Id.Should().Be(entity1.Id);
@@ -791,13 +950,14 @@ namespace Storage.IntegrationTests
             var dateTimeOffset1 = DateTimeOffset.Now;
             var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeOffsetValue = dateTimeOffset1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeOffsetValue = dateTimeOffset1}));
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADateTimeOffsetValue = dateTimeOffset2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADateTimeOffsetValue = dateTimeOffset2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ADateTimeOffsetValue, ConditionOperator.NotEqualTo, dateTimeOffset2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -809,13 +969,14 @@ namespace Storage.IntegrationTests
             var dateTimeOffset1 = DateTimeOffset.Now;
             var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableDateTimeOffsetValue, ConditionOperator.GreaterThan, dateTimeOffset1);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -827,13 +988,14 @@ namespace Storage.IntegrationTests
             var dateTimeOffset1 = DateTimeOffset.Now;
             var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableDateTimeOffsetValue, ConditionOperator.GreaterThanEqualTo, dateTimeOffset1);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(2);
             results[0].Id.Should().Be(entity1.Id);
@@ -846,13 +1008,14 @@ namespace Storage.IntegrationTests
             var dateTimeOffset1 = DateTimeOffset.Now;
             var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1}));
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableDateTimeOffsetValue, ConditionOperator.LessThan, dateTimeOffset2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -864,13 +1027,14 @@ namespace Storage.IntegrationTests
             var dateTimeOffset1 = DateTimeOffset.Now;
             var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableDateTimeOffsetValue, ConditionOperator.LessThanEqualTo, dateTimeOffset2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(2);
             results[0].Id.Should().Be(entity1.Id);
@@ -883,13 +1047,14 @@ namespace Storage.IntegrationTests
             var dateTimeOffset1 = DateTimeOffset.Now;
             var dateTimeOffset2 = DateTimeOffset.Now.AddDays(1);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset1}));
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableDateTimeOffsetValue = dateTimeOffset2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableDateTimeOffsetValue, ConditionOperator.NotEqualTo, dateTimeOffset2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -898,13 +1063,14 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryForBoolValue_ThenReturnsResult()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {ABooleanValue = false},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {ABooleanValue = false}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ABooleanValue = true}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ABooleanValue = true}));
             var query = Query.From<TestEntity>().Where(e => e.ABooleanValue, ConditionOperator.EqualTo, true);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -914,12 +1080,14 @@ namespace Storage.IntegrationTests
         public void WhenQueryForNullableBoolValue_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableBooleanValue = false}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableBooleanValue = false}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableBooleanValue = true}, domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.ANullableBooleanValue, ConditionOperator.EqualTo, true);
+                CommandEntity.FromType(new TestEntity {ANullableBooleanValue = true}));
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableBooleanValue, ConditionOperator.EqualTo, true);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -928,13 +1096,14 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryForIntValue_ThenReturnsResult()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {AIntValue = 1},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {AIntValue = 1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AIntValue = 2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AIntValue = 2}));
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.EqualTo, 2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -943,13 +1112,14 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryForIntValueGreaterThan_ThenReturnsResult()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {AIntValue = 1},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {AIntValue = 1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AIntValue = 2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AIntValue = 2}));
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.GreaterThan, 1);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -959,12 +1129,14 @@ namespace Storage.IntegrationTests
         public void WhenQueryForIntValueGreaterThanOrEqualTo_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AIntValue = 1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AIntValue = 1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AIntValue = 2}, domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.GreaterThanEqualTo, 1);
+                CommandEntity.FromType(new TestEntity {AIntValue = 2}));
+            var query = Query.From<TestEntity>()
+                .Where(e => e.AIntValue, ConditionOperator.GreaterThanEqualTo, 1);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(2);
             results[0].Id.Should().Be(entity1.Id);
@@ -975,12 +1147,13 @@ namespace Storage.IntegrationTests
         public void WhenQueryForIntValueLessThan_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AIntValue = 1}, domainFactory);
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {AIntValue = 2},
-                domainFactory);
+                CommandEntity.FromType(new TestEntity {AIntValue = 1}));
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {AIntValue = 2}));
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.LessThan, 2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -990,12 +1163,13 @@ namespace Storage.IntegrationTests
         public void WhenQueryForIntValueLessThanOrEqual_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AIntValue = 1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AIntValue = 1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AIntValue = 2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AIntValue = 2}));
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.LessThanEqualTo, 2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(2);
             results[0].Id.Should().Be(entity1.Id);
@@ -1006,12 +1180,13 @@ namespace Storage.IntegrationTests
         public void WhenQueryForIntValueNotEqual_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AIntValue = 1}, domainFactory);
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {AIntValue = 2},
-                domainFactory);
+                CommandEntity.FromType(new TestEntity {AIntValue = 1}));
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {AIntValue = 2}));
             var query = Query.From<TestEntity>().Where(e => e.AIntValue, ConditionOperator.NotEqualTo, 2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -1020,13 +1195,14 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryForNullableIntValue_ThenReturnsResult()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {ANullableIntValue = 1},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {ANullableIntValue = 1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableIntValue = 2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableIntValue = 2}));
             var query = Query.From<TestEntity>().Where(e => e.ANullableIntValue, ConditionOperator.EqualTo, 2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -1035,13 +1211,15 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryForNullableIntValueGreaterThan_ThenReturnsResult()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {ANullableIntValue = 1},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {ANullableIntValue = 1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableIntValue = 2}, domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.ANullableIntValue, ConditionOperator.GreaterThan, 1);
+                CommandEntity.FromType(new TestEntity {ANullableIntValue = 2}));
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableIntValue, ConditionOperator.GreaterThan, 1);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -1051,13 +1229,14 @@ namespace Storage.IntegrationTests
         public void WhenQueryForNullableIntValueGreaterThanOrEqualTo_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableIntValue = 1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableIntValue = 1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableIntValue = 2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableIntValue = 2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.ANullableIntValue, ConditionOperator.GreaterThanEqualTo, 1);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(2);
             results[0].Id.Should().Be(entity1.Id);
@@ -1068,12 +1247,14 @@ namespace Storage.IntegrationTests
         public void WhenQueryForNullableIntValueLessThan_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableIntValue = 1}, domainFactory);
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {ANullableIntValue = 2},
-                domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.ANullableIntValue, ConditionOperator.LessThan, 2);
+                CommandEntity.FromType(new TestEntity {ANullableIntValue = 1}));
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {ANullableIntValue = 2}));
+            var query =
+                Query.From<TestEntity>().Where(e => e.ANullableIntValue, ConditionOperator.LessThan, 2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -1083,12 +1264,14 @@ namespace Storage.IntegrationTests
         public void WhenQueryForNullableIntValueLessThanOrEqual_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableIntValue = 1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ANullableIntValue = 1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableIntValue = 2}, domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.ANullableIntValue, ConditionOperator.LessThanEqualTo, 2);
+                CommandEntity.FromType(new TestEntity {ANullableIntValue = 2}));
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableIntValue, ConditionOperator.LessThanEqualTo, 2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(2);
             results[0].Id.Should().Be(entity1.Id);
@@ -1099,12 +1282,14 @@ namespace Storage.IntegrationTests
         public void WhenQueryForNullableIntValueNotEqual_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableIntValue = 1}, domainFactory);
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {ANullableIntValue = 2},
-                domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.ANullableIntValue, ConditionOperator.NotEqualTo, 2);
+                CommandEntity.FromType(new TestEntity {ANullableIntValue = 1}));
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {ANullableIntValue = 2}));
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableIntValue, ConditionOperator.NotEqualTo, 2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -1113,13 +1298,14 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryForLongValue_ThenReturnsResult()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {ALongValue = 1},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {ALongValue = 1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ALongValue = 2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ALongValue = 2}));
             var query = Query.From<TestEntity>().Where(e => e.ALongValue, ConditionOperator.EqualTo, 2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -1128,13 +1314,15 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryForNullableLongValue_ThenReturnsResult()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {ANullableLongValue = 1},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {ANullableLongValue = 1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableLongValue = 2}, domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.ANullableLongValue, ConditionOperator.EqualTo, 2);
+                CommandEntity.FromType(new TestEntity {ANullableLongValue = 2}));
+            var query =
+                Query.From<TestEntity>().Where(e => e.ANullableLongValue, ConditionOperator.EqualTo, 2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -1143,13 +1331,14 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryForDoubleValue_ThenReturnsResult()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {ADoubleValue = 1.0},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {ADoubleValue = 1.0}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ADoubleValue = 2.0}, domainFactory);
+                CommandEntity.FromType(new TestEntity {ADoubleValue = 2.0}));
             var query = Query.From<TestEntity>().Where(e => e.ADoubleValue, ConditionOperator.EqualTo, 2.0);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -1158,13 +1347,15 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryForNullableDoubleValue_ThenReturnsResult()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {ANullableDoubleValue = 1.0},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {ANullableDoubleValue = 1.0}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableDoubleValue = 2.0}, domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.ANullableDoubleValue, ConditionOperator.EqualTo, 2.0);
+                CommandEntity.FromType(new TestEntity {ANullableDoubleValue = 2.0}));
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableDoubleValue, ConditionOperator.EqualTo, 2.0);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -1175,13 +1366,14 @@ namespace Storage.IntegrationTests
         {
             var guid1 = Guid.NewGuid();
             var guid2 = Guid.NewGuid();
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {AGuidValue = guid1},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {AGuidValue = guid1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AGuidValue = guid2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AGuidValue = guid2}));
             var query = Query.From<TestEntity>().Where(e => e.AGuidValue, ConditionOperator.EqualTo, guid2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -1192,13 +1384,15 @@ namespace Storage.IntegrationTests
         {
             var guid1 = Guid.NewGuid();
             var guid2 = Guid.NewGuid();
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {ANullableGuidValue = guid1},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {ANullableGuidValue = guid1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ANullableGuidValue = guid2}, domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.ANullableGuidValue, ConditionOperator.EqualTo, guid2);
+                CommandEntity.FromType(new TestEntity {ANullableGuidValue = guid2}));
+            var query = Query.From<TestEntity>()
+                .Where(e => e.ANullableGuidValue, ConditionOperator.EqualTo, guid2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -1209,13 +1403,15 @@ namespace Storage.IntegrationTests
         {
             var binary1 = new byte[] {0x01};
             var binary2 = new byte[] {0x01, 0x02};
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {ABinaryValue = binary1},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {ABinaryValue = binary1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {ABinaryValue = binary2}, domainFactory);
-            var query = Query.From<TestEntity>().Where(e => e.ABinaryValue, ConditionOperator.EqualTo, binary2);
+                CommandEntity.FromType(new TestEntity {ABinaryValue = binary2}));
+            var query =
+                Query.From<TestEntity>().Where(e => e.ABinaryValue, ConditionOperator.EqualTo, binary2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
@@ -1227,17 +1423,19 @@ namespace Storage.IntegrationTests
             var complex1 = new ComplexNonValueObject {APropertyValue = "avalue1"};
             var complex2 = new ComplexNonValueObject {APropertyValue = "avalue2"};
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AComplexNonValueObjectValue = complex1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AComplexNonValueObjectValue = complex1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AComplexNonValueObjectValue = complex2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AComplexNonValueObjectValue = complex2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexNonValueObjectValue, ConditionOperator.EqualTo, complex2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
-            results[0].AComplexNonValueObjectValue.ToString().Should().Be(complex2.ToString());
+            results[0].GetValueOrDefault<ComplexNonValueObject>(nameof(TestEntity.AComplexNonValueObjectValue))
+                .ToString().Should().Be(complex2.ToString());
         }
 
         [TestMethod]
@@ -1245,17 +1443,19 @@ namespace Storage.IntegrationTests
         {
             var complex1 = new ComplexNonValueObject {APropertyValue = "avalue1"};
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AComplexNonValueObjectValue = complex1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AComplexNonValueObjectValue = complex1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AComplexNonValueObjectValue = null}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AComplexNonValueObjectValue = null}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexNonValueObjectValue, ConditionOperator.EqualTo, null);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
-            results[0].AComplexNonValueObjectValue.Should().Be(null);
+            results[0].GetValueOrDefault<ComplexNonValueObject>(nameof(TestEntity.AComplexNonValueObjectValue))
+                .Should().BeNull();
         }
 
         [TestMethod]
@@ -1263,17 +1463,19 @@ namespace Storage.IntegrationTests
         {
             var complex1 = new ComplexNonValueObject {APropertyValue = "avalue1"};
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AComplexNonValueObjectValue = complex1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AComplexNonValueObjectValue = complex1}));
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AComplexNonValueObjectValue = null}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AComplexNonValueObjectValue = null}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexNonValueObjectValue, ConditionOperator.NotEqualTo, null);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
-            results[0].AComplexNonValueObjectValue.ToString().Should().Be(complex1.ToString());
+            results[0].GetValueOrDefault<ComplexNonValueObject>(nameof(TestEntity.AComplexNonValueObjectValue))
+                .ToString().Should().Be(complex1.ToString());
         }
 
         [TestMethod]
@@ -1282,17 +1484,19 @@ namespace Storage.IntegrationTests
             var complex1 = ComplexValueObject.Create("avalue1", 25, true);
             var complex2 = ComplexValueObject.Create("avalue2", 50, false);
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AComplexValueObjectValue = complex1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AComplexValueObjectValue = complex1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AComplexValueObjectValue = complex2}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AComplexValueObjectValue = complex2}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexValueObjectValue, ConditionOperator.EqualTo, complex2);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
-            results[0].AComplexValueObjectValue.Should().Be(complex2);
+            results[0].GetValueOrDefault<ComplexValueObject>(nameof(TestEntity.AComplexValueObjectValue),
+                this.domainFactory).Should().BeEquivalentTo(complex2);
         }
 
         [TestMethod]
@@ -1300,17 +1504,19 @@ namespace Storage.IntegrationTests
         {
             var complex1 = ComplexValueObject.Create("avalue1", 25, true);
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AComplexValueObjectValue = complex1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AComplexValueObjectValue = complex1}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AComplexValueObjectValue = null}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AComplexValueObjectValue = null}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexValueObjectValue, ConditionOperator.EqualTo, null);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity2.Id);
-            results[0].AComplexValueObjectValue.Should().Be(null);
+            results[0].GetValueOrDefault<ComplexValueObject>(nameof(TestEntity.AComplexValueObjectValue),
+                this.domainFactory).Should().BeNull();
         }
 
         [TestMethod]
@@ -1318,23 +1524,25 @@ namespace Storage.IntegrationTests
         {
             var complex1 = ComplexValueObject.Create("avalue1", 25, true);
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AComplexValueObjectValue = complex1}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AComplexValueObjectValue = complex1}));
             this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AComplexValueObjectValue = null}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AComplexValueObjectValue = null}));
             var query = Query.From<TestEntity>()
                 .Where(e => e.AComplexValueObjectValue, ConditionOperator.NotEqualTo, null);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
-            results[0].AComplexValueObjectValue.Should().Be(complex1);
+            results[0].GetValueOrDefault<ComplexValueObject>(nameof(TestEntity.AComplexValueObjectValue),
+                this.domainFactory).Should().BeEquivalentTo(complex1);
         }
 
         [TestMethod]
         public void WhenQueryAndNoSelects_ThenReturnsResultWithAllPropertiesPopulated()
         {
-            var entity = new TestEntity
+            var entity = CommandEntity.FromType(new TestEntity
             {
                 ABinaryValue = new byte[] {0x01},
                 ABooleanValue = true,
@@ -1350,34 +1558,39 @@ namespace Storage.IntegrationTests
                     APropertyValue = "avalue"
                 },
                 AComplexValueObjectValue = ComplexValueObject.Create("avalue", 25, true)
-            };
+            });
 
-            this.repo.Repository.Add(this.repo.ContainerName, entity, domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName, entity);
             var query = Query.From<TestEntity>().WhereAll();
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             var result = results[0];
             result.Id.Should().Be(entity.Id);
-            result.ABinaryValue.SequenceEqual(new byte[] {0x01}).Should().BeTrue();
-            result.ABooleanValue.Should().Be(true);
-            result.AGuidValue.Should().Be(Guid.Empty);
-            result.AIntValue.Should().Be(1);
-            result.ALongValue.Should().Be(2);
-            result.ADoubleValue.Should().Be(0.1);
-            result.AStringValue.Should().Be("astringvalue");
-            result.ADateTimeUtcValue.Should().Be(DateTime.Today.ToUniversalTime());
-            result.ADateTimeOffsetValue.Should().Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
-            result.AComplexNonValueObjectValue.ToJson().Should()
-                .Be(new ComplexNonValueObject {APropertyValue = "avalue"}.ToJson());
-            result.AComplexValueObjectValue.Should().Be(ComplexValueObject.Create("avalue", 25, true));
+            result.GetValueOrDefault<byte[]>(nameof(TestEntity.ABinaryValue)).SequenceEqual(new byte[] {0x01})
+                .Should().BeTrue();
+            result.GetValueOrDefault<bool>(nameof(TestEntity.ABooleanValue)).Should().Be(true);
+            result.GetValueOrDefault<Guid>(nameof(TestEntity.AGuidValue)).Should().Be(Guid.Empty);
+            result.GetValueOrDefault<int>(nameof(TestEntity.AIntValue)).Should().Be(1);
+            result.GetValueOrDefault<long>(nameof(TestEntity.ALongValue)).Should().Be(2);
+            result.GetValueOrDefault<double>(nameof(TestEntity.ADoubleValue)).Should().Be(0.1);
+            result.GetValueOrDefault<string>(nameof(TestEntity.AStringValue)).Should().Be("astringvalue");
+            result.GetValueOrDefault<DateTime>(nameof(TestEntity.ADateTimeUtcValue)).Should()
+                .Be(DateTime.Today.ToUniversalTime());
+            result.GetValueOrDefault<DateTimeOffset>(nameof(TestEntity.ADateTimeOffsetValue)).Should()
+                .Be(DateTimeOffset.UnixEpoch.ToUniversalTime());
+            result.GetValueOrDefault<ComplexNonValueObject>(nameof(TestEntity.AComplexNonValueObjectValue))
+                .ToString().Should().Be(new ComplexNonValueObject {APropertyValue = "avalue"}.ToString());
+            result.GetValueOrDefault<ComplexValueObject>(nameof(TestEntity.AComplexValueObjectValue),
+                this.domainFactory).Should().BeEquivalentTo(ComplexValueObject.Create("avalue", 25, true));
         }
 
         [TestMethod]
         public void WhenQueryAndSelect_ThenReturnsResultWithOnlySelectedPropertiesPopulated()
         {
-            var entity = new TestEntity
+            var entity = CommandEntity.FromType(new TestEntity
             {
                 ABinaryValue = new byte[] {0x01},
                 ABooleanValue = true,
@@ -1393,40 +1606,47 @@ namespace Storage.IntegrationTests
                     APropertyValue = "avalue"
                 },
                 AComplexValueObjectValue = ComplexValueObject.Create("avalue", 25, true)
-            };
+            });
 
-            this.repo.Repository.Add(this.repo.ContainerName, entity, domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName, entity);
             var query = Query.From<TestEntity>().WhereAll()
                 .Select(e => e.ABinaryValue);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             var result = results[0];
             result.Id.Should().Be(entity.Id);
-            result.ABinaryValue.SequenceEqual(new byte[] {0x01}).Should().BeTrue();
-            result.ABooleanValue.Should().Be(false);
-            result.AGuidValue.Should().Be(Guid.Empty);
-            result.AIntValue.Should().Be(0);
-            result.ALongValue.Should().Be(0);
-            result.ADoubleValue.Should().Be(0);
-            result.AStringValue.Should().Be(null);
-            result.ADateTimeUtcValue.Should().Be(DateTime.MinValue);
-            result.ADateTimeOffsetValue.Should().Be(DateTimeOffset.MinValue);
-            result.AComplexNonValueObjectValue.Should().Be(null);
-            result.AComplexValueObjectValue.Should().Be(null);
+            result.GetValueOrDefault<byte[]>(nameof(TestEntity.ABinaryValue)).SequenceEqual(new byte[] {0x01})
+                .Should().BeTrue();
+            result.GetValueOrDefault<bool>(nameof(TestEntity.ABooleanValue)).Should().Be(false);
+            result.GetValueOrDefault<Guid>(nameof(TestEntity.AGuidValue)).Should().Be(Guid.Empty);
+            result.GetValueOrDefault<int>(nameof(TestEntity.AIntValue)).Should().Be(0);
+            result.GetValueOrDefault<long>(nameof(TestEntity.ALongValue)).Should().Be(0);
+            result.GetValueOrDefault<double>(nameof(TestEntity.ADoubleValue)).Should().Be(0);
+            result.GetValueOrDefault<string>(nameof(TestEntity.AStringValue)).Should().Be(null);
+            result.GetValueOrDefault<DateTime>(nameof(TestEntity.ADateTimeUtcValue)).Should()
+                .Be(DateTime.MinValue);
+            result.GetValueOrDefault<DateTimeOffset>(nameof(TestEntity.ADateTimeOffsetValue)).Should()
+                .Be(DateTimeOffset.MinValue);
+            result.GetValueOrDefault<ComplexNonValueObject>(nameof(TestEntity.AComplexNonValueObjectValue))
+                .Should().BeNull();
+            result.GetValueOrDefault<ComplexValueObject>(nameof(TestEntity.AComplexValueObjectValue),
+                this.domainFactory).Should().BeNull();
         }
 
         [TestMethod]
         public void WhenQueryWithInnerJoinAndOtherCollectionNotExists_ThenReturnsNoResults()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {AStringValue = "avalue1"},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue1"}));
             var query = Query.From<TestEntity>()
-                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue)
+                .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
                 .WhereAll();
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(0);
         }
@@ -1435,18 +1655,19 @@ namespace Storage.IntegrationTests
         public void WhenQueryWithInnerJoinOnOtherCollection_ThenReturnsOnlyMatchedResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AStringValue = "avalue1"}, domainFactory);
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {AStringValue = "avalue2"},
-                domainFactory);
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue1"}));
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue2"}));
             this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
-                new FirstJoiningTestEntity {AStringValue = "avalue1"}, domainFactory);
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue1"}));
             this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
-                new FirstJoiningTestEntity {AStringValue = "avalue3"}, domainFactory);
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue3"}));
             var query = Query.From<TestEntity>()
-                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue)
+                .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
                 .WhereAll();
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -1456,12 +1677,13 @@ namespace Storage.IntegrationTests
         public void WhenQueryWithLeftJoinAndOtherCollectionNotExists_ThenReturnsAllPrimaryResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AStringValue = "avalue1"}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue1"}));
             var query = Query.From<TestEntity>()
-                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
+                .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
                 .WhereAll();
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -1471,20 +1693,21 @@ namespace Storage.IntegrationTests
         public void WhenQueryWithLeftJoinOnOtherCollection_ThenReturnsAllPrimaryResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AStringValue = "avalue1"}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue1"}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AStringValue = "avalue2"}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue2"}));
             var entity3 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AStringValue = "avalue3"}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue3"}));
             this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
-                new FirstJoiningTestEntity {AStringValue = "avalue1"}, domainFactory);
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue1"}));
             this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
-                new FirstJoiningTestEntity {AStringValue = "avalue5"}, domainFactory);
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue5"}));
             var query = Query.From<TestEntity>()
-                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
+                .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
                 .WhereAll();
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(3);
             results[0].Id.Should().Be(entity1.Id);
@@ -1495,14 +1718,15 @@ namespace Storage.IntegrationTests
         [TestMethod]
         public void WhenQueryWithSelectFromInnerJoinAndOtherCollectionNotExists_ThenReturnsNoResults()
         {
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {AStringValue = "avalue1"},
-                domainFactory);
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue1"}));
             var query = Query.From<TestEntity>()
-                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue)
+                .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
                 .WhereAll()
-                .SelectFromJoin<FirstJoiningTestEntity, int>(e => e.AIntValue, je => je.AIntValue);
+                .SelectFromJoin<FirstJoiningTestQueryableEntity, int>(e => e.AIntValue, je => je.AIntValue);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(0);
         }
@@ -1511,114 +1735,120 @@ namespace Storage.IntegrationTests
         public void WhenQueryWithSelectFromInnerJoinOnOtherCollection_ThenReturnsAggregatedResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AStringValue = "avalue1", AIntValue = 7}, domainFactory);
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {AStringValue = "avalue2"},
-                domainFactory);
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue1", AIntValue = 7}));
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue2"}));
             this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
-                new FirstJoiningTestEntity
-                    {AStringValue = "avalue1", AIntValue = 9}, domainFactory);
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity
+                    {AStringValue = "avalue1", AIntValue = 9}));
             this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
-                new FirstJoiningTestEntity {AStringValue = "avalue3"}, domainFactory);
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue3"}));
             var query = Query.From<TestEntity>()
-                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue)
+                .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
                 .WhereAll()
-                .SelectFromJoin<FirstJoiningTestEntity, int>(e => e.AIntValue, je => je.AIntValue);
+                .SelectFromJoin<FirstJoiningTestQueryableEntity, int>(e => e.AIntValue, je => je.AIntValue);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
-            results[0].AIntValue.Should().Be(9);
+            results[0].GetValueOrDefault<int>(nameof(TestEntity.AIntValue)).Should().Be(9);
+            results[0].GetValueOrDefault<bool>(nameof(TestEntity.ABooleanValue)).Should().Be(false);
         }
 
         [TestMethod]
         public void WhenQueryWithSelectFromLeftJoinAndOtherCollectionNotExists_ThenReturnsUnAggregatedResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AStringValue = "avalue1", AIntValue = 7}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue1", AIntValue = 7}));
             var query = Query.From<TestEntity>()
-                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
+                .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
                 .WhereAll()
-                .SelectFromJoin<FirstJoiningTestEntity, int>(e => e.AIntValue, je => je.AIntValue);
+                .SelectFromJoin<FirstJoiningTestQueryableEntity, int>(e => e.AIntValue, je => je.AIntValue);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
-            results[0].AIntValue.Should().Be(7);
+            results[0].GetValueOrDefault<int>(nameof(TestEntity.AIntValue)).Should().Be(7);
         }
 
         [TestMethod]
         public void WhenQueryWithSelectFromLeftJoinOnOtherCollection_ThenReturnsPartiallyAggregatedResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AStringValue = "avalue1", AIntValue = 7}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue1", AIntValue = 7}));
             var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AStringValue = "avalue2", AIntValue = 7}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue2", AIntValue = 7}));
             var entity3 = this.repo.Repository.Add(this.repo.ContainerName,
-                new TestEntity {AStringValue = "avalue3", AIntValue = 7}, domainFactory);
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue3", AIntValue = 7}));
             this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
-                new FirstJoiningTestEntity
-                    {AStringValue = "avalue1", AIntValue = 9}, domainFactory);
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity
+                    {AStringValue = "avalue1", AIntValue = 9}));
             this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
-                new FirstJoiningTestEntity {AStringValue = "avalue5"}, domainFactory);
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue5"}));
             var query = Query.From<TestEntity>()
-                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
+                .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
                 .WhereAll()
-                .SelectFromJoin<FirstJoiningTestEntity, int>(e => e.AIntValue, je => je.AIntValue);
+                .SelectFromJoin<FirstJoiningTestQueryableEntity, int>(e => e.AIntValue, je => je.AIntValue);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(3);
             results[0].Id.Should().Be(entity1.Id);
-            results[0].AIntValue.Should().Be(9);
+            results[0].GetValueOrDefault<int>(nameof(TestEntity.AIntValue)).Should().Be(9);
             results[1].Id.Should().Be(entity2.Id);
-            results[1].AIntValue.Should().Be(7);
+            results[1].GetValueOrDefault<int>(nameof(TestEntity.AIntValue)).Should().Be(7);
             results[2].Id.Should().Be(entity3.Id);
-            results[2].AIntValue.Should().Be(7);
+            results[2].GetValueOrDefault<int>(nameof(TestEntity.AIntValue)).Should().Be(7);
         }
 
         [TestMethod]
         public void WhenQueryWithSelectFromInnerJoinOnMultipleOtherCollections_ThenReturnsAggregatedResults()
         {
-            var entity1 = this.repo.Repository.Add(this.repo.ContainerName, new TestEntity
-                {AStringValue = "avalue1", AIntValue = 7, ALongValue = 7}, domainFactory);
-            this.repo.Repository.Add(this.repo.ContainerName, new TestEntity {AStringValue = "avalue2"},
-                domainFactory);
+            var entity1 = this.repo.Repository.Add(this.repo.ContainerName, CommandEntity.FromType(new TestEntity
+                {AStringValue = "avalue1", AIntValue = 7, ALongValue = 7}));
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestEntity {AStringValue = "avalue2"}));
             this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
-                new FirstJoiningTestEntity
-                    {AStringValue = "avalue1", AIntValue = 9}, domainFactory);
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity
+                    {AStringValue = "avalue1", AIntValue = 9}));
             this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
-                new FirstJoiningTestEntity {AStringValue = "avalue3"}, domainFactory);
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue3"}));
             this.secondJoiningRepo.Repository.Add(this.secondJoiningRepo.ContainerName,
-                new SecondJoiningTestEntity
-                    {AStringValue = "avalue1", AIntValue = 9, ALongValue = 8}, domainFactory);
+                CommandEntity.FromType(new SecondJoiningTestQueryableEntity
+                    {AStringValue = "avalue1", AIntValue = 9, ALongValue = 8}));
             this.secondJoiningRepo.Repository.Add(this.secondJoiningRepo.ContainerName,
-                new SecondJoiningTestEntity {AStringValue = "avalue3"}, domainFactory);
+                CommandEntity.FromType(new SecondJoiningTestQueryableEntity {AStringValue = "avalue3"}));
             var query = Query.From<TestEntity>()
-                .Join<FirstJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue)
-                .AndJoin<SecondJoiningTestEntity, string>(e => e.AStringValue, j => j.AStringValue)
+                .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
+                .AndJoin<SecondJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
                 .WhereAll()
-                .SelectFromJoin<FirstJoiningTestEntity, int>(e => e.AIntValue, je => je.AIntValue)
-                .SelectFromJoin<SecondJoiningTestEntity, long>(e => e.ALongValue, je => je.ALongValue);
+                .SelectFromJoin<FirstJoiningTestQueryableEntity, int>(e => e.AIntValue, je => je.AIntValue)
+                .SelectFromJoin<SecondJoiningTestQueryableEntity, long>(e => e.ALongValue, je => je.ALongValue);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
-            results[0].AIntValue.Should().Be(9);
-            results[0].ALongValue.Should().Be(8);
+            results[0].GetValueOrDefault<int>(nameof(TestEntity.AIntValue)).Should().Be(9);
+            results[0].GetValueOrDefault<long>(nameof(TestEntity.ALongValue)).Should().Be(8);
         }
 
         [TestMethod]
-        public void WhenQueryAndNoOrderBy_ThenReturnsResultsSortedByDateCreatedAscending()
+        public void WhenQueryAndNoOrderBy_ThenReturnsResultsSortedByLastPersistedAtUtcAscending()
         {
             var entities = CreateMultipleEntities(100);
 
             var query = Query.From<TestEntity>()
                 .WhereAll();
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             VerifyOrderedResults(results, entities);
         }
@@ -1634,7 +1864,8 @@ namespace Storage.IntegrationTests
                 .Select(e => e.Id)
                 .OrderBy(e => e.AStringValue);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             VerifyOrderedResults(results, entities);
         }
@@ -1649,7 +1880,8 @@ namespace Storage.IntegrationTests
                 .WhereAll()
                 .OrderBy(e => e.AStringValue);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             VerifyOrderedResultsInReverse(results, entities);
         }
@@ -1664,7 +1896,8 @@ namespace Storage.IntegrationTests
                 .WhereAll()
                 .OrderBy(e => e.AStringValue, OrderDirection.Descending);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             VerifyOrderedResultsInReverse(results, entities);
         }
@@ -1678,7 +1911,8 @@ namespace Storage.IntegrationTests
             var query = Query.From<TestEntity>()
                 .WhereAll();
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             VerifyOrderedResults(results, entities);
         }
@@ -1692,7 +1926,8 @@ namespace Storage.IntegrationTests
                 .WhereAll()
                 .Take(0);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(0);
         }
@@ -1707,7 +1942,8 @@ namespace Storage.IntegrationTests
                 .WhereAll()
                 .Take(10);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             VerifyOrderedResults(results, entities, 0, 10);
         }
@@ -1722,7 +1958,8 @@ namespace Storage.IntegrationTests
                 .WhereAll()
                 .Take(100);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             VerifyOrderedResults(results, entities, 0, 10);
         }
@@ -1738,7 +1975,8 @@ namespace Storage.IntegrationTests
                 .OrderBy(e => e.AStringValue, OrderDirection.Descending)
                 .Take(10);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             VerifyOrderedResultsInReverse(results, entities, 0, 10);
         }
@@ -1754,7 +1992,8 @@ namespace Storage.IntegrationTests
                 .OrderBy(e => e.AStringValue, OrderDirection.Descending)
                 .Take(10);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             VerifyOrderedResultsInReverse(results, entities, 0, 10);
         }
@@ -1771,7 +2010,8 @@ namespace Storage.IntegrationTests
                 .Skip(10)
                 .Take(10);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             VerifyOrderedResultsInReverse(results, entities, 10, 10);
         }
@@ -1787,14 +2027,15 @@ namespace Storage.IntegrationTests
                 .Skip(100)
                 .Take(10);
 
-            var results = this.repo.Repository.Query(this.repo.ContainerName, query, domainFactory);
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestEntity>());
 
             results.Count.Should().Be(0);
         }
 
         private List<Identifier> CreateMultipleEntities(int count, Action<int, TestEntity> factory = null)
         {
-            static void IntroduceTimeDelayForSortingDates()
+            static void WaitSomeTimeToIntroduceTimeDelayForSortingDates()
             {
                 Thread.Sleep(20);
             }
@@ -1804,22 +2045,22 @@ namespace Storage.IntegrationTests
             {
                 var entity = new TestEntity();
                 factory?.Invoke(counter, entity);
-                this.repo.Repository.Add(this.repo.ContainerName, entity, domainFactory);
+                this.repo.Repository.Add(this.repo.ContainerName, CommandEntity.FromType(entity));
                 createdIdentifiers.Add(entity.Id);
-                IntroduceTimeDelayForSortingDates();
+                WaitSomeTimeToIntroduceTimeDelayForSortingDates();
             }, count);
 
             return createdIdentifiers;
         }
 
-        private static void VerifyOrderedResultsInReverse(List<TestEntity> results, List<Identifier> entities,
+        private static void VerifyOrderedResultsInReverse(List<QueryEntity> results, List<Identifier> entities,
             int? offset = null, int? limit = null)
         {
             entities.Reverse();
             VerifyOrderedResults(results, entities, offset, limit);
         }
 
-        private static void VerifyOrderedResults(List<TestEntity> results, IReadOnlyList<Identifier> entities,
+        private static void VerifyOrderedResults(List<QueryEntity> results, IReadOnlyList<Identifier> entities,
             int? offset = null, int? limit = null)
         {
             var expectedResultCount = limit ?? entities.Count;

@@ -199,7 +199,8 @@ namespace Domain.Interfaces.UnitTests
 
         private static EntityEvent CreateEventEntity(string id, long version)
         {
-            var entity = new EntityEvent {Id = id.ToIdentifier()};
+            var entity = new EntityEvent();
+            entity.SetIdentifier(new FixedIdentifierFactory(id));
             entity.SetEvent("astreamname", "anentitytype", version, new TestEvent {APropertyValue = "avalue"});
 
             return entity;

@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using QueryAny;
 using Storage.Interfaces;
+using Storage.UnitTests.ReadModels;
 
 namespace Storage.UnitTests
 {
@@ -39,9 +40,10 @@ namespace Storage.UnitTests
         public void WhenLoadAndNoEventsFound_ThenReturnsNewEntity()
         {
             var aggregate = new TestAggregateRoot(null);
-            this.repository.Setup(repo => repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<EventEntity>>(),
-                    this.domainFactory.Object))
-                .Returns(new List<EventEntity>());
+            this.repository.Setup(repo =>
+                    repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<EntityEvent>>(),
+                        It.IsAny<RepositoryEntityMetadata>()))
+                .Returns(new List<QueryEntity>());
             this.domainFactory.Setup(df => df.RehydrateEntity(It.IsAny<Type>(), It.IsAny<Dictionary<string, object>>()))
                 .Returns(aggregate);
 
@@ -49,16 +51,15 @@ namespace Storage.UnitTests
 
             result.Should().Be(aggregate);
             result.LoadedChanges.Should().BeNull();
-            this.repository.Setup(repo => repo.Query("acontainername", It.Is<QueryClause<EventEntity>>(q =>
-                    q.Wheres[0].Condition.FieldName == nameof(EventEntity.StreamName)
-                    && q.Wheres[0].Condition.Value.As<string>() == "acontainername_anid"
-                ),
-                this.domainFactory.Object));
+            this.repository.Setup(repo => repo.Query("acontainername", It.Is<QueryClause<IQueryableEntity>>(q =>
+                q.Wheres[0].Condition.FieldName == nameof(EntityEvent.StreamName)
+                && q.Wheres[0].Condition.Value.As<string>() == "acontainername_anid"
+            ), It.IsAny<RepositoryEntityMetadata>()));
             this.domainFactory.Verify(df => df.RehydrateEntity(typeof(TestAggregateRoot),
                 It.Is<Dictionary<string, object>>(dic =>
                     dic.Count() == 2
-                    && dic[nameof(IIdentifiableEntity.Id)].As<Identifier>() == "anid"
-                    && dic[nameof(IPersistableEntity.LastPersistedAtUtc)] == null
+                    && dic[nameof(CommandEntity.Id)].As<Identifier>() == "anid"
+                    && dic[nameof(CommandEntity.LastPersistedAtUtc)] == null
                 )));
         }
 
@@ -67,34 +68,39 @@ namespace Storage.UnitTests
         {
             var lastPersisted = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(1));
             var aggregate = new TestAggregateRoot(null);
-            var events = new List<EventEntity>
+            var events = new List<EntityEvent>
             {
                 CreateEventEntity("aneventid1", 1, DateTime.MinValue),
                 CreateEventEntity("aneventid2", 2, DateTime.MinValue),
                 CreateEventEntity("aneventid3", 3, lastPersisted)
             };
-            this.repository.Setup(repo => repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<EventEntity>>(),
-                    this.domainFactory.Object))
-                .Returns(events);
+            var queryEntities = events.Select(evt => QueryEntity.FromType(evt)).ToList();
+            this.repository.Setup(repo =>
+                    repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<EntityEvent>>(),
+                        It.IsAny<RepositoryEntityMetadata>()))
+                .Returns(queryEntities);
             this.domainFactory.Setup(df => df.RehydrateEntity(It.IsAny<Type>(), It.IsAny<Dictionary<string, object>>()))
                 .Returns(aggregate);
+            this.domainFactory.Setup(df => df.RehydrateValueObject(typeof(Identifier), It.IsAny<string>()))
+                .Returns((Type type, string value) => value.ToIdentifier());
+            this.domainFactory.Setup(df => df.RehydrateValueObject(typeof(EventMetadata), It.IsAny<string>()))
+                .Returns((Type type, string value) => new EventMetadata(value));
 
             var result = this.commandStorage.Load("anid".ToIdentifier());
 
             result.Should().Be(aggregate);
             result.LoadedChanges.Should().BeEquivalentTo(events);
-            this.repository.Setup(repo => repo.Query("acontainername", It.Is<QueryClause<EventEntity>>(q =>
-                    q.Wheres[0].Condition.FieldName == nameof(EventEntity.StreamName)
-                    && q.Wheres[0].Condition.Value.As<string>() == "acontainername_anid"
-                    && q.ResultOptions.OrderBy.By == nameof(IPersistableEntity.LastPersistedAtUtc)
-                    && q.ResultOptions.OrderBy.Direction == OrderDirection.Ascending
-                ),
-                this.domainFactory.Object));
+            this.repository.Setup(repo => repo.Query("acontainername", It.Is<QueryClause<IQueryableEntity>>(q =>
+                q.Wheres[0].Condition.FieldName == nameof(EntityEvent.StreamName)
+                && q.Wheres[0].Condition.Value.As<string>() == "acontainername_anid"
+                && q.ResultOptions.OrderBy.By == nameof(IPersistableEntity.LastPersistedAtUtc)
+                && q.ResultOptions.OrderBy.Direction == OrderDirection.Ascending
+            ), It.IsAny<RepositoryEntityMetadata>()));
             this.domainFactory.Verify(df => df.RehydrateEntity(typeof(TestAggregateRoot),
                 It.Is<Dictionary<string, object>>(dic =>
                     dic.Count() == 2
-                    && dic[nameof(IIdentifiableEntity.Id)].As<Identifier>() == "anid"
-                    && dic[nameof(IPersistableEntity.LastPersistedAtUtc)].As<DateTime?>() == lastPersisted
+                    && dic[nameof(CommandEntity.Id)].As<Identifier>() == "anid"
+                    && dic[nameof(CommandEntity.LastPersistedAtUtc)].As<DateTime?>() == lastPersisted
                 )));
         }
 
@@ -121,7 +127,7 @@ namespace Storage.UnitTests
         {
             var aggregate = new TestAggregateRoot("anid".ToIdentifier())
             {
-                Events = new List<EventEntity>
+                Events = new List<EntityEvent>
                 {
                     CreateEventEntity("aneventid1", 1, DateTime.UtcNow),
                     CreateEventEntity("aneventid2", 2, DateTime.UtcNow),
@@ -132,7 +138,7 @@ namespace Storage.UnitTests
             this.commandStorage.Save(aggregate);
 
             this.repository.Verify(
-                repo => repo.Add("acontainername_Events", It.IsAny<EventEntity>(), It.IsAny<IDomainFactory>()),
+                repo => repo.Add("acontainername_Events", It.IsAny<CommandEntity>()),
                 Times.Exactly(3));
             aggregate.ClearedChanges.Should().BeTrue();
             this.stateChangedEvent.Events[0].Id.Should().Be("aneventid1");
@@ -140,19 +146,12 @@ namespace Storage.UnitTests
             this.stateChangedEvent.Events[2].Id.Should().Be("aneventid3");
         }
 
-        private static EventEntity CreateEventEntity(string id, long version, DateTime lastPersisted)
+        private static EntityEvent CreateEventEntity(string id, long version, DateTime lastPersisted)
         {
-            var entity = new EventEntity(new FixedIdentifierFactory(id));
-            entity.Rehydrate(new Dictionary<string, object>
-            {
-                {nameof(IIdentifiableEntity.Id), id.ToIdentifier()},
-                {nameof(IPersistableEntity.LastPersistedAtUtc), lastPersisted},
-                {nameof(EventEntity.StreamName), "astreamname"},
-                {nameof(EventEntity.Version), version},
-                {nameof(EventEntity.EventType), "atypename"},
-                {nameof(EventEntity.Data), "somejson"}
-            });
-
+            var entity = new EntityEvent();
+            entity.SetIdentifier(new FixedIdentifierFactory(id));
+            entity.SetEvent("astreamname", "anentitytype", version, new TestEvent());
+            entity.LastPersistedAtUtc = lastPersisted;
             return entity;
         }
     }

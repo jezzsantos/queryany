@@ -11,14 +11,14 @@ namespace Storage.UnitTests
         public TestAggregateRoot(Identifier identifier)
         {
             Id = identifier;
-            Events = new List<EventEntity>();
+            Events = new List<EntityEvent>();
         }
 
-        public List<EventEntity> Events { get; set; }
+        public List<EntityEvent> Events { get; set; }
 
         public bool ClearedChanges { get; private set; }
 
-        public IEnumerable<EventEntity> LoadedChanges { get; private set; }
+        public IEnumerable<EntityEvent> LoadedChanges { get; private set; }
 
         public Identifier Id { get; }
 
@@ -37,7 +37,7 @@ namespace Storage.UnitTests
 
         public int ChangeVersion { get; set; }
 
-        public List<EventEntity> GetChanges()
+        public List<EntityEvent> GetChanges()
         {
             return Events;
         }
@@ -52,7 +52,7 @@ namespace Storage.UnitTests
             throw new NotImplementedException();
         }
 
-        public void LoadChanges(IEnumerable<EventEntity> history)
+        public void LoadChanges(IEnumerable<EntityEvent> history)
         {
             LoadedChanges = history;
         }

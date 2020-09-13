@@ -41,18 +41,24 @@ namespace Storage.Azure
 
         public int MaxQueryResults => TableConstants.TableServiceMaxResults;
 
-        public TEntity Add<TEntity>(string containerName, TEntity entity, IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        public CommandEntity Add(string containerName, CommandEntity entity)
+
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            entity.GuardAgainstNull(nameof(entity));
+
             var table = EnsureTable(containerName);
 
             SafeExecute(table, () => { table.Execute(TableOperation.Insert(entity.ToTableEntity(this.options))); });
 
-            return Retrieve<TEntity>(containerName, entity.Id, domainFactory);
+            return Retrieve(containerName, entity.Id, entity.Metadata);
         }
 
-        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity
+        public void Remove(string containerName, Identifier id)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            id.GuardAgainstNull(nameof(id));
+
             var table = EnsureTable(containerName);
 
             var tableEntity = RetrieveTableEntitySafe(table, id);
@@ -62,33 +68,40 @@ namespace Storage.Azure
             }
         }
 
-        public TEntity Retrieve<TEntity>(string containerName, Identifier id, IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        public CommandEntity Retrieve(string containerName, Identifier id, RepositoryEntityMetadata metadata)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            id.GuardAgainstNull(nameof(id));
+            metadata.GuardAgainstNull(nameof(metadata));
+
             var table = EnsureTable(containerName);
 
             var tableEntity = RetrieveTableEntitySafe(table, id);
 
             return tableEntity != null
-                ? tableEntity.FromTableEntity<TEntity>(this.options, domainFactory)
+                ? CommandEntity.FromCommandEntity(tableEntity.FromTableEntity(metadata, this.options), metadata)
                 : default;
         }
 
-        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity,
-            IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        public CommandEntity Replace(string containerName, Identifier id, CommandEntity entity)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            id.GuardAgainstNull(nameof(id));
+            entity.GuardAgainstNull(nameof(entity));
+
             var table = EnsureTable(containerName);
 
             var result = SafeExecute(table,
                     () => table.Execute(TableOperation.InsertOrReplace(entity.ToTableEntity(this.options))))
                 .Result as DynamicTableEntity;
 
-            return result.FromTableEntity<TEntity>(this.options, domainFactory);
+            return CommandEntity.FromCommandEntity(result.FromTableEntity(entity.Metadata, this.options), entity);
         }
 
         public long Count(string containerName)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+
             var table = EnsureTable(containerName);
 
             var query = new TableQuery()
@@ -101,25 +114,27 @@ namespace Storage.Azure
             return results.LongCount();
         }
 
-        public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query,
-            IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        public List<QueryEntity> Query<TQueryableEntity>(string containerName, QueryClause<TQueryableEntity> query,
+            RepositoryEntityMetadata metadata)
+            where TQueryableEntity : IQueryableEntity
         {
             if (query == null || query.Options.IsEmpty)
             {
-                return new List<TEntity>();
+                return new List<QueryEntity>();
             }
 
             var table = EnsureTable(containerName);
 
-            var primaryEntities = QueryPrimaryEntities(table, query, domainFactory);
+            var primaryEntities = QueryPrimaryEntities(table, query, metadata);
 
             var joinedTables = query.JoinedEntities
                 .Where(je => je.Join != null)
                 .ToDictionary(je => je.EntityName, je => new
                 {
                     Collection = QueryJoiningTable(je,
-                        primaryEntities.Select(e => e.ToTableEntity(this.options)[je.Join.Left.JoinedFieldName])),
+                        primaryEntities.Select(e =>
+                            CommandEntity.FromProperties(e.Properties, metadata).ToTableEntity(this.options)[
+                                je.Join.Left.JoinedFieldName])),
                     JoinedEntity = je
                 });
 
@@ -129,21 +144,25 @@ namespace Storage.Azure
                 {
                     var joinedEntity = joinedTable.Value.JoinedEntity;
                     var join = joinedEntity.Join;
-                    var leftEntities = primaryEntities.ToDictionary(e => e.Id, e => e.Dehydrate());
-                    var rightEntities = joinedTable.Value.Collection.ToDictionary(e => e.RowKey.ToIdentifier(),
-                        e => e.FromTableEntity(join.Right.EntityType, this.options, domainFactory).Dehydrate());
+                    var leftEntities = primaryEntities.ToDictionary(e => e.Id.ToString(), e => e.Properties);
+                    var rightEntities = joinedTable.Value.Collection
+                        .ToDictionary(e => e.RowKey,
+                            e => e.FromTableEntity(RepositoryEntityMetadata.FromType(join.Right.EntityType),
+                                this.options));
 
                     primaryEntities = join
-                        .JoinResults<TEntity>(leftEntities, rightEntities, domainFactory,
+                        .JoinResults(leftEntities, rightEntities, metadata,
                             joinedEntity.Selects.ProjectSelectedJoinedProperties());
                 }
             }
 
-            return primaryEntities.CherryPickSelectedProperties(query, domainFactory);
+            return primaryEntities.CherryPickSelectedProperties(query, metadata);
         }
 
         public void DestroyAll(string containerName)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+
             var table = EnsureTable(containerName);
 
             // HACK: deleting the entire table takes far too long (only reliable in testing)
@@ -227,8 +246,9 @@ namespace Storage.Azure
             return new AzureTableStorageRepository(localEmulatorConnectionString);
         }
 
-        private List<TEntity> QueryPrimaryEntities<TEntity>(CloudTable table,
-            QueryClause<TEntity> query, IDomainFactory domainFactory) where TEntity : IPersistableEntity
+        private List<QueryEntity> QueryPrimaryEntities<TQueryableEntity>(CloudTable table,
+            QueryClause<TQueryableEntity> query, RepositoryEntityMetadata metadata)
+            where TQueryableEntity : IQueryableEntity
         {
             var filter = query.Wheres.ToAzureTableStorageWhereClause();
             var tableQuery = new TableQuery<DynamicTableEntity>()
@@ -245,16 +265,18 @@ namespace Storage.Azure
             var take = query.GetDefaultTake(this);
             if (take == 0)
             {
-                return new List<TEntity>();
+                return new List<QueryEntity>();
             }
 
             // HACK: AzureTableStorage does not support Skip, nor OrderBy, nor Distinct
             // HACK: so we have to fetch all data and do Skip, OrderBy in memory
             return SafeExecute(table, () => table.ExecuteQuery(tableQuery))
-                .Select(e => e.FromTableEntity<TEntity>(this.options, domainFactory))
-                .AsQueryable().OrderBy(query.ToDynamicLinqOrderByClause())
+                .ToDictionary(e => e.RowKey, e => e.FromTableEntity(metadata, this.options))
+                .AsQueryable()
+                .OrderBy(query.ToDynamicLinqOrderByClause())
                 .Skip(query.GetDefaultSkip())
                 .Take(take)
+                .Select(pe => QueryEntity.FromProperties(pe.Value, metadata))
                 .ToList();
         }
 
@@ -282,7 +304,7 @@ namespace Storage.Azure
             var selectedPropertyNames = joinedEntity.Selects
                 .Where(sel => sel.JoinedFieldName.HasValue())
                 .Select(j => j.JoinedFieldName)
-                .Concat(new[] {joinedEntity.Join.Right.JoinedFieldName, nameof(IPersistableEntity.Id)})
+                .Concat(new[] {joinedEntity.Join.Right.JoinedFieldName, nameof(QueryEntity.Id)})
                 .ToList();
 
             var filter = $"({TableConstants.PartitionKey} eq '{this.options.DefaultPartitionKey}') and ({query})";
@@ -415,43 +437,36 @@ namespace Storage.Azure
     // ReSharper disable once InconsistentNaming
     internal static class AzureTableStorageEntityExtensions
     {
-        public static DynamicTableEntity ToTableEntity<TEntity>(this TEntity entity,
+        public static DynamicTableEntity ToTableEntity(this CommandEntity entity,
             AzureTableStorageRepository.TableStorageApiOptions options)
-            where TEntity : IPersistableEntity
         {
             bool IsNotExcluded(string propertyName)
             {
-                var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id)};
+                var excludedPropertyNames = new[] {nameof(CommandEntity.Id)};
 
                 return !excludedPropertyNames.Contains(propertyName);
             }
 
-            var entityProperties = entity.Dehydrate()
+            var entityProperties = entity.Properties
                 .Where(pair => IsNotExcluded(pair.Key));
             var tableEntity = new DynamicTableEntity(options.DefaultPartitionKey, entity.Id)
             {
-                Properties = entityProperties.ToTableEntityProperties<TEntity>(options)
+                Properties = entityProperties.ToTableEntityProperties(entity.Metadata, options)
             };
 
-            tableEntity.Properties[nameof(IPersistableEntity.LastPersistedAtUtc)].DateTime = DateTime.UtcNow;
+            tableEntity.Properties[nameof(CommandEntity.LastPersistedAtUtc)].DateTime = DateTime.UtcNow;
 
             return tableEntity;
         }
 
-        private static Dictionary<string, EntityProperty> ToTableEntityProperties<TEntity>(
+        private static Dictionary<string, EntityProperty> ToTableEntityProperties(
             this IEnumerable<KeyValuePair<string, object>> entityProperties,
-            AzureTableStorageRepository.TableStorageApiOptions options) where TEntity : IPersistableEntity
+            RepositoryEntityMetadata metadata,
+            AzureTableStorageRepository.TableStorageApiOptions options)
         {
-            var propertyInfo = typeof(TEntity).GetProperties();
-
             return entityProperties
                 .ToDictionary(pair => pair.Key,
-                    pair =>
-                    {
-                        var targetPropertyType =
-                            propertyInfo.First(info => info.Name.EqualsOrdinal(pair.Key)).PropertyType;
-                        return ToTableEntityProperty(pair.Value, targetPropertyType, options);
-                    });
+                    pair => ToTableEntityProperty(pair.Value, metadata.GetPropertyType(pair.Key), options));
         }
 
         private static EntityProperty ToTableEntityProperty(object property, Type targetPropertyType,
@@ -508,15 +523,6 @@ namespace Storage.Azure
                     return EntityProperty.GeneratePropertyForByteArray((byte[]) property);
 
                 default:
-                    if (typeof(IPersistableValueObject).IsAssignableFrom(targetPropertyType))
-                    {
-                        if (property != null)
-                        {
-                            var valueObject = (IPersistableValueObject) property;
-                            return EntityProperty.GeneratePropertyForString(valueObject.Dehydrate());
-                        }
-                    }
-
                     var @string = property != null
                         ? property.ToString()
                         : AzureTableStorageRepository.NullValue;
@@ -530,33 +536,24 @@ namespace Storage.Azure
             return dateTime == options.MinimumAllowableUtcDateTime;
         }
 
-        public static TEntity FromTableEntity<TEntity>(this DynamicTableEntity tableEntity,
-            AzureTableStorageRepository.TableStorageApiOptions options, IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
-        {
-            return (TEntity) tableEntity.FromTableEntity(typeof(TEntity), options, domainFactory);
-        }
+        public static IReadOnlyDictionary<string, object> FromTableEntity(this DynamicTableEntity tableEntity,
+            RepositoryEntityMetadata metadata,
+            AzureTableStorageRepository.TableStorageApiOptions options)
 
-        public static IPersistableEntity FromTableEntity(this DynamicTableEntity tableEntity, Type entityType,
-            AzureTableStorageRepository.TableStorageApiOptions options, IDomainFactory domainFactory)
         {
-            var entityPropertyTypeInfo = entityType.GetProperties();
             var containerEntityProperties = tableEntity.Properties
                 .Where(pair =>
-                    entityPropertyTypeInfo.Any(prop => prop.Name.EqualsOrdinal(pair.Key)) &&
-                    pair.Value.PropertyAsObject != null)
+                    metadata.HasType(pair.Key) && pair.Value.PropertyAsObject != null)
                 .ToDictionary(pair => pair.Key,
-                    pair => pair.Value.FromTableEntityProperty(entityPropertyTypeInfo
-                        .First(prop => prop.Name.EqualsOrdinal(pair.Key)).PropertyType, domainFactory, options));
+                    pair => pair.Value.FromTableEntityProperty(metadata.GetPropertyType(pair.Key), options));
 
             var id = tableEntity.RowKey.ToIdentifier();
-            containerEntityProperties[nameof(IIdentifiableEntity.Id)] = id;
+            containerEntityProperties[nameof(CommandEntity.Id)] = id;
 
-            return containerEntityProperties.EntityFromContainerProperties(entityType, domainFactory);
+            return containerEntityProperties;
         }
 
         private static object FromTableEntityProperty(this EntityProperty property, Type targetPropertyType,
-            IDomainFactory domainFactory,
             AzureTableStorageRepository.TableStorageApiOptions options)
         {
             var value = property.PropertyAsObject;
@@ -566,11 +563,6 @@ namespace Storage.Azure
                     if (text.EqualsOrdinal(AzureTableStorageRepository.NullValue))
                     {
                         return null;
-                    }
-
-                    if (typeof(IPersistableValueObject).IsAssignableFrom(targetPropertyType))
-                    {
-                        return text.ValueObjectFromContainerProperty(targetPropertyType, domainFactory);
                     }
 
                     if (targetPropertyType.IsComplexStorageType())
@@ -693,7 +685,7 @@ namespace Storage.Azure
 
         private static string ToAzureTableStorageWhereClause(this WhereCondition condition)
         {
-            var fieldName = condition.FieldName.EqualsOrdinal(nameof(IPersistableEntity.Id))
+            var fieldName = condition.FieldName.EqualsOrdinal(nameof(QueryEntity.Id))
                 ? TableConstants.RowKey
                 : condition.FieldName;
             var conditionOperator = condition.Operator.ToAzureTableStorageWhereClause();

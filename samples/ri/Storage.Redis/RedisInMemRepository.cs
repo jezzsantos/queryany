@@ -8,7 +8,6 @@ using QueryAny.Primitives;
 using ServiceStack;
 using ServiceStack.Configuration;
 using ServiceStack.Redis;
-using StringExtensions = ServiceStack.StringExtensions;
 
 namespace Storage.Redis
 {
@@ -27,19 +26,25 @@ namespace Storage.Redis
 
         public int MaxQueryResults => 1000;
 
-        public TEntity Add<TEntity>(string containerName, TEntity entity, IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        public CommandEntity Add(string containerName, CommandEntity entity)
+
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            entity.GuardAgainstNull(nameof(entity));
+
             var client = EnsureClient();
 
             var key = CreateRowKey(containerName, entity);
             client.SetRangeInHash(key, entity.ToContainerEntity());
 
-            return Retrieve<TEntity>(containerName, entity.Id, domainFactory);
+            return Retrieve(containerName, entity.Id, entity.Metadata);
         }
 
-        public void Remove<TEntity>(string containerName, Identifier id) where TEntity : IPersistableEntity
+        public void Remove(string containerName, Identifier id)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            id.GuardAgainstNull(nameof(id));
+
             var client = EnsureClient();
 
             if (Exists(client, containerName, id))
@@ -48,20 +53,28 @@ namespace Storage.Redis
             }
         }
 
-        public TEntity Retrieve<TEntity>(string containerName, Identifier id, IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        public CommandEntity Retrieve(string containerName, Identifier id, RepositoryEntityMetadata metadata)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            id.GuardAgainstNull(nameof(id));
+            metadata.GuardAgainstNull(nameof(metadata));
+
             var client = EnsureClient();
 
             var rowKey = CreateRowKey(containerName, id);
 
-            return FromContainerEntity<TEntity>(client, rowKey, domainFactory);
+            var properties = FromContainerEntity(client, rowKey, metadata);
+            return properties == null
+                ? null
+                : CommandEntity.FromCommandEntity(properties, metadata);
         }
 
-        public TEntity Replace<TEntity>(string containerName, Identifier id, TEntity entity,
-            IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        public CommandEntity Replace(string containerName, Identifier id, CommandEntity entity)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            id.GuardAgainstNull(nameof(id));
+            entity.GuardAgainstNull(nameof(entity));
+
             var client = EnsureClient();
 
             var keyValues = entity.ToContainerEntity();
@@ -69,39 +82,41 @@ namespace Storage.Redis
             client.Remove(key);
             client.SetRangeInHash(key, keyValues);
 
-            return keyValues.FromContainerProperties<TEntity>(id, domainFactory);
+            return CommandEntity.FromCommandEntity(keyValues.FromContainerProperties(id, entity.Metadata), entity);
         }
 
         public long Count(string containerName)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+
             var client = EnsureClient();
 
             return GetRowKeys(client, containerName).Count;
         }
 
-        public List<TEntity> Query<TEntity>(string containerName, QueryClause<TEntity> query,
-            IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        public List<QueryEntity> Query<TQueryableEntity>(string containerName, QueryClause<TQueryableEntity> query,
+            RepositoryEntityMetadata metadata)
+            where TQueryableEntity : IQueryableEntity
         {
             if (query == null || query.Options.IsEmpty)
             {
-                return new List<TEntity>();
+                return new List<QueryEntity>();
             }
 
             var client = EnsureClient();
 
             if (!Exists(client, containerName))
             {
-                return new List<TEntity>();
+                return new List<QueryEntity>();
             }
 
-            var primaryEntities = QueryPrimaryEntities(client, containerName, query, domainFactory);
+            var primaryEntities = QueryPrimaryEntities(client, containerName, query, metadata);
 
             var joinedContainers = query.JoinedEntities
                 .Where(je => je.Join != null)
                 .ToDictionary(je => je.EntityName, je => new
                 {
-                    Collection = QueryJoiningContainer(client, je, domainFactory),
+                    Collection = QueryJoiningContainer(client, je),
                     JoinedEntity = je
                 });
 
@@ -112,21 +127,23 @@ namespace Storage.Redis
                     var joinedEntity = joinedContainer.Value.JoinedEntity;
                     var join = joinedEntity.Join;
                     var leftEntities = primaryEntities
-                        .ToDictionary(e => e.Id, e => e.Dehydrate());
+                        .ToDictionary(e => e.Id.ToString(), e => e.Properties);
                     var rightEntities = joinedContainer.Value.Collection
-                        .ToDictionary(e => e.Key.ToIdentifier(), e => e.Value.Dehydrate());
+                        .ToDictionary(e => e.Key, e => e.Value.Properties);
 
                     primaryEntities = join
-                        .JoinResults<TEntity>(leftEntities, rightEntities, domainFactory,
+                        .JoinResults(leftEntities, rightEntities, metadata,
                             joinedEntity.Selects.ProjectSelectedJoinedProperties());
                 }
             }
 
-            return primaryEntities.CherryPickSelectedProperties(query, domainFactory);
+            return primaryEntities.CherryPickSelectedProperties(query, metadata);
         }
 
         public void DestroyAll(string containerName)
         {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+
             var client = EnsureClient();
 
             var rowKeys = GetRowKeys(client, containerName);
@@ -142,14 +159,12 @@ namespace Storage.Redis
             return new RedisInMemRepository(localServerConnectionString);
         }
 
-        private List<TEntity> QueryPrimaryEntities<TEntity>(IRedisClient client, string containerName,
-            QueryClause<TEntity> query, IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        private List<QueryEntity> QueryPrimaryEntities<TQueryableEntity>(IRedisClient client, string containerName,
+            QueryClause<TQueryableEntity> query, RepositoryEntityMetadata metadata)
+            where TQueryableEntity : IQueryableEntity
         {
             var primaryEntities = GetRowKeys(client, containerName)
-                .Select(rowKey => FromContainerEntity<TEntity>(client, rowKey, domainFactory))
-                .OrderBy(e => e.LastPersistedAtUtc)
-                .ToList();
+                .ToDictionary(key => key, key => FromContainerEntity(client, key, metadata));
 
             var orderByExpression = query.ToDynamicLinqOrderByClause();
             var primaryEntitiesDynamic = primaryEntities.AsQueryable()
@@ -160,38 +175,38 @@ namespace Storage.Redis
             if (!query.Wheres.Any())
             {
                 return primaryEntitiesDynamic
+                    .Select(ped => QueryEntity.FromProperties(ped.Value, metadata))
                     .ToList();
             }
 
             var queryExpression = query.Wheres.ToDynamicLinqWhereClause();
-            primaryEntities = primaryEntitiesDynamic
+            return primaryEntitiesDynamic
                 .Where(queryExpression)
+                .Select(pe => QueryEntity.FromProperties(pe.Value, metadata))
                 .ToList();
-
-            return primaryEntities;
         }
 
-        private static Dictionary<string, IPersistableEntity> QueryJoiningContainer(IRedisClient client,
-            QueriedEntity joinedEntity, IDomainFactory domainFactory)
+        private static Dictionary<string, QueryEntity> QueryJoiningContainer(IRedisClient client,
+            QueriedEntity joinedEntity)
         {
             var containerName = joinedEntity.EntityName;
             if (!Exists(client, containerName))
             {
-                return new Dictionary<string, IPersistableEntity>();
+                return new Dictionary<string, QueryEntity>();
             }
 
+            var metadata = RepositoryEntityMetadata.FromType(joinedEntity.Join.Right.EntityType);
             return GetRowKeys(client, containerName)
                 .ToDictionary(rowKey => rowKey,
-                    rowKey => FromContainerEntity(client, rowKey, joinedEntity.Join.Right.EntityType, domainFactory));
+                    rowKey => QueryEntity.FromProperties(FromContainerEntity(client, rowKey, metadata), metadata));
         }
 
-        private static string CreateRowKey<TEntity>(string containerName, TEntity entity)
-            where TEntity : IPersistableEntity
+        private static string CreateRowKey(string containerName, CommandEntity entity)
         {
             return CreateRowKey(containerName, entity.Id);
         }
 
-        private static string CreateRowKey(string containerName, Identifier id)
+        private static string CreateRowKey(string containerName, string id)
         {
             return $"{CreateContainerKey(containerName)}{id}";
         }
@@ -211,9 +226,9 @@ namespace Storage.Redis
             return rowKey.Substring(rowKey.LastIndexOf(":", StringComparison.Ordinal) + 1);
         }
 
-        private static TEntity FromContainerEntity<TEntity>(IRedisClient client, string rowKey,
-            IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
+        private static IReadOnlyDictionary<string, object> FromContainerEntity(IRedisClient client,
+            string rowKey, RepositoryEntityMetadata metadata)
+
         {
             try
             {
@@ -225,28 +240,7 @@ namespace Storage.Redis
 
                 var id = GetEntityIdFromRowKey(rowKey);
 
-                return containerEntityProperties.FromContainerProperties<TEntity>(id, domainFactory);
-            }
-            catch (Exception)
-            {
-                return default;
-            }
-        }
-
-        private static IPersistableEntity FromContainerEntity(IRedisClient client,
-            string rowKey, Type entityType, IDomainFactory domainFactory)
-        {
-            try
-            {
-                var containerEntityProperties = client.GetAllEntriesFromHash(rowKey);
-                if (containerEntityProperties == null || containerEntityProperties.Count == 0)
-                {
-                    return default;
-                }
-
-                var id = GetEntityIdFromRowKey(rowKey);
-
-                return containerEntityProperties.FromContainerProperties(id, entityType, domainFactory);
+                return containerEntityProperties.FromContainerProperties(id, metadata);
             }
             catch (Exception)
             {
@@ -293,23 +287,21 @@ namespace Storage.Redis
 
     public static class RedisStorageEntityExtensions
     {
-        public static Dictionary<string, string> ToContainerEntity<TEntity>(this TEntity entity)
-            where TEntity : IPersistableEntity
+        public static Dictionary<string, string> ToContainerEntity(this CommandEntity entity)
         {
-            bool IsNotExcluded(string propertyName)
+            static bool IsNotExcluded(string propertyName)
             {
-                var excludedPropertyNames = new[] {nameof(IPersistableEntity.Id)};
+                var excludedPropertyNames = new[] {nameof(CommandEntity.Id)};
 
                 return !excludedPropertyNames.Contains(propertyName);
             }
 
-            var entityProperties = entity.Dehydrate()
+            var entityProperties = entity.Properties
                 .Where(pair => IsNotExcluded(pair.Key));
             var containerEntityProperties = new Dictionary<string, string>();
             foreach (var pair in entityProperties)
             {
                 string value;
-                var propertyType = pair.Value?.GetType();
                 switch (pair.Value)
                 {
                     case DateTime dateTime:
@@ -353,14 +345,6 @@ namespace Storage.Redis
                         break;
 
                     default:
-                        if (propertyType != null &&
-                            typeof(IPersistableValueObject).IsAssignableFrom(propertyType))
-                        {
-                            value = ((IPersistableValueObject) pair.Value).Dehydrate();
-
-                            break;
-                        }
-
                         value = pair.Value.ToString();
 
                         break;
@@ -369,40 +353,28 @@ namespace Storage.Redis
                 containerEntityProperties.Add(pair.Key, value);
             }
 
-            containerEntityProperties[nameof(IPersistableEntity.LastPersistedAtUtc)] = DateTime.UtcNow.ToIso8601();
+            containerEntityProperties[nameof(CommandEntity.LastPersistedAtUtc)] = DateTime.UtcNow.ToIso8601();
 
             return containerEntityProperties;
         }
 
-        public static TEntity FromContainerProperties<TEntity>(
-            this Dictionary<string, string> containerProperties, string entityId, IDomainFactory domainFactory)
-            where TEntity : IPersistableEntity
-        {
-            var targetType = typeof(TEntity);
-
-            return (TEntity) containerProperties.FromContainerProperties(entityId, targetType, domainFactory);
-        }
-
-        public static IPersistableEntity FromContainerProperties(
+        public static Dictionary<string, object> FromContainerProperties(
             this Dictionary<string, string> containerProperties, string id,
-            Type entityType,
-            IDomainFactory domainFactory)
+            RepositoryEntityMetadata metadata)
+
         {
-            var entityPropertyTypeInfo = entityType.GetProperties();
             var containerEntityProperties = containerProperties
                 .Where(pair =>
-                    entityPropertyTypeInfo.Any(prop => prop.Name.EqualsOrdinal(pair.Key)) && pair.Value != null)
+                    metadata.HasType(pair.Key) && pair.Value != null)
                 .ToDictionary(pair => pair.Key,
-                    pair => pair.Value.FromContainerProperty(entityPropertyTypeInfo.First(info =>
-                        StringExtensions.EqualsIgnoreCase(info.Name, pair.Key)).PropertyType, domainFactory));
+                    pair => pair.Value.FromContainerProperty(metadata.GetPropertyType(pair.Key)));
 
-            containerEntityProperties[nameof(IIdentifiableEntity.Id)] = id.ToIdentifier();
+            containerEntityProperties[nameof(CommandEntity.Id)] = id.ToIdentifier();
 
-            return containerEntityProperties.EntityFromContainerProperties(entityType, domainFactory);
+            return containerEntityProperties;
         }
 
-        private static object FromContainerProperty(this string propertyValue, Type targetPropertyType,
-            IDomainFactory domainFactory)
+        private static object FromContainerProperty(this string propertyValue, Type targetPropertyType)
         {
             if (propertyValue == null
                 || propertyValue == RedisInMemRepository.RedisHashNullToken)
@@ -448,14 +420,6 @@ namespace Storage.Redis
             if (targetPropertyType == typeof(byte[]))
             {
                 return Convert.FromBase64String(propertyValue);
-            }
-
-            if (typeof(IPersistableValueObject).IsAssignableFrom(targetPropertyType))
-            {
-                if (propertyValue.HasValue())
-                {
-                    return propertyValue.ValueObjectFromContainerProperty(targetPropertyType, domainFactory);
-                }
             }
 
             if (targetPropertyType.IsComplexStorageType())

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using Domain.Interfaces.Entities;
 using Newtonsoft.Json;
 using QueryAny;
 using QueryAny.Primitives;
@@ -12,32 +10,34 @@ namespace Storage
 {
     public static class RepositoryExtensions
     {
-        public static int GetDefaultSkip<TEntity>(this QueryClause<TEntity> query)
-            where TEntity : IPersistableEntity
+        public static int GetDefaultSkip<TQueryableEntity>(this QueryClause<TQueryableEntity> query)
+            where TQueryableEntity : IQueryableEntity
         {
             return query.ResultOptions.Offset != ResultOptions.DefaultOffset
                 ? query.ResultOptions.Offset
                 : 0;
         }
 
-        public static int GetDefaultTake<TEntity>(this QueryClause<TEntity> query, IRepository repository)
-            where TEntity : IPersistableEntity
+        public static int GetDefaultTake<TQueryableEntity>(this QueryClause<TQueryableEntity> query,
+            IRepository repository)
+            where TQueryableEntity : IQueryableEntity
         {
             return query.ResultOptions.Limit == ResultOptions.DefaultLimit
                 ? repository.MaxQueryResults
                 : query.ResultOptions.Limit;
         }
 
-        public static string GetDefaultOrdering<TEntity>(this QueryClause<TEntity> query)
-            where TEntity : IPersistableEntity
+        public static string GetDefaultOrdering<TQueryableEntity>(this QueryClause<TQueryableEntity> query)
+            where TQueryableEntity : IQueryableEntity
         {
             return query.IsDefaultOrdering()
-                ? $"{Reflector<TEntity>.GetPropertyName(e => e.LastPersistedAtUtc)}"
+                ? $"{nameof(QueryEntity.LastPersistedAtUtc)}"
                 : $"{query.ResultOptions.OrderBy.By}";
         }
 
-        private static bool IsDefaultOrdering<TEntity>(this QueryClause<TEntity> query)
-            where TEntity : IQueryableEntity
+        private static bool IsDefaultOrdering<TQueryableEntity>(this QueryClause<TQueryableEntity> query)
+            where TQueryableEntity : IQueryableEntity
+
         {
             var by = query.ResultOptions.OrderBy.By;
             if (!by.HasValue())
@@ -45,7 +45,7 @@ namespace Storage
                 return true;
             }
 
-            if (by.EqualsOrdinal(nameof(IPersistableEntity.LastPersistedAtUtc)))
+            if (by.EqualsOrdinal(nameof(QueryEntity.LastPersistedAtUtc)))
             {
                 return true;
             }
@@ -59,8 +59,9 @@ namespace Storage
             return false;
         }
 
-        private static List<string> GetAllSelectedFields<TEntity>(this QueryClause<TEntity> query)
-            where TEntity : IQueryableEntity
+        private static List<string> GetAllSelectedFields<TQueryableEntity>(this QueryClause<TQueryableEntity> query)
+            where TQueryableEntity : IQueryableEntity
+
         {
             var primarySelects = query.PrimaryEntity.Selects;
             var joinedSelects = query.JoinedEntities.SelectMany(je => je.Selects);
@@ -71,13 +72,13 @@ namespace Storage
                 .ToList();
         }
 
-        public static List<TEntity> JoinResults<TEntity>(this JoinDefinition joinDefinition,
-            Dictionary<Identifier, Dictionary<string, object>> leftEntities,
-            Dictionary<Identifier, Dictionary<string, object>> rightEntities,
-            IDomainFactory domainFactory,
-            Func<KeyValuePair<Identifier, Dictionary<string, object>>,
-                KeyValuePair<Identifier, Dictionary<string, object>>,
-                KeyValuePair<Identifier, Dictionary<string, object>>> mapFunc = null) where TEntity : IPersistableEntity
+        public static List<QueryEntity> JoinResults(this JoinDefinition joinDefinition,
+            IReadOnlyDictionary<string, IReadOnlyDictionary<string, object>> leftEntities,
+            IReadOnlyDictionary<string, IReadOnlyDictionary<string, object>> rightEntities,
+            RepositoryEntityMetadata metadata,
+            Func<KeyValuePair<string, IReadOnlyDictionary<string, object>>,
+                KeyValuePair<string, IReadOnlyDictionary<string, object>>,
+                KeyValuePair<string, IReadOnlyDictionary<string, object>>> mapFunc = null)
         {
             switch (joinDefinition.Type)
             {
@@ -90,7 +91,7 @@ namespace Storage
                         select mapFunc?.Invoke(lefts, result) ?? lefts;
 
                     return innerJoin
-                        .Select(e => EntityFromContainerProperties<TEntity>(e.Value, domainFactory))
+                        .Select(e => EntityFromContainerProperties(e.Value, metadata))
                         .ToList();
 
                 case JoinType.Left:
@@ -102,7 +103,7 @@ namespace Storage
                         select mapFunc?.Invoke(lefts, result) ?? lefts;
 
                     return leftJoin
-                        .Select(e => EntityFromContainerProperties<TEntity>(e.Value, domainFactory))
+                        .Select(e => EntityFromContainerProperties(e.Value, metadata))
                         .ToList();
 
                 default:
@@ -110,9 +111,9 @@ namespace Storage
             }
         }
 
-        public static Func<KeyValuePair<Identifier, Dictionary<string, object>>,
-                KeyValuePair<Identifier, Dictionary<string, object>>,
-                KeyValuePair<Identifier, Dictionary<string, object>>>
+        public static Func<KeyValuePair<string, IReadOnlyDictionary<string, object>>,
+                KeyValuePair<string, IReadOnlyDictionary<string, object>>,
+                KeyValuePair<string, IReadOnlyDictionary<string, object>>>
             ProjectSelectedJoinedProperties(this IReadOnlyList<SelectDefinition> selects)
         {
             return (leftEntity, rightEntity) =>
@@ -142,10 +143,11 @@ namespace Storage
             };
         }
 
-        public static List<TEntity> CherryPickSelectedProperties<TEntity>(this IEnumerable<TEntity> entities,
-            QueryClause<TEntity> query, IDomainFactory domainFactory,
+        public static List<QueryEntity> CherryPickSelectedProperties<TQueryableEntity>(
+            this IEnumerable<QueryEntity> entities,
+            QueryClause<TQueryableEntity> query, RepositoryEntityMetadata metadata,
             IEnumerable<string> includeAdditionalProperties = null)
-            where TEntity : IPersistableEntity
+            where TQueryableEntity : IQueryableEntity
         {
             var selectedPropertyNames = query.GetAllSelectedFields();
             if (!selectedPropertyNames.Any())
@@ -154,43 +156,23 @@ namespace Storage
             }
 
             selectedPropertyNames = selectedPropertyNames
-                .Concat(new[] {nameof(IPersistableEntity.Id)})
+                .Concat(new[] {nameof(QueryEntity.Id)})
                 .Concat(includeAdditionalProperties ?? Enumerable.Empty<string>())
                 .ToList();
 
             return entities
-                .Select(resultEntity => resultEntity.Dehydrate()
+                .Select(resultEntity => resultEntity.Properties
                     .Where(resultEntityProperty => selectedPropertyNames.Contains(resultEntityProperty.Key)))
                 .Select(selectedProperties =>
-                    EntityFromContainerProperties<TEntity>(selectedProperties.ToObjectDictionary(), domainFactory))
+                    EntityFromContainerProperties(selectedProperties.ToObjectDictionary(), metadata))
                 .ToList();
         }
 
-        public static TEntity EntityFromContainerProperties<TEntity>(this IDictionary<string, object> propertyValues,
-            IDomainFactory domainFactory) where TEntity : IPersistableEntity
-        {
-            var properties = new ReadOnlyDictionary<string, object>(propertyValues);
-            return (TEntity) domainFactory.RehydrateEntity(typeof(TEntity), properties);
-        }
+        private static QueryEntity EntityFromContainerProperties(
+            this IReadOnlyDictionary<string, object> propertyValues, RepositoryEntityMetadata metadata)
 
-        public static IPersistableEntity EntityFromContainerProperties(this IDictionary<string, object> propertyValues,
-            Type entityType, IDomainFactory domainFactory)
         {
-            var properties = new ReadOnlyDictionary<string, object>(propertyValues);
-            return domainFactory.RehydrateEntity(entityType, properties);
-        }
-
-        public static IPersistableValueObject ValueObjectFromContainerProperty(this string propertyValue,
-            Type valueObjectType, IDomainFactory domainFactory)
-        {
-            try
-            {
-                return domainFactory.RehydrateValueObject(valueObjectType, propertyValue);
-            }
-            catch (Exception)
-            {
-                return default;
-            }
+            return QueryEntity.FromProperties(propertyValues, metadata);
         }
 
         public static object ComplexTypeFromContainerProperty(this string propertyValue, Type targetPropertyType)

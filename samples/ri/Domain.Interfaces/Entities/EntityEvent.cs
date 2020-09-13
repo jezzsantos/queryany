@@ -1,46 +1,34 @@
 ﻿using System;
+using QueryAny;
 using QueryAny.Primitives;
 using ServiceStack;
 using ServiceStack.Text;
 
 namespace Domain.Interfaces.Entities
 {
-    public class EntityEvent : DataEntity
+    public class EntityEvent : IIdentifiableEntity, IQueryableEntity
     {
-        public long Version
-        {
-            get => this.PropertyValues.GetValueOrDefault<long>(nameof(Version));
-            set => this.PropertyValues[nameof(Version)] = value;
-        }
+        public DateTime? LastPersistedAtUtc { get; set; }
 
-        public string EntityType
-        {
-            get => this.PropertyValues.GetValueOrDefault<string>(nameof(EntityType));
-            set => this.PropertyValues[nameof(EntityType)] = value;
-        }
+        public long Version { get; private set; }
 
-        public string EventType
-        {
-            get => this.PropertyValues.GetValueOrDefault<string>(nameof(EventType));
-            set => this.PropertyValues[nameof(EventType)] = value;
-        }
+        public string EntityType { get; private set; }
 
-        public string Data
-        {
-            get => this.PropertyValues.GetValueOrDefault<string>(nameof(Data));
-            set => this.PropertyValues[nameof(Data)] = value;
-        }
+        public string EventType { get; private set; }
 
-        public EventMetadata Metadata
-        {
-            get => this.PropertyValues.GetValueOrDefault<EventMetadata>(nameof(Metadata));
-            set => this.PropertyValues[nameof(Metadata)] = value;
-        }
+        public string Data { get; private set; }
 
-        public string StreamName
+        public EventMetadata Metadata { get; private set; }
+
+        public string StreamName { get; private set; }
+
+        public Identifier Id { get; private set; }
+
+        public void SetIdentifier(IIdentifierFactory factory)
         {
-            get => this.PropertyValues.GetValueOrDefault<string>(nameof(StreamName));
-            set => this.PropertyValues[nameof(StreamName)] = value;
+            factory.GuardAgainstNull(nameof(factory));
+
+            Id = factory.Create(this);
         }
 
         public void SetEvent(string streamName, string entityType, long version, object @event)

@@ -24,7 +24,7 @@ namespace Storage.UnitTests.Azure
         [TestMethod]
         public void WhenToAzureCosmosSqlApiQueryClauseAndNoSelects_ThenReturnsSqlExpression()
         {
-            var query = Query.Empty<TestEntity>();
+            var query = Query.Empty<TestQueryEntity>();
 
             var result = query.ToAzureCosmosSqlApiQueryClause("acontainername", this.repository.Object);
 
@@ -34,7 +34,7 @@ namespace Storage.UnitTests.Azure
         [TestMethod]
         public void WhenToAzureCosmosSqlApiQueryClauseAndSingleSelect_ThenReturnsSqlExpression()
         {
-            var query = Query.From<TestEntity>()
+            var query = Query.From<TestQueryEntity>()
                 .WhereAll()
                 .Select(e => e.ABooleanValue);
 
@@ -48,7 +48,7 @@ namespace Storage.UnitTests.Azure
         [TestMethod]
         public void WhenToAzureCosmosSqlApiQueryClauseAndMultipleSelects_ThenReturnsSqlExpression()
         {
-            var query = Query.From<TestEntity>()
+            var query = Query.From<TestQueryEntity>()
                 .WhereAll()
                 .Select(e => e.ABooleanValue)
                 .Select(e => e.ADoubleValue);

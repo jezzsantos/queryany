@@ -7,9 +7,10 @@ using Storage.Interfaces;
 
 namespace Storage
 {
-    public class GeneralQueryStorage<TDto> : IQueryStorage<TDto> where TDto : IQueryableEntity
+    public class GeneralQueryStorage<TDto> : IQueryStorage<TDto> where TDto : IQueryableEntity, new()
     {
         private readonly string containerName;
+        private readonly IDomainFactory domainFactory;
         private readonly ILogger logger;
         private readonly IRepository repository;
 
@@ -20,11 +21,9 @@ namespace Storage
             domainFactory.GuardAgainstNull(nameof(domainFactory));
             this.logger = logger;
             this.repository = repository;
-            DomainFactory = domainFactory;
+            this.domainFactory = domainFactory;
             this.containerName = typeof(TDto).GetEntityNameSafe();
         }
-
-        public IDomainFactory DomainFactory { get; }
 
         public QueryResults<TDto> Query(QueryClause<TDto> query)
         {
@@ -35,11 +34,12 @@ namespace Storage
                 return new QueryResults<TDto>(new List<TDto>());
             }
 
-            var entities = this.repository.Query(this.containerName, query, DomainFactory);
+            var entities = this.repository.Query(this.containerName, query,
+                RepositoryEntityMetadata.FromType<TDto>());
 
             this.logger.LogDebug($" {entities.Count} Entities were retrieved from repository");
 
-            return new QueryResults<TDto>(entities.ConvertAll(e => e));
+            return new QueryResults<TDto>(entities.ConvertAll(x => x.ToEntity<TDto>(this.domainFactory)));
         }
 
         public long Count()

@@ -9,16 +9,16 @@ using ServiceStack;
 namespace Storage.IntegrationTests
 {
     [EntityName("testentities")]
-    public class TestEntity : IPersistableEntity
+    public class TestEntity : IIdentifiableEntity, IQueryableEntity
     {
-        public TestEntity() : this(new GuidIdentifierFactory().Create(null))
+        private static int instanceCounter;
+
+        public TestEntity()
         {
+            Id = Identifier.Create($"anid{++instanceCounter}");
         }
 
-        internal TestEntity(Identifier identifier)
-        {
-            Id = identifier;
-        }
+        public DateTime? LastPersistedAtUtc { get; set; }
 
         public string AStringValue { get; set; }
 
@@ -56,129 +56,34 @@ namespace Storage.IntegrationTests
 
         public ComplexValueObject AComplexValueObjectValue { get; set; }
 
-        public Identifier Id { get; private set; }
-
-        public DateTime? LastPersistedAtUtc { get; private set; }
-
-        public Dictionary<string, object> Dehydrate()
-        {
-            var properties = new Dictionary<string, object>
-            {
-                {nameof(Id), Id},
-                {nameof(LastPersistedAtUtc), LastPersistedAtUtc},
-                {nameof(AStringValue), AStringValue},
-                {nameof(ABooleanValue), ABooleanValue},
-                {nameof(ANullableBooleanValue), ANullableBooleanValue},
-                {nameof(ADateTimeUtcValue), ADateTimeUtcValue},
-                {nameof(ANullableDateTimeUtcValue), ANullableDateTimeUtcValue},
-                {nameof(ADateTimeOffsetValue), ADateTimeOffsetValue},
-                {nameof(ANullableDateTimeOffsetValue), ANullableDateTimeOffsetValue},
-                {nameof(AGuidValue), AGuidValue},
-                {nameof(ANullableGuidValue), ANullableGuidValue},
-                {nameof(ADoubleValue), ADoubleValue},
-                {nameof(ANullableDoubleValue), ANullableDoubleValue},
-                {nameof(AIntValue), AIntValue},
-                {nameof(ANullableIntValue), ANullableIntValue},
-                {nameof(ALongValue), ALongValue},
-                {nameof(ANullableLongValue), ANullableLongValue},
-                {nameof(ABinaryValue), ABinaryValue},
-                {nameof(AComplexNonValueObjectValue), AComplexNonValueObjectValue},
-                {nameof(AComplexValueObjectValue), AComplexValueObjectValue}
-            };
-
-            return properties;
-        }
-
-        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            Id = properties.GetValueOrDefault<Identifier>(nameof(Id));
-            LastPersistedAtUtc = properties.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
-            AStringValue = properties.GetValueOrDefault<string>(nameof(AStringValue));
-            ABooleanValue = properties.GetValueOrDefault<bool>(nameof(ABooleanValue));
-            ANullableBooleanValue = properties.GetValueOrDefault<bool?>(nameof(ANullableBooleanValue));
-            ADateTimeUtcValue = properties.GetValueOrDefault<DateTime>(nameof(ADateTimeUtcValue));
-            ANullableDateTimeUtcValue = properties.GetValueOrDefault<DateTime?>(nameof(ANullableDateTimeUtcValue));
-            ADateTimeOffsetValue = properties.GetValueOrDefault<DateTimeOffset>(nameof(ADateTimeOffsetValue));
-            ANullableDateTimeOffsetValue =
-                properties.GetValueOrDefault<DateTimeOffset?>(nameof(ANullableDateTimeOffsetValue));
-            AGuidValue = properties.GetValueOrDefault<Guid>(nameof(AGuidValue));
-            ANullableGuidValue = properties.GetValueOrDefault<Guid?>(nameof(ANullableGuidValue));
-            ADoubleValue = properties.GetValueOrDefault<double>(nameof(ADoubleValue));
-            ANullableDoubleValue = properties.GetValueOrDefault<double?>(nameof(ANullableDoubleValue));
-            AIntValue = properties.GetValueOrDefault<int>(nameof(AIntValue));
-            ANullableIntValue = properties.GetValueOrDefault<int?>(nameof(ANullableIntValue));
-            ALongValue = properties.GetValueOrDefault<long>(nameof(ALongValue));
-            ANullableLongValue = properties.GetValueOrDefault<long?>(nameof(ANullableLongValue));
-            ABinaryValue = properties.GetValueOrDefault<byte[]>(nameof(ABinaryValue));
-            AComplexNonValueObjectValue =
-                properties.GetValueOrDefault<ComplexNonValueObject>(nameof(AComplexNonValueObjectValue));
-            AComplexValueObjectValue =
-                properties.GetValueOrDefault<ComplexValueObject>(nameof(AComplexValueObjectValue));
-        }
-
-        public static EntityFactory<TestEntity> Instantiate()
-        {
-            return (identifier, container) => new TestEntity(identifier);
-        }
+        public Identifier Id { get; set; }
     }
 
     [EntityName("firstjoiningtestentities")]
-    public class FirstJoiningTestEntity : IPersistableEntity
+    public class FirstJoiningTestQueryableEntity : IIdentifiableEntity, IQueryableEntity
     {
-        public FirstJoiningTestEntity() : this(new GuidIdentifierFactory().Create(null))
-        {
-        }
+        private static int instanceCounter;
 
-        private FirstJoiningTestEntity(Identifier identifier)
+        public FirstJoiningTestQueryableEntity()
         {
-            Id = identifier;
+            Id = Identifier.Create($"anid{++instanceCounter}");
         }
 
         public string AStringValue { get; set; }
 
         public int AIntValue { get; set; }
 
-        public Identifier Id { get; private set; }
-
-        public DateTime? LastPersistedAtUtc { get; private set; }
-
-        public Dictionary<string, object> Dehydrate()
-        {
-            var properties = new Dictionary<string, object>
-            {
-                {nameof(Id), Id},
-                {nameof(LastPersistedAtUtc), LastPersistedAtUtc},
-                {nameof(AStringValue), AStringValue},
-                {nameof(AIntValue), AIntValue}
-            };
-
-            return properties;
-        }
-
-        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            Id = properties.GetValueOrDefault<Identifier>(nameof(Id));
-            LastPersistedAtUtc = properties.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
-            AStringValue = properties.GetValueOrDefault<string>(nameof(AStringValue));
-            AIntValue = properties.GetValueOrDefault<int>(nameof(AIntValue));
-        }
-
-        public static EntityFactory<FirstJoiningTestEntity> Instantiate()
-        {
-            return (identifier, container) => new FirstJoiningTestEntity(identifier);
-        }
+        public Identifier Id { get; set; }
     }
 
     [EntityName("secondjoiningtestentities")]
-    public class SecondJoiningTestEntity : IPersistableEntity
+    public class SecondJoiningTestQueryableEntity : IIdentifiableEntity, IQueryableEntity
     {
-        public SecondJoiningTestEntity() : this(new GuidIdentifierFactory().Create(null))
-        {
-        }
+        private static int instanceCounter;
 
-        private SecondJoiningTestEntity(Identifier identifier)
+        public SecondJoiningTestQueryableEntity()
         {
-            Id = identifier;
+            Id = Identifier.Create($"anid{++instanceCounter}");
         }
 
         public string AStringValue { get; set; }
@@ -187,37 +92,7 @@ namespace Storage.IntegrationTests
 
         public long ALongValue { get; set; }
 
-        public Identifier Id { get; private set; }
-
-        public DateTime? LastPersistedAtUtc { get; private set; }
-
-        public Dictionary<string, object> Dehydrate()
-        {
-            var properties = new Dictionary<string, object>
-            {
-                {nameof(Id), Id},
-                {nameof(LastPersistedAtUtc), LastPersistedAtUtc},
-                {nameof(AStringValue), AStringValue},
-                {nameof(AIntValue), AIntValue},
-                {nameof(ALongValue), ALongValue}
-            };
-
-            return properties;
-        }
-
-        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            Id = properties.GetValueOrDefault<Identifier>(nameof(Id));
-            LastPersistedAtUtc = properties.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
-            AStringValue = properties.GetValueOrDefault<string>(nameof(AStringValue));
-            AIntValue = properties.GetValueOrDefault<int>(nameof(AIntValue));
-            ALongValue = properties.GetValueOrDefault<long>(nameof(ALongValue));
-        }
-
-        public static EntityFactory<SecondJoiningTestEntity> Instantiate()
-        {
-            return (identifier, container) => new SecondJoiningTestEntity(identifier);
-        }
+        public Identifier Id { get; set; }
     }
 
     public class ComplexNonValueObject

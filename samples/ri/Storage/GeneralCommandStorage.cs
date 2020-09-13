@@ -8,13 +8,11 @@ using Storage.Interfaces;
 
 namespace Storage
 {
-    /// <summary>
-    ///     Storage for commands and eventing
-    /// </summary>
     public class GeneralCommandStorage<TEntity> : ICommandStorage<TEntity>
         where TEntity : IPersistableEntity
     {
         private readonly string containerName;
+        private readonly IDomainFactory domainFactory;
         private readonly ILogger logger;
         private readonly IRepository repository;
 
@@ -25,18 +23,16 @@ namespace Storage
             domainFactory.GuardAgainstNull(nameof(domainFactory));
             repository.GuardAgainstNull(nameof(repository));
             this.logger = logger;
-            DomainFactory = domainFactory;
+            this.domainFactory = domainFactory;
             this.repository = repository;
             this.containerName = typeof(TEntity).GetEntityNameSafe();
         }
-
-        public IDomainFactory DomainFactory { get; }
 
         public void Delete(Identifier id)
         {
             id.GuardAgainstNull(nameof(id));
 
-            this.repository.Remove<TEntity>(this.containerName, id);
+            this.repository.Remove(this.containerName, id);
             this.logger.LogDebug("Entity {Id} was deleted from repository", id);
         }
 
@@ -44,11 +40,12 @@ namespace Storage
         {
             id.GuardAgainstNull(nameof(id));
 
-            var entity = this.repository.Retrieve<TEntity>(this.containerName, id, DomainFactory);
+            var entity = this.repository.Retrieve(this.containerName, id,
+                RepositoryEntityMetadata.FromType<TEntity>());
 
             this.logger.LogDebug("Entity {Id} was retrieved from repository", id);
 
-            return entity;
+            return entity.ToPersistableEntity<TEntity>(this.domainFactory);
         }
 
         public TEntity Upsert(TEntity entity)
@@ -62,18 +59,19 @@ namespace Storage
             var latest = Get(entity.Id);
             if (latest == null)
             {
-                var added = this.repository.Add(this.containerName, entity, DomainFactory);
+                var added = this.repository.Add(this.containerName, CommandEntity.FromPersistableEntity(entity));
                 this.logger.LogDebug("Entity {Id} was added to repository", added.Id);
 
-                return added;
+                return added.ToPersistableEntity<TEntity>(this.domainFactory);
             }
 
             latest.PopulateWithNonDefaultValues(entity);
 
-            var updated = this.repository.Replace(this.containerName, entity.Id, latest, DomainFactory);
+            var updated = this.repository.Replace(this.containerName, entity.Id,
+                CommandEntity.FromPersistableEntity(entity));
             this.logger.LogDebug("Entity {Id} was updated in repository", entity.Id);
 
-            return updated;
+            return updated.ToPersistableEntity<TEntity>(this.domainFactory);
         }
 
         public long Count()
