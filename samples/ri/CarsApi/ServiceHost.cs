@@ -63,13 +63,14 @@ namespace CarsApi
             container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
             container.AddSingleton<IPersonsService>(c =>
                 new PersonsServiceClient(c.Resolve<IAppSettings>().GetString("PersonsApiBaseUrl")));
-            container.AddSingleton<IReadModelSubscription>(c => new ReadModelSubscription<CarEntity>(
-                c.Resolve<ILogger>(), c.Resolve<IEventingStorage<CarEntity>>(),
+            container.AddSingleton<IReadModelSubscription>(c => new ReadModelSubscription(
+                c.Resolve<ILogger>(),
                 new ReadModelProjector(c.Resolve<ILogger>(),
                     new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
                         c.Resolve<IDomainFactory>(),
                         RepositoryFactory(c)),
-                    new CarEntityReadModelProjection(c.Resolve<ILogger>(), RepositoryFactory(c)))));
+                    new CarEntityReadModelProjection(c.Resolve<ILogger>(), RepositoryFactory(c))),
+                c.Resolve<IEventingStorage<CarEntity>>()));
         }
 
         private void RegisterValidators(Container container)

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using Storage.Interfaces;
@@ -9,24 +8,23 @@ using Storage.Interfaces.ReadModels;
 
 namespace Storage.ReadModels
 {
-    public class ReadModelSubscription<TAggregateRoot> : IReadModelSubscription, IDisposable
-        where TAggregateRoot : IPersistableAggregateRoot
+    public class ReadModelSubscription : IReadModelSubscription, IDisposable
     {
-        private readonly IEventingStorage<TAggregateRoot> eventingStorage;
+        private readonly IEventPublishingStorage[] eventingStorages;
         private readonly ILogger logger;
         private readonly IReadModelProjector projector;
         private bool isStarted;
 
-        public ReadModelSubscription(ILogger logger, IEventingStorage<TAggregateRoot> eventingStorage,
-            IReadModelProjector readModelProjector)
+        public ReadModelSubscription(ILogger logger, IReadModelProjector readModelProjector,
+            params IEventPublishingStorage[] eventingStorages)
         {
             logger.GuardAgainstNull(nameof(logger));
-            eventingStorage.GuardAgainstNull(nameof(eventingStorage));
             readModelProjector.GuardAgainstNull(nameof(readModelProjector));
+            eventingStorages.GuardAgainstNull(nameof(eventingStorages));
 
             this.logger = logger;
-            this.eventingStorage = eventingStorage;
             this.projector = readModelProjector;
+            this.eventingStorages = eventingStorages;
             ProcessingErrors = new List<EventProcessingError>();
         }
 
@@ -36,7 +34,10 @@ namespace Storage.ReadModels
         {
             if (this.isStarted)
             {
-                this.eventingStorage.OnEventStreamStateChanged -= OnEventStreamStateChanged;
+                foreach (var storage in this.eventingStorages)
+                {
+                    storage.OnEventStreamStateChanged -= OnEventStreamStateChanged;
+                }
             }
         }
 
@@ -44,9 +45,12 @@ namespace Storage.ReadModels
         {
             if (!this.isStarted)
             {
-                this.eventingStorage.OnEventStreamStateChanged += OnEventStreamStateChanged;
+                foreach (var storage in this.eventingStorages)
+                {
+                    storage.OnEventStreamStateChanged += OnEventStreamStateChanged;
+                    this.logger.LogDebug("Subscribed to events for {Storage}", storage.GetType().Name);
+                }
                 this.isStarted = true;
-                this.logger.LogDebug("Subscribed to read model changes for {Aggregate}", typeof(TAggregateRoot).Name);
             }
         }
 
@@ -118,28 +122,6 @@ namespace Storage.ReadModels
             public string StreamName { get; }
 
             public Exception Exception { get; }
-        }
-    }
-
-    internal static class EventStreamExtensions
-    {
-        public static bool HasContiguousVersions(this List<EventStreamStateChangeEvent> events)
-        {
-            if (!events.Any())
-            {
-                return true;
-            }
-
-            static IEnumerable<long> GetRange(long start, long count)
-            {
-                for (long next = 0; next < count; next++)
-                {
-                    yield return start + next;
-                }
-            }
-
-            var expectedRange = GetRange(events.First().Version, events.Count);
-            return events.Select(e => e.Version).SequenceEqual(expectedRange);
         }
     }
 }

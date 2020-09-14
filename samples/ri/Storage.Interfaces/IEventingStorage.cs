@@ -4,16 +4,19 @@ using QueryAny.Primitives;
 
 namespace Storage.Interfaces
 {
-    public interface IEventingStorage<TAggregateRoot>
+    public interface IEventingStorage<TAggregateRoot> : IEventPublishingStorage
         where TAggregateRoot : IPersistableAggregateRoot
     {
         TAggregateRoot Load(Identifier id);
 
         void Save(TAggregateRoot aggregate);
 
-        event EventStreamStateChanged OnEventStreamStateChanged;
-
         void DestroyAll();
+    }
+
+    public interface IEventPublishingStorage
+    {
+        event EventStreamStateChanged OnEventStreamStateChanged;
     }
 
     public delegate void EventStreamStateChanged(object sender, EventStreamStateChangedArgs args);

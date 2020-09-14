@@ -66,12 +66,13 @@ namespace CarsApi.IntegrationTests
             container.AddSingleton(carEventingStorage);
             container.AddSingleton<ICarStorage>(c =>
                 new CarStorage(carQueryStorage, carEventingStorage, unavailabilityQueryStorage));
-            container.AddSingleton<IReadModelSubscription>(c => new ReadModelSubscription<CarEntity>(
-                c.Resolve<ILogger>(), c.Resolve<IEventingStorage<CarEntity>>(),
+            container.AddSingleton<IReadModelSubscription>(c => new ReadModelSubscription(
+                c.Resolve<ILogger>(),
                 new ReadModelProjector(c.Resolve<ILogger>(),
                     new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
                         c.Resolve<IDomainFactory>(), inMemRepository),
-                    new CarEntityReadModelProjection(c.Resolve<ILogger>(), inMemRepository))));
+                    new CarEntityReadModelProjection(c.Resolve<ILogger>(), inMemRepository)),
+                c.Resolve<IEventingStorage<CarEntity>>()));
 
             //HACK: subscribe again (see: https://forums.servicestack.net/t/integration-testing-and-overriding-registered-services/8875/5)
             HostContext.AppHost.OnAfterInit();
