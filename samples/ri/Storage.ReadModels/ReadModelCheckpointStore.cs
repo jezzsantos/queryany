@@ -7,7 +7,7 @@ using Storage.Interfaces.ReadModels;
 
 namespace Storage.ReadModels
 {
-    public class ReadModelCheckpointStore : IReadModelCheckpointStore
+    public sealed class ReadModelCheckpointStore : IReadModelCheckpointStore
     {
         public const long StartingCheckpointPosition = 1;
         private readonly IDomainFactory domainFactory;

@@ -8,14 +8,18 @@ using Storage.Interfaces.ReadModels;
 
 namespace Storage.ReadModels
 {
-    public class ReadModelSubscription : IReadModelSubscription, IDisposable
+    /// <summary>
+    ///     Defines a subscription that connects directly to one or more <see cref="IEventPublishingStorage" /> instances, to
+    ///     receive events.
+    /// </summary>
+    public class InProcessReadModelSubscription : IReadModelSubscription, IDisposable
     {
         private readonly IEventPublishingStorage[] eventingStorages;
         private readonly ILogger logger;
         private readonly IReadModelProjector projector;
         private bool isStarted;
 
-        public ReadModelSubscription(ILogger logger, IReadModelProjector readModelProjector,
+        public InProcessReadModelSubscription(ILogger logger, IReadModelProjector readModelProjector,
             params IEventPublishingStorage[] eventingStorages)
         {
             logger.GuardAgainstNull(nameof(logger));

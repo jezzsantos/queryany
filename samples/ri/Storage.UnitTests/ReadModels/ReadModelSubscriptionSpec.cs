@@ -17,7 +17,7 @@ namespace Storage.UnitTests.ReadModels
         private Mock<IEventingStorage<TestAggregateRoot>> eventingStorage;
         private Mock<ILogger> logger;
         private Mock<IReadModelProjector> readModelStorage;
-        private ReadModelSubscription subscription;
+        private InProcessReadModelSubscription subscription;
 
         [TestInitialize]
         public void Initialize()
@@ -25,7 +25,7 @@ namespace Storage.UnitTests.ReadModels
             this.logger = new Mock<ILogger>();
             this.eventingStorage = new Mock<IEventingStorage<TestAggregateRoot>>();
             this.readModelStorage = new Mock<IReadModelProjector>();
-            this.subscription = new ReadModelSubscription(this.logger.Object, this.readModelStorage.Object,
+            this.subscription = new InProcessReadModelSubscription(this.logger.Object, this.readModelStorage.Object,
                 this.eventingStorage.Object);
         }
 

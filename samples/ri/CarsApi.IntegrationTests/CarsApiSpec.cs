@@ -66,7 +66,7 @@ namespace CarsApi.IntegrationTests
             container.AddSingleton(carEventingStorage);
             container.AddSingleton<ICarStorage>(c =>
                 new CarStorage(carQueryStorage, carEventingStorage, unavailabilityQueryStorage));
-            container.AddSingleton<IReadModelSubscription>(c => new ReadModelSubscription(
+            container.AddSingleton<IReadModelSubscription>(c => new InProcessReadModelSubscription(
                 c.Resolve<ILogger>(),
                 new ReadModelProjector(c.Resolve<ILogger>(),
                     new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),

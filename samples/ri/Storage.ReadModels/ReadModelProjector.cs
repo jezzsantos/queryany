@@ -9,21 +9,21 @@ using Storage.Interfaces.ReadModels;
 
 namespace Storage.ReadModels
 {
-    public class ReadModelProjector : IReadModelProjector
+    public sealed class ReadModelProjector : IReadModelProjector
     {
         private readonly IReadModelCheckpointStore checkpointStore;
         private readonly ILogger logger;
         private readonly IReadOnlyList<IReadModelProjection> projections;
 
-        public ReadModelProjector(ILogger logger, IReadModelCheckpointStore readModelCheckpointStore,
+        public ReadModelProjector(ILogger logger, IReadModelCheckpointStore checkpointStore,
             params IReadModelProjection[] projections)
         {
             logger.GuardAgainstNull(nameof(logger));
-            readModelCheckpointStore.GuardAgainstNull(nameof(readModelCheckpointStore));
+            checkpointStore.GuardAgainstNull(nameof(checkpointStore));
             projections.GuardAgainstNull(nameof(projections));
 
             this.logger = logger;
-            this.checkpointStore = readModelCheckpointStore;
+            this.checkpointStore = checkpointStore;
             this.projections = projections;
         }
 
@@ -41,7 +41,7 @@ namespace Storage.ReadModels
             {
                 var streamEntityType = eventStream.First().EntityType;
                 var firstEventVersion = eventStream.First().Version;
-                var projection = GetProjection(this.projections, streamEntityType);
+                var projection = GetProjectionForStream(this.projections, streamEntityType);
 
                 var checkpoint = this.checkpointStore.LoadCheckpoint(streamName);
 
@@ -67,13 +67,13 @@ namespace Storage.ReadModels
             }
         }
 
-        private static void ProjectEvent(IReadModelProjection readModelProjection, object @event,
+        private static void ProjectEvent(IReadModelProjection projection, object @event,
             EventStreamStateChangeEvent changeEvent)
         {
-            if (!readModelProjection.Project(@event))
+            if (!projection.Project(@event))
             {
                 throw new InvalidOperationException(
-                    $"The readModelProjection '{readModelProjection.GetType().Name}' did not handle the event '{changeEvent.Id}' with event type '{changeEvent.Metadata.Fqn}'. Aborting projections");
+                    $"The projection '{projection.GetType().Name}' did not handle the event '{changeEvent.Id}' with event type '{changeEvent.Metadata.Fqn}'. Aborting projections");
             }
         }
 
@@ -84,14 +84,14 @@ namespace Storage.ReadModels
                 .Where(e => e.Version >= checkpoint);
         }
 
-        private static IReadModelProjection GetProjection(IEnumerable<IReadModelProjection> projections,
+        private static IReadModelProjection GetProjectionForStream(IEnumerable<IReadModelProjection> projections,
             string entityTypeName)
         {
             var projection = projections.FirstOrDefault(prj => prj.EntityType.Name == entityTypeName);
             if (projection == null)
             {
                 throw new InvalidOperationException(
-                    $"No readModelProjection is configured for entity type '{entityTypeName}'. Aborting");
+                    $"No projection is configured for entity type '{entityTypeName}'. Aborting");
             }
 
             return projection;

@@ -63,7 +63,7 @@ namespace CarsApi
             container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
             container.AddSingleton<IPersonsService>(c =>
                 new PersonsServiceClient(c.Resolve<IAppSettings>().GetString("PersonsApiBaseUrl")));
-            container.AddSingleton<IReadModelSubscription>(c => new ReadModelSubscription(
+            container.AddSingleton<IReadModelSubscription>(c => new InProcessReadModelSubscription(
                 c.Resolve<ILogger>(),
                 new ReadModelProjector(c.Resolve<ILogger>(),
                     new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
