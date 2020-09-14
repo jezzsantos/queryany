@@ -9,11 +9,11 @@ using ServiceStack;
 namespace Storage.IntegrationTests
 {
     [EntityName("testentities")]
-    public class TestEntity : IIdentifiableEntity, IQueryableEntity
+    public class TestRepositoryEntity : IIdentifiableEntity, IQueryableEntity
     {
         private static int instanceCounter;
 
-        public TestEntity()
+        public TestRepositoryEntity()
         {
             Id = Identifier.Create($"anid{++instanceCounter}");
         }

@@ -39,7 +39,7 @@ namespace Storage.Sql
             return Retrieve(tableName, entity.Id, entity.Metadata);
         }
 
-        public void Remove(string tableName, Identifier id)
+        public void Remove(string tableName, string id)
         {
             tableName.GuardAgainstNullOrEmpty(nameof(tableName));
             id.GuardAgainstNull(nameof(id));
@@ -47,7 +47,7 @@ namespace Storage.Sql
             ExecuteCommand($"DELETE FROM {tableName} WHERE {nameof(CommandEntity.Id)}='{id}'");
         }
 
-        public CommandEntity Retrieve(string tableName, Identifier id, RepositoryEntityMetadata metadata)
+        public CommandEntity Retrieve(string tableName, string id, RepositoryEntityMetadata metadata)
         {
             tableName.GuardAgainstNullOrEmpty(nameof(tableName));
             id.GuardAgainstNull(nameof(id));
@@ -63,7 +63,7 @@ namespace Storage.Sql
             return default;
         }
 
-        public CommandEntity Replace(string tableName, Identifier id, CommandEntity entity)
+        public CommandEntity Replace(string tableName, string id, CommandEntity entity)
         {
             tableName.GuardAgainstNullOrEmpty(nameof(tableName));
             id.GuardAgainstNull(nameof(id));
@@ -406,7 +406,7 @@ namespace Storage.Sql
                 .ToDictionary(pair => pair.Key,
                     pair => pair.FromTableEntityProperty(metadata.GetPropertyType(pair.Key)));
 
-            var id = tableProperties[nameof(CommandEntity.Id)].ToString().ToIdentifier();
+            var id = tableProperties[nameof(CommandEntity.Id)].ToString();
             propertyValues[nameof(CommandEntity.Id)] = id;
 
             return propertyValues;

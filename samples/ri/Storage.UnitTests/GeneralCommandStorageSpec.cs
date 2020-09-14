@@ -15,7 +15,7 @@ namespace Storage.UnitTests
         private Mock<IDomainFactory> domainFactory;
         private Mock<ILogger> logger;
         private Mock<IRepository> repository;
-        private GeneralCommandStorage<TestEntity> storage;
+        private GeneralCommandStorage<TestDomainEntity> storage;
 
         [TestInitialize]
         public void Initialize()
@@ -24,7 +24,7 @@ namespace Storage.UnitTests
             this.domainFactory = new Mock<IDomainFactory>();
             this.repository = new Mock<IRepository>();
             this.storage =
-                new GeneralCommandStorage<TestEntity>(this.logger.Object, this.domainFactory.Object,
+                new GeneralCommandStorage<TestDomainEntity>(this.logger.Object, this.domainFactory.Object,
                     this.repository.Object);
         }
 
@@ -33,14 +33,14 @@ namespace Storage.UnitTests
         {
             this.storage.Delete("anid".ToIdentifier());
 
-            this.repository.Verify(repo => repo.Remove("acontainername", "anid".ToIdentifier()));
+            this.repository.Verify(repo => repo.Remove("acontainername", "anid"));
         }
 
         [TestMethod]
         public void WhenGetAndNotExists_ThenReturnsNull()
         {
             this.repository.Setup(repo =>
-                    repo.Retrieve("acontainername", "anid".ToIdentifier(),
+                    repo.Retrieve("acontainername", "anid",
                         It.IsAny<RepositoryEntityMetadata>()))
                 .Returns((CommandEntity) null);
 
@@ -48,7 +48,7 @@ namespace Storage.UnitTests
 
             result.Should().BeNull();
             this.repository.Verify(repo =>
-                repo.Retrieve("acontainername", "anid".ToIdentifier(),
+                repo.Retrieve("acontainername", "anid",
                     It.IsAny<RepositoryEntityMetadata>()));
         }
 
@@ -56,14 +56,14 @@ namespace Storage.UnitTests
         public void WhenGet_ThenRetrievesFromRepository()
         {
             this.repository.Setup(repo =>
-                    repo.Retrieve("acontainername", "anid".ToIdentifier(),
+                    repo.Retrieve("acontainername", "anid",
                         It.IsAny<RepositoryEntityMetadata>()))
                 .Returns(new CommandEntity("anid"));
 
             this.storage.Get("anid".ToIdentifier());
 
             this.repository.Verify(repo =>
-                repo.Retrieve("acontainername", "anid".ToIdentifier(),
+                repo.Retrieve("acontainername", "anid",
                     It.IsAny<RepositoryEntityMetadata>()));
         }
 
@@ -71,7 +71,7 @@ namespace Storage.UnitTests
         public void WhenUpsertAndEntityIdNotExists_ThenThrowsNotFound()
         {
             this.storage
-                .Invoking(x => x.Upsert(new TestEntity(null)))
+                .Invoking(x => x.Upsert(new TestDomainEntity(null)))
                 .Should().Throw<ResourceNotFoundException>();
         }
 
@@ -79,17 +79,17 @@ namespace Storage.UnitTests
         public void WhenUpsertAndEntityIdIsEmpty_ThenThrowsNotFound()
         {
             this.storage
-                .Invoking(x => x.Upsert(new TestEntity(Identifier.Empty())))
+                .Invoking(x => x.Upsert(new TestDomainEntity(Identifier.Empty())))
                 .Should().Throw<ResourceNotFoundException>();
         }
 
         [TestMethod]
         public void WhenUpsertAndEntityNotExists_ThenAddsToRepository()
         {
-            var entity = new TestEntity("anid".ToIdentifier());
+            var entity = new TestDomainEntity("anid".ToIdentifier());
             var addedEntity = new CommandEntity("anid");
             var fetchedEntity = new CommandEntity("anid");
-            this.repository.Setup(repo => repo.Retrieve("acontainername", "anid".ToIdentifier(),
+            this.repository.Setup(repo => repo.Retrieve("acontainername", "anid",
                     It.IsAny<RepositoryEntityMetadata>()))
                 .Returns(fetchedEntity);
             this.repository.Setup(repo => repo.Add(It.IsAny<string>(), It.IsAny<CommandEntity>()))
@@ -98,7 +98,7 @@ namespace Storage.UnitTests
             this.storage.Upsert(entity);
 
             this.repository.Verify(repo =>
-                repo.Retrieve("acontainername", "anid".ToIdentifier(),
+                repo.Retrieve("acontainername", "anid",
                     It.IsAny<RepositoryEntityMetadata>()));
             this.repository.Verify(repo => repo.Add("acontainername", It.IsAny<CommandEntity>()));
         }
@@ -106,16 +106,16 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenUpsertAndEntityExists_ThenReplacesInRepository()
         {
-            var entity = new TestEntity("anupsertedid".ToIdentifier()) {AStringValue = "anewvalue"};
+            var entity = new TestDomainEntity("anupsertedid".ToIdentifier()) {AStringValue = "anewvalue"};
             var fetchedEntity = new CommandEntity("anid");
             var updatedEntity = new CommandEntity("anid");
-            var hydratedEntity = new TestEntity("anid".ToIdentifier());
+            var hydratedEntity = new TestDomainEntity("anid".ToIdentifier());
             this.repository.Setup(repo =>
-                    repo.Retrieve("acontainername", It.IsAny<Identifier>(),
+                    repo.Retrieve("acontainername", It.IsAny<string>(),
                         It.IsAny<RepositoryEntityMetadata>()))
                 .Returns(fetchedEntity);
             this.repository.Setup(repo =>
-                    repo.Replace("acontainername", It.IsAny<Identifier>(), It.IsAny<CommandEntity>()))
+                    repo.Replace("acontainername", It.IsAny<string>(), It.IsAny<CommandEntity>()))
                 .Returns(updatedEntity);
             this.domainFactory.Setup(df =>
                     df.RehydrateEntity(It.IsAny<Type>(), It.IsAny<IReadOnlyDictionary<string, object>>()))
@@ -125,10 +125,10 @@ namespace Storage.UnitTests
 
             result.Should().BeEquivalentTo(hydratedEntity);
             this.repository.Verify(repo =>
-                repo.Retrieve("acontainername", "anupsertedid".ToIdentifier(),
+                repo.Retrieve("acontainername", "anupsertedid",
                     It.IsAny<RepositoryEntityMetadata>()));
             this.repository.Verify(repo =>
-                repo.Replace("acontainername", "anupsertedid".ToIdentifier(), It.IsAny<CommandEntity>()));
+                repo.Replace("acontainername", "anupsertedid", It.IsAny<CommandEntity>()));
         }
 
         [TestMethod]

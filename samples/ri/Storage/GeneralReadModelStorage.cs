@@ -1,6 +1,5 @@
 ﻿using System;
 using Domain.Interfaces;
-using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny;
 using QueryAny.Primitives;
@@ -43,7 +42,7 @@ namespace Storage
             id.GuardAgainstNullOrEmpty(nameof(id));
             action.GuardAgainstNull(nameof(action));
 
-            var entity = this.repository.Retrieve(ContainerName, id.ToIdentifier(),
+            var entity = this.repository.Retrieve(ContainerName, id,
                 RepositoryEntityMetadata.FromType<TDto>());
             if (entity == null)
             {
@@ -52,7 +51,7 @@ namespace Storage
 
             var dto = entity.ToReadModelEntity<TDto>();
             action(dto);
-            var updated = this.repository.Replace(ContainerName, id.ToIdentifier(), CommandEntity.FromType(dto));
+            var updated = this.repository.Replace(ContainerName, id, CommandEntity.FromType(dto));
 
             this.logger.LogDebug("Updated read model for entity {Id}", id);
 

@@ -54,7 +54,7 @@ namespace Storage.Azure
             return Retrieve(containerName, entity.Id, entity.Metadata);
         }
 
-        public void Remove(string containerName, Identifier id)
+        public void Remove(string containerName, string id)
         {
             containerName.GuardAgainstNullOrEmpty(nameof(containerName));
             id.GuardAgainstNull(nameof(id));
@@ -68,7 +68,7 @@ namespace Storage.Azure
             }
         }
 
-        public CommandEntity Retrieve(string containerName, Identifier id, RepositoryEntityMetadata metadata)
+        public CommandEntity Retrieve(string containerName, string id, RepositoryEntityMetadata metadata)
         {
             containerName.GuardAgainstNullOrEmpty(nameof(containerName));
             id.GuardAgainstNull(nameof(id));
@@ -83,7 +83,7 @@ namespace Storage.Azure
                 : default;
         }
 
-        public CommandEntity Replace(string containerName, Identifier id, CommandEntity entity)
+        public CommandEntity Replace(string containerName, string id, CommandEntity entity)
         {
             containerName.GuardAgainstNullOrEmpty(nameof(containerName));
             id.GuardAgainstNull(nameof(id));
@@ -361,7 +361,7 @@ namespace Storage.Azure
             return false;
         }
 
-        private DynamicTableEntity RetrieveTableEntitySafe(CloudTable table, Identifier id)
+        private DynamicTableEntity RetrieveTableEntitySafe(CloudTable table, string id)
         {
             try
             {
@@ -547,7 +547,7 @@ namespace Storage.Azure
                 .ToDictionary(pair => pair.Key,
                     pair => pair.Value.FromTableEntityProperty(metadata.GetPropertyType(pair.Key), options));
 
-            var id = tableEntity.RowKey.ToIdentifier();
+            var id = tableEntity.RowKey;
             containerEntityProperties[nameof(CommandEntity.Id)] = id;
 
             return containerEntityProperties;

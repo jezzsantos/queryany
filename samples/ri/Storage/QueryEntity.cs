@@ -13,12 +13,12 @@ namespace Storage
         {
             domainFactory.GuardAgainstNull(nameof(domainFactory));
 
-            var properties = ConvertFromRawProperties(domainFactory);
+            var properties = ConvertToDomainProperties(domainFactory);
             return properties.FromObjectDictionary<TEntity>();
         }
 
         public static QueryEntity FromType<TType>(TType instance)
-            where TType : IIdentifiableEntity, IQueryableEntity
+            where TType : IQueryableEntity
         {
             instance.GuardAgainstNull(nameof(instance));
 
@@ -27,7 +27,7 @@ namespace Storage
         }
 
         private static QueryEntity FromProperties<TType>(IReadOnlyDictionary<string, object> properties)
-            where TType : IIdentifiableEntity, IQueryableEntity
+            where TType : IQueryableEntity
         {
             properties.GuardAgainstNull(nameof(properties));
 

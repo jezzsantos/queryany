@@ -1,5 +1,4 @@
 ﻿using Domain.Interfaces;
-using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -52,7 +51,7 @@ namespace Storage.UnitTests
         public void WhenUpdateAndNotExists_ThenThrows()
         {
             this.repository.Setup(repo =>
-                    repo.Retrieve(It.IsAny<string>(), It.IsAny<Identifier>(), It.IsAny<RepositoryEntityMetadata>()))
+                    repo.Retrieve(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<RepositoryEntityMetadata>()))
                 .Returns((CommandEntity) null);
 
             this.storage
@@ -64,16 +63,16 @@ namespace Storage.UnitTests
         public void WhenUpdate_ThenUpdatesAndReturnsDto()
         {
             this.repository.Setup(repo =>
-                    repo.Retrieve(It.IsAny<string>(), It.IsAny<Identifier>(), It.IsAny<RepositoryEntityMetadata>()))
+                    repo.Retrieve(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<RepositoryEntityMetadata>()))
                 .Returns(new CommandEntity("anid"));
             this.repository.Setup(repo =>
-                    repo.Replace(It.IsAny<string>(), It.IsAny<Identifier>(), It.IsAny<CommandEntity>()))
+                    repo.Replace(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CommandEntity>()))
                 .Returns(new CommandEntity("anid"));
 
             var result = this.storage.Update("anid", entity => entity.APropertyName = "avalue");
 
             result.Id.Should().Be("anid");
-            this.repository.Verify(repo => repo.Replace("acontainername", "anid".ToIdentifier(), It.Is<CommandEntity>(
+            this.repository.Verify(repo => repo.Replace("acontainername", "anid", It.Is<CommandEntity>(
                 entity =>
                     entity.Id == "anid"
                     && entity.Properties[nameof(TestReadModel.APropertyName)].ToString() == "avalue"

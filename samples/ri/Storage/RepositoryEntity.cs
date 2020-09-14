@@ -10,16 +10,14 @@ namespace Storage
     {
         private readonly Dictionary<string, object> propertyValues = new Dictionary<string, object>();
 
-        protected RepositoryEntity(string id) : this()
+        protected RepositoryEntity() : this(null)
         {
-            id.GuardAgainstNullOrEmpty(nameof(id));
-            Id = id.ToIdentifier();
         }
 
-        protected RepositoryEntity()
+        protected RepositoryEntity(string id)
         {
             Metadata = new RepositoryEntityMetadata();
-            Add(nameof(Id), null, typeof(string));
+            Add(nameof(Id), id, typeof(string));
             Add(nameof(LastPersistedAtUtc), null, typeof(DateTime?));
         }
 
@@ -27,16 +25,16 @@ namespace Storage
 
         public IReadOnlyDictionary<string, object> Properties => this.propertyValues;
 
+        public string Id
+        {
+            get => this.propertyValues.GetValueOrDefault<string>(nameof(Id));
+            set => this.propertyValues[nameof(Id)] = value;
+        }
+
         public DateTime? LastPersistedAtUtc
         {
             get => this.propertyValues.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
             set => this.propertyValues[nameof(LastPersistedAtUtc)] = value;
-        }
-
-        public Identifier Id
-        {
-            get => this.propertyValues.GetValueOrDefault<string>(nameof(Id)).ToIdentifier();
-            set => this.propertyValues[nameof(Id)] = value.ToString();
         }
 
         public Type GetPropertyType(string propertyName)
@@ -49,7 +47,7 @@ namespace Storage
             name.GuardAgainstNullOrEmpty(nameof(name));
             type.GuardAgainstNull(nameof(type));
 
-            var rawValue = ConvertToRawProperty(value);
+            var rawValue = ConvertFromDomainProperty(value);
             if (this.propertyValues.ContainsKey(name))
             {
                 this.propertyValues[name] = rawValue;
@@ -69,7 +67,7 @@ namespace Storage
                 return defaultValue;
             }
 
-            return (TValue) ConvertFromRawProperty(this.propertyValues[propertyName], typeof(TValue), null);
+            return (TValue) ConvertToDomainProperty(this.propertyValues[propertyName], typeof(TValue), null);
         }
 
         public TValueObject GetValueOrDefault<TValueObject>(string propertyName, IDomainFactory domainFactory)
@@ -80,11 +78,11 @@ namespace Storage
                 return default;
             }
 
-            return (TValueObject) ConvertFromRawProperty(this.propertyValues[propertyName], typeof(TValueObject),
+            return (TValueObject) ConvertToDomainProperty(this.propertyValues[propertyName], typeof(TValueObject),
                 domainFactory);
         }
 
-        protected IReadOnlyDictionary<string, object> ConvertFromRawProperties(IDomainFactory domainFactory)
+        protected IReadOnlyDictionary<string, object> ConvertToDomainProperties(IDomainFactory domainFactory)
         {
             return this.propertyValues.ToDictionary(x => x.Key, x =>
             {
@@ -92,11 +90,11 @@ namespace Storage
 
                 var value = x.Value;
                 var propertyType = GetPropertyType(x.Key);
-                return ConvertFromRawProperty(value, propertyType, domainFactory);
+                return ConvertToDomainProperty(value, propertyType, domainFactory);
             });
         }
 
-        private static object ConvertToRawProperty(object originalValue)
+        private static object ConvertFromDomainProperty(object originalValue)
         {
             if (originalValue == null)
             {
@@ -111,7 +109,7 @@ namespace Storage
             return originalValue;
         }
 
-        private static object ConvertFromRawProperty(object rawValue, Type propertyType, IDomainFactory domainFactory)
+        private static object ConvertToDomainProperty(object rawValue, Type propertyType, IDomainFactory domainFactory)
         {
             if (typeof(IPersistableValueObject).IsAssignableFrom(propertyType))
             {

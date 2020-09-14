@@ -49,7 +49,7 @@ namespace Storage.Azure
             return Retrieve(containerName, entity.Id, entity.Metadata);
         }
 
-        public void Remove(string containerName, Identifier id)
+        public void Remove(string containerName, string id)
         {
             containerName.GuardAgainstNullOrEmpty(nameof(containerName));
             id.GuardAgainstNull(nameof(id));
@@ -63,7 +63,7 @@ namespace Storage.Azure
             }
         }
 
-        public CommandEntity Retrieve(string containerName, Identifier id, RepositoryEntityMetadata metadata)
+        public CommandEntity Retrieve(string containerName, string id, RepositoryEntityMetadata metadata)
         {
             containerName.GuardAgainstNullOrEmpty(nameof(containerName));
             id.GuardAgainstNull(nameof(id));
@@ -76,7 +76,7 @@ namespace Storage.Azure
             return containerEntity;
         }
 
-        public CommandEntity Replace(string containerName, Identifier id, CommandEntity entity)
+        public CommandEntity Replace(string containerName, string id, CommandEntity entity)
         {
             containerName.GuardAgainstNullOrEmpty(nameof(containerName));
             id.GuardAgainstNull(nameof(id));
@@ -277,7 +277,7 @@ namespace Storage.Azure
             return this.containers[containerName];
         }
 
-        private static bool Exists(Container container, Identifier id)
+        private static bool Exists(Container container, string id)
         {
             try
             {
@@ -293,7 +293,7 @@ namespace Storage.Azure
             }
         }
 
-        private static CommandEntity RetrieveContainerEntitySafe(Container container, Identifier id,
+        private static CommandEntity RetrieveContainerEntitySafe(Container container, string id,
             RepositoryEntityMetadata metadata)
 
         {
@@ -351,7 +351,7 @@ namespace Storage.Azure
                 containerEntityProperties.Add(pair.Key, value);
             }
 
-            containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id.ToString());
+            containerEntityProperties.Add(AzureCosmosSqlApiRepository.IdentifierPropertyName, entity.Id);
             containerEntityProperties[nameof(CommandEntity.LastPersistedAtUtc)] = DateTime.UtcNow;
 
             return containerEntity;
@@ -367,7 +367,7 @@ namespace Storage.Azure
                 .ToDictionary(pair => pair.Key,
                     pair => pair.Value.FromContainerEntityProperty(metadata.GetPropertyType(pair.Key)));
 
-            var id = containerEntity[AzureCosmosSqlApiRepository.IdentifierPropertyName].ToString().ToIdentifier();
+            var id = containerEntity[AzureCosmosSqlApiRepository.IdentifierPropertyName].ToString();
             containerEntityProperties[nameof(CommandEntity.Id)] = id;
 
             return containerEntityProperties;

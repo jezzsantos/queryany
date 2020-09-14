@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using Domain.Interfaces;
-using Domain.Interfaces.Entities;
 using QueryAny;
 using QueryAny.Primitives;
 
@@ -32,10 +31,10 @@ namespace Storage
                 entity);
         }
 
-        public void Remove(string containerName, Identifier id)
+        public void Remove(string containerName, string id)
         {
             containerName.GuardAgainstNullOrEmpty(nameof(containerName));
-            id.GuardAgainstNull(nameof(id));
+            id.GuardAgainstNullOrEmpty(nameof(id));
 
             if (this.containers.ContainsKey(containerName))
             {
@@ -46,10 +45,10 @@ namespace Storage
             }
         }
 
-        public CommandEntity Retrieve(string containerName, Identifier id, RepositoryEntityMetadata metadata)
+        public CommandEntity Retrieve(string containerName, string id, RepositoryEntityMetadata metadata)
         {
             containerName.GuardAgainstNullOrEmpty(nameof(containerName));
-            id.GuardAgainstNull(nameof(id));
+            id.GuardAgainstNullOrEmpty(nameof(id));
             metadata.GuardAgainstNull(nameof(metadata));
 
             if (this.containers.ContainsKey(containerName))
@@ -64,10 +63,10 @@ namespace Storage
             return default;
         }
 
-        public CommandEntity Replace(string containerName, Identifier id, CommandEntity entity)
+        public CommandEntity Replace(string containerName, string id, CommandEntity entity)
         {
             containerName.GuardAgainstNullOrEmpty(nameof(containerName));
-            id.GuardAgainstNull(nameof(id));
+            id.GuardAgainstNullOrEmpty(nameof(id));
             entity.GuardAgainstNull(nameof(entity));
 
             var entityProperties = entity.ToContainerProperties();
@@ -122,7 +121,7 @@ namespace Storage
                     var joinedEntity = joinedContainer.Value.JoinedEntity;
                     var join = joinedEntity.Join;
                     var leftEntities = primaryEntities
-                        .ToDictionary(e => e.Id.ToString(), e => e.Properties);
+                        .ToDictionary(e => e.Id, e => e.Properties);
                     var rightEntities = joinedContainer.Value.Collection
                         .ToDictionary(e => e.Key, e => e.Value.AsReadOnly());
 

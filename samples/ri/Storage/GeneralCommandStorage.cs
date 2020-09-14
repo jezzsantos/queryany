@@ -46,7 +46,7 @@ namespace Storage
             this.logger.LogDebug("Entity {Id} was retrieved from repository", id);
 
             return entity != null
-                ? entity.ToPersistableEntity<TEntity>(this.domainFactory)
+                ? entity.ToDomainEntity<TEntity>(this.domainFactory)
                 : default;
         }
 
@@ -61,19 +61,19 @@ namespace Storage
             var latest = Get(entity.Id);
             if (latest == null)
             {
-                var added = this.repository.Add(this.containerName, CommandEntity.FromPersistableEntity(entity));
+                var added = this.repository.Add(this.containerName, CommandEntity.FromDomainEntity(entity));
                 this.logger.LogDebug("Entity {Id} was added to repository", added.Id);
 
-                return added.ToPersistableEntity<TEntity>(this.domainFactory);
+                return added.ToDomainEntity<TEntity>(this.domainFactory);
             }
 
             latest.PopulateWithNonDefaultValues(entity);
 
             var updated = this.repository.Replace(this.containerName, entity.Id,
-                CommandEntity.FromPersistableEntity(entity));
+                CommandEntity.FromDomainEntity(entity));
             this.logger.LogDebug("Entity {Id} was updated in repository", entity.Id);
 
-            return updated.ToPersistableEntity<TEntity>(this.domainFactory);
+            return updated.ToDomainEntity<TEntity>(this.domainFactory);
         }
 
         public long Count()

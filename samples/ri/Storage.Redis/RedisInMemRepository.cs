@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
-using Domain.Interfaces.Entities;
 using QueryAny;
 using QueryAny.Primitives;
 using ServiceStack;
@@ -40,7 +39,7 @@ namespace Storage.Redis
             return Retrieve(containerName, entity.Id, entity.Metadata);
         }
 
-        public void Remove(string containerName, Identifier id)
+        public void Remove(string containerName, string id)
         {
             containerName.GuardAgainstNullOrEmpty(nameof(containerName));
             id.GuardAgainstNull(nameof(id));
@@ -53,7 +52,7 @@ namespace Storage.Redis
             }
         }
 
-        public CommandEntity Retrieve(string containerName, Identifier id, RepositoryEntityMetadata metadata)
+        public CommandEntity Retrieve(string containerName, string id, RepositoryEntityMetadata metadata)
         {
             containerName.GuardAgainstNullOrEmpty(nameof(containerName));
             id.GuardAgainstNull(nameof(id));
@@ -69,7 +68,7 @@ namespace Storage.Redis
                 : CommandEntity.FromCommandEntity(properties, metadata);
         }
 
-        public CommandEntity Replace(string containerName, Identifier id, CommandEntity entity)
+        public CommandEntity Replace(string containerName, string id, CommandEntity entity)
         {
             containerName.GuardAgainstNullOrEmpty(nameof(containerName));
             id.GuardAgainstNull(nameof(id));
@@ -255,13 +254,13 @@ namespace Storage.Redis
             return EnumerableExtensions.Safe(client.SearchKeys(pattern)).ToList();
         }
 
-        private static void DeleteRow(IRedisClient client, string containerName, Identifier id)
+        private static void DeleteRow(IRedisClient client, string containerName, string id)
         {
             var key = CreateRowKey(containerName, id);
             client.Remove(key);
         }
 
-        private static bool Exists(IRedisClient client, string containerName, Identifier id)
+        private static bool Exists(IRedisClient client, string containerName, string id)
         {
             var key = CreateRowKey(containerName, id);
             var count = client.GetHashKeys(key).Count;
@@ -369,7 +368,7 @@ namespace Storage.Redis
                 .ToDictionary(pair => pair.Key,
                     pair => pair.Value.FromContainerProperty(metadata.GetPropertyType(pair.Key)));
 
-            containerEntityProperties[nameof(CommandEntity.Id)] = id.ToIdentifier();
+            containerEntityProperties[nameof(CommandEntity.Id)] = id;
 
             return containerEntityProperties;
         }

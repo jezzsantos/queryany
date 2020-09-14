@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Domain.Interfaces.Entities;
 using QueryAny;
 
 namespace Storage
@@ -10,11 +9,11 @@ namespace Storage
 
         CommandEntity Add(string containerName, CommandEntity entity);
 
-        void Remove(string containerName, Identifier id);
+        void Remove(string containerName, string id);
 
-        CommandEntity Retrieve(string containerName, Identifier id, RepositoryEntityMetadata metadata);
+        CommandEntity Retrieve(string containerName, string id, RepositoryEntityMetadata metadata);
 
-        CommandEntity Replace(string containerName, Identifier id, CommandEntity entity);
+        CommandEntity Replace(string containerName, string id, CommandEntity entity);
 
         long Count(string containerName);
 

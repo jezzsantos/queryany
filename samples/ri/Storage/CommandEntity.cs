@@ -8,19 +8,19 @@ using Storage.Interfaces.ReadModels;
 
 namespace Storage
 {
-    public sealed class CommandEntity : RepositoryEntity, IIdentifiableEntity
+    public sealed class CommandEntity : RepositoryEntity, IHasIdentity
     {
         public CommandEntity(string id) : base(id)
         {
         }
 
-        public TEntity ToPersistableEntity<TEntity>(IDomainFactory domainFactory)
+        public TEntity ToDomainEntity<TEntity>(IDomainFactory domainFactory)
             where TEntity : IPersistableEntity
         {
             domainFactory.GuardAgainstNull(nameof(domainFactory));
 
-            var properties = ConvertFromRawProperties(domainFactory);
-            var result = domainFactory.RehydrateEntity(typeof(TEntity), properties);
+            var domainProperties = ConvertToDomainProperties(domainFactory);
+            var result = domainFactory.RehydrateEntity(typeof(TEntity), domainProperties);
             return (TEntity) result;
         }
 
@@ -29,7 +29,7 @@ namespace Storage
             return Properties.FromObjectDictionary<TDto>();
         }
 
-        public static CommandEntity FromPersistableEntity<TEntity>(TEntity entity) where TEntity : IPersistableEntity
+        public static CommandEntity FromDomainEntity<TEntity>(TEntity entity) where TEntity : IPersistableEntity
         {
             var properties = entity.Dehydrate();
             return FromProperties<TEntity>(properties);

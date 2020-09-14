@@ -7,9 +7,9 @@ using ServiceStack;
 namespace Storage.UnitTests
 {
     [EntityName("acontainername")]
-    public class TestEntity : IPersistableEntity
+    public class TestDomainEntity : IPersistableEntity
     {
-        public TestEntity(Identifier identifier)
+        public TestDomainEntity(Identifier identifier)
         {
             Id = identifier;
         }
