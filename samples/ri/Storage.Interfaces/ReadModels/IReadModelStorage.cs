@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Storage.Interfaces
+namespace Storage.Interfaces.ReadModels
 {
-    public interface IReadModelStorage<TDto>
-        where TDto : IReadModelEntity, new()
+    public interface IReadModelStorage<out TDto> where TDto : IReadModelEntity, new()
     {
         TDto Create(string id, Action<TDto> action = null);
 

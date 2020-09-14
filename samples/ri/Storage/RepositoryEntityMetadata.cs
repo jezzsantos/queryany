@@ -18,13 +18,18 @@ namespace Storage
 
         public IReadOnlyDictionary<string, Type> Types => this.propertyTypes;
 
-        public Type GetPropertyType(string propertyName)
+        public Type GetPropertyType(string propertyName, bool throwIfNotExists = true)
         {
             propertyName.GuardAgainstNullOrEmpty(nameof(propertyName));
 
             if (this.propertyTypes.ContainsKey(propertyName))
             {
                 return this.propertyTypes[propertyName];
+            }
+
+            if (!throwIfNotExists)
+            {
+                return null;
             }
 
             throw new InvalidOperationException(

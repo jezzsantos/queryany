@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Storage.Interfaces
+namespace Storage.Interfaces.ReadModels
 {
     public interface IReadModelProjection
     {

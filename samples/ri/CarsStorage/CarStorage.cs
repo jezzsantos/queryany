@@ -20,14 +20,16 @@ namespace CarsStorage
         private readonly IQueryStorage<Car> carQueryStorage;
         private readonly IQueryStorage<Unavailability> unavailabilitiesQueryStorage;
 
-        public CarStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
+        public CarStorage(ILogger logger, IDomainFactory domainFactory, IEventingStorage<CarEntity> eventingStorage,
+            IRepository repository)
         {
             logger.GuardAgainstNull(nameof(logger));
             domainFactory.GuardAgainstNull(nameof(domainFactory));
+            eventingStorage.GuardAgainstNull(nameof(eventingStorage));
             repository.GuardAgainstNull(nameof(repository));
 
             this.carQueryStorage = new GeneralQueryStorage<Car>(logger, domainFactory, repository);
-            this.carEventingStorage = new GeneralEventingStorage<CarEntity>(logger, domainFactory, repository);
+            this.carEventingStorage = eventingStorage;
             this.unavailabilitiesQueryStorage =
                 new GeneralQueryStorage<Unavailability>(logger, domainFactory, repository);
         }

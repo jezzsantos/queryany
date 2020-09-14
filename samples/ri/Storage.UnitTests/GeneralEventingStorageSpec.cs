@@ -16,11 +16,11 @@ namespace Storage.UnitTests
     [TestClass, TestCategory("Unit")]
     public class GeneralEventingStorageSpec
     {
-        private GeneralEventingStorage<TestAggregateRoot> commandStorage;
         private Mock<IDomainFactory> domainFactory;
         private Mock<ILogger> logger;
         private Mock<IRepository> repository;
         private EventStreamStateChangedArgs stateChangedEvent;
+        private GeneralEventingStorage<TestAggregateRoot> storage;
 
         [TestInitialize]
         public void Initialize()
@@ -28,12 +28,12 @@ namespace Storage.UnitTests
             this.logger = new Mock<ILogger>();
             this.domainFactory = new Mock<IDomainFactory>();
             this.repository = new Mock<IRepository>();
-            this.commandStorage =
+            this.storage =
                 new GeneralEventingStorage<TestAggregateRoot>(this.logger.Object, this.domainFactory.Object,
                     this.repository.Object);
 
             this.stateChangedEvent = null;
-            this.commandStorage.OnEventStreamStateChanged += (sender, args) => { this.stateChangedEvent = args; };
+            this.storage.OnEventStreamStateChanged += (sender, args) => { this.stateChangedEvent = args; };
         }
 
         [TestMethod]
@@ -47,7 +47,7 @@ namespace Storage.UnitTests
             this.domainFactory.Setup(df => df.RehydrateEntity(It.IsAny<Type>(), It.IsAny<Dictionary<string, object>>()))
                 .Returns(aggregate);
 
-            var result = this.commandStorage.Load("anid".ToIdentifier());
+            var result = this.storage.Load("anid".ToIdentifier());
 
             result.Should().Be(aggregate);
             result.LoadedChanges.Should().BeNull();
@@ -86,7 +86,7 @@ namespace Storage.UnitTests
             this.domainFactory.Setup(df => df.RehydrateValueObject(typeof(EventMetadata), It.IsAny<string>()))
                 .Returns((Type type, string value) => new EventMetadata(value));
 
-            var result = this.commandStorage.Load("anid".ToIdentifier());
+            var result = this.storage.Load("anid".ToIdentifier());
 
             result.Should().Be(aggregate);
             result.LoadedChanges.Should().BeEquivalentTo(events);
@@ -107,7 +107,7 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenSaveAndAggregateHasNoIdentifier_ThenThrowsConflict()
         {
-            this.commandStorage
+            this.storage
                 .Invoking(x => x.Save(new TestAggregateRoot(null)))
                 .Should().Throw<ResourceConflictException>();
         }
@@ -116,7 +116,7 @@ namespace Storage.UnitTests
         public void WhenSaveAndNoEvents_ThenDoesNothing()
         {
             var aggregate = new TestAggregateRoot("anid".ToIdentifier());
-            this.commandStorage.Save(aggregate);
+            this.storage.Save(aggregate);
 
             aggregate.ClearedChanges.Should().BeFalse();
             this.stateChangedEvent.Should().BeNull();
@@ -135,7 +135,7 @@ namespace Storage.UnitTests
                 }
             };
 
-            this.commandStorage.Save(aggregate);
+            this.storage.Save(aggregate);
 
             this.repository.Verify(
                 repo => repo.Add("acontainername_Events", It.IsAny<CommandEntity>()),

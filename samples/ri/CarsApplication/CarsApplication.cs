@@ -130,7 +130,7 @@ namespace CarsApplication
             };
             dto.Plate = new CarLicensePlate
                 {Jurisdiction = readModel.LicenseJurisdiction, Number = readModel.LicenseNumber};
-            return null;
+            return dto;
         }
 
         public static Car ToCar(this CarEntity entity)

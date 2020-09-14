@@ -10,6 +10,7 @@
       <ProjectReference Include="..\ApplicationServices\ApplicationServices.csproj" />
       <ProjectReference Include="..\CarsDomain\CarsDomain.csproj" />
       <ProjectReference Include="..\Domain.Interfaces\Domain.Interfaces.csproj" />
+      <ProjectReference Include="..\Storage.Interfaces\Storage.Interfaces.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Domain.Interfaces.Entities;
 using QueryAny;
 using QueryAny.Primitives;
 using ServiceStack;
+using Storage.Interfaces.ReadModels;
 
 namespace Storage
 {
@@ -22,6 +22,11 @@ namespace Storage
             var properties = ConvertFromRawProperties(domainFactory);
             var result = domainFactory.RehydrateEntity(typeof(TEntity), properties);
             return (TEntity) result;
+        }
+
+        public TDto ToReadModelEntity<TDto>() where TDto : IReadModelEntity, new()
+        {
+            return Properties.FromObjectDictionary<TDto>();
         }
 
         public static CommandEntity FromPersistableEntity<TEntity>(TEntity entity) where TEntity : IPersistableEntity
@@ -42,11 +47,11 @@ namespace Storage
             properties.GuardAgainstNull(nameof(properties));
             metadata.GuardAgainstNull(nameof(metadata));
 
-            return FromProperties(properties, metadata.Types);
+            return FromProperties(properties, metadata);
         }
 
         public static CommandEntity FromType<TType>(TType instance)
-            where TType : IIdentifiableEntity, IQueryableEntity
+            where TType : IQueryableEntity
         {
             instance.GuardAgainstNull(nameof(instance));
 
@@ -55,7 +60,7 @@ namespace Storage
         }
 
         private static CommandEntity FromProperties<TType>(IReadOnlyDictionary<string, object> properties)
-            where TType : IIdentifiableEntity, IQueryableEntity
+            where TType : IQueryableEntity
         {
             properties.GuardAgainstNull(nameof(properties));
 
@@ -68,15 +73,7 @@ namespace Storage
             RepositoryEntityMetadata metadata)
         {
             properties.GuardAgainstNull(nameof(properties));
-
-            return FromProperties(properties, metadata.Types);
-        }
-
-        private static CommandEntity FromProperties(IReadOnlyDictionary<string, object> properties,
-            IReadOnlyDictionary<string, Type> propertyTypes)
-        {
-            properties.GuardAgainstNull(nameof(properties));
-            propertyTypes.GuardAgainstNull(nameof(propertyTypes));
+            metadata.GuardAgainstNull(nameof(metadata));
 
             if (!properties.ContainsKey(nameof(Id))
                 || properties[nameof(Id)] == null)
@@ -89,8 +86,11 @@ namespace Storage
 
             foreach (var property in properties)
             {
-                var propertyType = propertyTypes.First(p => p.Key.EqualsOrdinal(property.Key)).Value;
-                result.Add(property.Key, property.Value, propertyType);
+                var propertyType = metadata.GetPropertyType(property.Key, false);
+                if (propertyType != null)
+                {
+                    result.Add(property.Key, property.Value, propertyType);
+                }
             }
 
             return result;

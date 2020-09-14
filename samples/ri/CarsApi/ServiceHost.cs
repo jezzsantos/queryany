@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using Api.Common;
 using Api.Common.Validators;
 using ApplicationServices;
@@ -15,13 +16,17 @@ using ServiceClients;
 using ServiceStack;
 using ServiceStack.Configuration;
 using ServiceStack.Validation;
+using Storage;
 using Storage.Azure;
+using Storage.Interfaces;
+using Storage.ReadModels;
 
 namespace CarsApi
 {
     public class ServiceHost : AppHostBase
     {
         private static readonly Assembly[] AssembliesContainingServicesAndDependencies = {typeof(Startup).Assembly};
+        private IReadModelSubscription readModelSubscription;
 
         public ServiceHost() : base("MyCarsApi", AssembliesContainingServicesAndDependencies)
         {
@@ -38,18 +43,33 @@ namespace CarsApi
 
         private static void RegisterDependencies(Container container)
         {
+            static AzureCosmosSqlApiRepository RepositoryFactory(Container c)
+            {
+                return AzureCosmosSqlApiRepository.FromAppSettings(c.Resolve<IAppSettings>(), "Production");
+            }
+
             container.AddSingleton<ILogger>(c => new Logger<ServiceHost>(new NullLoggerFactory()));
             container.AddSingleton<IDependencyContainer>(new FuncDependencyContainer(container));
             container.AddSingleton<IIdentifierFactory, CarIdentifierFactory>();
-            container.AddSingleton<IDomainFactory>(c =>
-                DomainFactory.CreateRegistered(c.Resolve<IDependencyContainer>(), typeof(EntityEvent).Assembly,
-                    typeof(CarEntity).Assembly));
+            container.AddSingleton<IDomainFactory>(c => DomainFactory.CreateRegistered(
+                c.Resolve<IDependencyContainer>(), typeof(EntityEvent).Assembly,
+                typeof(CarEntity).Assembly));
+            container.AddSingleton<IEventingStorage<CarEntity>>(c =>
+                new GeneralEventingStorage<CarEntity>(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
+                    RepositoryFactory(c)));
             container.AddSingleton<ICarStorage>(c =>
                 new CarStorage(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
-                    AzureCosmosSqlApiRepository.FromAppSettings(c.Resolve<IAppSettings>(), "Production")));
+                    c.Resolve<IEventingStorage<CarEntity>>(), RepositoryFactory(c)));
             container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
             container.AddSingleton<IPersonsService>(c =>
                 new PersonsServiceClient(c.Resolve<IAppSettings>().GetString("PersonsApiBaseUrl")));
+            container.AddSingleton<IReadModelSubscription>(c => new ReadModelSubscription<CarEntity>(
+                c.Resolve<ILogger>(), c.Resolve<IEventingStorage<CarEntity>>(),
+                new ReadModelProjector(c.Resolve<ILogger>(),
+                    new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
+                        c.Resolve<IDomainFactory>(),
+                        RepositoryFactory(c)),
+                    new CarEntityReadModelProjection(c.Resolve<ILogger>(), RepositoryFactory(c)))));
         }
 
         private void RegisterValidators(Container container)
@@ -58,6 +78,20 @@ namespace CarsApi
             container.RegisterValidators(AssembliesContainingServicesAndDependencies);
             container.AddSingleton<IHasSearchOptionsValidator, HasSearchOptionsValidator>();
             container.AddSingleton<IHasGetOptionsValidator, HasGetOptionsValidator>();
+        }
+
+        public override void OnAfterInit()
+        {
+            base.OnAfterInit();
+
+            this.readModelSubscription = Container.Resolve<IReadModelSubscription>();
+            this.readModelSubscription.Start();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            (this.readModelSubscription as IDisposable)?.Dispose();
         }
     }
 }

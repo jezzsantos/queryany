@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Storage.Interfaces;
+using Storage.Interfaces.ReadModels;
 using Storage.ReadModels;
 
 namespace Storage.UnitTests.ReadModels

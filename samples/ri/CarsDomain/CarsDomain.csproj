@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domain.Interfaces\Domain.Interfaces.csproj" />
-    <ProjectReference Include="..\Storage.Interfaces\Storage.Interfaces.csproj" />
   </ItemGroup>
 
   <ItemGroup>

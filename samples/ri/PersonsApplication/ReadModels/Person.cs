@@ -1,4 +1,4 @@
-﻿using Storage.Interfaces;
+﻿using Storage.Interfaces.ReadModels;
 
 namespace PersonsApplication.ReadModels
 {

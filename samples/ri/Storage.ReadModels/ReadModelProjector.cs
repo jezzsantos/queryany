@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using ServiceStack.Text;
 using Storage.Interfaces;
+using Storage.Interfaces.ReadModels;
 
 namespace Storage.ReadModels
 {
@@ -80,7 +81,7 @@ namespace Storage.ReadModels
             IEnumerable<EventStreamStateChangeEvent> eventStream, long checkpoint)
         {
             return eventStream
-                .Where(e => e.Version > checkpoint);
+                .Where(e => e.Version >= checkpoint);
         }
 
         private static IReadModelProjection GetProjection(IEnumerable<IReadModelProjection> projections,
@@ -114,7 +115,7 @@ namespace Storage.ReadModels
 
         private static void EnsureNextVersion(string streamName, long checkpoint, long firstEventVersion)
         {
-            if (firstEventVersion > checkpoint + 1)
+            if (firstEventVersion > checkpoint)
             {
                 throw new InvalidOperationException(
                     $"The event stream {streamName} is at checkpoint '{checkpoint}', but new events are at version {firstEventVersion}. Perhaps some event history is missing?");

@@ -45,8 +45,11 @@ namespace Storage
             var dataEntity = new QueryEntity();
             foreach (var pair in properties)
             {
-                var propertyType = metadata.GetPropertyType(pair.Key);
-                dataEntity.Add(pair.Key, pair.Value, propertyType);
+                var propertyType = metadata.GetPropertyType(pair.Key, false);
+                if (propertyType != null)
+                {
+                    dataEntity.Add(pair.Key, pair.Value, propertyType);
+                }
             }
 
             return dataEntity;

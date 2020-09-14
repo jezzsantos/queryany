@@ -45,7 +45,9 @@ namespace Storage
 
             this.logger.LogDebug("Entity {Id} was retrieved from repository", id);
 
-            return entity.ToPersistableEntity<TEntity>(this.domainFactory);
+            return entity != null
+                ? entity.ToPersistableEntity<TEntity>(this.domainFactory)
+                : default;
         }
 
         public TEntity Upsert(TEntity entity)

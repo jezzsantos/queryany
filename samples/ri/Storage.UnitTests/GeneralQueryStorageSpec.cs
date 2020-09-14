@@ -13,8 +13,8 @@ namespace Storage.UnitTests
     {
         private Mock<IDomainFactory> domainFactory;
         private Mock<ILogger> logger;
-        private GeneralQueryStorage<TestDto> queryStorage;
         private Mock<IRepository> repository;
+        private GeneralQueryStorage<TestDto> storage;
 
         [TestInitialize]
         public void Initialize()
@@ -22,7 +22,7 @@ namespace Storage.UnitTests
             this.logger = new Mock<ILogger>();
             this.domainFactory = new Mock<IDomainFactory>();
             this.repository = new Mock<IRepository>();
-            this.queryStorage =
+            this.storage =
                 new GeneralQueryStorage<TestDto>(this.logger.Object, this.domainFactory.Object,
                     this.repository.Object);
         }
@@ -30,7 +30,7 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenCount_ThenGetsCountFromRepo()
         {
-            this.queryStorage.Count();
+            this.storage.Count();
 
             this.repository.Verify(repo => repo.Count("acontainername"));
         }
@@ -38,7 +38,7 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenDestroyAll_ThenGetsCountFromRepo()
         {
-            this.queryStorage.DestroyAll();
+            this.storage.DestroyAll();
 
             this.repository.Verify(repo => repo.DestroyAll("acontainername"));
         }
@@ -46,7 +46,7 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenQueryWithNullQuery_ThenReturnsEmptyResults()
         {
-            var result = this.queryStorage.Query(null);
+            var result = this.storage.Query(null);
 
             result.Should().NotBeNull();
             result.Results.Should().BeEmpty();
@@ -60,7 +60,7 @@ namespace Storage.UnitTests
         public void WhenQueryWithEmptyQuery_ThenReturnsEmptyResults()
         {
             var query = Query.Empty<TestDto>();
-            var result = this.queryStorage.Query(query);
+            var result = this.storage.Query(query);
 
             result.Should().NotBeNull();
             result.Results.Should().BeEmpty();
@@ -80,7 +80,7 @@ namespace Storage.UnitTests
                         It.IsAny<RepositoryEntityMetadata>()))
                 .Returns(results);
 
-            var result = this.queryStorage.Query(query);
+            var result = this.storage.Query(query);
 
             result.Results.Should().BeEquivalentTo(results);
         }

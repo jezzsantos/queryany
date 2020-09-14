@@ -5,36 +5,49 @@ using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using Storage.Interfaces;
+using Storage.Interfaces.ReadModels;
 
 namespace Storage.ReadModels
 {
     public class ReadModelSubscription<TAggregateRoot> : IReadModelSubscription, IDisposable
         where TAggregateRoot : IPersistableAggregateRoot
     {
+        private readonly IEventingStorage<TAggregateRoot> eventingStorage;
         private readonly ILogger logger;
-        private readonly IReadModelProjector readModelProjector;
-        private readonly IEventingStorage<TAggregateRoot> storage;
+        private readonly IReadModelProjector projector;
+        private bool isStarted;
 
-        public ReadModelSubscription(ILogger logger, IEventingStorage<TAggregateRoot> storage,
+        public ReadModelSubscription(ILogger logger, IEventingStorage<TAggregateRoot> eventingStorage,
             IReadModelProjector readModelProjector)
         {
             logger.GuardAgainstNull(nameof(logger));
-            storage.GuardAgainstNull(nameof(storage));
+            eventingStorage.GuardAgainstNull(nameof(eventingStorage));
             readModelProjector.GuardAgainstNull(nameof(readModelProjector));
 
             this.logger = logger;
-            this.storage = storage;
-            this.readModelProjector = readModelProjector;
+            this.eventingStorage = eventingStorage;
+            this.projector = readModelProjector;
             ProcessingErrors = new List<EventProcessingError>();
-
-            this.storage.OnEventStreamStateChanged += OnEventStreamStateChanged;
         }
 
         internal List<EventProcessingError> ProcessingErrors { get; }
 
         public void Dispose()
         {
-            this.storage.OnEventStreamStateChanged -= OnEventStreamStateChanged;
+            if (this.isStarted)
+            {
+                this.eventingStorage.OnEventStreamStateChanged -= OnEventStreamStateChanged;
+            }
+        }
+
+        public void Start()
+        {
+            if (!this.isStarted)
+            {
+                this.eventingStorage.OnEventStreamStateChanged += OnEventStreamStateChanged;
+                this.isStarted = true;
+                this.logger.LogDebug("Subscribed to read model changes for {Aggregate}", typeof(TAggregateRoot).Name);
+            }
         }
 
         internal void OnEventStreamStateChanged(object sender, EventStreamStateChangedArgs args)
@@ -59,7 +72,7 @@ namespace Storage.ReadModels
                     try
                     {
                         EnsureContiguousVersions(streamName, eventStream);
-                        this.readModelProjector.WriteEventStream(streamName, eventStream);
+                        this.projector.WriteEventStream(streamName, eventStream);
                     }
                     catch (Exception ex)
                     {
@@ -90,7 +103,7 @@ namespace Storage.ReadModels
             {
                 ProcessingErrors.ForEach(error =>
                     this.logger.LogError(error.Exception,
-                        $"Failed to relay new events to ReadModel for: '{error.StreamName}'"));
+                        "Failed to relay new events to read model for: {StreamName}", error.StreamName));
             }
         }
 

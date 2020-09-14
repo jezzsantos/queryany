@@ -12,10 +12,10 @@ namespace Storage.UnitTests
     [TestClass, TestCategory("Unit")]
     public class GeneralCommandStorageSpec
     {
-        private GeneralCommandStorage<TestEntity> commandStorage;
         private Mock<IDomainFactory> domainFactory;
         private Mock<ILogger> logger;
         private Mock<IRepository> repository;
+        private GeneralCommandStorage<TestEntity> storage;
 
         [TestInitialize]
         public void Initialize()
@@ -23,7 +23,7 @@ namespace Storage.UnitTests
             this.logger = new Mock<ILogger>();
             this.domainFactory = new Mock<IDomainFactory>();
             this.repository = new Mock<IRepository>();
-            this.commandStorage =
+            this.storage =
                 new GeneralCommandStorage<TestEntity>(this.logger.Object, this.domainFactory.Object,
                     this.repository.Object);
         }
@@ -31,9 +31,25 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenDelete_ThenRemovesFromRepository()
         {
-            this.commandStorage.Delete("anid".ToIdentifier());
+            this.storage.Delete("anid".ToIdentifier());
 
             this.repository.Verify(repo => repo.Remove("acontainername", "anid".ToIdentifier()));
+        }
+
+        [TestMethod]
+        public void WhenGetAndNotExists_ThenReturnsNull()
+        {
+            this.repository.Setup(repo =>
+                    repo.Retrieve("acontainername", "anid".ToIdentifier(),
+                        It.IsAny<RepositoryEntityMetadata>()))
+                .Returns((CommandEntity) null);
+
+            var result = this.storage.Get("anid".ToIdentifier());
+
+            result.Should().BeNull();
+            this.repository.Verify(repo =>
+                repo.Retrieve("acontainername", "anid".ToIdentifier(),
+                    It.IsAny<RepositoryEntityMetadata>()));
         }
 
         [TestMethod]
@@ -44,7 +60,7 @@ namespace Storage.UnitTests
                         It.IsAny<RepositoryEntityMetadata>()))
                 .Returns(new CommandEntity("anid"));
 
-            this.commandStorage.Get("anid".ToIdentifier());
+            this.storage.Get("anid".ToIdentifier());
 
             this.repository.Verify(repo =>
                 repo.Retrieve("acontainername", "anid".ToIdentifier(),
@@ -54,7 +70,7 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenUpsertAndEntityIdNotExists_ThenThrowsNotFound()
         {
-            this.commandStorage
+            this.storage
                 .Invoking(x => x.Upsert(new TestEntity(null)))
                 .Should().Throw<ResourceNotFoundException>();
         }
@@ -62,7 +78,7 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenUpsertAndEntityIdIsEmpty_ThenThrowsNotFound()
         {
-            this.commandStorage
+            this.storage
                 .Invoking(x => x.Upsert(new TestEntity(Identifier.Empty())))
                 .Should().Throw<ResourceNotFoundException>();
         }
@@ -79,7 +95,7 @@ namespace Storage.UnitTests
             this.repository.Setup(repo => repo.Add(It.IsAny<string>(), It.IsAny<CommandEntity>()))
                 .Returns(addedEntity);
 
-            this.commandStorage.Upsert(entity);
+            this.storage.Upsert(entity);
 
             this.repository.Verify(repo =>
                 repo.Retrieve("acontainername", "anid".ToIdentifier(),
@@ -105,7 +121,7 @@ namespace Storage.UnitTests
                     df.RehydrateEntity(It.IsAny<Type>(), It.IsAny<IReadOnlyDictionary<string, object>>()))
                 .Returns(hydratedEntity);
 
-            var result = this.commandStorage.Upsert(entity);
+            var result = this.storage.Upsert(entity);
 
             result.Should().BeEquivalentTo(hydratedEntity);
             this.repository.Verify(repo =>
@@ -118,7 +134,7 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenCount_ThenGetsCountFromRepo()
         {
-            this.commandStorage.Count();
+            this.storage.Count();
 
             this.repository.Verify(repo => repo.Count("acontainername"));
         }
@@ -126,7 +142,7 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenDestroyAll_ThenGetsCountFromRepo()
         {
-            this.commandStorage.DestroyAll();
+            this.storage.DestroyAll();
 
             this.repository.Verify(repo => repo.DestroyAll("acontainername"));
         }

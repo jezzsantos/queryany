@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using QueryAny;
-using Storage.Interfaces;
+using Storage.Interfaces.ReadModels;
 
 namespace CarsApplication.ReadModels
 {

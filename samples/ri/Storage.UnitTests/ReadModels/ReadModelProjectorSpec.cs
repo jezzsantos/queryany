@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using ServiceStack;
 using Storage.Interfaces;
+using Storage.Interfaces.ReadModels;
 using Storage.ReadModels;
 
 namespace Storage.UnitTests.ReadModels
@@ -78,7 +79,7 @@ namespace Storage.UnitTests.ReadModels
                     new EventStreamStateChangeEvent
                     {
                         EntityType = nameof(String),
-                        Version = 7
+                        Version = 6
                     }
                 })).Should().Throw<InvalidOperationException>();
         }
@@ -120,11 +121,11 @@ namespace Storage.UnitTests.ReadModels
             )), Times.Never);
             this.projection.Verify(prj => prj.Project(It.Is<TestEvent>(e =>
                 e.Id == "aneventid2"
-            )), Times.Never);
+            )));
             this.projection.Verify(prj => prj.Project(It.Is<TestEvent>(e =>
                 e.Id == "aneventid3"
             )));
-            this.checkpointStore.Verify(cs => cs.SaveCheckpoint("astreamname", 6));
+            this.checkpointStore.Verify(cs => cs.SaveCheckpoint("astreamname", 7));
         }
 
         [TestMethod]
@@ -149,8 +150,9 @@ namespace Storage.UnitTests.ReadModels
         [TestMethod]
         public void WhenWriteEventStreamAndFirstEverEvent_ThenProjectsEvents()
         {
+            const long startingCheckpoint = ReadModelCheckpointStore.StartingCheckpointPosition;
             this.checkpointStore.Setup(cs => cs.LoadCheckpoint("astreamname"))
-                .Returns(0);
+                .Returns(startingCheckpoint);
 
             this.projector.WriteEventStream("astreamname", new List<EventStreamStateChangeEvent>
             {
@@ -158,21 +160,21 @@ namespace Storage.UnitTests.ReadModels
                 {
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid1"}.ToJson(),
-                    Version = 1,
+                    Version = startingCheckpoint,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
                 new EventStreamStateChangeEvent
                 {
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid2"}.ToJson(),
-                    Version = 2,
+                    Version = startingCheckpoint + 1,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
                 new EventStreamStateChangeEvent
                 {
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid3"}.ToJson(),
-                    Version = 3,
+                    Version = startingCheckpoint + 2,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 }
             });
@@ -187,7 +189,7 @@ namespace Storage.UnitTests.ReadModels
             this.projection.Verify(prj => prj.Project(It.Is<TestEvent>(e =>
                 e.Id == "aneventid3"
             )));
-            this.checkpointStore.Verify(cs => cs.SaveCheckpoint("astreamname", 3));
+            this.checkpointStore.Verify(cs => cs.SaveCheckpoint("astreamname", startingCheckpoint + 3));
         }
 
         [TestMethod]
@@ -202,21 +204,21 @@ namespace Storage.UnitTests.ReadModels
                 {
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid1"}.ToJson(),
-                    Version = 4,
+                    Version = 3,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
                 new EventStreamStateChangeEvent
                 {
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid2"}.ToJson(),
-                    Version = 5,
+                    Version = 4,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
                 new EventStreamStateChangeEvent
                 {
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid3"}.ToJson(),
-                    Version = 6,
+                    Version = 5,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 }
             });

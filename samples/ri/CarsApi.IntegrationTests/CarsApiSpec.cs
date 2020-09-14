@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ServiceStack;
 using Storage;
 using Storage.Interfaces;
+using Storage.ReadModels;
 using IRepository = Storage.IRepository;
 
 namespace CarsApi.IntegrationTests
@@ -61,8 +62,19 @@ namespace CarsApi.IntegrationTests
                 inMemRepository);
             unavailabilityQueryStorage = new GeneralQueryStorage<Unavailability>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
+
+            container.AddSingleton(carEventingStorage);
             container.AddSingleton<ICarStorage>(c =>
                 new CarStorage(carQueryStorage, carEventingStorage, unavailabilityQueryStorage));
+            container.AddSingleton<IReadModelSubscription>(c => new ReadModelSubscription<CarEntity>(
+                c.Resolve<ILogger>(), c.Resolve<IEventingStorage<CarEntity>>(),
+                new ReadModelProjector(c.Resolve<ILogger>(),
+                    new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
+                        c.Resolve<IDomainFactory>(), inMemRepository),
+                    new CarEntityReadModelProjection(c.Resolve<ILogger>(), inMemRepository))));
+
+            //HACK: subscribe again (see: https://forums.servicestack.net/t/integration-testing-and-overriding-registered-services/8875/5)
+            HostContext.AppHost.OnAfterInit();
         }
 
         [ClassCleanup]

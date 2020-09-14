@@ -5,7 +5,8 @@ using CarsDomain;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
-using Storage.Interfaces;
+using Storage;
+using Storage.Interfaces.ReadModels;
 using Events = Domain.Interfaces.Entities.Events;
 
 namespace CarsStorage
@@ -16,16 +17,14 @@ namespace CarsStorage
         private readonly ILogger logger;
         private readonly IReadModelStorage<Unavailability> unavailabilityStorage;
 
-        public CarEntityReadModelProjection(ILogger logger, IReadModelStorage<Car> carStorage,
-            IReadModelStorage<Unavailability> unavailabilityStorage)
+        public CarEntityReadModelProjection(ILogger logger, IRepository repository)
         {
             logger.GuardAgainstNull(nameof(logger));
-            carStorage.GuardAgainstNull(nameof(carStorage));
-            unavailabilityStorage.GuardAgainstNull(nameof(unavailabilityStorage));
+            repository.GuardAgainstNull(nameof(repository));
 
             this.logger = logger;
-            this.carStorage = carStorage;
-            this.unavailabilityStorage = unavailabilityStorage;
+            this.carStorage = new GeneralReadModelStorage<Car>(logger, repository);
+            this.unavailabilityStorage = new GeneralReadModelStorage<Unavailability>(logger, repository);
         }
 
         public Type EntityType => typeof(CarEntity);

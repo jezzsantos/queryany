@@ -3,37 +3,38 @@ using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny;
 using QueryAny.Primitives;
-using Storage.Interfaces;
+using Storage.Interfaces.ReadModels;
 
 namespace Storage.ReadModels
 {
     public class ReadModelCheckpointStore : IReadModelCheckpointStore
     {
-        public const long DefaultCheckpointPosition = 1;
-        private readonly ICommandStorage<Checkpoint> commandStorage;
+        public const long StartingCheckpointPosition = 1;
+        private readonly IDomainFactory domainFactory;
         private readonly IIdentifierFactory idFactory;
         private readonly ILogger logger;
-        private readonly IQueryStorage<Checkpoint> queryStorage;
+        private readonly IRepository repository;
 
         public ReadModelCheckpointStore(ILogger logger, IIdentifierFactory idFactory,
-            ICommandStorage<Checkpoint> commandStorage,
-            IQueryStorage<Checkpoint> queryStorage)
+            IDomainFactory domainFactory, IRepository repository)
         {
             logger.GuardAgainstNull(nameof(logger));
             idFactory.GuardAgainstNull(nameof(idFactory));
-            queryStorage.GuardAgainstNull(nameof(queryStorage));
-            commandStorage.GuardAgainstNull(nameof(commandStorage));
+            repository.GuardAgainstNull(nameof(repository));
+            domainFactory.GuardAgainstNull(nameof(domainFactory));
             this.logger = logger;
             this.idFactory = idFactory;
-            this.queryStorage = queryStorage;
-            this.commandStorage = commandStorage;
+            this.repository = repository;
+            this.domainFactory = domainFactory;
         }
+
+        private static string ContainerName => typeof(Checkpoint).GetEntityNameSafe();
 
         public long LoadCheckpoint(string streamName)
         {
             var checkpoint = GetCheckpoint(streamName);
             return checkpoint == null
-                ? DefaultCheckpointPosition
+                ? StartingCheckpointPosition
                 : checkpoint.Position;
         }
 
@@ -47,14 +48,14 @@ namespace Storage.ReadModels
                     Position = position,
                     StreamName = streamName
                 };
-                checkpoint.SetIdentifier(this.idFactory);
+                checkpoint.Id = this.idFactory.Create(checkpoint);
+                this.repository.Add(ContainerName, CommandEntity.FromType(checkpoint));
             }
             else
             {
                 checkpoint.Position = position;
+                this.repository.Replace(ContainerName, checkpoint.Id, CommandEntity.FromType(checkpoint));
             }
-
-            this.commandStorage.Upsert(checkpoint);
 
             this.logger.LogDebug("Saved checkpoint {StreamName} to position: {Position}", streamName,
                 position);
@@ -62,10 +63,12 @@ namespace Storage.ReadModels
 
         private Checkpoint GetCheckpoint(string streamName)
         {
-            var checkpoint = this.queryStorage
-                .Query(Query.From<Checkpoint>().Where(cp => cp.StreamName, ConditionOperator.EqualTo, streamName))
-                .Results.FirstOrDefault();
-            return checkpoint;
+            var checkpoint = this.repository
+                .Query(ContainerName,
+                    Query.From<Checkpoint>().Where(cp => cp.StreamName, ConditionOperator.EqualTo, streamName),
+                    RepositoryEntityMetadata.FromType<Checkpoint>())
+                .FirstOrDefault();
+            return checkpoint?.ToEntity<Checkpoint>(this.domainFactory);
         }
     }
 }
