@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Api.Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Funq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using ServiceStack;
 
 namespace Domain.Interfaces.UnitTests
 {
@@ -115,12 +112,14 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenInstantiate_ThenRaisesNoEvents()
         {
-            var container = new Container();
-            container.AddSingleton<ILogger>(NullLogger.Instance);
-            container.AddSingleton<IIdentifierFactory>(new NullIdentifierFactory());
+            var container = new Mock<IDependencyContainer>();
+            container.Setup(c => c.Resolve<ILogger>())
+                .Returns(NullLogger.Instance);
+            container.Setup(c => c.Resolve<IIdentifierFactory>())
+                .Returns(new NullIdentifierFactory());
 
             var created =
-                TestAggregateRoot.Instantiate()("anid".ToIdentifier(), new FuncDependencyContainer(container));
+                TestAggregateRoot.Instantiate()("anid".ToIdentifier(), container.Object);
 
             created.GetChanges().Should().BeEmpty();
             created.LastPersistedAtUtc.Should().BeNull();
