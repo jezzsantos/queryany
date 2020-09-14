@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ReferenceImplementation", "ReferenceImplementation", "{5D6906B8-B50B-4E20-8677-5D364F9840F6}"
 ProjectSection(SolutionItems) = preProject
 	..\samples\ri\README.md = ..\samples\ri\README.md
+	..\samples\ri\Dependencies.argr = ..\samples\ri\Dependencies.argr
 EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CarsDomain", "..\samples\ri\CarsDomain\CarsDomain.csproj", "{976E2F12-0A56-4A6D-A2D0-44E6C59FAB91}"

@@ -47,6 +47,8 @@ The RI solution is structured into three logical parts:
 
 There should be no dependency from: classes in Domain -> to classes in Application or from Application to Infrastructure. Ever!
 
+![Project Dependencies](https://raw.githubusercontent.com/wiki/jezzsantos/queryany/Images/ProjectDependencies.png)
+
 ## Domain
 
 The domain layer contains **Domain Entities, ValueObjects, Aggregates and Domain Services:** Your smart, fully encapsulated, strict OO, 'domain classes' that have all your domain rules, logic, validation, etc encapsulated within them.
