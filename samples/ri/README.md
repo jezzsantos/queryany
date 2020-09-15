@@ -1,51 +1,58 @@
 # QueryAny Reference Implementation
 
-This folder contains a very close to real world example of a REST based API for managing Cars for a Car Sharing software product, that follows many of the principles of Domain Driven Design (DDD) and Clean Architecture/Onion Architecture/Hexagonal Architecture. This is not a strict implementation of DDD.
+This folder contains an example of a REST based API for managing Cars for a Car Sharing software product, based on a production system, that follows many of the principles of Domain Driven Design (DDD) and Clean Architecture/Onion Architecture/Hexagonal Architecture, demonstrates CQRS and has an eventing architecture, using event sourcing for persistence.
+
+It is not a strict implementation of DDD, but something that has many of the ingredients and principles of DDD.
 
 We describe the major boundaries of this RI as either: Infrastructure, Application or Domain.
 
 ![Architecture](https://raw.githubusercontent.com/wiki/jezzsantos/queryany/Images/Architecture.png)
 
-We use these kinds of terms in the architecture:
+We use these kinds of terms in this architecture:
 
 * API (REST API),
 * Service Operations,
 * DTO (Data Transfer Objects),
 * REST Resources,
 * Application Layer (DDD Application Layer),
-* Entities (DDD Entities), ValueObjects (DDD ValueObject), Aggregates, Domain Services, Repositories and Events
+* [domain] Entities (DDD Entities), ValueObjects (DDD ValueObject), Aggregates, Domain Services and Repositories
+* Commands and Queries, Storage and [data] Entities. 
+* Events, Read Models and Projections. 
 
 In terms of data flow, a typical REST API call results in an interaction like this:
 
-* Messages come in over the wire on HTTP into Service Operations of the API. The API de-serializes the HTTP request into DTO's that define an application *command*.
-* The API Service Operations, grouped by REST resource type, then validate the inbound DTO *command*, and delegate execution to an appropriate Application Layer. (In this scheme, DTO's are deconstructed to component properties - to save on having another mapping layer).
-* The "Application Layer" takes the deconstructed DTO properties, and instantiates and/or dehydrates Entities from repositories, co-ordinates and instructs Entities to do things (Tell-Dont-Ask), uses domain services if necessary, and then if necessary, dehydrates the change in Entity state back to persistence.
-* The Application Layer then converts the Entities to DTOs, and hands them back to the API.
+* Messages come in over the wire on HTTP into Service Operations of the API. The API de-serializes the HTTP request into request DTO's that define an application *Command* or *Query*.
+* The API Service Operations (grouped by REST resource type) then validate the inbound DTO *Command*, and delegate execution to an appropriate Application Layer. (In this pathway, request DTO's are deconstructed into primitive properties - to save on having another explicit mapping layer).
+* The "Application Layer" takes the deconstructed DTO properties, and either instantiates and/or de-hydrates DomainEntities from repositories (via Command Storage), co-ordinates and instructs Entities to do things (Tell-Dont-Ask).
+* The domain aggregates and entities make changes to their state by raising events. 
+* The "Application Layer" uses domain services if necessary, and then re-hydrates the changes of state [events] back to event persistence storage. 
+* The event persistence triggers the replay of the persisted events, and project the changes onto a read model that stores the latest state of the entity. (to be queried later) 
+* The Application Layer then converts the changed Entities into DTOs, and hands them back to the API.
 * The API layer then serializes the DTO over the wire, and handles the conversion of exceptions to HTTP status codes and status descriptions.
 
 > Important: This reference implementation is not part of the QueryAny library/package, just an example of integrating QueryAny in practice.
 
-The RI has tried not to be too strongly opinionated about the layout and naming of files/folders/assemblies on disk, other than to assume that in a small to medium sized product you too would likely split your projects/components into logical, testable layers for maintainability, reuse and future scalability (scale out), as your product grows.
+The RI has tried not to be too strongly opinionated about the layout and naming of files/folders/assemblies on disk, other than to assume that in a small to medium sized product you too would likely split your projects/components into multiple logical, testable layers for maintainability, reuse and future scalability (scale out), as your product grows.
 
-> Note: Some of the naming conventions here are debatable and perhaps not to your liking. That's cool too. We have named them in the way we have, primarily so that you can at a glance understand the intention of them. We would chose a different naming convention in a real product too.
+> Note: Some of the naming conventions here are debatable and perhaps not to your liking. That's cool too. We have named them in the way we have in this RI, primarily so that you can at a glance understand the intention of them. We would chose a different naming convention in a real product too.
 
-The RI solution demonstrates strict discipline around decoupling and separation of concerns, both of which manage _accidental complexity_ as things change and as the codebase grows. Which is the primary concern of yours.
+The RI solution demonstrates strict discipline around decoupling and separation of concerns, both of which manage _accidental complexity_ as things change and as the codebase grows. Which should be a primary concern of your codebase.
 
-> Design Choice: The RI does does not quite fully implement all GET API patterns that allow clients to have fine grained enough control the data returned on the wire (i.e. embedded resources, filtering etc). So, the inclusion of a GraphQL endpoint is a reasonable thing to need to add to it.
+> Design Choice: The RI does does not quite fully implement all GET API patterns that allow clients to have fine grained enough control the data returned on the wire (i.e. embedded resources, filtering etc). So, the inclusion of a GraphQL endpoint is a reasonable thing to need to add to it, or implement a more comprehensive filtering strategy in this API.
 
 > Design Choice: There are some pragmatic implementation patterns demonstrated within this RI. Remember that this RI has laid out just *one way* of doing things. There are *many ways* of doing the same kind of things, with various design trade offs, especially in the area of Entity/ValueObject mapping and Entity persistence. In the realm of building products, this RI demonstrates prioritization of maintainability over optimal performance. If you are looking for the *best* way to do things, then you haven't programmed long enough to learn that no such thing exists. Our advice to you is start with something small, and adapt it as you learn more, avoid over-engineering it at all costs. If in doubt, favor what you definitely know you have to work with now, rather than attempting to future proof it. KISS, DRY and YAGNI my friends.
 
-> Note: If you don't like what you see here. That's cool, just ignore it. But don't make the mistake of coupling your persistence or your Web API to your domain Entities. That's a fundamental rookie mistake in software engineering, that you are going to make without being very intentional about designing your way out of.
+> Note: If you don't like what you see here. That's cool, just ignore it. But don't make the mistake of coupling your persistence or your Web API to your domain Entities. That's a fundamental amateur mistake in software engineering, that you are going to make without being very intentional about designing your way out of.
 
 # Structure
 
 The RI solution is structured into three logical parts:
 
 * **Infrastructure** - This contains all infrastructure and adapters to that infrastructure (eg. Web API adapters and Storage adapters to repositories)
-* **Application** - this contains you definition of your application. The application layer instantiates, coordinates the domain layer to do stuff. Thing commands and queries of CQRS. In the case of building stateless services, this layer would also be responsible for dehydrating and rehydrating domain Entities to and from persistence.
-* **Domain** - core domain classes, and application services unfettered by infrastructure and the application.
+* **Application** - this contains your definition of your various application. Applications usually define a set of users and a set of activities that those users can perform. It usually also defines the platform for that application (i.e. Web App, API, Desktop App, Mobile App etc). You may have many apps in your specific domain. Each application layer instantiates and coordinates the domain layer to do stuff. Think commands and queries of CQRS. In the case of building stateless services, this layer would also be responsible for dehydrating and rehydrating domain Entities to and from persistence.
+* **Domain** - core domain classes, and application services unfettered by any concerns of infrastructure and any concerns of the application.
 
-There should be no dependency from: classes in Domain -> to classes in Application or from Application to Infrastructure. Ever!
+>  NOTE: There should be no dependency from: classes in Domain -> to classes in Application or from Application to Infrastructure. Ever! All dependencies point towards the domain, and none should point back from domain to application or infrastructure.
 
 ![Project Dependencies](https://raw.githubusercontent.com/wiki/jezzsantos/queryany/Images/ProjectDependencies.png)
 
@@ -206,19 +213,36 @@ For this reason, it is useful to maintain a separation between your domain and t
 
 The Application Layer sits between the Infrastructure layer and the Domain layer. It brokers all interactions to the domain layer through DTO objects. Never exposing domain Entities or their data or their inputs, outside the domain. The domain should never have any dependency on any Application or any Infrastructural component - ever!
 
-In terms of persistence, the Application Layer decides whether to present a stateful or stateless interface to the domain. The domain is not concerned with this. If your application is a web application there are scaling considerations that make stateless a good choice. If you are a desktop application, then its likely a stateful application is best performing. The choice is the applications'.
+In terms of persistence, the Application Layer decides whether to present a stateful or stateless interface to the domain. The domain is not concerned with this. If your application is a web application there are scaling considerations that make stateless a good choice. If you are a desktop application, then its likely a stateful application may be best performing. The choice is entirely up to the application.
 
-## Commands and Queries
+## Commands, Queries and Read Models
 
-It is very useful to separate application layers into commands and queries, and typically have different infrastructure optimized to manage either. These principles are based on CQRS (command query responsibility segregation)
+It is very useful in terms of availability and load at scale to separate application layers into commands and queries. These benefits are achieved by using CQRS (command query responsibility segregation)
 
-Commands are issued to the change the state of a domain.
+Commands are used to the change the state of domain entities.
 
-Queries are issued to read the state of the domain.
+Queries are issued to read the state of the domain in its current state.
+
+It is very common with CQRS implementations that the persistence mechanism for the write-side (state change) is different than that of the read-side (querying).
+
+>  For example: an entity's change of state maybe kept in a transactional log or in an event store, while on the read-side the current state of the domain would be stored in a query-able repository like a relational database.
+
+## Eventing
+
+To help decouple domains (bounded contexts) from each other, and from coupling them together into larger transactional boundaries (violating that boundary), it is useful to use events and notifications between them, rather then direct communication (i.e. a service call). 
+
+There are many design tradeoffs in how this is actually implemented. 
+
+* In terms of the software to support this decoupling, there is undoubtedly more mapping code and infrastructural code to manage the interactions, than you would have in a synchronous system.
+* In terms of whether the coupling is synchronous or asynchronous. The tradeoff- favors availability over consistency when the system is distributed and the mechanism is asynchronous. 
+
+In this RI solution, events are persisted to a `EventingStorage<TEntity>` as an events stream. Events are then relayed to read models to playback the events stream into projections for each of the events to build up a current state.
+
+There are many benefits, including the ability to rebuild the state of any entity from scratch. To create multiple projections better suited the read-side, than the write side. This helps minimize the dependencies inherent in write-side data models long term. 
 
 ## ValueObjects
 
-ValueObjects represent most of the things in a domain.
+ValueObjects represent most of the data primitives in a domain. Rather than using language primitives (e.g. `string`, `int`, `decimal`, etc.) ValueObjects better describe the data in terms of what it is used for, and encapsulate the behavior and manipulation of the data far better when it comes to manipulating the domain.
 
 They have the property that two instances with the same internal value are in fact equal. (As opposed to Entities, which despite their value, are equal if their `Id` is equal).
 
@@ -319,7 +343,7 @@ Stateless services that perform services to Entities that would not naturally fi
 
 ### Performance Compromise
 
-Due to the fact that we are using a generic abstraction `IStorage<TEntity>` to remove early complexity (by reducing coupling) from the codebase, and because this strategy entails compromising repository technology specific optimizations; we accept the fact that no repository technology will be used optimally in this reference implementation. They will be used generically.
+Due to the fact that we are using generic abstractions like `ICommandStorage<TEntity>`  and `IQueryStorage<TEntity>` to remove coupling from the codebase, and because this strategy entails compromising repository technology specific optimizations; we accept the fact that no repository technology will be used optimally in this reference implementation. They will be used generically.
 
 No abstraction can possibly be optimal for every single repository technology, since all repository technologies aim to satisfy different performance design goals. However, most of these optimizations are not important to you in the early stages of product development.
 
