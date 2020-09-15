@@ -25,9 +25,9 @@ namespace Storage
                 this.containers.Add(containerName, new Dictionary<string, IReadOnlyDictionary<string, object>>());
             }
 
-            this.containers[containerName].Add(entity.Id, entity.ToContainerProperties());
+            this.containers[containerName].Add(entity.Id, entity.ToDictionaryProperties());
 
-            return CommandEntity.FromCommandEntity(this.containers[containerName][entity.Id].FromContainerProperties(),
+            return CommandEntity.FromCommandEntity(this.containers[containerName][entity.Id].FromDictionaryProperties(),
                 entity);
         }
 
@@ -56,7 +56,7 @@ namespace Storage
                 if (this.containers[containerName].ContainsKey(id))
                 {
                     return CommandEntity.FromCommandEntity(
-                        this.containers[containerName][id].FromContainerProperties(), metadata);
+                        this.containers[containerName][id].FromDictionaryProperties(), metadata);
                 }
             }
 
@@ -69,10 +69,10 @@ namespace Storage
             id.GuardAgainstNullOrEmpty(nameof(id));
             entity.GuardAgainstNull(nameof(entity));
 
-            var entityProperties = entity.ToContainerProperties();
+            var entityProperties = entity.ToDictionaryProperties();
             this.containers[containerName][id] = entityProperties;
 
-            return CommandEntity.FromCommandEntity(entityProperties.FromContainerProperties(), entity);
+            return CommandEntity.FromCommandEntity(entityProperties.FromDictionaryProperties(), entity);
         }
 
         public long Count(string containerName)
@@ -167,20 +167,20 @@ namespace Storage
             var queryExpression = query.Wheres.ToDynamicLinqWhereClause();
             return primaryEntitiesDynamic
                 .Where(queryExpression)
-                .Select(pe => QueryEntity.FromProperties(pe.Value, metadata))
+                .Select(ped => QueryEntity.FromProperties(ped.Value, metadata))
                 .ToList();
         }
     }
 
-    public static class InMemEntityExtensions
+    internal static class InProcessInMemRepositoryExtensions
     {
-        public static IReadOnlyDictionary<string, object> ToContainerProperties(this CommandEntity entity)
+        public static IReadOnlyDictionary<string, object> ToDictionaryProperties(this CommandEntity entity)
         {
             entity.LastPersistedAtUtc = DateTime.UtcNow;
             return entity.Properties;
         }
 
-        public static IReadOnlyDictionary<string, object> FromContainerProperties(
+        public static IReadOnlyDictionary<string, object> FromDictionaryProperties(
             this IReadOnlyDictionary<string, object> entityProperties)
         {
             return entityProperties;

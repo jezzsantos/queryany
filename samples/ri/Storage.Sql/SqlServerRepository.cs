@@ -335,7 +335,7 @@ namespace Storage.Sql
         }
     }
 
-    public static class SqlServerExtensions
+    internal static class SqlServerRepositoryExtensions
     {
         public static Dictionary<string, object> ToTableEntity(this CommandEntity entity)
         {
@@ -486,7 +486,7 @@ namespace Storage.Sql
         }
     }
 
-    public static class SqlServerQueryExtensions
+    internal static class SqlServerQueryExtensions
     {
         public static string ToSqlServerQueryClause<TQueryableEntity>(this QueryClause<TQueryableEntity> query,
             string tableName,

@@ -314,7 +314,7 @@ namespace Storage.Azure
     }
 
     // ReSharper disable once InconsistentNaming
-    internal static class AzureCosmosSqlApiExtensions
+    internal static class AzureCosmosSqlApiRepositoryExtensions
     {
         public static dynamic ToContainerEntity(this CommandEntity entity)
         {
@@ -471,7 +471,7 @@ namespace Storage.Azure
     }
 
     // ReSharper disable once InconsistentNaming
-    public static class AzureCosmosSqlApiQueryExtensions
+    internal static class AzureCosmosSqlApiQueryExtensions
     {
         public static string ToAzureCosmosSqlApiQueryClause<TQueryableEntity>(this QueryClause<TQueryableEntity> query,
             string containerName, IRepository repository) where TQueryableEntity : IQueryableEntity

@@ -13,7 +13,7 @@ namespace Storage.Redis
     public class RedisInMemRepository : IRepository
     {
         private const string ContainerStorageKeyPrefix = @"in-mem:containers:";
-        public const string RedisHashNullToken = @"null";
+        public const string NullToken = @"null";
         private readonly string connectionString;
         private IRedisClientsManager redisClient;
 
@@ -34,7 +34,7 @@ namespace Storage.Redis
             var client = EnsureClient();
 
             var key = CreateRowKey(containerName, entity);
-            client.SetRangeInHash(key, entity.ToContainerEntity());
+            client.SetRangeInHash(key, entity.ToContainerProperties());
 
             return Retrieve(containerName, entity.Id, entity.Metadata);
         }
@@ -62,7 +62,7 @@ namespace Storage.Redis
 
             var rowKey = CreateRowKey(containerName, id);
 
-            var properties = FromContainerEntity(client, rowKey, metadata);
+            var properties = GetEntityFromContainer(client, rowKey, metadata);
             return properties == null
                 ? null
                 : CommandEntity.FromCommandEntity(properties, metadata);
@@ -76,7 +76,7 @@ namespace Storage.Redis
 
             var client = EnsureClient();
 
-            var keyValues = entity.ToContainerEntity();
+            var keyValues = entity.ToContainerProperties();
             var key = CreateRowKey(containerName, id);
             client.Remove(key);
             client.SetRangeInHash(key, keyValues);
@@ -163,7 +163,7 @@ namespace Storage.Redis
             where TQueryableEntity : IQueryableEntity
         {
             var primaryEntities = GetRowKeys(client, containerName)
-                .ToDictionary(key => key, key => FromContainerEntity(client, key, metadata));
+                .ToDictionary(key => key, key => GetEntityFromContainer(client, key, metadata));
 
             var orderByExpression = query.ToDynamicLinqOrderByClause();
             var primaryEntitiesDynamic = primaryEntities.AsQueryable()
@@ -181,7 +181,7 @@ namespace Storage.Redis
             var queryExpression = query.Wheres.ToDynamicLinqWhereClause();
             return primaryEntitiesDynamic
                 .Where(queryExpression)
-                .Select(pe => QueryEntity.FromProperties(pe.Value, metadata))
+                .Select(ped => QueryEntity.FromProperties(ped.Value, metadata))
                 .ToList();
         }
 
@@ -197,7 +197,7 @@ namespace Storage.Redis
             var metadata = RepositoryEntityMetadata.FromType(joinedEntity.Join.Right.EntityType);
             return GetRowKeys(client, containerName)
                 .ToDictionary(rowKey => rowKey,
-                    rowKey => QueryEntity.FromProperties(FromContainerEntity(client, rowKey, metadata), metadata));
+                    rowKey => QueryEntity.FromProperties(GetEntityFromContainer(client, rowKey, metadata), metadata));
         }
 
         private static string CreateRowKey(string containerName, CommandEntity entity)
@@ -225,7 +225,7 @@ namespace Storage.Redis
             return rowKey.Substring(rowKey.LastIndexOf(":", StringComparison.Ordinal) + 1);
         }
 
-        private static IReadOnlyDictionary<string, object> FromContainerEntity(IRedisClient client,
+        private static IReadOnlyDictionary<string, object> GetEntityFromContainer(IRedisClient client,
             string rowKey, RepositoryEntityMetadata metadata)
 
         {
@@ -284,9 +284,9 @@ namespace Storage.Redis
         }
     }
 
-    public static class RedisStorageEntityExtensions
+    internal static class RedisInMemRepositoryExtensions
     {
-        public static Dictionary<string, string> ToContainerEntity(this CommandEntity entity)
+        public static IReadOnlyDictionary<string, string> ToContainerProperties(this CommandEntity entity)
         {
             static bool IsNotExcluded(string propertyName)
             {
@@ -339,7 +339,7 @@ namespace Storage.Redis
                         break;
 
                     case null:
-                        value = RedisInMemRepository.RedisHashNullToken;
+                        value = RedisInMemRepository.NullToken;
 
                         break;
 
@@ -357,8 +357,8 @@ namespace Storage.Redis
             return containerEntityProperties;
         }
 
-        public static Dictionary<string, object> FromContainerProperties(
-            this Dictionary<string, string> containerProperties, string id,
+        public static IReadOnlyDictionary<string, object> FromContainerProperties(
+            this IReadOnlyDictionary<string, string> containerProperties, string id,
             RepositoryEntityMetadata metadata)
 
         {
@@ -376,7 +376,7 @@ namespace Storage.Redis
         private static object FromContainerProperty(this string propertyValue, Type targetPropertyType)
         {
             if (propertyValue == null
-                || propertyValue == RedisInMemRepository.RedisHashNullToken)
+                || propertyValue == RedisInMemRepository.NullToken)
             {
                 return null;
             }

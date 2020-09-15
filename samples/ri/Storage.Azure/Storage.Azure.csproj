@@ -16,4 +16,10 @@
         <PackageReference Include="System.Linq.Dynamic.Core" Version="1.1.2" />
     </ItemGroup>
 
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>Storage.UnitTests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+
 </Project>

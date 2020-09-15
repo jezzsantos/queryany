@@ -276,7 +276,7 @@ namespace Storage.Azure
                 .OrderBy(query.ToDynamicLinqOrderByClause())
                 .Skip(query.GetDefaultSkip())
                 .Take(take)
-                .Select(pe => QueryEntity.FromProperties(pe.Value, metadata))
+                .Select(ped => QueryEntity.FromProperties(ped.Value, metadata))
                 .ToList();
         }
 
@@ -435,7 +435,7 @@ namespace Storage.Azure
     }
 
     // ReSharper disable once InconsistentNaming
-    internal static class AzureTableStorageEntityExtensions
+    internal static class AzureTableStorageRepositoryExtensions
     {
         public static DynamicTableEntity ToTableEntity(this CommandEntity entity,
             AzureTableStorageRepository.TableStorageApiOptions options)
@@ -606,7 +606,7 @@ namespace Storage.Azure
     }
 
     // ReSharper disable once InconsistentNaming
-    public static class AzureTableStorageWhereExtensions
+    internal static class AzureTableStorageWhereExtensions
     {
         public static string ToAzureTableStorageWhereClause(this IEnumerable<WhereExpression> wheres)
         {
