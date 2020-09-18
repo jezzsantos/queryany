@@ -14,18 +14,13 @@ The log below tells the story and identifies the key git commits that can be exa
 
 # The Log
 
-## 1. Starting Point
+## 1. Beginnings
 
  * Commit: [f3d070](https://github.com/jezzsantos/queryany/commit/f3d07064f7c2ea745d04dc1b360a8d694d718afd)
  * Version 1.0 of accompanying [QueryAny nuget library](https://www.nuget.org/packages/QueryAny/).
 
 Established the base library of QueryAny with some basic functionality, giving us a initial generic query language for defining generic queries on any repository interface.
 
-<<<<<<< Updated upstream
-At this point we have a pretty standard implementation and initial structure of a Web API (using ServiceStack framework), with an anemic domain model (no behavior), and a 'transactional script' for an 'Application Layer'. Which means that most of the behaviour, validation and processing of domain concepts was being done directly by knowledge encoded into the transactional script. The domain objects were simply POCOs (or DTO's) which is all too common.
-
-We have a "generic repository" pattern defined by `IStorage<TEntity>` and several storage adapters to real repository technologies such as: InMemory, and TableStorage at this point. (more coming later) 
-=======
 ```
 var query = Query.From<CustomerEntity>()
 	.Where(customer => customer.Id, EqualTo, "25")
@@ -34,7 +29,7 @@ var query = Query.From<CustomerEntity>()
 		.AndWhere(customer => customer.CreatedDateUc, GreaterThan, now));
 ```
 
-## Structural Patterns
+### Structural Patterns
 
 At this point we have a pretty typical implementation of a REST API (using the ServiceStack framework), along with an anemic domain model (lacking behavior), and a 'transactional script' for an 'Application Layer'. 
 
@@ -43,49 +38,65 @@ At this point we have a pretty typical implementation of a REST API (using the S
 We have a "generic repository" pattern defined by `IStorage<TEntity>` and several storage adapters to real repository technologies such as: InMemory, and TableStorage at this point. (more of those coming later)
 
 ```
+    public interface IStorage<TEntity> where TEntity : IKeyedEntity, new()
+    {
+        string Add(TEntity entity);
 
+        TEntity Update(TEntity entity, bool ignoreConcurrency);
+
+        void Delete(string id, bool ignoreConcurrency);
+
+        TEntity Get(string id);
+
+        QueryResults<TEntity> Query(QueryClause<TEntity> query, SearchOptions options);
+
+        long Count();
+
+        void DestroyAll();
+    }
 ```
 
- 
->>>>>>> Stashed changes
+ This is a very common starting point for most API architectures, and a good foundation for making significant changes.
 
-This is a very common starting point for most API architectures and a good foundation for making significant changes.
+> However, since it is an RI (and not a real product), the size and complexity of this domain is not realized here to any level of maturity. In a real product, we would expect to see 10's - 100's of API's and resources. As such, this stage does not yet exhibit insidious things like: In-process coupling between various API's and their associated application layers. Which are the things that in practice makes the next set of transitions far harder to pull off without some evolutionary stages.
 
-> However, since it is an RI (and not a real product), the size and complexity of this domain is not realized here to any level of maturity. In a real product, we would expect to see 10's of API's and resources. As such, this stage does not yet exhibit insidious things like: In-process coupling between various API's and their associated application layers. Which are the things that in practice makes the next set of transitions far harder to pull off without some evolutionary stages.
+However, at this point we do demonstrate good disciplined de-coupling of a repository layer, and good separations of concerns between Web, Service Layer and the Domain (albeit anemic). 
 
-However, at this point we do demonstrate good disciplined de-coupling of a repository layer, and good separations of concerns between Web, Service Layer and the Domain (albeit anemic). Not much more than that with only one query.
+Functionally it is not much more than just one query and no commands.
 
  ## 2. Repositories and Domain Foundation
 
  * Commit: [2e667b](https://github.com/jezzsantos/queryany/commit/2e667b3061f5d0f5d517b3ef175947bd8a794c46)
 
-At this point, we have a couple more storage adapters to real repository technologies: InMemory, Redis, CosmosDB and TableStorage at this point. (more coming later) . There is a adapter interface`IRepository` for each of these implementations, and a generic storage interface `IStorage<TEntity>` where `TEntity` is a type that supports persistence `IPersistableEntity` which has a bi-directional dehydration pattern to an object dictionary.
+### Structural Patterns
 
-<<<<<<< Updated upstream
-=======
+At this point, we have a couple more storage adapters to real repository technologies: InMemory, Redis, CosmosDB and TableStorage at this point. (more coming later) . 
+
+There is a adapter interface`IRepository` for each of these implementations, and a generic storage interface `IStorage<TEntity>` where `TEntity` is a type that supports persistence `IPersistableEntity` which has a bi-directional dehydration pattern to an object dictionary.
+
 ![Evolution 2](https://raw.githubusercontent.com/wiki/jezzsantos/queryany/Images/Evo2.png)
 
->>>>>>> Stashed changes
-To go along with that we have the introduction of Domain entities in a base class `EntityBase` that don't do persistence but that do support being persisted through `IPersistableEntity`. This means that all commands and queries through `IStorage<Tentity>` are able to read and write these entities to and from storage. But at this stage rely on the fact that all domain Entities types must have a public parameter-less constructor, to allow repositories to instantiate new instances of them when making instances of them (i.e. in gets and queries). 
+### Domain Patterns
+
+To go along with that we have the introduction of Domain entities defined by a base class `EntityBase` that don't do persistence but that do support being persisted through `IPersistableEntity`. This means that all commands and queries through `IStorage<Tentity>` are able to read and write these entities to and from storage. But at this stage rely on the fact that all domain Entities types must have a public parameter-less constructor, to allow repositories to instantiate new instances of them when making instances of them (i.e. in gets and queries). 
 
 > Noting that, instantiation is one of the key design constraints when dealing with persistence of .net types in generic repository interfaces.
 
-On the domain entity side, we have moved from anemic entities to reconciling behavior from the application layer into the entities themselves. However, at this point validation is not there yet.  The application layer is getting thinner as processing moves into entities, and the domain is slightly expanded a bit to add some commands (like: Create and Occupy cars.)
+On the domain entity side, we have moved from anemic entities to reconciling behavior from the application layer into the entities themselves. However, at this point validation is not there yet.  The application layer is getting thinner as processing moves into entities, and the domain is slightly expanded to include some commands (like: Create and Occupy cars.)
 
 >  The domain itself at this point is very thin, and this gets a little more fleshed out in the next milestone. 
 
-<<<<<<< Updated upstream
-![Evolution 2](https://raw.githubusercontent.com/wiki/jezzsantos/queryany/Images/Evo2.png)
-
-=======
->>>>>>> Stashed changes
 ## 3. DDD Entities and Value Objects
 
 *  Commit: [9bce55](https://github.com/jezzsantos/queryany/commit/9bce55441ae44ef04695883989e098c3e147fad5)
 
+This is a large leap into more strict DDD patterns and principles, and more explicit project structure. 
+
+>  The QueryAny library is pretty much complete at this point, and sees no more development for the next few evolutions.
+
 ### Structural Patterns
 
-This is a large leap into more strict DDD patterns and principles, and more explicit project structure. We have restructured the entire solution to be more explicit about the boundaries between Infrastructure, Application and Domain projects and now focus on managing their dependencies properly.
+We have restructured the entire solution to be more explicit about the boundaries between Infrastructure, Application and Domain projects and now focus on managing their dependencies properly.
 
 ![Evolution 3](https://raw.githubusercontent.com/wiki/jezzsantos/queryany/Images/Evo3.png) 
 
@@ -96,8 +107,6 @@ We now start to get an appreciation that the vast majority of the code and thus 
 > In a real product, this domain would certainly be larger in terms of number of entities and value objects, and possibly have more than just one bounded context. 
 
 We have added a bunch of additional attributes to the whole architecture at this point: logging, fluent assertions for testing, and the QueryAny library has been extended to include: ordering, offset and limiting (orderby, take and skip). 
-
->  The QueryAny library development is pretty much complete at this step, and sees no more development for the next few evolutions.
 
 ### Domain Patterns
 
