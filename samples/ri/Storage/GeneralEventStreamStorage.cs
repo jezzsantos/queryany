@@ -11,7 +11,7 @@ using Storage.Interfaces;
 
 namespace Storage
 {
-    public class GeneralEventingStorage<TAggregateRoot> : IEventingStorage<TAggregateRoot>
+    public class GeneralEventStreamStorage<TAggregateRoot> : IEventStreamStorage<TAggregateRoot>
         where TAggregateRoot : IPersistableAggregateRoot
     {
         private readonly string containerName;
@@ -19,7 +19,7 @@ namespace Storage
         private readonly ILogger logger;
         private readonly IRepository repository;
 
-        public GeneralEventingStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
+        public GeneralEventStreamStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
         {
             logger.GuardAgainstNull(nameof(logger));
             repository.GuardAgainstNull(nameof(repository));

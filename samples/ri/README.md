@@ -143,7 +143,7 @@ Contains all unit level tests for all components in the architecture, separated 
 
 ## Infrastructure
 
-Contains all ports & Adapters, all infrastructure classes and anything to do with interacting with the outside world (from the domain's perspective).
+Contains all Ports & Adapters, all infrastructure classes and anything to do with interacting with the outside world (from the domain's perspective).
 
 ### ???Api
 
@@ -161,17 +161,19 @@ It contains the `ServiceHost` class (specific to ServiceStack) which loads all s
 
 ### ???Storage
 
-This is a library of Entity specific storage implementation classes used in both production code and during integration testing.
+These are domain specific libraries with repository implementations used in both production code, and during \[integration\] testing.
 
 > Typically, an implementation will have an in-memory class used in integration testing (to increase test speed), and one for (say a database) for use in a production environment - often injected in the ServiceHost of the CarsApi project.
 
 ### Storage and Storage.???
 
-Concrete implementations of `IStorage<TEntity>` for various storage technologies.
+Concrete implementations of `IRepository` for various storage technologies, and their associated storage abstractions for different persistence patterns. i.e. `ICommandStorage<TEntity>`, etc
 
-This is where all QueryAny storage implementations will exist for this sample.
+> We anticipate that there would probably be a separate project (and nuget package) for each implementation of the `IRepository` interface in your architecture. eg. one for SqlServer, one for Redis, one for CosmosDB, etc..
 
-> We anticipate that there would probably be a separate project (and nuget package) for each implementation of the `IStorage<TEntity>` interface in your architecture. eg. one for SqlServer, one for Redis, one for CosmosDB, etc..
+### Storage.ReadModels
+
+This contains the base classes and interfaces for relaying event changes to read models.
 
 ### CarsApi.IntegrationTests
 

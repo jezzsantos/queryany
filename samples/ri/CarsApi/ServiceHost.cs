@@ -54,12 +54,12 @@ namespace CarsApi
             container.AddSingleton<IDomainFactory>(c => DomainFactory.CreateRegistered(
                 c.Resolve<IDependencyContainer>(), typeof(EntityEvent).Assembly,
                 typeof(CarEntity).Assembly));
-            container.AddSingleton<IEventingStorage<CarEntity>>(c =>
-                new GeneralEventingStorage<CarEntity>(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
+            container.AddSingleton<IEventStreamStorage<CarEntity>>(c =>
+                new GeneralEventStreamStorage<CarEntity>(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
                     RepositoryFactory(c)));
             container.AddSingleton<ICarStorage>(c =>
                 new CarStorage(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
-                    c.Resolve<IEventingStorage<CarEntity>>(), RepositoryFactory(c)));
+                    c.Resolve<IEventStreamStorage<CarEntity>>(), RepositoryFactory(c)));
             container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
             container.AddSingleton<IPersonsService>(c =>
                 new PersonsServiceClient(c.Resolve<IAppSettings>().GetString("PersonsApiBaseUrl")));
@@ -70,7 +70,7 @@ namespace CarsApi
                         c.Resolve<IDomainFactory>(),
                         RepositoryFactory(c)),
                     new CarEntityReadModelProjection(c.Resolve<ILogger>(), RepositoryFactory(c))),
-                c.Resolve<IEventingStorage<CarEntity>>()));
+                c.Resolve<IEventStreamStorage<CarEntity>>()));
         }
 
         private void RegisterValidators(Container container)

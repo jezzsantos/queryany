@@ -16,11 +16,11 @@ namespace CarsStorage
 {
     public class CarStorage : ICarStorage
     {
-        private readonly IEventingStorage<CarEntity> carEventingStorage;
+        private readonly IEventStreamStorage<CarEntity> carEventingStorage;
         private readonly IQueryStorage<Car> carQueryStorage;
         private readonly IQueryStorage<Unavailability> unavailabilitiesQueryStorage;
 
-        public CarStorage(ILogger logger, IDomainFactory domainFactory, IEventingStorage<CarEntity> eventingStorage,
+        public CarStorage(ILogger logger, IDomainFactory domainFactory, IEventStreamStorage<CarEntity> eventingStorage,
             IRepository repository)
         {
             logger.GuardAgainstNull(nameof(logger));
@@ -35,7 +35,7 @@ namespace CarsStorage
         }
 
         public CarStorage(IQueryStorage<Car> carQueryStorage,
-            IEventingStorage<CarEntity> carEventingStorage,
+            IEventStreamStorage<CarEntity> carEventingStorage,
             IQueryStorage<Unavailability> unavailabilitiesQueryStorage)
         {
             carQueryStorage.GuardAgainstNull(nameof(carQueryStorage));

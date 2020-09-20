@@ -28,7 +28,7 @@ namespace CarsApi.IntegrationTests
         private static IWebHost webHost;
         private static ICommandStorage<CarEntity> carCommandStorage;
         private static IQueryStorage<Car> carQueryStorage;
-        private static IEventingStorage<CarEntity> carEventingStorage;
+        private static IEventStreamStorage<CarEntity> carEventingStorage;
         private static ICommandStorage<UnavailabilityEntity> unavailabilityCommandStorage;
         private static IQueryStorage<Unavailability> unavailabilityQueryStorage;
         private static int plateCount;
@@ -55,7 +55,7 @@ namespace CarsApi.IntegrationTests
                     inMemRepository);
             carQueryStorage = new GeneralQueryStorage<Car>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
-            carEventingStorage = new GeneralEventingStorage<CarEntity>(container.Resolve<ILogger>(),
+            carEventingStorage = new GeneralEventStreamStorage<CarEntity>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
             unavailabilityCommandStorage = new GeneralCommandStorage<UnavailabilityEntity>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(),
@@ -72,7 +72,7 @@ namespace CarsApi.IntegrationTests
                     new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
                         c.Resolve<IDomainFactory>(), inMemRepository),
                     new CarEntityReadModelProjection(c.Resolve<ILogger>(), inMemRepository)),
-                c.Resolve<IEventingStorage<CarEntity>>()));
+                c.Resolve<IEventStreamStorage<CarEntity>>()));
 
             //HACK: subscribe again (see: https://forums.servicestack.net/t/integration-testing-and-overriding-registered-services/8875/5)
             HostContext.AppHost.OnAfterInit();

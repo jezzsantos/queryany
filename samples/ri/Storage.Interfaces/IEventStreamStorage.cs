@@ -4,7 +4,7 @@ using QueryAny.Primitives;
 
 namespace Storage.Interfaces
 {
-    public interface IEventingStorage<TAggregateRoot> : IEventPublishingStorage
+    public interface IEventStreamStorage<TAggregateRoot> : IEventPublishingStorage
         where TAggregateRoot : IPersistableAggregateRoot
     {
         TAggregateRoot Load(Identifier id);

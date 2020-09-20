@@ -21,7 +21,7 @@ namespace PersonsApi.IntegrationTests
     {
         private const string ServiceUrl = "http://localhost:2000/";
         private static IWebHost webHost;
-        private static IEventingStorage<PersonEntity> eventingStorage;
+        private static IEventStreamStorage<PersonEntity> eventingStorage;
         private static IQueryStorage<Person> queryStorage;
         private static IRepository inMemRepository;
 
@@ -39,7 +39,7 @@ namespace PersonsApi.IntegrationTests
             // Override services for testing
             var container = HostContext.Container;
             inMemRepository = new InProcessInMemRepository();
-            eventingStorage = new GeneralEventingStorage<PersonEntity>(container.Resolve<ILogger>(),
+            eventingStorage = new GeneralEventStreamStorage<PersonEntity>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
             queryStorage = new GeneralQueryStorage<Person>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);

@@ -14,13 +14,13 @@ using Storage.UnitTests.ReadModels;
 namespace Storage.UnitTests
 {
     [TestClass, TestCategory("Unit")]
-    public class GeneralEventingStorageSpec
+    public class GeneralEventStreamStorageSpec
     {
         private Mock<IDomainFactory> domainFactory;
         private Mock<ILogger> logger;
         private Mock<IRepository> repository;
         private EventStreamStateChangedArgs stateChangedEvent;
-        private GeneralEventingStorage<TestAggregateRoot> storage;
+        private GeneralEventStreamStorage<TestAggregateRoot> storage;
 
         [TestInitialize]
         public void Initialize()
@@ -29,7 +29,7 @@ namespace Storage.UnitTests
             this.domainFactory = new Mock<IDomainFactory>();
             this.repository = new Mock<IRepository>();
             this.storage =
-                new GeneralEventingStorage<TestAggregateRoot>(this.logger.Object, this.domainFactory.Object,
+                new GeneralEventStreamStorage<TestAggregateRoot>(this.logger.Object, this.domainFactory.Object,
                     this.repository.Object);
 
             this.stateChangedEvent = null;
