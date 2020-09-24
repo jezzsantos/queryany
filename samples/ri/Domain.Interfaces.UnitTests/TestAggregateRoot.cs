@@ -38,7 +38,7 @@ namespace Domain.Interfaces.UnitTests
 
         public static EntityFactory<TestAggregateRoot> Instantiate()
         {
-            return (identifier, container) => new TestAggregateRoot(container.Resolve<ILogger>(),
+            return (identifier, container, rehydratingProperties) => new TestAggregateRoot(container.Resolve<ILogger>(),
                 container.Resolve<IIdentifierFactory>(), identifier);
         }
 

@@ -127,7 +127,7 @@ namespace PersonsDomain
 
         public static EntityFactory<PersonEntity> Instantiate()
         {
-            return (identifier, container) =>
+            return (identifier, container, rehydratingProperties) =>
                 new PersonEntity(container.Resolve<ILogger>(), container.Resolve<IIdentifierFactory>(),
                     container.Resolve<IEmailService>(), identifier);
         }

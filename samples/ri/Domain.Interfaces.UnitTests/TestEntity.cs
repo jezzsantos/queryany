@@ -37,7 +37,7 @@ namespace Domain.Interfaces.UnitTests
 
         public static EntityFactory<TestEntity> Instantiate()
         {
-            return (identifier, container) => new TestEntity(container.Resolve<ILogger>(),
+            return (identifier, container, rehydratingProperties) => new TestEntity(container.Resolve<ILogger>(),
                 container.Resolve<IIdentifierFactory>(), identifier);
         }
 

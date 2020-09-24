@@ -52,7 +52,8 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenInstantiateAndCreates_ThenReturnsInstance()
         {
-            var result = TestEntity.Instantiate()("anid".ToIdentifier(), this.dependencyContainer.Object);
+            var result = TestEntity.Instantiate()("anid".ToIdentifier(), this.dependencyContainer.Object,
+                new Dictionary<string, object>());
 
             result.Id.Should().Be("anid".ToIdentifier());
         }
@@ -100,7 +101,8 @@ namespace Domain.Interfaces.UnitTests
             container.Setup(c => c.Resolve<IIdentifierFactory>())
                 .Returns(new NullIdentifierFactory());
 
-            var created = TestEntity.Instantiate()("anid".ToIdentifier(), container.Object);
+            var created =
+                TestEntity.Instantiate()("anid".ToIdentifier(), container.Object, new Dictionary<string, object>());
 
             created.LastPersistedAtUtc.Should().BeNull();
             created.CreatedAtUtc.Should().Be(DateTime.MinValue);

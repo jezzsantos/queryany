@@ -40,8 +40,9 @@ namespace Api.Common
                 throw new InvalidOperationException(Resources.DomainFactory_EntityTypeNotFound.Format(entityType.Name));
             }
 
-            var identifier = (Identifier) rehydratingPropertyValues[nameof(IIdentifiableEntity.Id)];
-            var entity = this.entityFactories[entityType](identifier, this.container);
+            var identifier = rehydratingPropertyValues.GetValueOrDefault<Identifier>(nameof(IIdentifiableEntity.Id));
+            var factory = this.entityFactories[entityType];
+            var entity = factory(identifier, this.container, rehydratingPropertyValues);
             entity.Rehydrate(rehydratingPropertyValues);
             return entity;
         }

@@ -131,7 +131,7 @@ namespace Api.Common.UnitTests
 
         public static EntityFactory<TestEntity> Instantiate()
         {
-            return (hydratingProperties, container) =>
+            return (identifier, container, rehydratingProperties) =>
                 new TestEntity(container.Resolve<ILogger>(), container.Resolve<IIdentifierFactory>());
         }
     }

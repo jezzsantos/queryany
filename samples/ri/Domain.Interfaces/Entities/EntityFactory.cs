@@ -1,7 +1,9 @@
-﻿namespace Domain.Interfaces.Entities
+﻿using System.Collections.Generic;
+
+namespace Domain.Interfaces.Entities
 {
     public delegate TEntity EntityFactory<out TEntity>(Identifier identifier,
-        IDependencyContainer container)
+        IDependencyContainer container, IReadOnlyDictionary<string, object> rehydratingProperties)
         where TEntity : IPersistableEntity;
 
     public delegate TValueObject ValueObjectFactory<out TValueObject>(string hydratingProperty,

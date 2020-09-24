@@ -69,7 +69,8 @@ namespace CarsDomain
 
         public static EntityFactory<UnavailabilityEntity> Instantiate()
         {
-            return (identifier, container) => new UnavailabilityEntity(container.Resolve<ILogger>(),
+            return (identifier, container, rehydratingProperties) => new UnavailabilityEntity(
+                container.Resolve<ILogger>(),
                 container.Resolve<IIdentifierFactory>(), identifier);
         }
     }

@@ -67,7 +67,8 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenInstantiateAndCreates_ThenReturnsInstance()
         {
-            var result = TestAggregateRoot.Instantiate()("anid".ToIdentifier(), this.dependencyContainer.Object);
+            var result = TestAggregateRoot.Instantiate()("anid".ToIdentifier(), this.dependencyContainer.Object,
+                new Dictionary<string, object>());
 
             result.Id.Should().Be("anid".ToIdentifier());
         }
@@ -119,7 +120,8 @@ namespace Domain.Interfaces.UnitTests
                 .Returns(new NullIdentifierFactory());
 
             var created =
-                TestAggregateRoot.Instantiate()("anid".ToIdentifier(), container.Object);
+                TestAggregateRoot.Instantiate()("anid".ToIdentifier(), container.Object,
+                    new Dictionary<string, object>());
 
             created.GetChanges().Should().BeEmpty();
             created.LastPersistedAtUtc.Should().BeNull();

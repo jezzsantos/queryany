@@ -147,7 +147,7 @@ namespace CarsDomain
 
         public static EntityFactory<CarEntity> Instantiate()
         {
-            return (identifier, container) => new CarEntity(container.Resolve<ILogger>(),
+            return (identifier, container, rehydratingProperties) => new CarEntity(container.Resolve<ILogger>(),
                 container.Resolve<IIdentifierFactory>(), identifier);
         }
     }
