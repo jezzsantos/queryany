@@ -8,15 +8,31 @@ namespace CarsDomain
     {
         public static class Car
         {
-            public class ManufacturerChanged
+            public class Created : IChangeEvent
             {
                 public string Id { get; set; }
 
+                public DateTime ModifiedUtc { get; set; }
+
+                public static Created Create(Identifier id)
+                {
+                    return new Created
+                    {
+                        Id = id,
+                        ModifiedUtc = DateTime.UtcNow
+                    };
+                }
+            }
+
+            public class ManufacturerChanged : IChangeEvent
+            {
                 public int Year { get; set; }
 
                 public string Make { get; set; }
 
                 public string Model { get; set; }
+
+                public string Id { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
@@ -33,15 +49,15 @@ namespace CarsDomain
                 }
             }
 
-            public class OwnershipChanged
+            public class OwnershipChanged : IChangeEvent
             {
-                public string Id { get; set; }
-
-                public DateTime ModifiedUtc { get; set; }
-
                 public string Owner { get; set; }
 
                 public List<string> Managers { get; set; }
+
+                public string Id { get; set; }
+
+                public DateTime ModifiedUtc { get; set; }
 
                 public static OwnershipChanged Create(Identifier id, VehicleOwner owner)
                 {
@@ -55,13 +71,13 @@ namespace CarsDomain
                 }
             }
 
-            public class RegistrationChanged
+            public class RegistrationChanged : IChangeEvent
             {
-                public string Id { get; set; }
-
                 public string Jurisdiction { get; set; }
 
                 public string Number { get; set; }
+
+                public string Id { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
@@ -77,10 +93,8 @@ namespace CarsDomain
                 }
             }
 
-            public class UnavailabilitySlotAdded
+            public class UnavailabilitySlotAdded : IChangeEvent
             {
-                public string Id { get; set; }
-
                 public string CarId { get; set; }
 
                 public DateTime From { get; set; }
@@ -90,6 +104,8 @@ namespace CarsDomain
                 public UnavailabilityCausedBy CausedBy { get; set; }
 
                 public string CausedByReference { get; set; }
+
+                public string Id { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 

@@ -30,7 +30,7 @@ namespace Domain.Interfaces.UnitTests
             APropertyName = properties.GetValueOrDefault<string>(nameof(APropertyName));
         }
 
-        protected override void OnEventRaised(object @event)
+        protected override void OnEventRaised(IChangeEvent @event)
         {
             //Not used in testing
         }
@@ -41,9 +41,13 @@ namespace Domain.Interfaces.UnitTests
                 container.Resolve<IIdentifierFactory>(), identifier);
         }
 
-        public class ChangeEvent
+        public class ChangeEvent : IChangeEvent
         {
             public string APropertyName { get; set; }
+
+            public string Id { get; set; }
+
+            public DateTime ModifiedUtc { get; set; }
         }
     }
 

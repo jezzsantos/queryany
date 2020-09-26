@@ -2,7 +2,6 @@
 using QueryAny;
 using QueryAny.Primitives;
 using ServiceStack;
-using ServiceStack.Text;
 
 namespace Domain.Interfaces.Entities
 {
@@ -31,7 +30,7 @@ namespace Domain.Interfaces.Entities
             Id = factory.Create(this);
         }
 
-        public void SetEvent(string streamName, string entityType, long version, object @event)
+        public void SetEvent(string streamName, string entityType, long version, IChangeEvent @event)
         {
             streamName.GuardAgainstNullOrEmpty(nameof(streamName));
             entityType.GuardAgainstNullOrEmpty(nameof(entityType));
@@ -45,23 +44,9 @@ namespace Domain.Interfaces.Entities
             Metadata = new EventMetadata(@event.GetType().AssemblyQualifiedName);
         }
 
-        public object ToEvent()
+        public IChangeEvent ToEvent()
         {
-            var eventType = Type.GetType(Metadata.Fqn);
-            if (eventType == null)
-            {
-                throw new InvalidOperationException(
-                    $"Failed to deserialize event '{Id}', the type: '{Metadata.Fqn}' cannot be found in this codebase. Perhaps it has been renamed or deleted?");
-            }
-            var eventData = Data;
-            try
-            {
-                return JsonSerializer.DeserializeFromString(eventData, eventType);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to deserialize event '{Id}' as type: '{eventType}'", ex);
-            }
+            return Metadata.CreateEventFromJson(Id, Data);
         }
     }
 }

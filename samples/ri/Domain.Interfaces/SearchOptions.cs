@@ -63,12 +63,12 @@ namespace Domain.Interfaces
                 Metadata = this.ToMetadataSafe()
             };
 
-            IEnumerable<TResult> unsorted = results.ToList();
+            var unsorted = results.ToList();
             searchResults.Metadata.Total = unsorted.Count();
 
             if (IsSorted())
             {
-                unsorted = orderByFunc(unsorted, Sort);
+                unsorted = orderByFunc(unsorted, Sort).ToList();
             }
 
             IEnumerable<TResult> unPaged = unsorted.ToArray();

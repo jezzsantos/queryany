@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
-using ServiceStack.Text;
 using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;
 
@@ -67,7 +67,7 @@ namespace Storage.ReadModels
             }
         }
 
-        private static void ProjectEvent(IReadModelProjection projection, object @event,
+        private static void ProjectEvent(IReadModelProjection projection, IChangeEvent @event,
             EventStreamStateChangeEvent changeEvent)
         {
             if (!projection.Project(@event))
@@ -97,20 +97,9 @@ namespace Storage.ReadModels
             return projection;
         }
 
-        private static object DeserializeEvent(EventStreamStateChangeEvent changeEvent)
+        private static IChangeEvent DeserializeEvent(EventStreamStateChangeEvent changeEvent)
         {
-            try
-            {
-                var type = Type.GetType(changeEvent.Metadata.Fqn);
-                var json = changeEvent.Data;
-                return JsonSerializer.DeserializeFromString(json, type);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException(
-                    $"Unable to deserialize event {changeEvent.Id}. Possibly unknown type '{changeEvent.Metadata.Fqn}'. Perhaps the type has been renamed or no longer exists?",
-                    ex);
-            }
+            return changeEvent.Metadata.CreateEventFromJson(changeEvent.Id, changeEvent.Data);
         }
 
         private static void EnsureNextVersion(string streamName, long checkpoint, long firstEventVersion)

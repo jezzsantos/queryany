@@ -11,7 +11,8 @@ namespace CarsDomain
     [EntityName("Car")]
     public class CarEntity : AggregateRootBase
     {
-        public CarEntity(ILogger logger, IIdentifierFactory idFactory) : base(logger, idFactory)
+        public CarEntity(ILogger logger, IIdentifierFactory idFactory) : base(logger, idFactory,
+            CarsDomain.Events.Car.Created.Create)
         {
         }
 
@@ -50,11 +51,11 @@ namespace CarsDomain
             Plate = properties.GetValueOrDefault<LicensePlate>(nameof(Plate));
         }
 
-        protected override void OnStateChanged(object @event)
+        protected override void OnStateChanged(IChangeEvent @event)
         {
             switch (@event)
             {
-                case Domain.Interfaces.Entities.Events.Any.Created _:
+                case Events.Car.Created _:
                     break;
 
                 case Events.Car.ManufacturerChanged changed:

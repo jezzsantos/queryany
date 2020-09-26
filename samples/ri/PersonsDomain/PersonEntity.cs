@@ -16,7 +16,7 @@ namespace PersonsDomain
         private readonly IEmailService emailService;
 
         public PersonEntity(ILogger logger, IIdentifierFactory idFactory, IEmailService emailService) : base(logger,
-            idFactory)
+            idFactory, PersonsDomain.Events.Person.Created.Create)
         {
             emailService.GuardAgainstNull(nameof(emailService));
             this.emailService = emailService;
@@ -58,11 +58,11 @@ namespace PersonsDomain
             RaiseChangeEvent(PersonsDomain.Events.Person.PhoneNumberChanged.Create(Id, number));
         }
 
-        protected override void OnStateChanged(object @event)
+        protected override void OnStateChanged(IChangeEvent @event)
         {
             switch (@event)
             {
-                case Domain.Interfaces.Entities.Events.Any.Created _:
+                case Events.Person.Created _:
                     break;
 
                 case Events.Person.NameChanged changed:

@@ -2,6 +2,6 @@
 {
     public interface IPublishedEntityEventHandler
     {
-        void HandleEvent(object @event);
+        void HandleEvent(IChangeEvent @event);
     }
 }

@@ -29,7 +29,7 @@ namespace Storage.UnitTests.ReadModels
             this.projection = new Mock<IReadModelProjection>();
             this.projection.Setup(prj => prj.EntityType)
                 .Returns(typeof(string));
-            this.projection.Setup(prj => prj.Project(It.IsAny<object>()))
+            this.projection.Setup(prj => prj.Project(It.IsAny<IChangeEvent>()))
                 .Returns(true);
             this.projections = new List<IReadModelProjection> {this.projection.Object};
             this.projector = new ReadModelProjector(this.logger.Object, this.checkpointStore.Object,
@@ -42,7 +42,7 @@ namespace Storage.UnitTests.ReadModels
             this.projector.WriteEventStream("astreamname", new List<EventStreamStateChangeEvent>());
 
             this.checkpointStore.Verify(cs => cs.LoadCheckpoint(It.IsAny<string>()), Times.Never);
-            this.projection.Verify(prj => prj.Project(It.IsAny<object>()), Times.Never);
+            this.projection.Verify(prj => prj.Project(It.IsAny<IChangeEvent>()), Times.Never);
             this.checkpointStore.Verify(cs => cs.SaveCheckpoint(It.IsAny<string>(), It.IsAny<long>()), Times.Never);
         }
 
@@ -61,7 +61,7 @@ namespace Storage.UnitTests.ReadModels
                 })).Should().Throw<InvalidOperationException>();
 
             this.checkpointStore.Verify(cs => cs.LoadCheckpoint(It.IsAny<string>()), Times.Never);
-            this.projection.Verify(prj => prj.Project(It.IsAny<object>()), Times.Never);
+            this.projection.Verify(prj => prj.Project(It.IsAny<IChangeEvent>()), Times.Never);
             this.checkpointStore.Verify(cs => cs.SaveCheckpoint(It.IsAny<string>(), It.IsAny<long>()), Times.Never);
         }
 
@@ -94,6 +94,7 @@ namespace Storage.UnitTests.ReadModels
             {
                 new EventStreamStateChangeEvent
                 {
+                    Id = "anid1",
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid1"}.ToJson(),
                     Version = 4,
@@ -101,6 +102,7 @@ namespace Storage.UnitTests.ReadModels
                 },
                 new EventStreamStateChangeEvent
                 {
+                    Id = "anid2",
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid2"}.ToJson(),
                     Version = 5,
@@ -108,6 +110,7 @@ namespace Storage.UnitTests.ReadModels
                 },
                 new EventStreamStateChangeEvent
                 {
+                    Id = "anid3",
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid3"}.ToJson(),
                     Version = 6,
@@ -158,6 +161,7 @@ namespace Storage.UnitTests.ReadModels
             {
                 new EventStreamStateChangeEvent
                 {
+                    Id = "anid1",
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid1"}.ToJson(),
                     Version = startingCheckpoint,
@@ -165,6 +169,7 @@ namespace Storage.UnitTests.ReadModels
                 },
                 new EventStreamStateChangeEvent
                 {
+                    Id = "anid2",
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid2"}.ToJson(),
                     Version = startingCheckpoint + 1,
@@ -172,6 +177,7 @@ namespace Storage.UnitTests.ReadModels
                 },
                 new EventStreamStateChangeEvent
                 {
+                    Id = "anid3",
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid3"}.ToJson(),
                     Version = startingCheckpoint + 2,
@@ -202,6 +208,7 @@ namespace Storage.UnitTests.ReadModels
             {
                 new EventStreamStateChangeEvent
                 {
+                    Id = "anid1",
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid1"}.ToJson(),
                     Version = 3,
@@ -209,6 +216,7 @@ namespace Storage.UnitTests.ReadModels
                 },
                 new EventStreamStateChangeEvent
                 {
+                    Id = "anid2",
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid2"}.ToJson(),
                     Version = 4,
@@ -216,6 +224,7 @@ namespace Storage.UnitTests.ReadModels
                 },
                 new EventStreamStateChangeEvent
                 {
+                    Id = "anid3",
                     EntityType = nameof(String),
                     Data = new TestEvent {Id = "aneventid3"}.ToJson(),
                     Version = 5,
@@ -237,8 +246,10 @@ namespace Storage.UnitTests.ReadModels
         }
     }
 
-    public class TestEvent
+    public class TestEvent : IChangeEvent
     {
         public string Id { get; set; }
+
+        public DateTime ModifiedUtc { get; set; }
     }
 }

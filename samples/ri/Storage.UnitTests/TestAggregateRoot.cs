@@ -47,7 +47,7 @@ namespace Storage.UnitTests
             ClearedChanges = true;
         }
 
-        public void OnStateChanged(object @event)
+        public void OnStateChanged(IChangeEvent @event)
         {
             throw new NotImplementedException();
         }

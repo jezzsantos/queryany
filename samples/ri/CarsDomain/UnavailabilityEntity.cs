@@ -31,7 +31,7 @@ namespace CarsDomain
 
         public DateTime SlotTo => Slot.To;
 
-        protected override void OnEventRaised(object @event)
+        protected override void OnEventRaised(IChangeEvent @event)
         {
             switch (@event)
             {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 
@@ -7,7 +8,7 @@ namespace Domain.Interfaces.UnitTests
     public class TestAggregateRoot : AggregateRootBase
     {
         public TestAggregateRoot(ILogger logger, IIdentifierFactory idFactory)
-            : base(logger, idFactory)
+            : base(logger, idFactory, id => new CreateEvent {Id = id})
         {
         }
 
@@ -31,7 +32,7 @@ namespace Domain.Interfaces.UnitTests
             APropertyName = properties.GetValueOrDefault<string>(nameof(APropertyName));
         }
 
-        protected override void OnStateChanged(object @event)
+        protected override void OnStateChanged(IChangeEvent @event)
         {
             //Not used in testing
         }
@@ -42,9 +43,20 @@ namespace Domain.Interfaces.UnitTests
                 container.Resolve<IIdentifierFactory>(), identifier);
         }
 
-        public class ChangeEvent
+        public class CreateEvent : IChangeEvent
+        {
+            public string Id { get; set; }
+
+            public DateTime ModifiedUtc { get; set; }
+        }
+
+        public class ChangeEvent : IChangeEvent
         {
             public string APropertyName { get; set; }
+
+            public string Id { get; set; }
+
+            public DateTime ModifiedUtc { get; set; }
         }
     }
 }

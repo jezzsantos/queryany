@@ -1,4 +1,5 @@
 ﻿using System;
+using Domain.Interfaces.Entities;
 
 namespace Storage.Interfaces.ReadModels
 {
@@ -6,6 +7,6 @@ namespace Storage.Interfaces.ReadModels
     {
         Type EntityType { get; }
 
-        bool Project(object originalEvent);
+        bool Project(IChangeEvent originalEvent);
     }
 }

@@ -60,7 +60,7 @@ namespace Domain.Interfaces.UnitTests
         public void WhenConstructed_ThenRaisesEvent()
         {
             this.aggregate.Events.Count().Should().Be(1);
-            this.aggregate.Events[0].Should().BeOfType<Events.Any.Created>();
+            this.aggregate.Events[0].Should().BeOfType<TestAggregateRoot.CreateEvent>();
             this.aggregate.LastModifiedAtUtc.Should().BeAfter(this.aggregate.CreatedAtUtc);
         }
 
@@ -107,7 +107,7 @@ namespace Domain.Interfaces.UnitTests
             this.aggregate.CreatedAtUtc.Should().Be(datum);
             this.aggregate.LastModifiedAtUtc.Should().Be(datum);
             this.aggregate.Events.Count().Should().Be(1);
-            this.aggregate.Events[0].Should().BeOfType<Events.Any.Created>();
+            this.aggregate.Events[0].Should().BeOfType<TestAggregateRoot.CreateEvent>();
         }
 
         [TestMethod]
@@ -135,7 +135,7 @@ namespace Domain.Interfaces.UnitTests
             this.aggregate.ChangeProperty("achangedvalue");
 
             this.aggregate.Events.Count().Should().Be(2);
-            this.aggregate.Events[0].Should().BeOfType<Events.Any.Created>();
+            this.aggregate.Events[0].Should().BeOfType<TestAggregateRoot.CreateEvent>();
             this.aggregate.Events[1].Should().BeEquivalentTo(new TestAggregateRoot.ChangeEvent
                 {APropertyName = "achangedvalue"});
             this.aggregate.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
@@ -149,10 +149,10 @@ namespace Domain.Interfaces.UnitTests
             var result = this.aggregate.GetChanges();
 
             result.Count.Should().Be(2);
-            result[0].EventType.Should().Be(nameof(Events.Any.Created));
+            result[0].EventType.Should().Be(nameof(TestAggregateRoot.CreateEvent));
             result[0].StreamName.Should().Be("testaggregateroot_anid");
             result[0].Version.Should().Be(1);
-            result[0].Metadata.Fqn.Should().Be(typeof(Events.Any.Created).AssemblyQualifiedName);
+            result[0].Metadata.Fqn.Should().Be(typeof(TestAggregateRoot.CreateEvent).AssemblyQualifiedName);
             result[1].EventType.Should().Be(nameof(TestAggregateRoot.ChangeEvent));
             result[1].StreamName.Should().Be("testaggregateroot_anid");
             result[1].Version.Should().Be(2);
@@ -181,8 +181,8 @@ namespace Domain.Interfaces.UnitTests
 
             var created = entities[0].ToEvent();
 
-            created.Should().BeOfType<Events.Any.Created>();
-            created.As<Events.Any.Created>().Id.Should().Be("anid");
+            created.Should().BeOfType<TestAggregateRoot.CreateEvent>();
+            created.As<TestAggregateRoot.CreateEvent>().Id.Should().Be("anid");
 
             var changed = entities[1].ToEvent();
 

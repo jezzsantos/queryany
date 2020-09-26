@@ -15,17 +15,24 @@ namespace Domain.Interfaces.Entities
     /// </summary>
     public abstract class AggregateRootBase : IAggregateRootEntity
     {
-        private readonly List<object> events;
+        private readonly List<IChangeEvent> events;
         private readonly bool isInstantiating;
 
-        protected AggregateRootBase(ILogger logger, IIdentifierFactory idFactory) : this(logger, idFactory,
+        protected AggregateRootBase(ILogger logger, IIdentifierFactory idFactory,
+            Func<Identifier, IChangeEvent> createdEventFactory) : this(logger, idFactory,
             Identifier.Empty())
 
         {
+            createdEventFactory.GuardAgainstNull(nameof(createdEventFactory));
+
             Id = idFactory.Create(this);
-            RaiseCreateEvent(Entities.Events.Any.Created.Create(Id));
+            RaiseCreateEvent(createdEventFactory(Id));
         }
 
+        /// <summary>
+        ///     Creates a new instance of the aggregate with the specified <see cref="Identifier" />,
+        ///     used during persistence instantiation. Does not raise any create event.
+        /// </summary>
         protected AggregateRootBase(ILogger logger, IIdentifierFactory idFactory, Identifier identifier)
         {
             logger.GuardAgainstNull(nameof(logger));
@@ -34,7 +41,7 @@ namespace Domain.Interfaces.Entities
             Logger = logger;
             IdFactory = idFactory;
             Id = identifier;
-            this.events = new List<object>();
+            this.events = new List<IChangeEvent>();
             this.isInstantiating = identifier == Identifier.Empty();
 
             var now = DateTime.UtcNow;
@@ -89,7 +96,7 @@ namespace Domain.Interfaces.Entities
             ChangeVersion = properties.GetValueOrDefault<long>(nameof(ChangeVersion));
         }
 
-        void IPublishedEntityEventHandler.HandleEvent(object @event)
+        void IPublishedEntityEventHandler.HandleEvent(IChangeEvent @event)
         {
             OnStateChanged(@event);
         }
@@ -119,29 +126,29 @@ namespace Domain.Interfaces.Entities
             set => ChangeVersion = value;
         }
 
-        void IPersistableAggregateRoot.OnStateChanged(object @event)
+        void IPersistableAggregateRoot.OnStateChanged(IChangeEvent @event)
         {
             OnStateChanged(@event);
         }
 
         void IPersistableAggregateRoot.LoadChanges(IEnumerable<EntityEvent> history)
         {
-            foreach (var entity in history)
+            foreach (var item in history)
             {
-                var @event = entity.ToEvent();
+                var @event = item.ToEvent();
                 OnStateChanged(@event);
 
                 var expectedVersion = ChangeVersion + 1;
-                if (entity.Version != expectedVersion)
+                if (item.Version != expectedVersion)
                 {
                     throw new InvalidOperationException(
-                        $"The version of this loaded change ('{entity.Version}') was not expected. Expected version '{expectedVersion}'. Perhaps a missing change or this change was replayed out of order?");
+                        $"The version of this loaded change ('{item.Version}') was not expected. Expected version '{expectedVersion}'. Perhaps a missing change or this change was replayed out of order?");
                 }
                 ChangeVersion = expectedVersion;
             }
         }
 
-        void IPublishingEntity.RaiseEvent(object @event)
+        void IPublishingEntity.RaiseEvent(IChangeEvent @event)
         {
             OnStateChanged(@event);
             var isValid = EnsureValidState();
@@ -153,9 +160,9 @@ namespace Domain.Interfaces.Entities
             this.events.Add(@event);
         }
 
-        protected abstract void OnStateChanged(object @event);
+        protected abstract void OnStateChanged(IChangeEvent @event);
 
-        private void RaiseCreateEvent(object @event)
+        private void RaiseCreateEvent(IChangeEvent @event)
         {
             if (this.isInstantiating)
             {
@@ -163,7 +170,7 @@ namespace Domain.Interfaces.Entities
             }
         }
 
-        protected void RaiseChangeEvent(object @event)
+        protected void RaiseChangeEvent(IChangeEvent @event)
         {
             ((IPublishingEntity) this).RaiseEvent(@event);
         }
@@ -173,7 +180,7 @@ namespace Domain.Interfaces.Entities
             return Id.HasValue();
         }
 
-        protected static void RaiseToEntity(IPublishedEntityEventHandler entity, object @event)
+        protected static void RaiseToEntity(IPublishedEntityEventHandler entity, IChangeEvent @event)
         {
             entity?.HandleEvent(@event);
         }

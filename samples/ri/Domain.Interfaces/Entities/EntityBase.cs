@@ -13,7 +13,7 @@ namespace Domain.Interfaces.Entities
     /// </summary>
     public abstract class EntityBase : IEntity
     {
-        private Action<object> aggregateEntityEventHandler;
+        private Action<IChangeEvent> aggregateEntityEventHandler;
 
         protected EntityBase(ILogger logger, IIdentifierFactory idFactory) : this(logger, idFactory, Identifier.Empty())
         {
@@ -74,26 +74,26 @@ namespace Domain.Interfaces.Entities
             LastModifiedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(LastModifiedAtUtc));
         }
 
-        void IPublishedEntityEventHandler.HandleEvent(object @event)
+        void IPublishedEntityEventHandler.HandleEvent(IChangeEvent @event)
         {
             OnEventRaised(@event);
         }
 
-        void IPublishingEntity.RaiseEvent(object @event)
+        void IPublishingEntity.RaiseEvent(IChangeEvent @event)
         {
             OnEventRaised(@event);
             this.aggregateEntityEventHandler?.Invoke(@event);
             LastModifiedAtUtc = DateTime.UtcNow;
         }
 
-        public void SetAggregateEventHandler(Action<object> handler)
+        public void SetAggregateEventHandler(Action<IChangeEvent> handler)
         {
             this.aggregateEntityEventHandler = handler;
         }
 
-        protected abstract void OnEventRaised(object @event);
+        protected abstract void OnEventRaised(IChangeEvent @event);
 
-        protected void RaiseChangeEvent(object @event)
+        protected void RaiseChangeEvent(IChangeEvent @event)
         {
             ((IPublishingEntity) this).RaiseEvent(@event);
         }

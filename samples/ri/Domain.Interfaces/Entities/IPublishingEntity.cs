@@ -2,6 +2,6 @@
 {
     public interface IPublishingEntity
     {
-        void RaiseEvent(object @event);
+        void RaiseEvent(IChangeEvent @event);
     }
 }

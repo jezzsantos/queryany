@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using Storage;
 using Storage.Interfaces.ReadModels;
-using Events = Domain.Interfaces.Entities.Events;
 
 namespace CarsStorage
 {
@@ -29,15 +28,15 @@ namespace CarsStorage
 
         public Type EntityType => typeof(CarEntity);
 
-        public bool Project(object originalEvent)
+        public bool Project(IChangeEvent originalEvent)
         {
             switch (originalEvent)
             {
-                case Events.Any.Created e:
+                case Events.Car.Created e:
                     this.carStorage.Create(e.Id.ToIdentifier());
                     break;
 
-                case CarsDomain.Events.Car.ManufacturerChanged e:
+                case Events.Car.ManufacturerChanged e:
                     this.carStorage.Update(e.Id, dto =>
                     {
                         dto.ManufactureYear = e.Year;
@@ -46,7 +45,7 @@ namespace CarsStorage
                     });
                     break;
 
-                case CarsDomain.Events.Car.OwnershipChanged e:
+                case Events.Car.OwnershipChanged e:
                     this.carStorage.Update(e.Id, dto =>
                     {
                         dto.VehicleOwnerId = e.Owner;
@@ -54,7 +53,7 @@ namespace CarsStorage
                     });
                     break;
 
-                case CarsDomain.Events.Car.RegistrationChanged e:
+                case Events.Car.RegistrationChanged e:
                     this.carStorage.Update(e.Id, dto =>
                     {
                         dto.LicenseJurisdiction = e.Jurisdiction;
@@ -62,7 +61,7 @@ namespace CarsStorage
                     });
                     break;
 
-                case CarsDomain.Events.Car.UnavailabilitySlotAdded e:
+                case Events.Car.UnavailabilitySlotAdded e:
                     this.unavailabilityStorage.Create(e.Id, dto =>
                     {
                         dto.CarId = e.CarId;

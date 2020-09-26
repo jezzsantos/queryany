@@ -10,7 +10,7 @@ namespace Domain.Interfaces.Entities
 
         void ClearChanges();
 
-        void OnStateChanged(object @event);
+        void OnStateChanged(IChangeEvent @event);
 
         void LoadChanges(IEnumerable<EntityEvent> history);
     }

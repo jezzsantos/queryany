@@ -7,11 +7,27 @@ namespace PersonsDomain
     {
         public static class Person
         {
-            public class PhoneNumberChanged
+            public class Created : IChangeEvent
             {
                 public string Id { get; set; }
 
+                public DateTime ModifiedUtc { get; set; }
+
+                public static Created Create(Identifier id)
+                {
+                    return new Created
+                    {
+                        Id = id,
+                        ModifiedUtc = DateTime.UtcNow
+                    };
+                }
+            }
+
+            public class PhoneNumberChanged : IChangeEvent
+            {
                 public string PhoneNumber { get; set; }
+
+                public string Id { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
@@ -26,11 +42,11 @@ namespace PersonsDomain
                 }
             }
 
-            public class EmailChanged
+            public class EmailChanged : IChangeEvent
             {
-                public string Id { get; set; }
-
                 public string EmailAddress { get; set; }
+
+                public string Id { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
@@ -45,13 +61,13 @@ namespace PersonsDomain
                 }
             }
 
-            public class NameChanged
+            public class NameChanged : IChangeEvent
             {
-                public string Id { get; set; }
-
                 public string FirstName { get; set; }
 
                 public string LastName { get; set; }
+
+                public string Id { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
@@ -67,11 +83,11 @@ namespace PersonsDomain
                 }
             }
 
-            public class DisplayNameChanged
+            public class DisplayNameChanged : IChangeEvent
             {
-                public string Id { get; set; }
-
                 public string DisplayName { get; set; }
+
+                public string Id { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
