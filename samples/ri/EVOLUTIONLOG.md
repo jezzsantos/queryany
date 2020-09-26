@@ -252,7 +252,7 @@ We no longer use `ICommandStorage<TEntity>` in any command that changes the stat
 
 ## 6. CQRS with Event Sourcing
 
-*  Commit: [d4352f](https://github.com/jezzsantos/queryany/commit/d4352f30e96667dc6359e34d978df1c829188637)
+*  Commit: [688db6](https://github.com/jezzsantos/queryany/commit/688db6589833ee113912914512009f801b4018c1)
 
 ### Structural Patterns
 
