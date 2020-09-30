@@ -7,12 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Api.Interfaces\Api.Interfaces.csproj" />
-      <ProjectReference Include="..\Domain.Interfaces\Domain.Interfaces.csproj" />
+      <PackageReference Include="ServiceStack.Client" Version="5.8.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="ServiceStack.Client" Version="5.8.0" />
+      <ProjectReference Include="..\Application.Common\Application.Common.csproj" />
     </ItemGroup>
 
 </Project>

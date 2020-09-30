@@ -1,6 +1,6 @@
 ﻿using Api.Interfaces.ServiceOperations;
+using Application.Resources;
 using ApplicationServices;
-using Domain.Interfaces.Resources;
 using QueryAny.Primitives;
 using ServiceStack;
 

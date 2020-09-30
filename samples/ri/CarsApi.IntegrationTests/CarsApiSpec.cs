@@ -149,7 +149,7 @@ namespace CarsApi.IntegrationTests
             cars.Cars[0].Id.Should().Be(car2.Id);
         }
 
-        private static Domain.Interfaces.Resources.Car RegisterCar(IRestClient client)
+        private static Application.Resources.Car RegisterCar(IRestClient client)
         {
             var car1 = client.Post(new CreateCarRequest
             {

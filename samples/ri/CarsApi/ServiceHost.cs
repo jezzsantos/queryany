@@ -20,12 +20,14 @@ using Storage;
 using Storage.Azure;
 using Storage.Interfaces;
 using Storage.ReadModels;
+using IRepository = Storage.IRepository;
 
 namespace CarsApi
 {
     public class ServiceHost : AppHostBase
     {
         private static readonly Assembly[] AssembliesContainingServicesAndDependencies = {typeof(Startup).Assembly};
+        private static IRepository repository;
         private IReadModelSubscription readModelSubscription;
 
         public ServiceHost() : base("MyCarsApi", AssembliesContainingServicesAndDependencies)
@@ -43,9 +45,10 @@ namespace CarsApi
 
         private static void RegisterDependencies(Container container)
         {
-            static AzureCosmosSqlApiRepository RepositoryFactory(Container c)
+            static IRepository ResolveRepository(Container c)
             {
-                return AzureCosmosSqlApiRepository.FromAppSettings(c.Resolve<IAppSettings>(), "Production");
+                return repository ??=
+                    AzureCosmosSqlApiRepository.FromAppSettings(c.Resolve<IAppSettings>(), "Production");
             }
 
             container.AddSingleton<ILogger>(c => new Logger<ServiceHost>(new NullLoggerFactory()));
@@ -56,10 +59,10 @@ namespace CarsApi
                 typeof(CarEntity).Assembly));
             container.AddSingleton<IEventStreamStorage<CarEntity>>(c =>
                 new GeneralEventStreamStorage<CarEntity>(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
-                    RepositoryFactory(c)));
+                    ResolveRepository(c)));
             container.AddSingleton<ICarStorage>(c =>
                 new CarStorage(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
-                    c.Resolve<IEventStreamStorage<CarEntity>>(), RepositoryFactory(c)));
+                    c.Resolve<IEventStreamStorage<CarEntity>>(), ResolveRepository(c)));
             container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
             container.AddSingleton<IPersonsService>(c =>
                 new PersonsServiceClient(c.Resolve<IAppSettings>().GetString("PersonsApiBaseUrl")));
@@ -68,8 +71,8 @@ namespace CarsApi
                 new ReadModelProjector(c.Resolve<ILogger>(),
                     new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
                         c.Resolve<IDomainFactory>(),
-                        RepositoryFactory(c)),
-                    new CarEntityReadModelProjection(c.Resolve<ILogger>(), RepositoryFactory(c))),
+                        ResolveRepository(c)),
+                    new CarEntityReadModelProjection(c.Resolve<ILogger>(), ResolveRepository(c))),
                 c.Resolve<IEventStreamStorage<CarEntity>>()));
         }
 

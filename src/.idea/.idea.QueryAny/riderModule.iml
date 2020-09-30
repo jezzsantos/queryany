@@ -6,6 +6,7 @@
     <content url="file://$MODULE_DIR$/../../../samples/ri/Api.Common.UnitTests" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Api.Interfaces" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Api.Interfaces.UnitTests" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/Application.Common" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/ApplicationServices" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/CarsApi" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/CarsApi.IntegrationTests" />

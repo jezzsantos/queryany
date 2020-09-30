@@ -16,44 +16,45 @@ namespace CarsStorage
 {
     public class CarStorage : ICarStorage
     {
-        private readonly IEventStreamStorage<CarEntity> carEventingStorage;
+        private readonly IEventStreamStorage<CarEntity> carEventStreamStorage;
         private readonly IQueryStorage<Car> carQueryStorage;
         private readonly IQueryStorage<Unavailability> unavailabilitiesQueryStorage;
 
-        public CarStorage(ILogger logger, IDomainFactory domainFactory, IEventStreamStorage<CarEntity> eventingStorage,
+        public CarStorage(ILogger logger, IDomainFactory domainFactory,
+            IEventStreamStorage<CarEntity> eventStreamStorage,
             IRepository repository)
         {
             logger.GuardAgainstNull(nameof(logger));
             domainFactory.GuardAgainstNull(nameof(domainFactory));
-            eventingStorage.GuardAgainstNull(nameof(eventingStorage));
+            eventStreamStorage.GuardAgainstNull(nameof(eventStreamStorage));
             repository.GuardAgainstNull(nameof(repository));
 
             this.carQueryStorage = new GeneralQueryStorage<Car>(logger, domainFactory, repository);
-            this.carEventingStorage = eventingStorage;
+            this.carEventStreamStorage = eventStreamStorage;
             this.unavailabilitiesQueryStorage =
                 new GeneralQueryStorage<Unavailability>(logger, domainFactory, repository);
         }
 
         public CarStorage(IQueryStorage<Car> carQueryStorage,
-            IEventStreamStorage<CarEntity> carEventingStorage,
+            IEventStreamStorage<CarEntity> carEventStreamStorage,
             IQueryStorage<Unavailability> unavailabilitiesQueryStorage)
         {
             carQueryStorage.GuardAgainstNull(nameof(carQueryStorage));
-            carEventingStorage.GuardAgainstNull(nameof(carEventingStorage));
+            carEventStreamStorage.GuardAgainstNull(nameof(carEventStreamStorage));
             unavailabilitiesQueryStorage.GuardAgainstNull(nameof(unavailabilitiesQueryStorage));
             this.carQueryStorage = carQueryStorage;
-            this.carEventingStorage = carEventingStorage;
+            this.carEventStreamStorage = carEventStreamStorage;
             this.unavailabilitiesQueryStorage = unavailabilitiesQueryStorage;
         }
 
         public CarEntity Load(Identifier id)
         {
-            return this.carEventingStorage.Load(id);
+            return this.carEventStreamStorage.Load(id);
         }
 
         public CarEntity Save(CarEntity car)
         {
-            this.carEventingStorage.Save(car);
+            this.carEventStreamStorage.Save(car);
             return car;
         }
 

@@ -2,8 +2,8 @@
 using Api.Common;
 using Api.Interfaces;
 using Api.Interfaces.ServiceOperations;
+using Application.Resources;
 using CarsApplication;
-using Domain.Interfaces.Resources;
 using QueryAny.Primitives;
 using ServiceStack;
 

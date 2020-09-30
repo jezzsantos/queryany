@@ -2,13 +2,12 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <RootNamespace>ServiceClients</RootNamespace>
+        <RootNamespace>Application</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Api.Interfaces\Api.Interfaces.csproj" />
-      <ProjectReference Include="..\ApplicationServices\ApplicationServices.csproj" />
+      <ProjectReference Include="..\Domain.Interfaces\Domain.Interfaces.csproj" />
     </ItemGroup>
 
 </Project>

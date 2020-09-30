@@ -1,6 +1,7 @@
-﻿using Domain.Interfaces;
+﻿using Application;
+using Application.Resources;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Domain.Interfaces.Resources;
 using DomainServices;
 using Microsoft.Extensions.Logging;
 using PersonsApplication.Storage;
@@ -11,7 +12,7 @@ using PersonName = PersonsDomain.PersonName;
 
 namespace PersonsApplication
 {
-    public class PersonsApplication : IPersonsApplication
+    public class PersonsApplication : ApplicationBase, IPersonsApplication
     {
         private readonly IEmailService emailService;
         private readonly IIdentifierFactory idFactory;

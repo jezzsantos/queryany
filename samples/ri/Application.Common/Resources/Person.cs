@@ -1,4 +1,6 @@
-﻿namespace Domain.Interfaces.Resources
+﻿using Domain.Interfaces;
+
+namespace Application.Resources
 {
     public class Person : IIdentifiableResource
     {

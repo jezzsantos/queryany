@@ -1,4 +1,4 @@
-﻿namespace Domain.Interfaces.Resources
+﻿namespace Application.Resources
 {
     public interface IIdentifiableResource
     {

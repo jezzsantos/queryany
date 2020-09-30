@@ -1,4 +1,4 @@
-﻿using Domain.Interfaces.Resources;
+﻿using Application.Resources;
 using ServiceStack;
 
 namespace Api.Interfaces.ServiceOperations

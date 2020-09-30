@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Application;
+using Application.Resources;
 using ApplicationServices;
 using CarsApplication.Storage;
 using CarsDomain;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Domain.Interfaces.Resources;
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using ServiceStack;
