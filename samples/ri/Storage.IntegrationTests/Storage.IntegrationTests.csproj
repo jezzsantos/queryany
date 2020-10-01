@@ -13,11 +13,12 @@
         <PackageReference Include="MSTest.TestAdapter" Version="2.1.0" />
         <PackageReference Include="MSTest.TestFramework" Version="2.1.0" />
         <PackageReference Include="coverlet.collector" Version="1.2.0" />
+        <PackageReference Include="ServiceStack" Version="5.8.0" />
         <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.7.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\CarsApi\CarsApi.csproj" />
+      <ProjectReference Include="..\Api.Common\Api.Common.csproj" />
       <ProjectReference Include="..\Storage.Azure\Storage.Azure.csproj" />
       <ProjectReference Include="..\Storage.Redis\Storage.Redis.csproj" />
       <ProjectReference Include="..\Storage.Sql\Storage.Sql.csproj" />

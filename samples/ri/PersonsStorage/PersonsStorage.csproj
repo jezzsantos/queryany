@@ -8,8 +8,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\PersonsApplication\PersonsApplication.csproj" />
-      <ProjectReference Include="..\Storage.Azure\Storage.Azure.csproj" />
-      <ProjectReference Include="..\Storage.Interfaces\Storage.Interfaces.csproj" />
       <ProjectReference Include="..\Storage\Storage.csproj" />
     </ItemGroup>
 
