@@ -9,7 +9,7 @@
 
     public static class CurrentCallerConstants
     {
-        public const string AnonymousUserId = "00000000-9999-9999-9999-000000000000";
+        public const string AnonymousUserId = "xxx_0000000000000000000000";
         public const string AnonymousUserName = "anonymous";
     }
 }

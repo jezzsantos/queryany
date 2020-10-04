@@ -88,6 +88,14 @@ namespace Domain.Interfaces.UnitTests
 
             result.Should().BeTrue();
         }
+
+        [TestMethod]
+        public void WhenIsValidWithAnonymousUserId_ThenReturnsTrue()
+        {
+            var result = this.factory.IsValid(CurrentCallerConstants.AnonymousUserId.ToIdentifier());
+
+            result.Should().BeTrue();
+        }
     }
 
     public class TestEntityPrefixIdentifierFactory : EntityPrefixIdentifierFactory
