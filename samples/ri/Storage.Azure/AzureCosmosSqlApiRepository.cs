@@ -624,39 +624,40 @@ namespace Storage.Azure
             var @operator = condition.Operator.ToAzureCosmosSqlApiConditionClause();
 
             var value = condition.Value;
+            var escapedFieldName = $"[\"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName}\"]";
             switch (value)
             {
                 case string text:
-                    return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{text}'";
+                    return $"{escapedFieldName} {@operator} '{text}'";
 
                 case DateTime dateTime:
                     return dateTime.HasValue()
-                        ? $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ss.fffffffZ}'"
-                        : $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ssZ}'";
+                        ? $"{escapedFieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ss.fffffffZ}'"
+                        : $"{escapedFieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ssZ}'";
 
                 case DateTimeOffset dateTimeOffset:
                     return dateTimeOffset == DateTimeOffset.MinValue
-                        ? $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTimeOffset:yyyy-MM-ddTHH:mm:ssK}'"
-                        : $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{dateTimeOffset:O}'";
+                        ? $"{escapedFieldName} {@operator} '{dateTimeOffset:yyyy-MM-ddTHH:mm:ssK}'"
+                        : $"{escapedFieldName} {@operator} '{dateTimeOffset:O}'";
 
                 case bool _:
                     return
-                        $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} {value.ToString().ToLowerInvariant()}";
+                        $"{escapedFieldName} {@operator} {value.ToString().ToLowerInvariant()}";
 
                 case double _:
                 case int _:
                 case long _:
-                    return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} {value}";
+                    return $"{escapedFieldName} {@operator} {value}";
 
                 case byte[] bytes:
                     return
-                        $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{Convert.ToBase64String(bytes)}'";
+                        $"{escapedFieldName} {@operator} '{Convert.ToBase64String(bytes)}'";
 
                 case Guid guid:
-                    return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{guid:D}'";
+                    return $"{escapedFieldName} {@operator} '{guid:D}'";
 
                 case null:
-                    return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} null";
+                    return $"{escapedFieldName} {@operator} null";
 
                 default:
                     return value.ToOtherValueString(fieldName, @operator);
@@ -665,22 +666,23 @@ namespace Storage.Azure
 
         private static string ToOtherValueString(this object value, string fieldName, string @operator)
         {
+            var escapedFieldName = $"[\"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName}\"]";
             if (value == null)
             {
-                return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} null";
+                return $"{escapedFieldName} {@operator} null";
             }
 
             if (value is IPersistableValueObject valueObject)
             {
                 return
-                    $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{valueObject.Dehydrate()}'";
+                    $"{escapedFieldName} {@operator} '{valueObject.Dehydrate()}'";
             }
 
             var escapedValue = value
                 .ToString()
                 .Replace("\"", "\\\"");
 
-            return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName} {@operator} '{escapedValue}'";
+            return $"{escapedFieldName} {@operator} '{escapedValue}'";
         }
     }
 }
