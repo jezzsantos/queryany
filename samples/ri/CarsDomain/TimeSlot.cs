@@ -34,7 +34,7 @@ namespace CarsDomain
         {
             return (property, container) =>
             {
-                var parts = RehydrateToList(property);
+                var parts = RehydrateToList(property, false);
                 return new TimeSlot(parts[0].FromIso8601(), parts[1].FromIso8601());
             };
         }

@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -19,7 +19,7 @@ namespace Domain.Interfaces.UnitTests
         }
 
         [TestMethod]
-        public void WhenHydrate_ThenReturnsProperties()
+        public void WhenDehydrateSinglePropertyValue_ThenReturnsProperties()
         {
             var valueObject = new TestSingleStringValueObject("avalue");
             var result = valueObject.Dehydrate();
@@ -28,12 +28,126 @@ namespace Domain.Interfaces.UnitTests
         }
 
         [TestMethod]
-        public void WhenDehydrate_ThenReturnsInstance()
+        public void WhenDehydrateMultiPropertyValueWithNulls_ThenReturnsProperties()
+        {
+            var valueObject = new TestMultiValueObject(null, 25, true);
+            var result = valueObject.Dehydrate();
+
+            result.Should().Be("{\"Val1\":\"NULL\",\"Val2\":25,\"Val3\":true}");
+        }
+
+        [TestMethod]
+        public void WhenDehydrateMultiPropertyValue_ThenReturnsProperties()
+        {
+            var valueObject = new TestMultiValueObject("astringvalue", 25, true);
+            var result = valueObject.Dehydrate();
+
+            result.Should().Be("{\"Val1\":\"astringvalue\",\"Val2\":25,\"Val3\":true}");
+        }
+
+        [TestMethod]
+        public void WhenDehydrateSingleListStringValue_ThenReturnsProperties()
+        {
+            var value = new List<string>
+            {
+                "avalue1",
+                "avalue2"
+            };
+            var valueObject = new TestSingleListStringValueObject(value);
+            var result = valueObject.Dehydrate();
+
+            result.Should().Be("[\"avalue1\",\"avalue2\"]");
+        }
+
+        [TestMethod]
+        public void WhenDehydrateSingleListValueObjectValueWithNullItems_ThenThrows()
+        {
+            var value = new List<TestSingleStringValueObject>
+            {
+                null,
+                new TestSingleStringValueObject("avalue2")
+            };
+            var valueObject = new TestSingleListValueObjectValueObject(value);
+            var result = valueObject.Dehydrate();
+
+            result.Should().Be("[null,\"avalue2\"]");
+        }
+
+        [TestMethod]
+        public void WhenDehydrateSingleListValueObjectValue_ThenReturnsProperties()
+        {
+            var value = new List<TestSingleStringValueObject>
+            {
+                new TestSingleStringValueObject("avalue1"),
+                new TestSingleStringValueObject("avalue2")
+            };
+            var valueObject = new TestSingleListValueObjectValueObject(value);
+            var result = valueObject.Dehydrate();
+
+            result.Should().Be("[\"avalue1\",\"avalue2\"]");
+        }
+
+        [TestMethod]
+        public void WhenRehydrateSingleValue_ThenReturnsInstance()
         {
             var valueObject = new TestSingleStringValueObject("avalue");
             valueObject.Rehydrate("anothervalue");
 
             valueObject.StringValue.Should().Be("anothervalue");
+        }
+
+        [TestMethod]
+        public void WhenRehydrateSingleListStringValue_ThenReturnsInstance()
+        {
+            var valueObject = new TestSingleListStringValueObject(new List<string>());
+            valueObject.Rehydrate("[\"avalue1\",\"avalue2\"]");
+
+            valueObject.Values.Count.Should().Be(2);
+            valueObject.Values[0].Should().Be("avalue1");
+            valueObject.Values[1].Should().Be("avalue2");
+        }
+
+        [TestMethod]
+        public void WhenRehydrateSingleListValueObjectValueWithNullValues_ThenReturnsInstance()
+        {
+            var valueObject = new TestSingleListValueObjectValueObject(new List<TestSingleStringValueObject>());
+            valueObject.Rehydrate("[\"NULL\",\"avalue2\"]");
+
+            valueObject.Values.Count.Should().Be(1);
+            valueObject.Values[0].StringValue.Should().Be("avalue2");
+        }
+
+        [TestMethod]
+        public void WhenRehydrateSingleListValueObjectValue_ThenReturnsInstance()
+        {
+            var valueObject = new TestSingleListValueObjectValueObject(new List<TestSingleStringValueObject>());
+            valueObject.Rehydrate("[\"avalue1\",\"avalue2\"]");
+
+            valueObject.Values.Count.Should().Be(2);
+            valueObject.Values[0].StringValue.Should().Be("avalue1");
+            valueObject.Values[1].StringValue.Should().Be("avalue2");
+        }
+
+        [TestMethod]
+        public void WhenRehydrateMultiValueWithNullValue_ThenReturnsInstance()
+        {
+            var valueObject = new TestMultiValueObject("astringvalue", 25, true);
+            valueObject.Rehydrate("{\"Val1\":\"NULL\",\"Val2\":25,\"Val3\":True}");
+
+            valueObject.AStringValue.Should().BeNull();
+            valueObject.AnIntegerValue.Should().Be(25);
+            valueObject.ABooleanValue.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void WhenRehydrateMultiValue_ThenReturnsInstance()
+        {
+            var valueObject = new TestMultiValueObject("astringvalue", 25, true);
+            valueObject.Rehydrate("{\"Val1\":\"astringvalue\",\"Val2\":25,\"Val3\":True}");
+
+            valueObject.AStringValue.Should().Be("astringvalue");
+            valueObject.AnIntegerValue.Should().Be(25);
+            valueObject.ABooleanValue.Should().BeTrue();
         }
 
         [TestMethod]
@@ -100,7 +214,8 @@ namespace Domain.Interfaces.UnitTests
         public void WhenEqualsWithSameStringValue_ThenReturnsTrue()
         {
             // ReSharper disable once SuspiciousTypeConversion.Global
-            var result = new TestMultiValueObject("avalue", 25, true).Equals("avalue::25::True");
+            var result = new TestMultiValueObject("astringvalue", 25, true)
+                .Equals("{\"Val1\":\"astringvalue\",\"Val2\":25,\"Val3\":true}");
 
             result.Should().BeTrue();
         }
@@ -152,9 +267,9 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenOperatorEqualsWithSameString_ThenReturnsTrue()
         {
-            var valueObject = new TestMultiValueObject("avalue", 25, true);
+            var valueObject = new TestMultiValueObject("astringvalue", 25, true);
 
-            var result = valueObject == "avalue::25::True";
+            var result = valueObject == "{\"Val1\":\"astringvalue\",\"Val2\":25,\"Val3\":true}";
 
             result.Should().BeTrue();
         }
@@ -211,6 +326,21 @@ namespace Domain.Interfaces.UnitTests
         }
     }
 
+    public class TestSingleListStringValueObject : SingleValueObjectBase<TestSingleListStringValueObject,
+        List<string>>
+    {
+        public TestSingleListStringValueObject(List<string> value) : base(value)
+        {
+        }
+
+        public List<string> Values => Value;
+
+        protected override List<string> ToValue(string value)
+        {
+            return value.FromJson<List<string>>();
+        }
+    }
+
     public class TestSingleStringValueObject : SingleValueObjectBase<TestSingleStringValueObject, string>
     {
         public TestSingleStringValueObject(string value) : base(value)
@@ -225,27 +355,49 @@ namespace Domain.Interfaces.UnitTests
         }
     }
 
+    public class TestSingleListValueObjectValueObject : SingleValueObjectBase<TestSingleListValueObjectValueObject,
+        List<TestSingleStringValueObject>>
+    {
+        public TestSingleListValueObjectValueObject(List<TestSingleStringValueObject> value) : base(value)
+        {
+        }
+
+        public List<TestSingleStringValueObject> Values => Value;
+
+        protected override List<TestSingleStringValueObject> ToValue(string value)
+        {
+            return value.FromJson<List<string>>()
+                .Select(item => new TestSingleStringValueObject(item))
+                .ToList();
+        }
+    }
+
     public class TestMultiValueObject : ValueObjectBase<TestMultiValueObject>
     {
-        private readonly bool boolean;
-        private readonly int integer;
-        private readonly string @string;
-
         public TestMultiValueObject(string @string, int integer, bool boolean)
         {
-            this.@string = @string;
-            this.integer = integer;
-            this.boolean = boolean;
+            AStringValue = @string;
+            AnIntegerValue = integer;
+            ABooleanValue = boolean;
         }
+
+        public string AStringValue { get; private set; }
+
+        public int AnIntegerValue { get; private set; }
+
+        public bool ABooleanValue { get; private set; }
 
         public override void Rehydrate(string value)
         {
-            throw new NotImplementedException();
+            var values = RehydrateToList(value);
+            AStringValue = values[0];
+            AnIntegerValue = values[1].ToInt();
+            ABooleanValue = values[2].ToBool();
         }
 
         protected override IEnumerable<object> GetAtomicValues()
         {
-            return new object[] {this.@string, this.integer, this.boolean};
+            return new object[] {AStringValue, AnIntegerValue, ABooleanValue};
         }
     }
 

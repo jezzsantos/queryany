@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using QueryAny.Primitives;
+using ServiceStack;
 
 namespace Domain.Interfaces.Entities
 {
@@ -14,7 +15,7 @@ namespace Domain.Interfaces.Entities
     public abstract class ValueObjectBase<TValueObject> : IEquatable<TValueObject>,
         IComparable<ValueObjectBase<TValueObject>>, IPersistableValueObject
     {
-        private const string DefaultHydrationDelimiter = "::";
+        private const string NullValue = "NULL";
 
         public int CompareTo(ValueObjectBase<TValueObject> other)
         {
@@ -35,25 +36,69 @@ namespace Domain.Interfaces.Entities
             {
                 return null;
             }
+
             if (parts.Count == 1)
             {
-                return parts[0].ToString();
+                var value = DehydrateInternal(parts[0]);
+                if (value == null)
+                {
+                    return null;
+                }
+                if (value is string)
+                {
+                    return value.ToString();
+                }
+                return DehydrateInternal(parts[0]).ToJson();
             }
 
-            return parts
-                .Select(val => val != null
-                    ? val.ToString()
-                    : string.Empty)
-                .Join(DefaultHydrationDelimiter);
+            var counter = 1;
+            var properties = parts
+                .ToDictionary(value => $"Val{counter++}", DehydrateInternal);
+            return properties.ToJson();
         }
 
         public abstract void Rehydrate(string hydratedValue);
 
-        protected static List<string> RehydrateToList(string hydratedValue)
+        protected static List<string> RehydrateToList(string hydratedValue, bool isSingleValueObject,
+            bool isSingleListValueObject = false)
         {
+            if (isSingleValueObject)
+            {
+                if (isSingleListValueObject)
+                {
+                    return hydratedValue
+                        .FromJson<List<string>>()
+                        .Select(value => value.Equals(NullValue)
+                            ? null
+                            : value)
+                        .ToList();
+                }
+
+                return new List<string> {hydratedValue};
+            }
+
             return hydratedValue
-                .SafeSplit(DefaultHydrationDelimiter)
+                .FromJson<Dictionary<string, object>>()
+                .Select(pair =>
+                {
+                    var value = pair.Value;
+                    if (value.Equals(NullValue))
+                    {
+                        return null;
+                    }
+
+                    return pair.Value.ToString();
+                })
                 .ToList();
+        }
+
+        protected List<string> RehydrateToList(string hydratedValue)
+        {
+            var parts = GetAtomicValues().ToList();
+            var isSingleValue = parts.Count == 1;
+            var isListValue = isSingleValue && parts[0] is IEnumerable<IPersistableValueObject>;
+
+            return RehydrateToList(hydratedValue, isSingleValue, isListValue);
         }
 
         protected abstract IEnumerable<object> GetAtomicValues();
@@ -144,6 +189,29 @@ namespace Domain.Interfaces.Entities
         public override string ToString()
         {
             return Dehydrate();
+        }
+
+        private static object DehydrateInternal(object value)
+        {
+            {
+                if (value is null)
+                {
+                    return NullValue;
+                }
+
+                if (value is IPersistableValueObject valueObject)
+                {
+                    return valueObject.Dehydrate();
+                }
+
+                if (value is IEnumerable<IPersistableValueObject> enumerable)
+                {
+                    return new List<string>(enumerable
+                        .Select(e => e?.Dehydrate()));
+                }
+
+                return value;
+            }
         }
     }
 

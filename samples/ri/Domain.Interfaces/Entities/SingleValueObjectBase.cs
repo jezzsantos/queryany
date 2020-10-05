@@ -1,30 +1,41 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using QueryAny.Primitives;
+using ServiceStack;
 
 namespace Domain.Interfaces.Entities
 {
     public abstract class SingleValueObjectBase<TValueObject, TValue> : ValueObjectBase<TValueObject>
     {
-        private TValue value;
-
         protected SingleValueObjectBase(TValue value)
         {
             value.GuardAgainstNull(nameof(value));
-            this.value = value;
+            Value = value;
         }
 
-        protected TValue Value => this.value;
+        protected TValue Value { get; private set; }
 
         protected abstract TValue ToValue(string value);
 
-        public override string Dehydrate()
-        {
-            return this.value.ToString();
-        }
-
         public override void Rehydrate(string hydratedValue)
         {
-            this.value = ToValue(hydratedValue);
+            var values = RehydrateToList(hydratedValue);
+            if (Value is IEnumerable<IPersistableValueObject>)
+            {
+                Value = ToValue(values
+                    .Where(value => value != null)
+                    .ToJson());
+                return;
+            }
+
+            Value = ToValue(values.FirstOrDefault());
+        }
+
+        protected new static List<string> RehydrateToList(string hydratedValue)
+        {
+            var isList = typeof(IEnumerable<IPersistableValueObject>).IsAssignableFrom(typeof(TValue));
+
+            return RehydrateToList(hydratedValue, true, isList);
         }
 
         public static implicit operator TValue(SingleValueObjectBase<TValueObject, TValue> valueObject)
@@ -56,12 +67,13 @@ namespace Domain.Interfaces.Entities
 
         public override int GetHashCode()
         {
+            // ReSharper disable once NonReadonlyMemberInGetHashCode
             return Value.GetHashCode();
         }
 
         protected override IEnumerable<object> GetAtomicValues()
         {
-            return new object[] {this.value};
+            return new object[] {Value};
         }
     }
 }

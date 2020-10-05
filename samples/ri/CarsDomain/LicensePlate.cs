@@ -36,7 +36,7 @@ namespace CarsDomain
         {
             return (property, container) =>
             {
-                var parts = RehydrateToList(property);
+                var parts = RehydrateToList(property, false);
                 return new LicensePlate(parts[0], parts[1]);
             };
         }

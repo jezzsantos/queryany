@@ -150,7 +150,7 @@ namespace Storage.IntegrationTests
         {
             return (value, container) =>
             {
-                var parts = RehydrateToList(value);
+                var parts = RehydrateToList(value, false);
                 return new ComplexValueObject(parts[0], parts[1].ToInt(), parts[2].ToBool());
             };
         }

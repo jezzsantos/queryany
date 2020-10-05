@@ -48,7 +48,7 @@ namespace CarsDomain
         {
             return (value, container) =>
             {
-                var parts = RehydrateToList(value);
+                var parts = RehydrateToList(value, false);
                 return new Manufacturer(parts[0].ToInt(0), parts[1], parts[2]);
             };
         }
