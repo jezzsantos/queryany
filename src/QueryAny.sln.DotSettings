@@ -15,6 +15,7 @@
 	<s:Int64 x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/BLANK_LINES_AROUND_SINGLE_LINE_PROPERTY/@EntryValue">1</s:Int64>
 	<s:Int64 x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/BLANK_LINES_BEFORE_CONTROL_TRANSFER_STATEMENTS/@EntryValue">0</s:Int64>
 	<s:Int64 x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/BLANK_LINES_BEFORE_SINGLE_LINE_COMMENT/@EntryValue">1</s:Int64>
+	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/INDENT_STYLE/@EntryValue">Space</s:String>
 	<s:Int64 x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/KEEP_BLANK_LINES_IN_CODE/@EntryValue">1</s:Int64>
 	<s:Int64 x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/KEEP_BLANK_LINES_IN_DECLARATIONS/@EntryValue">1</s:Int64>
 	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/KEEP_EXISTING_ATTRIBUTE_ARRANGEMENT/@EntryValue">True</s:Boolean>
@@ -101,6 +102,8 @@
         public $Name$(string $name$)
         {
             $name$.GuardAgainstNullOrEmpty(nameof($name$));
+            //Other validation rules
+
             this.$name$ = $name$;
         }
 
@@ -128,7 +131,7 @@
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B55A54749EB18F45ADC493B4E28A3C42/Text/@EntryValue">[EntityName("$Name$")]
     public class $Name$Entity : AggregateRootBase
     {
-        public $Name$Entity(ILogger logger, IIdentifierFactory idFactory, string $parameter$) : base(logger, idFactory)
+        public $Name$Entity(ILogger logger, IIdentifierFactory idFactory, string $parameter$) : base(logger, idFactory, YourDomain.Events.Name.Created.Create)
         {
             $parameter$.GuardAgainstNullOrEmpty(nameof($parameter$));
 
@@ -136,10 +139,18 @@
 
             RaiseCreateEvent(YourDomain.Events.$Name$.Created.Create(Id, Parameter));
         }
+                        
+        private $Name$Entity(ILogger logger, IIdentifierFactory idFactory, Identifier identifier, string $parameter$) 
+            : base(logger, idFactory, identifier)
+        {
+            $parameter$.GuardAgainstNullOrEmpty(nameof($parameter$));
+
+            $Parameter$ = $parameter$;
+        }
 
         public string $Parameter$ { get; private set; }
 
-        protected override void OnEventRaised(object @event)
+        protected override void OnStateChanged(IChangeEvent @event)
         {
             switch (@event)
             {
@@ -176,9 +187,10 @@
 
         public static EntityFactory&lt;$Name$Entity&gt; Instantiate()
         {
-            return (properties, container) =&gt;
-                new $Name$Entity(container.Resolve&lt;ILogger&gt;(), new HydrationIdentifierFactory(properties),
-                    properties.GetValueOrDefault&lt;string&gt;(nameof($Parameter$)));
+            return (identifier, container, rehydratingProperties) =&gt; new $Name$Entity(
+                container.Resolve&lt;ILogger&gt;(),
+                container.Resolve&lt;IIdentifierFactory&gt;(),
+                identifier, rehydratingProperties.GetValueOrDefault&lt;string&gt;(nameof($Parameter$)));
         }
     }</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B5B67AA54D94E24BB2DE70741925D27A/@KeyIndexDefined">True</s:Boolean>
