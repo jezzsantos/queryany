@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -47,66 +45,6 @@ namespace Domain.Interfaces.UnitTests
             this.entity.LastPersistedAtUtc.Should().BeNull();
             this.entity.CreatedAtUtc.Should().BeCloseTo(now);
             this.entity.LastModifiedAtUtc.Should().Be(this.entity.CreatedAtUtc);
-        }
-
-        [TestMethod]
-        public void WhenInstantiateAndCreates_ThenReturnsInstance()
-        {
-            var result = TestEntity.Instantiate()("anid".ToIdentifier(), this.dependencyContainer.Object,
-                new Dictionary<string, object>());
-
-            result.Id.Should().Be("anid".ToIdentifier());
-        }
-
-        [TestMethod]
-        public void WhenDehydrate_ThenReturnsBaseProperties()
-        {
-            var now = DateTime.UtcNow;
-
-            var result = this.entity.Dehydrate();
-
-            result.Count.Should().Be(4);
-            result[nameof(EntityBase.Id)].Should().Be("anid".ToIdentifier());
-            ((DateTime?) result[nameof(EntityBase.LastPersistedAtUtc)]).Should().BeNull();
-            ((DateTime) result[nameof(EntityBase.CreatedAtUtc)]).Should().BeCloseTo(now, 500);
-            ((DateTime) result[nameof(EntityBase.LastModifiedAtUtc)]).Should().BeCloseTo(now, 500);
-        }
-
-        [TestMethod]
-        public void WhenRehydrate_ThenBasePropertiesHydrated()
-        {
-            var datum = DateTime.UtcNow.AddYears(1);
-            var properties = new Dictionary<string, object>
-            {
-                {nameof(EntityBase.Id), "anid".ToIdentifier()},
-                {nameof(EntityBase.LastPersistedAtUtc), datum},
-                {nameof(EntityBase.CreatedAtUtc), datum},
-                {nameof(EntityBase.LastModifiedAtUtc), datum}
-            };
-
-            this.entity.Rehydrate(properties);
-
-            this.entity.Id.Should().Be("anid".ToIdentifier());
-            this.entity.LastPersistedAtUtc.Should().Be(datum);
-            this.entity.CreatedAtUtc.Should().Be(datum);
-            this.entity.LastModifiedAtUtc.Should().Be(datum);
-        }
-
-        [TestMethod]
-        public void WhenInstantiate_ThenRaisesNoEvents()
-        {
-            var container = new Mock<IDependencyContainer>();
-            container.Setup(c => c.Resolve<ILogger>())
-                .Returns(NullLogger.Instance);
-            container.Setup(c => c.Resolve<IIdentifierFactory>())
-                .Returns(new NullIdentifierFactory());
-
-            var created =
-                TestEntity.Instantiate()("anid".ToIdentifier(), container.Object, new Dictionary<string, object>());
-
-            created.LastPersistedAtUtc.Should().BeNull();
-            created.CreatedAtUtc.Should().Be(DateTime.MinValue);
-            created.LastModifiedAtUtc.Should().Be(DateTime.MinValue);
         }
 
         [TestMethod]

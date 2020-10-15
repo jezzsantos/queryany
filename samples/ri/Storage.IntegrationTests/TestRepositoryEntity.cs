@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using QueryAny;
@@ -135,7 +136,7 @@ namespace Storage.IntegrationTests
         {
             if (value.HasValue())
             {
-                var parts = value.Split("::");
+                var parts = RehydrateToList(value);
                 AStringProperty = parts[0];
                 AnIntName = parts[1].HasValue()
                     ? int.Parse(parts[1])
@@ -146,11 +147,23 @@ namespace Storage.IntegrationTests
             }
         }
 
+        private new static List<string> RehydrateToList(string hydratedValue)
+        {
+            if (!hydratedValue.HasValue())
+            {
+                return new List<string>();
+            }
+
+            return hydratedValue
+                .Split("::")
+                .ToList();
+        }
+
         public static ValueObjectFactory<ComplexValueObject> Instantiate()
         {
             return (value, container) =>
             {
-                var parts = RehydrateToList(value, false);
+                var parts = RehydrateToList(value);
                 return new ComplexValueObject(parts[0], parts[1].ToInt(), parts[2].ToBool());
             };
         }

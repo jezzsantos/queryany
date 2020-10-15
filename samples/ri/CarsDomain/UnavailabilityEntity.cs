@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny;
@@ -11,11 +10,6 @@ namespace CarsDomain
     {
         public UnavailabilityEntity(ILogger logger, IIdentifierFactory idFactory) : base(logger,
             idFactory)
-        {
-        }
-
-        private UnavailabilityEntity(ILogger logger, IIdentifierFactory idFactory, Identifier identifier) : base(logger,
-            idFactory, identifier)
         {
         }
 
@@ -45,33 +39,6 @@ namespace CarsDomain
                 default:
                     throw new InvalidOperationException($"Unknown event {@event.GetType()}");
             }
-        }
-
-        public override Dictionary<string, object> Dehydrate()
-        {
-            var properties = base.Dehydrate();
-            properties.Add(nameof(CarId), CarId);
-            properties.Add(nameof(Slot), Slot);
-            properties.Add(nameof(CausedBy), CausedBy);
-            properties.Add(nameof(CausedByReference), CausedByReference);
-
-            return properties;
-        }
-
-        public override void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            base.Rehydrate(properties);
-            CarId = properties.GetValueOrDefault<Identifier>(nameof(CarId));
-            Slot = properties.GetValueOrDefault<TimeSlot>(nameof(Slot));
-            CausedBy = properties.GetValueOrDefault<UnavailabilityCausedBy>(nameof(CausedBy));
-            CausedByReference = properties.GetValueOrDefault<string>(nameof(CausedByReference));
-        }
-
-        public static EntityFactory<UnavailabilityEntity> Instantiate()
-        {
-            return (identifier, container, rehydratingProperties) => new UnavailabilityEntity(
-                container.Resolve<ILogger>(),
-                container.Resolve<IIdentifierFactory>(), identifier);
         }
     }
 }

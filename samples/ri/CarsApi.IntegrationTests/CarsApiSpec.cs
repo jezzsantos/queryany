@@ -26,10 +26,8 @@ namespace CarsApi.IntegrationTests
     {
         private const string ServiceUrl = "http://localhost:2000/";
         private static IWebHost webHost;
-        private static ICommandStorage<CarEntity> carCommandStorage;
         private static IQueryStorage<Car> carQueryStorage;
         private static IEventStreamStorage<CarEntity> carEventingStorage;
-        private static ICommandStorage<UnavailabilityEntity> unavailabilityCommandStorage;
         private static IQueryStorage<Unavailability> unavailabilityQueryStorage;
         private static int plateCount;
         private static IRepository inMemRepository;
@@ -50,16 +48,10 @@ namespace CarsApi.IntegrationTests
             container.AddSingleton<IPersonsService, StubPersonsService>();
             inMemRepository = new InProcessInMemRepository();
 
-            carCommandStorage =
-                new GeneralCommandStorage<CarEntity>(container.Resolve<ILogger>(), container.Resolve<IDomainFactory>(),
-                    inMemRepository);
             carQueryStorage = new GeneralQueryStorage<Car>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
             carEventingStorage = new GeneralEventStreamStorage<CarEntity>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
-            unavailabilityCommandStorage = new GeneralCommandStorage<UnavailabilityEntity>(container.Resolve<ILogger>(),
-                container.Resolve<IDomainFactory>(),
-                inMemRepository);
             unavailabilityQueryStorage = new GeneralQueryStorage<Unavailability>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), inMemRepository);
 
@@ -87,10 +79,8 @@ namespace CarsApi.IntegrationTests
         [TestInitialize]
         public void Initialize()
         {
-            carCommandStorage.DestroyAll();
             carQueryStorage.DestroyAll();
             carEventingStorage.DestroyAll();
-            unavailabilityCommandStorage.DestroyAll();
             unavailabilityQueryStorage.DestroyAll();
         }
 

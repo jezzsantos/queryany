@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using CarsDomain.Properties;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
@@ -30,26 +29,6 @@ namespace CarsDomain
         public LicensePlate Plate { get; private set; }
 
         public Unavailabilities Unavailabilities { get; } = new Unavailabilities();
-
-        public override Dictionary<string, object> Dehydrate()
-        {
-            var properties = base.Dehydrate();
-            properties.Add(nameof(Manufacturer), Manufacturer);
-            properties.Add(nameof(Owner), Owner);
-            properties.Add(nameof(Managers), Managers);
-            properties.Add(nameof(Plate), Plate);
-
-            return properties;
-        }
-
-        public override void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            base.Rehydrate(properties);
-            Manufacturer = properties.GetValueOrDefault<Manufacturer>(nameof(Manufacturer));
-            Owner = properties.GetValueOrDefault<VehicleOwner>(nameof(Owner));
-            Managers = properties.GetValueOrDefault<VehicleManagers>(nameof(Managers));
-            Plate = properties.GetValueOrDefault<LicensePlate>(nameof(Plate));
-        }
 
         protected override void OnStateChanged(IChangeEvent @event)
         {

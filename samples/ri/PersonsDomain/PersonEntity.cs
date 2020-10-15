@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using DomainServices;
@@ -104,25 +103,6 @@ namespace PersonsDomain
             }
 
             return isValid;
-        }
-
-        public override Dictionary<string, object> Dehydrate()
-        {
-            var properties = base.Dehydrate();
-            properties.Add(nameof(Name), Name);
-            properties.Add(nameof(DisplayName), DisplayName);
-            properties.Add(nameof(Email), Email);
-            properties.Add(nameof(Phone), Phone);
-            return properties;
-        }
-
-        public override void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            base.Rehydrate(properties);
-            Name = properties.GetValueOrDefault<PersonName>(nameof(Name));
-            DisplayName = properties.GetValueOrDefault<PersonDisplayName>(nameof(DisplayName));
-            Email = properties.GetValueOrDefault<Email>(nameof(Email));
-            Phone = properties.GetValueOrDefault<PhoneNumber>(nameof(Phone));
         }
 
         public static EntityFactory<PersonEntity> Instantiate()

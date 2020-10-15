@@ -87,12 +87,12 @@ namespace Domain.Interfaces.Entities
                         return null;
                     }
 
-                    return pair.Value.ToString();
+                    return value.ToString();
                 })
                 .ToList();
         }
 
-        protected List<string> RehydrateToList(string hydratedValue)
+        protected virtual List<string> RehydrateToList(string hydratedValue)
         {
             var parts = GetAtomicValues().ToList();
             var isSingleValue = parts.Count == 1;
