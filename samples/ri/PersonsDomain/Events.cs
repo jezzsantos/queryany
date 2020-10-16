@@ -9,7 +9,7 @@ namespace PersonsDomain
         {
             public class Created : IChangeEvent
             {
-                public string Id { get; set; }
+                public string EntityId { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
@@ -17,7 +17,7 @@ namespace PersonsDomain
                 {
                     return new Created
                     {
-                        Id = id,
+                        EntityId = id,
                         ModifiedUtc = DateTime.UtcNow
                     };
                 }
@@ -27,7 +27,7 @@ namespace PersonsDomain
             {
                 public string PhoneNumber { get; set; }
 
-                public string Id { get; set; }
+                public string EntityId { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
@@ -35,7 +35,7 @@ namespace PersonsDomain
                 {
                     return new PhoneNumberChanged
                     {
-                        Id = id,
+                        EntityId = id,
                         PhoneNumber = number,
                         ModifiedUtc = DateTime.UtcNow
                     };
@@ -46,7 +46,7 @@ namespace PersonsDomain
             {
                 public string EmailAddress { get; set; }
 
-                public string Id { get; set; }
+                public string EntityId { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
@@ -54,7 +54,7 @@ namespace PersonsDomain
                 {
                     return new EmailChanged
                     {
-                        Id = id,
+                        EntityId = id,
                         EmailAddress = email,
                         ModifiedUtc = DateTime.UtcNow
                     };
@@ -67,7 +67,7 @@ namespace PersonsDomain
 
                 public string LastName { get; set; }
 
-                public string Id { get; set; }
+                public string EntityId { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
@@ -75,7 +75,7 @@ namespace PersonsDomain
                 {
                     return new NameChanged
                     {
-                        Id = id,
+                        EntityId = id,
                         FirstName = name.FirstName,
                         LastName = name.LastName,
                         ModifiedUtc = DateTime.UtcNow
@@ -87,7 +87,7 @@ namespace PersonsDomain
             {
                 public string DisplayName { get; set; }
 
-                public string Id { get; set; }
+                public string EntityId { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
@@ -95,7 +95,7 @@ namespace PersonsDomain
                 {
                     return new DisplayNameChanged
                     {
-                        Id = id,
+                        EntityId = id,
                         DisplayName = name,
                         ModifiedUtc = DateTime.UtcNow
                     };

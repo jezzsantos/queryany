@@ -96,7 +96,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid1",
                     EntityType = nameof(String),
-                    Data = new TestEvent {Id = "aneventid1"}.ToJson(),
+                    Data = new TestEvent {EntityId = "aneventid1"}.ToJson(),
                     Version = 4,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
@@ -104,7 +104,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid2",
                     EntityType = nameof(String),
-                    Data = new TestEvent {Id = "aneventid2"}.ToJson(),
+                    Data = new TestEvent {EntityId = "aneventid2"}.ToJson(),
                     Version = 5,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
@@ -112,7 +112,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid3",
                     EntityType = nameof(String),
-                    Data = new TestEvent {Id = "aneventid3"}.ToJson(),
+                    Data = new TestEvent {EntityId = "aneventid3"}.ToJson(),
                     Version = 6,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 }
@@ -120,13 +120,13 @@ namespace Storage.UnitTests.ReadModels
 
             this.checkpointStore.Verify(cs => cs.LoadCheckpoint(It.IsAny<string>()));
             this.projection.Verify(prj => prj.Project(It.Is<TestEvent>(e =>
-                e.Id == "aneventid1"
+                e.EntityId == "aneventid1"
             )), Times.Never);
             this.projection.Verify(prj => prj.Project(It.Is<TestEvent>(e =>
-                e.Id == "aneventid2"
+                e.EntityId == "aneventid2"
             )));
             this.projection.Verify(prj => prj.Project(It.Is<TestEvent>(e =>
-                e.Id == "aneventid3"
+                e.EntityId == "aneventid3"
             )));
             this.checkpointStore.Verify(cs => cs.SaveCheckpoint("astreamname", 7));
         }
@@ -143,7 +143,7 @@ namespace Storage.UnitTests.ReadModels
                     new EventStreamStateChangeEvent
                     {
                         EntityType = nameof(String),
-                        Data = new TestEvent {Id = "aneventid"}.ToJson(),
+                        Data = new TestEvent {EntityId = "aneventid"}.ToJson(),
                         Version = 4,
                         Metadata = new EventMetadata("unknowntype")
                     }
@@ -163,7 +163,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid1",
                     EntityType = nameof(String),
-                    Data = new TestEvent {Id = "aneventid1"}.ToJson(),
+                    Data = new TestEvent {EntityId = "aneventid1"}.ToJson(),
                     Version = startingCheckpoint,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
@@ -171,7 +171,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid2",
                     EntityType = nameof(String),
-                    Data = new TestEvent {Id = "aneventid2"}.ToJson(),
+                    Data = new TestEvent {EntityId = "aneventid2"}.ToJson(),
                     Version = startingCheckpoint + 1,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
@@ -179,7 +179,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid3",
                     EntityType = nameof(String),
-                    Data = new TestEvent {Id = "aneventid3"}.ToJson(),
+                    Data = new TestEvent {EntityId = "aneventid3"}.ToJson(),
                     Version = startingCheckpoint + 2,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 }
@@ -187,13 +187,13 @@ namespace Storage.UnitTests.ReadModels
 
             this.checkpointStore.Verify(cs => cs.LoadCheckpoint(It.IsAny<string>()));
             this.projection.Verify(prj => prj.Project(It.Is<TestEvent>(e =>
-                e.Id == "aneventid1"
+                e.EntityId == "aneventid1"
             )));
             this.projection.Verify(prj => prj.Project(It.Is<TestEvent>(e =>
-                e.Id == "aneventid2"
+                e.EntityId == "aneventid2"
             )));
             this.projection.Verify(prj => prj.Project(It.Is<TestEvent>(e =>
-                e.Id == "aneventid3"
+                e.EntityId == "aneventid3"
             )));
             this.checkpointStore.Verify(cs => cs.SaveCheckpoint("astreamname", startingCheckpoint + 3));
         }
@@ -210,7 +210,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid1",
                     EntityType = nameof(String),
-                    Data = new TestEvent {Id = "aneventid1"}.ToJson(),
+                    Data = new TestEvent {EntityId = "aneventid1"}.ToJson(),
                     Version = 3,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
@@ -218,7 +218,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid2",
                     EntityType = nameof(String),
-                    Data = new TestEvent {Id = "aneventid2"}.ToJson(),
+                    Data = new TestEvent {EntityId = "aneventid2"}.ToJson(),
                     Version = 4,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
@@ -226,7 +226,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid3",
                     EntityType = nameof(String),
-                    Data = new TestEvent {Id = "aneventid3"}.ToJson(),
+                    Data = new TestEvent {EntityId = "aneventid3"}.ToJson(),
                     Version = 5,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 }
@@ -234,13 +234,13 @@ namespace Storage.UnitTests.ReadModels
 
             this.checkpointStore.Verify(cs => cs.LoadCheckpoint(It.IsAny<string>()));
             this.projection.Verify(prj => prj.Project(It.Is<TestEvent>(e =>
-                e.Id == "aneventid1"
+                e.EntityId == "aneventid1"
             )));
             this.projection.Verify(prj => prj.Project(It.Is<TestEvent>(e =>
-                e.Id == "aneventid2"
+                e.EntityId == "aneventid2"
             )));
             this.projection.Verify(prj => prj.Project(It.Is<TestEvent>(e =>
-                e.Id == "aneventid3"
+                e.EntityId == "aneventid3"
             )));
             this.checkpointStore.Verify(cs => cs.SaveCheckpoint("astreamname", 6));
         }
@@ -248,7 +248,7 @@ namespace Storage.UnitTests.ReadModels
 
     public class TestEvent : IChangeEvent
     {
-        public string Id { get; set; }
+        public string EntityId { get; set; }
 
         public DateTime ModifiedUtc { get; set; }
     }

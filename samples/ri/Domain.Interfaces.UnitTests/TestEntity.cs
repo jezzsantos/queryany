@@ -29,7 +29,7 @@ namespace Domain.Interfaces.UnitTests
             // ReSharper disable once UnusedAutoPropertyAccessor.Global
             public string APropertyName { get; set; }
 
-            public string Id { get; set; }
+            public string EntityId { get; set; }
 
             public DateTime ModifiedUtc { get; set; }
         }

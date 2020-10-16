@@ -8,7 +8,7 @@ namespace Domain.Interfaces.UnitTests
     public class TestAggregateRoot : AggregateRootBase
     {
         public TestAggregateRoot(ILogger logger, IIdentifierFactory idFactory)
-            : base(logger, idFactory, id => new CreateEvent {Id = id})
+            : base(logger, idFactory, id => new CreateEvent {EntityId = id})
         {
         }
 
@@ -45,7 +45,7 @@ namespace Domain.Interfaces.UnitTests
 
         public class CreateEvent : IChangeEvent
         {
-            public string Id { get; set; }
+            public string EntityId { get; set; }
 
             public DateTime ModifiedUtc { get; set; }
         }
@@ -54,7 +54,7 @@ namespace Domain.Interfaces.UnitTests
         {
             public string APropertyName { get; set; }
 
-            public string Id { get; set; }
+            public string EntityId { get; set; }
 
             public DateTime ModifiedUtc { get; set; }
         }

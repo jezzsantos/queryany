@@ -33,11 +33,11 @@ namespace CarsStorage
             switch (originalEvent)
             {
                 case Events.Car.Created e:
-                    this.carStorage.Create(e.Id.ToIdentifier());
+                    this.carStorage.Create(e.EntityId.ToIdentifier());
                     break;
 
                 case Events.Car.ManufacturerChanged e:
-                    this.carStorage.Update(e.Id, dto =>
+                    this.carStorage.Update(e.EntityId, dto =>
                     {
                         dto.ManufactureYear = e.Year;
                         dto.ManufactureMake = e.Make;
@@ -46,7 +46,7 @@ namespace CarsStorage
                     break;
 
                 case Events.Car.OwnershipChanged e:
-                    this.carStorage.Update(e.Id, dto =>
+                    this.carStorage.Update(e.EntityId, dto =>
                     {
                         dto.VehicleOwnerId = e.Owner;
                         dto.ManagerIds = new List<string> {e.Owner};
@@ -54,7 +54,7 @@ namespace CarsStorage
                     break;
 
                 case Events.Car.RegistrationChanged e:
-                    this.carStorage.Update(e.Id, dto =>
+                    this.carStorage.Update(e.EntityId, dto =>
                     {
                         dto.LicenseJurisdiction = e.Jurisdiction;
                         dto.LicenseNumber = e.Number;
@@ -62,7 +62,7 @@ namespace CarsStorage
                     break;
 
                 case Events.Car.UnavailabilitySlotAdded e:
-                    this.unavailabilityStorage.Create(e.Id, dto =>
+                    this.unavailabilityStorage.Create(e.EntityId, dto =>
                     {
                         dto.CarId = e.CarId;
                         dto.From = e.From;

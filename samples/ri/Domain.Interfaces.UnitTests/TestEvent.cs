@@ -7,7 +7,7 @@ namespace Domain.Interfaces.UnitTests
     {
         public string APropertyValue { get; set; }
 
-        public string Id { get; set; }
+        public string EntityId { get; set; }
 
         public DateTime ModifiedUtc { get; set; }
     }

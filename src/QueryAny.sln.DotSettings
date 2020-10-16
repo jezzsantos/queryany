@@ -233,27 +233,6 @@
                     throw new InvalidOperationException($"Unknown event {@event.GetType()}");
             }
         }
-
-        public override Dictionary&lt;string, object&gt; Dehydrate()
-        {
-            var properties = base.Dehydrate();
-            properties.Add(nameof($Parameter$), $Parameter$);
-
-            return properties;
-        }
-
-        public override void Rehydrate(IReadOnlyDictionary&lt;string, object&gt; properties)
-        {
-            base.Rehydrate(properties);
-            $Parameter$ = properties.GetValueOrDefault&lt;string&gt;(nameof($Parameter$));
-        }
-
-        public static EntityFactory&lt;$Name$Entity&gt; Instantiate()
-        {
-            return (properties, container) =&gt;
-                new $Name$Entity(container.Resolve&lt;ILogger&gt;(), new HydrationIdentifierFactory(properties),
-                    properties.GetValueOrDefault&lt;string&gt;(nameof($Parameter$)));
-        }
     }</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BFE44FFF508D5847B2118A6883F654C5/@KeyIndexDefined">True</s:Boolean>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BFE44FFF508D5847B2118A6883F654C5/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>

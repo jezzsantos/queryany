@@ -10,7 +10,7 @@ namespace CarsDomain
         {
             public class Created : IChangeEvent
             {
-                public string Id { get; set; }
+                public string EntityId { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
@@ -18,7 +18,7 @@ namespace CarsDomain
                 {
                     return new Created
                     {
-                        Id = id,
+                        EntityId = id,
                         ModifiedUtc = DateTime.UtcNow
                     };
                 }
@@ -32,7 +32,7 @@ namespace CarsDomain
 
                 public string Model { get; set; }
 
-                public string Id { get; set; }
+                public string EntityId { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
@@ -40,7 +40,7 @@ namespace CarsDomain
                 {
                     return new ManufacturerChanged
                     {
-                        Id = id,
+                        EntityId = id,
                         Year = manufacturer.Year,
                         Make = manufacturer.Make,
                         Model = manufacturer.Model,
@@ -55,7 +55,7 @@ namespace CarsDomain
 
                 public List<string> Managers { get; set; }
 
-                public string Id { get; set; }
+                public string EntityId { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
@@ -63,7 +63,7 @@ namespace CarsDomain
                 {
                     return new OwnershipChanged
                     {
-                        Id = id,
+                        EntityId = id,
                         Owner = owner.OwnerId,
                         Managers = new List<string> {owner.OwnerId},
                         ModifiedUtc = DateTime.UtcNow
@@ -77,7 +77,7 @@ namespace CarsDomain
 
                 public string Number { get; set; }
 
-                public string Id { get; set; }
+                public string EntityId { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 
@@ -85,7 +85,7 @@ namespace CarsDomain
                 {
                     return new RegistrationChanged
                     {
-                        Id = id,
+                        EntityId = id,
                         Jurisdiction = plate.Jurisdiction,
                         Number = plate.Number,
                         ModifiedUtc = DateTime.UtcNow
@@ -105,7 +105,7 @@ namespace CarsDomain
 
                 public string CausedByReference { get; set; }
 
-                public string Id { get; set; }
+                public string EntityId { get; set; }
 
                 public DateTime ModifiedUtc { get; set; }
 

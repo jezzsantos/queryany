@@ -14,33 +14,26 @@ namespace Domain.Interfaces.Entities
     {
         private Action<IChangeEvent> aggregateEntityEventHandler;
 
-        protected EntityBase(ILogger logger, IIdentifierFactory idFactory) : this(logger, idFactory, Identifier.Empty())
-        {
-            Id = idFactory.Create(this);
-        }
-
-        protected EntityBase(ILogger logger, IIdentifierFactory idFactory, Identifier identifier)
+        protected EntityBase(ILogger logger, IIdentifierFactory idFactory)
         {
             logger.GuardAgainstNull(nameof(logger));
             idFactory.GuardAgainstNull(nameof(idFactory));
-            identifier.GuardAgainstNull(nameof(identifier));
             Logger = logger;
             IdFactory = idFactory;
-            Id = identifier;
+            Id = idFactory.Create(this);
 
-            var isInstantiating = identifier == Identifier.Empty();
             var now = DateTime.UtcNow;
             LastPersistedAtUtc = null;
-            CreatedAtUtc = isInstantiating
-                ? now
-                : DateTime.MinValue;
-            LastModifiedAtUtc = isInstantiating
-                ? now
-                : DateTime.MinValue;
+            CreatedAtUtc = now;
+            LastModifiedAtUtc = now;
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         protected ILogger Logger { get; }
 
+        // ReSharper disable once MemberCanBePrivate.Global
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         protected IIdentifierFactory IdFactory { get; }
 
         public DateTime CreatedAtUtc { get; }

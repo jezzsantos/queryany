@@ -182,7 +182,7 @@ namespace Domain.Interfaces.UnitTests
             var created = entities[0].ToEvent();
 
             created.Should().BeOfType<TestAggregateRoot.CreateEvent>();
-            created.As<TestAggregateRoot.CreateEvent>().Id.Should().Be("anid");
+            created.As<TestAggregateRoot.CreateEvent>().EntityId.Should().Be("anid");
 
             var changed = entities[1].ToEvent();
 
