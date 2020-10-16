@@ -250,24 +250,24 @@ We no longer use `ICommandStorage<TEntity>` in any command that changes the stat
 
 > At this stage we, still do need to use `ICommandStorage<TEntity>` to save a usual "snapshot" of the state in the repository so that queries still have data to query. In the next evolution we will be switching to read models for all queries.
 
-## 6. CQRS with Event Sourcing
+## 6. CQRS plus Event Sourcing
 
-*  Commit: [688db6](https://github.com/jezzsantos/queryany/commit/688db6589833ee113912914512009f801b4018c1)
+*  Commit: [1e7a3f](https://github.com/jezzsantos/queryany/commit/1e7a3f0f85263a3bee34ba5b3e7878242cfb23d4)
 
 ### Structural Patterns
 
 In this evolution we have moved to a full CQRS pattern with Event Sourcing in the infrastructural layers, which now also include full CQRS Read Models.
 
-This means that we are storing aggregate changes in event storage, and use those events to build and update read models for querying. 
+This means that we are storing aggregate changes in event storage, and use those events to build and update read models for querying.
 
 This kind of separation and interaction has some key implications:
 
-1. The current state of any entity is built (from scratch) whenever it is read from storage. **Note:** Most entities in practice, over their lifetime will have far fewer changes to them than most developers may anticipate. So the latency to download and rebuild their state is generally relatively small. (unless of course you have entities with hundreds or thousands of state changes to load. Which may be an early indication of poor design in the domain.)
+1. The current state of any entity is built (from scratch) whenever it is read from storage. **Note:** Most entities in practice, over their lifetime will have far fewer changes to them than most developers may anticipate. So the latency to download and rebuild their state is generally relatively small. (unless of course you have entities with hundreds or thousands of state changes to load. Which may be an early indication of poor design in the domain, or you may need to consider event snapshots.)
 2.  Whenever the state of an entity changes, events describe the change, and they (and only they) are persisted back to the event store (as they are immutable).
-3. The change events must then be relayed to all registered projections to keep read models up to date. **Note**: In a synchronous model there is very little latency in that update. In future evolutions, this latency may climb as these mechanisms become asynchronous - moving towards eventual consistency.
+3. The change events must then be relayed to all registered projections to keep read models up to date. **Note**: In a synchronous model there is no latency in that update. In future evolutions, this latency may climb as these mechanisms may become asynchronous - moving towards eventual consistency.
 4. Aggregates roots and domains themselves now have an effective means to communicate through change which very *effectively* de-couples them.
 
->  At first look, this pattern may seem inefficient, relative to what you are used to. Since we now store the state of any particular entity in two places. (1) the event store, (2) the read models. And it is true that it is a lot more work to set this up and maintain. 
+>  At first look, this pattern may seem inefficient, relative to what you are used to if you are comparing to CRUD based patterns. Since we now store the state of any particular entity in two places. (1) the event store, (2) the read models. And it is true that it is a lot more work to set this up and maintain. 
 >  Recommend reading about CQRS and its benefits long terms as software complexity starts to increase, and become more distributed as they need to scale out. 
 
 ![Evolution 6](https://raw.githubusercontent.com/wiki/jezzsantos/queryany/Images/Evo6.png)
@@ -282,8 +282,10 @@ We've now replaced the use of `ICommandStorage<TEntity>` with `IEventStreamStora
 
 > Note: Command storage is now only used in utilities.
 
-This has necessarily changed the interface of `IRepository` since in this evolution we are still using the same `IRepository` implementation for `ICommanStorage<TEntity>`, `IQueryStorage<TDto>` and `IEventStreamStorage<TAggregateRoot>` which each have different constraints on the generic types. 
+Also, note that it is now only root aggregates that require any persistence. Which means that child entities no longer need to support persistence at all! This makes the codebase remarkably thinner than before, eliminating any persistence mapping and various storage updates for each entity.
 
-Essentially, the interface to and from `IRepository` is now defined in terms of an object dictionary of properties (`IReadOnlyDictionary<string,object>`) containing the property values of each entity. This is accompanied with metadata to describe the property value types. These collections are expressed as either a `CommandEntity` or as a `QueryEntity`, and metadata expressed as `EntityMetadata`.
+This evolution has necessarily changed the interface of `IRepository` since in this evolution we are still using the same `IRepository` implementation for `ICommanStorage<TEntity>`, `IQueryStorage<TDto>` and `IEventStreamStorage<TAggregateRoot>` which each have different constraints on the DTO types being passed to and from them. 
 
-> This is necessary so that the repository implementations can make their own decisions about how to persist the various datatypes that must be supported: `string`, `bool`, `byte[]`, `Guid`, `int`, `long`, `double`, `DateTime`, `DateTimeOffset`, or any complex type. 
+Essentially, the interface to and from `IRepository` is now defined in terms of an object dictionary of properties (`IReadOnlyDictionary<string,object>`) containing the property values of each entity. This is accompanied with metadata to describe the property value types (i.e. when null values are used). These collections are expressed as either a `CommandEntity` or as a `QueryEntity`, and metadata expressed as `EntityMetadata`.
+
+> This is necessary so that the repository implementations can make their own decisions about how to persist the various data types that must be supported: `string`, `bool`, `byte[]`, `Guid`, `int`, `long`, `double`, `DateTime`, `DateTimeOffset`, or any complex type. 

@@ -20,6 +20,7 @@
     <content url="file://$MODULE_DIR$/../../../samples/ri/Domain.Interfaces" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/Domain.Interfaces.UnitTests" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/DomainServices" />
+    <content url="file://$MODULE_DIR$/../../../samples/ri/EVOLUTIONLOG.md" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/PersonsApi" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/PersonsApi.IntegrationTests" />
     <content url="file://$MODULE_DIR$/../../../samples/ri/PersonsApi.UnitTests" />
