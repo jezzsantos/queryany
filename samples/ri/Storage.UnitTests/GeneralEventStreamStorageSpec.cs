@@ -44,7 +44,7 @@ namespace Storage.UnitTests
                     repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<EntityEvent>>(),
                         It.IsAny<RepositoryEntityMetadata>()))
                 .Returns(new List<QueryEntity>());
-            this.domainFactory.Setup(df => df.RehydrateEntity(It.IsAny<Type>(), It.IsAny<Dictionary<string, object>>()))
+            this.domainFactory.Setup(df => df.RehydrateAggregateRoot(It.IsAny<Type>(), It.IsAny<Dictionary<string, object>>()))
                 .Returns(aggregate);
 
             var result = this.storage.Load("anid".ToIdentifier());
@@ -55,7 +55,7 @@ namespace Storage.UnitTests
                 q.Wheres[0].Condition.FieldName == nameof(EntityEvent.StreamName)
                 && q.Wheres[0].Condition.Value.As<string>() == "acontainername_anid"
             ), It.IsAny<RepositoryEntityMetadata>()));
-            this.domainFactory.Verify(df => df.RehydrateEntity(typeof(TestAggregateRoot),
+            this.domainFactory.Verify(df => df.RehydrateAggregateRoot(typeof(TestAggregateRoot),
                 It.Is<Dictionary<string, object>>(dic =>
                     dic.Count() == 2
                     && dic[nameof(CommandEntity.Id)].As<Identifier>() == "anid"
@@ -79,7 +79,7 @@ namespace Storage.UnitTests
                     repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<EntityEvent>>(),
                         It.IsAny<RepositoryEntityMetadata>()))
                 .Returns(queryEntities);
-            this.domainFactory.Setup(df => df.RehydrateEntity(It.IsAny<Type>(), It.IsAny<Dictionary<string, object>>()))
+            this.domainFactory.Setup(df => df.RehydrateAggregateRoot(It.IsAny<Type>(), It.IsAny<Dictionary<string, object>>()))
                 .Returns(aggregate);
             this.domainFactory.Setup(df => df.RehydrateValueObject(typeof(Identifier), It.IsAny<string>()))
                 .Returns((Type type, string value) => value.ToIdentifier());
@@ -96,7 +96,7 @@ namespace Storage.UnitTests
                 && q.ResultOptions.OrderBy.By == nameof(IPersistableEntity.LastPersistedAtUtc)
                 && q.ResultOptions.OrderBy.Direction == OrderDirection.Ascending
             ), It.IsAny<RepositoryEntityMetadata>()));
-            this.domainFactory.Verify(df => df.RehydrateEntity(typeof(TestAggregateRoot),
+            this.domainFactory.Verify(df => df.RehydrateAggregateRoot(typeof(TestAggregateRoot),
                 It.Is<Dictionary<string, object>>(dic =>
                     dic.Count() == 2
                     && dic[nameof(CommandEntity.Id)].As<Identifier>() == "anid"

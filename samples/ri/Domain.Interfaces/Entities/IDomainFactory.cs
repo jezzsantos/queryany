@@ -6,6 +6,9 @@ namespace Domain.Interfaces.Entities
 {
     public interface IDomainFactory
     {
+        IPersistableAggregateRoot RehydrateAggregateRoot(Type entityType,
+            IReadOnlyDictionary<string, object> rehydratingPropertyValues);
+        
         IPersistableEntity RehydrateEntity(Type entityType,
             IReadOnlyDictionary<string, object> rehydratingPropertyValues);
 

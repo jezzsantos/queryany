@@ -105,7 +105,7 @@ namespace PersonsDomain
             return isValid;
         }
 
-        public static EntityFactory<PersonEntity> Instantiate()
+        public static AggregateRootFactory<PersonEntity> Instantiate()
         {
             return (identifier, container, rehydratingProperties) =>
                 new PersonEntity(container.Resolve<ILogger>(), container.Resolve<IIdentifierFactory>(),

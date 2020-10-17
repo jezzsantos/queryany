@@ -74,43 +74,6 @@ namespace Domain.Interfaces.UnitTests
         }
 
         [TestMethod]
-        public void WhenDehydrate_ThenReturnsBaseProperties()
-        {
-            var now = DateTime.UtcNow;
-
-            var result = this.aggregate.Dehydrate();
-
-            result.Count.Should().Be(5);
-            result[nameof(AggregateRootBase.Id)].Should().Be("anid".ToIdentifier());
-            ((DateTime?) result[nameof(AggregateRootBase.LastPersistedAtUtc)]).Should().BeNull();
-            ((DateTime) result[nameof(AggregateRootBase.CreatedAtUtc)]).Should().BeCloseTo(now, 500);
-            ((DateTime) result[nameof(AggregateRootBase.LastModifiedAtUtc)]).Should().BeCloseTo(now, 500);
-            ((long) result["ChangeVersion"]).Should().Be(0);
-        }
-
-        [TestMethod]
-        public void WhenRehydrate_ThenBasePropertiesHydrated()
-        {
-            var datum = DateTime.UtcNow.AddYears(1);
-            var properties = new Dictionary<string, object>
-            {
-                {nameof(EntityBase.Id), "anid".ToIdentifier()},
-                {nameof(EntityBase.LastPersistedAtUtc), datum},
-                {nameof(EntityBase.CreatedAtUtc), datum},
-                {nameof(EntityBase.LastModifiedAtUtc), datum}
-            };
-
-            this.aggregate.Rehydrate(properties);
-
-            this.aggregate.Id.Should().Be("anid".ToIdentifier());
-            this.aggregate.LastPersistedAtUtc.Should().Be(datum);
-            this.aggregate.CreatedAtUtc.Should().Be(datum);
-            this.aggregate.LastModifiedAtUtc.Should().Be(datum);
-            this.aggregate.Events.Count().Should().Be(1);
-            this.aggregate.Events[0].Should().BeOfType<TestAggregateRoot.CreateEvent>();
-        }
-
-        [TestMethod]
         public void WhenInstantiate_ThenRaisesNoEvents()
         {
             var container = new Mock<IDependencyContainer>();

@@ -117,7 +117,7 @@ namespace Storage
 
         private TAggregateRoot RehydrateAggregateRoot(Identifier id, DateTime? lastPersistedAtUtc)
         {
-            return (TAggregateRoot) this.domainFactory.RehydrateEntity(typeof(TAggregateRoot),
+            return (TAggregateRoot) this.domainFactory.RehydrateAggregateRoot(typeof(TAggregateRoot),
                 new Dictionary<string, object>
                 {
                     {nameof(IPersistableEntity.Id), id},

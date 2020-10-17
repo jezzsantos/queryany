@@ -64,37 +64,13 @@ namespace Domain.Interfaces.Entities
 
         public IReadOnlyList<object> Events => this.events;
 
-        public DateTime CreatedAtUtc { get; private set; }
+        public DateTime CreatedAtUtc { get; }
 
         public DateTime LastModifiedAtUtc { get; private set; }
 
         public DateTime? LastPersistedAtUtc { get; private set; }
 
-        public Identifier Id { get; private set; }
-
-        public virtual Dictionary<string, object> Dehydrate()
-        {
-            return new Dictionary<string, object>
-            {
-                {nameof(Id), Id},
-                {nameof(LastPersistedAtUtc), LastPersistedAtUtc},
-                {nameof(CreatedAtUtc), CreatedAtUtc},
-                {nameof(LastModifiedAtUtc), LastModifiedAtUtc},
-                {nameof(ChangeVersion), ChangeVersion}
-            };
-        }
-
-        public virtual void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            var id = properties.GetValueOrDefault<Identifier>(nameof(Id));
-            Id = id.HasValue()
-                ? id
-                : null;
-            LastPersistedAtUtc = properties.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
-            CreatedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(CreatedAtUtc));
-            LastModifiedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(LastModifiedAtUtc));
-            ChangeVersion = properties.GetValueOrDefault<long>(nameof(ChangeVersion));
-        }
+        public Identifier Id { get; }
 
         void IPublishedEntityEventHandler.HandleEvent(IChangeEvent @event)
         {

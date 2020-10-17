@@ -61,6 +61,24 @@ namespace Api.Common.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to register method: &apos;{0}.{1}()&apos; in DomainFactory. AggregateRoot: {0} has more than one declared definition of &apos;AggregateRootFactory&lt;{0}&gt;&apos;.
+        /// </summary>
+        internal static string DomainFactory_AggregateRootFactoryMethodExists {
+            get {
+                return ResourceManager.GetString("DomainFactory_AggregateRootFactoryMethodExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to register AggregateRoot: &apos;{0}&apos; in DomainFactory. This class must declare a factory method with signature &apos;public static AggregateRootFactory&lt;{0}&gt; {1}()&apos;&apos;.
+        /// </summary>
+        internal static string DomainFactory_AggregateRootFactoryMethodNotFound {
+            get {
+                return ResourceManager.GetString("DomainFactory_AggregateRootFactoryMethodNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to register method: &apos;{0}.{1}()&apos; in DomainFactory. Entity: {0} has more than one declared definition of &apos;EntityFactory&lt;{0}&gt;&apos;.
         /// </summary>
         internal static string DomainFactory_EntityFactoryMethodExists {
@@ -133,29 +151,11 @@ namespace Api.Common.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Embed contains invalid resource references.
-        /// </summary>
-        internal static string HasGetOptionsValidator_InvalidResourceReference {
-            get {
-                return ResourceManager.GetString("HasGetOptionsValidator_InvalidResourceReference", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The Embed expression contains too many resources. Maximum of {0} allowed.
         /// </summary>
         internal static string HasGetOptionsValidator_TooManyResourceReferences {
             get {
                 return ResourceManager.GetString("HasGetOptionsValidator_TooManyResourceReferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The format of the Distinct expression is invalid.
-        /// </summary>
-        internal static string HasSearchOptionsValidator_InvalidDistinct {
-            get {
-                return ResourceManager.GetString("HasSearchOptionsValidator_InvalidDistinct", resourceCulture);
             }
         }
         

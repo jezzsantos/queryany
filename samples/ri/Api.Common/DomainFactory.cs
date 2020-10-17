@@ -13,6 +13,7 @@ namespace Api.Common
     public class DomainFactory : IDomainFactory
     {
         private const string FactoryMethodName = "Instantiate";
+        private readonly Dictionary<Type, AggregateRootFactory<IPersistableAggregateRoot>> aggregateRootFactories;
         private readonly IDependencyContainer container;
         private readonly Dictionary<Type, EntityFactory<IPersistableEntity>> entityFactories;
         private readonly Dictionary<Type, ValueObjectFactory<IPersistableValueObject>> valueObjectFactories;
@@ -21,14 +22,34 @@ namespace Api.Common
         {
             container.GuardAgainstNull(nameof(container));
             this.container = container;
+            this.aggregateRootFactories = new Dictionary<Type, AggregateRootFactory<IPersistableAggregateRoot>>();
             this.entityFactories = new Dictionary<Type, EntityFactory<IPersistableEntity>>();
             this.valueObjectFactories = new Dictionary<Type, ValueObjectFactory<IPersistableValueObject>>();
         }
+
+        public IReadOnlyDictionary<Type, AggregateRootFactory<IPersistableAggregateRoot>> AggregateRootFactories =>
+            this.aggregateRootFactories;
 
         public IReadOnlyDictionary<Type, EntityFactory<IPersistableEntity>> EntityFactories => this.entityFactories;
 
         public IReadOnlyDictionary<Type, ValueObjectFactory<IPersistableValueObject>> ValueObjectFactories =>
             this.valueObjectFactories;
+
+        public IPersistableAggregateRoot RehydrateAggregateRoot(Type entityType,
+            IReadOnlyDictionary<string, object> rehydratingPropertyValues)
+        {
+            rehydratingPropertyValues.GuardAgainstNull(nameof(rehydratingPropertyValues));
+
+            if (!this.aggregateRootFactories.ContainsKey(entityType))
+            {
+                throw new InvalidOperationException(Resources.DomainFactory_EntityTypeNotFound.Format(entityType.Name));
+            }
+
+            var identifier = rehydratingPropertyValues.GetValueOrDefault<Identifier>(nameof(IIdentifiableEntity.Id));
+            var factory = this.aggregateRootFactories[entityType];
+            var aggregate = factory(identifier, this.container, rehydratingPropertyValues);
+            return aggregate;
+        }
 
         public IPersistableEntity RehydrateEntity(Type entityType,
             IReadOnlyDictionary<string, object> rehydratingPropertyValues)
@@ -75,10 +96,41 @@ namespace Api.Common
             foreach (var assembly in assembliesContainingFactories)
             {
                 var domainTypes = assembly.GetTypes()
-                    .Where(t => IsEntity(t) || IsValueObject(t))
+                    .Where(t => IsAggregateRoot(t) || IsEntity(t) || IsValueObject(t))
                     .ToList();
                 foreach (var type in domainTypes)
                 {
+                    if (IsAggregateRoot(type))
+                    {
+                        var factoryMethod = GetAggregateRootFactoryMethod(type);
+                        if (factoryMethod != null)
+                        {
+                            if (IsWrongNamedOrHasParameters(factoryMethod))
+                            {
+                                throw new InvalidOperationException(
+                                    Resources.DomainFactory_FactoryMethodHasParameters.Format(type.Name,
+                                        factoryMethod.Name, FactoryMethodName));
+                            }
+
+                            if (AggregateRootFactories.ContainsKey(type))
+                            {
+                                throw new InvalidOperationException(
+                                    Resources.DomainFactory_AggregateRootFactoryMethodExists.Format(type.Name,
+                                        factoryMethod.Name));
+                            }
+
+                            var @delegate =
+                                (AggregateRootFactory<IPersistableAggregateRoot>) factoryMethod.Invoke(null, null);
+                            this.aggregateRootFactories.Add(type, @delegate);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException(
+                                Resources.DomainFactory_AggregateRootFactoryMethodNotFound.Format(type.Name,
+                                    FactoryMethodName));
+                        }
+                    }
+
                     if (IsEntity(type))
                     {
                         var factoryMethod = GetEntityFactoryMethod(type);
@@ -124,7 +176,7 @@ namespace Api.Common
                             if (ValueObjectFactories.ContainsKey(type))
                             {
                                 throw new InvalidOperationException(
-                                    Resources.DomainFactory_EntityFactoryMethodExists.Format(type.Name,
+                                    Resources.DomainFactory_ValueObjectFactoryMethodExists.Format(type.Name,
                                         factoryMethod.Name));
                             }
 
@@ -157,9 +209,30 @@ namespace Api.Common
                    || method.GetParameters().Length != 0;
         }
 
+        private static bool IsAggregateRoot(Type type)
+        {
+            return !type.IsAbstract && typeof(IPersistableAggregateRoot).IsAssignableFrom(type);
+        }
+
         private static bool IsEntity(Type type)
         {
             return !type.IsAbstract && typeof(IPersistableEntity).IsAssignableFrom(type);
+        }
+
+        private static MethodInfo GetAggregateRootFactoryMethod(Type type)
+        {
+            return type
+                .GetMethods()
+                .FirstOrDefault(method => method.IsStatic
+                                          && method.IsPublic
+                                          && method.ReturnType != typeof(void)
+                                          && method.ReturnType.BaseType == typeof(MulticastDelegate)
+                                          && method.ReturnType.IsGenericType
+                                          && method.ReturnType.GenericTypeArguments.Any()
+                                          && typeof(IPersistableAggregateRoot).IsAssignableFrom(
+                                              method.ReturnType.GenericTypeArguments[0])
+                                          && method.ReturnType.GetGenericTypeDefinition()
+                                              .IsAssignableFrom(typeof(AggregateRootFactory<>)));
         }
 
         private static MethodInfo GetEntityFactoryMethod(Type type)

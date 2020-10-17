@@ -120,14 +120,8 @@
   <data name="HasGetOptionsValidator_InvalidEmbed" xml:space="preserve">
     <value>The format of the Embed expression is invalid</value>
   </data>
-  <data name="HasGetOptionsValidator_InvalidResourceReference" xml:space="preserve">
-    <value>The Embed contains invalid resource references</value>
-  </data>
   <data name="HasGetOptionsValidator_TooManyResourceReferences" xml:space="preserve">
     <value>The Embed expression contains too many resources. Maximum of {0} allowed</value>
-  </data>
-  <data name="HasSearchOptionsValidator_InvalidDistinct" xml:space="preserve">
-    <value>The format of the Distinct expression is invalid</value>
   </data>
   <data name="HasSearchOptionsValidator_InvalidFilter" xml:space="preserve">
     <value>The format of the Filter expression is invalid</value>
@@ -161,5 +155,11 @@
   </data>
   <data name="DomainFactory_ValueObjectFactoryMethodNotFound" xml:space="preserve">
     <value>Failed to register ValueObject: '{0}' in DomainFactory. This class must declare a factory method with signature 'public static ValueObjectFactory&lt;{0}&gt; {1}()''</value>
+  </data>
+  <data name="DomainFactory_AggregateRootFactoryMethodExists" xml:space="preserve">
+      <value>Failed to register method: '{0}.{1}()' in DomainFactory. AggregateRoot: {0} has more than one declared definition of 'AggregateRootFactory&lt;{0}&gt;'</value>
+  </data>
+  <data name="DomainFactory_AggregateRootFactoryMethodNotFound" xml:space="preserve">
+    <value>Failed to register AggregateRoot: '{0}' in DomainFactory. This class must declare a factory method with signature 'public static AggregateRootFactory&lt;{0}&gt; {1}()''</value>
   </data>
 </root>

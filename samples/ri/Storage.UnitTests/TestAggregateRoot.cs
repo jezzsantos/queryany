@@ -25,16 +25,6 @@ namespace Storage.UnitTests
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         public DateTime? LastPersistedAtUtc { get; }
 
-        public Dictionary<string, object> Dehydrate()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
-        {
-            throw new NotImplementedException();
-        }
-
         public int ChangeVersion { get; set; }
 
         public List<EntityEvent> GetChanges()

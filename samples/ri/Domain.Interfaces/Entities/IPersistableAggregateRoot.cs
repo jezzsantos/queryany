@@ -1,9 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using QueryAny;
 
 namespace Domain.Interfaces.Entities
 {
-    public interface IPersistableAggregateRoot : IPersistableEntity
+    public interface IPersistableAggregateRoot : IIdentifiableEntity, IQueryableEntity
     {
+        DateTime? LastPersistedAtUtc { get; }
+        
         int ChangeVersion { set; }
 
         List<EntityEvent> GetChanges();
