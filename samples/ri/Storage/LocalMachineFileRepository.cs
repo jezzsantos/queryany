@@ -18,6 +18,7 @@ namespace Storage
     /// </summary>
     public class LocalMachineFileRepository : IRepository
     {
+        private const string PathSettingName = "LocalMachineRepositoryRootPath";
         public const string NullToken = @"null";
         private readonly string rootPath;
 
@@ -156,7 +157,21 @@ namespace Storage
 
         public static LocalMachineFileRepository FromAppSettings(IAppSettings settings)
         {
-            var rootPath = settings.GetString("LocalMachineRepositoryRootPath");
+            var configPath = settings.GetString(PathSettingName);
+            var rootPath = Environment.ExpandEnvironmentVariables(configPath);
+            if (!Directory.Exists(rootPath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(rootPath);
+                }
+                catch (Exception)
+                {
+                    throw new InvalidOperationException(
+                        $"The specified path: {rootPath}, is not a valid path or cannot be created on this machine.");
+                }
+            }
+
             return new LocalMachineFileRepository(rootPath);
         }
 
