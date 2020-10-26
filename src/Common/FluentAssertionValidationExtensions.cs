@@ -45,7 +45,8 @@ public static class ValidationExceptionAssertionExtensions
 
     private static bool IsValidationException(Exception exception)
     {
-        return exception is ValidationException && exception.Message.StartsWith("Validation failed: \r\n");
+        return exception is ValidationException &&
+               exception.Message.StartsWith($"Validation failed: {Environment.NewLine}");
     }
 
     private static bool IsValidationExceptionForMessage(Exception exception, string expectedMessage)
@@ -55,6 +56,7 @@ public static class ValidationExceptionAssertionExtensions
             return false;
         }
 
-        return exception.Message.StartsWith("Validation failed: \r\n") && exception.Message.EndsWith(expectedMessage);
+        return exception.Message.StartsWith($"Validation failed: {Environment.NewLine}") &&
+               exception.Message.EndsWith(expectedMessage);
     }
 }
