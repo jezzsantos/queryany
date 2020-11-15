@@ -59,10 +59,9 @@ namespace Domain.Interfaces.Entities
 
         protected IIdentifierFactory IdFactory { get; }
 
-        // ReSharper disable once MemberCanBePrivate.Global
-        protected long ChangeVersion { get; private set; }
-
         public IReadOnlyList<object> Events => this.events;
+
+        public long ChangeVersion { get; private set; }
 
         public DateTime CreatedAtUtc { get; }
 
@@ -95,11 +94,6 @@ namespace Domain.Interfaces.Entities
         {
             LastPersistedAtUtc = DateTime.UtcNow;
             this.events.Clear();
-        }
-
-        int IPersistableAggregateRoot.ChangeVersion
-        {
-            set => ChangeVersion = value;
         }
 
         void IPersistableAggregateRoot.OnStateChanged(IChangeEvent @event)

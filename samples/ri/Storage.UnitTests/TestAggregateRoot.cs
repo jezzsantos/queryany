@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Domain.Interfaces.Entities;
 using QueryAny;
 
@@ -25,7 +26,10 @@ namespace Storage.UnitTests
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         public DateTime? LastPersistedAtUtc { get; }
 
-        public int ChangeVersion { get; set; }
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
+        public long ChangeVersion => Events.Any()
+            ? Events.Last().Version
+            : 0;
 
         public List<EntityEvent> GetChanges()
         {

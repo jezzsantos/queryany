@@ -7,8 +7,8 @@ namespace Domain.Interfaces.Entities
     public interface IPersistableAggregateRoot : IIdentifiableEntity, IQueryableEntity
     {
         DateTime? LastPersistedAtUtc { get; }
-        
-        int ChangeVersion { set; }
+
+        long ChangeVersion { get; }
 
         List<EntityEvent> GetChanges();
 

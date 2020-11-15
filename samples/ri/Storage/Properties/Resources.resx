@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:element name="root" msdata:IsDataSet="true">
+            
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="GeneralCommandStorage_EntityMissingIdentifier" xml:space="preserve">
+        <value>Entity has empty identifier</value>
+    </data>
+    <data name="GeneralEventStreamStorage_LoadConcurrencyConflictWritingEventStream" xml:space="preserve">
+        <value>Could not write new events to event stream: {0}, another process has updated the stream at the same time, since version {1}</value>
+    </data>
+    <data name="GeneralEventStreamStorage_SaveWithAggregateIdMissing" xml:space="preserve">
+        <value>The aggregate does not have an Identifier</value>
+    </data>
+    <data name="GeneralEventStreamStorage_SaveEventRelayFailed" xml:space="preserve">
+        <value>Handling of event stream failed. Error was: {0}</value>
+    </data>
+</root>

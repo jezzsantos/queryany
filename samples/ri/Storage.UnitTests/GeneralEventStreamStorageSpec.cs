@@ -44,7 +44,8 @@ namespace Storage.UnitTests
                     repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<EntityEvent>>(),
                         It.IsAny<RepositoryEntityMetadata>()))
                 .Returns(new List<QueryEntity>());
-            this.domainFactory.Setup(df => df.RehydrateAggregateRoot(It.IsAny<Type>(), It.IsAny<Dictionary<string, object>>()))
+            this.domainFactory.Setup(df =>
+                    df.RehydrateAggregateRoot(It.IsAny<Type>(), It.IsAny<Dictionary<string, object>>()))
                 .Returns(aggregate);
 
             var result = this.storage.Load("anid".ToIdentifier());
@@ -79,7 +80,8 @@ namespace Storage.UnitTests
                     repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<EntityEvent>>(),
                         It.IsAny<RepositoryEntityMetadata>()))
                 .Returns(queryEntities);
-            this.domainFactory.Setup(df => df.RehydrateAggregateRoot(It.IsAny<Type>(), It.IsAny<Dictionary<string, object>>()))
+            this.domainFactory.Setup(df =>
+                    df.RehydrateAggregateRoot(It.IsAny<Type>(), It.IsAny<Dictionary<string, object>>()))
                 .Returns(aggregate);
             this.domainFactory.Setup(df => df.RehydrateValueObject(typeof(Identifier), It.IsAny<string>()))
                 .Returns((Type type, string value) => value.ToIdentifier());
@@ -115,6 +117,11 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenSaveAndNoEvents_ThenDoesNothing()
         {
+            this.repository.Setup(
+                    repo => repo.Query("acontainername_Events", It.IsAny<QueryClause<EntityEvent>>(),
+                        It.IsAny<RepositoryEntityMetadata>()))
+                .Returns(new List<QueryEntity>());
+
             var aggregate = new TestAggregateRoot("anid".ToIdentifier());
             this.storage.Save(aggregate);
 
@@ -123,13 +130,44 @@ namespace Storage.UnitTests
         }
 
         [TestMethod]
-        public void WhenSaveAndEvents_ThenAddsEventsToRepositoryAndClears()
+        public void WhenSaveAndConcurrencyConflict_ThenThrows()
         {
+            var @event = CreateEventEntity("aneventid1", 10, DateTime.UtcNow);
+            this.repository.Setup(
+                    repo => repo.Query("acontainername_Events", It.IsAny<QueryClause<EntityEvent>>(),
+                        It.IsAny<RepositoryEntityMetadata>()))
+                .Returns(new List<QueryEntity> {QueryEntity.FromType(@event)});
+
             var aggregate = new TestAggregateRoot("anid".ToIdentifier())
             {
                 Events = new List<EntityEvent>
                 {
                     CreateEventEntity("aneventid1", 1, DateTime.UtcNow),
+                    CreateEventEntity("aneventid2", 2, DateTime.UtcNow),
+                    CreateEventEntity("aneventid3", 3, DateTime.UtcNow)
+                }
+            };
+
+            this.storage
+                .Invoking(x => x.Save(aggregate))
+                .Should().Throw<ResourceConflictException>()
+                .WithMessageLike(Resources.GeneralEventStreamStorage_LoadConcurrencyConflictWritingEventStream);
+        }
+
+        [TestMethod]
+        public void WhenSaveAndEvents_ThenAddsEventsToRepositoryAndClears()
+        {
+            var event1 = CreateEventEntity("aneventid1", 1, DateTime.UtcNow);
+            this.repository.Setup(
+                    repo => repo.Query("acontainername_Events", It.IsAny<QueryClause<EntityEvent>>(),
+                        It.IsAny<RepositoryEntityMetadata>()))
+                .Returns(new List<QueryEntity> {QueryEntity.FromType(event1)});
+
+            var aggregate = new TestAggregateRoot("anid".ToIdentifier())
+            {
+                Events = new List<EntityEvent>
+                {
+                    event1,
                     CreateEventEntity("aneventid2", 2, DateTime.UtcNow),
                     CreateEventEntity("aneventid3", 3, DateTime.UtcNow)
                 }

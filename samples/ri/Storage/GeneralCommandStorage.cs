@@ -55,7 +55,7 @@ namespace Storage
             entity.GuardAgainstNull(nameof(entity));
             if (!entity.Id.HasValue() || entity.Id.IsEmpty())
             {
-                throw new ResourceNotFoundException("Entity has empty identifier");
+                throw new ResourceNotFoundException(Resources.GeneralCommandStorage_EntityMissingIdentifier);
             }
 
             var latest = Get(entity.Id);

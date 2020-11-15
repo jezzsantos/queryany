@@ -66,8 +66,10 @@ namespace Storage
 
             if (!aggregate.Id.HasValue() || aggregate.Id.IsEmpty())
             {
-                throw new ResourceConflictException("The aggregate does not have an Identifier");
+                throw new ResourceConflictException(Resources.GeneralEventStreamStorage_SaveWithAggregateIdMissing);
             }
+
+            VerifyConcurrencyCheck(aggregate);
 
             var events = aggregate.GetChanges();
             if (!events.Any())
@@ -76,7 +78,6 @@ namespace Storage
             }
 
             var eventContainerName = GetEventContainerName();
-
             events.ForEach(change => { this.repository.Add(eventContainerName, CommandEntity.FromType(change)); });
 
             if (OnEventStreamStateChanged != null)
@@ -91,11 +92,34 @@ namespace Storage
                 catch (Exception ex)
                 {
                     //Ignore exception and continue
-                    this.logger.LogError(ex, $"Handling of event stream failed. Error was: {ex}");
+                    this.logger.LogError(ex, Resources.GeneralEventStreamStorage_SaveEventRelayFailed.Format(ex));
                 }
             }
 
             aggregate.ClearChanges();
+        }
+
+        private void VerifyConcurrencyCheck(TAggregateRoot aggregate)
+        {
+            var streamName = GetEventStreamName(aggregate.Id);
+            var eventContainerName = GetEventContainerName();
+
+            var query = Query.From<EntityEvent>().Where(ee => ee.StreamName, ConditionOperator.EqualTo, streamName)
+                .OrderBy(ee => ee.Version).Take(1);
+            var latestEvent = this.repository
+                .Query(eventContainerName, query, RepositoryEntityMetadata.FromType<EntityEvent>())
+                .FirstOrDefault();
+            var latestStoredVersion = latestEvent == null
+                ? 0
+                : latestEvent.ToEntity<EntityEvent>(this.domainFactory).Version;
+
+            var loadedVersion = aggregate.ChangeVersion;
+            if (latestStoredVersion > loadedVersion)
+            {
+                throw new ResourceConflictException(
+                    Resources.GeneralEventStreamStorage_LoadConcurrencyConflictWritingEventStream.Format(streamName,
+                        loadedVersion));
+            }
         }
 
         private string GetEventStreamName(Identifier id)

@@ -123,6 +123,43 @@ namespace Domain.Interfaces.UnitTests
         }
 
         [TestMethod]
+        public void WhenLoadChangesAgainAndEventVersionsMismatched_ThenThrows()
+        {
+            ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
+            {
+                CreateEventEntity("aneventid1", 1)
+            });
+
+            ((IPersistableAggregateRoot) this.aggregate)
+                .Invoking(x => x.LoadChanges(new List<EntityEvent>
+                {
+                    CreateEventEntity("aneventid1", 1),
+                    CreateEventEntity("aneventid2", 2),
+                    CreateEventEntity("aneventid3", 3)
+                }))
+                .Should()
+                .Throw<InvalidOperationException>();
+        }
+
+        [TestMethod]
+        public void WhenLoadChangesAgain_ThenAppendsEvents()
+        {
+            ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
+            {
+                CreateEventEntity("aneventid1", 1)
+            });
+
+            ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
+            {
+                CreateEventEntity("aneventid2", 2),
+                CreateEventEntity("aneventid3", 3),
+                CreateEventEntity("aneventid4", 4)
+            });
+
+            this.aggregate.ChangeVersion.Should().Be(4);
+        }
+
+        [TestMethod]
         public void WhenLoadChanges_ThenSetsEventsAndUpdatesVersion()
         {
             ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
