@@ -10,6 +10,9 @@ namespace Storage
 {
     public static class RepositoryExtensions
     {
+        public const string DefaultOrderingPropertyName = nameof(QueryEntity.LastPersistedAtUtc);
+        public const string BackupOrderingPropertyName = nameof(QueryEntity.Id);
+
         public static int GetDefaultSkip<TQueryableEntity>(this QueryClause<TQueryableEntity> query)
             where TQueryableEntity : IQueryableEntity
         {
@@ -30,33 +33,27 @@ namespace Storage
         public static string GetDefaultOrdering<TQueryableEntity>(this QueryClause<TQueryableEntity> query)
             where TQueryableEntity : IQueryableEntity
         {
-            return query.IsDefaultOrdering()
-                ? $"{nameof(QueryEntity.LastPersistedAtUtc)}"
-                : $"{query.ResultOptions.OrderBy.By}";
-        }
-
-        private static bool IsDefaultOrdering<TQueryableEntity>(this QueryClause<TQueryableEntity> query)
-            where TQueryableEntity : IQueryableEntity
-
-        {
             var by = query.ResultOptions.OrderBy.By;
             if (!by.HasValue())
             {
-                return true;
-            }
-
-            if (by.EqualsOrdinal(nameof(QueryEntity.LastPersistedAtUtc)))
-            {
-                return true;
+                by = DefaultOrderingPropertyName;
             }
 
             var selectedFields = query.GetAllSelectedFields();
             if (selectedFields.Any())
             {
-                return !query.GetAllSelectedFields().Contains(by);
+                return selectedFields.Contains(by)
+                    ? by
+                    : selectedFields.Contains(BackupOrderingPropertyName)
+                        ? BackupOrderingPropertyName
+                        : selectedFields.First();
             }
 
-            return false;
+            return HasProperty<TQueryableEntity>(by)
+                ? by
+                : HasProperty<TQueryableEntity>(BackupOrderingPropertyName)
+                    ? BackupOrderingPropertyName
+                    : FirstProperty<TQueryableEntity>();
         }
 
         private static List<string> GetAllSelectedFields<TQueryableEntity>(this QueryClause<TQueryableEntity> query)
@@ -198,6 +195,18 @@ namespace Storage
         private static bool HasPropertyValue(this Dictionary<string, object> entityProperties, string propertyName)
         {
             return entityProperties != null && entityProperties.ContainsKey(propertyName);
+        }
+
+        private static bool HasProperty<TQueryableEntity>(string propertyName) where TQueryableEntity : IQueryableEntity
+        {
+            var metadata = RepositoryEntityMetadata.FromType<TQueryableEntity>();
+            return metadata.HasType(propertyName);
+        }
+
+        private static string FirstProperty<TQueryableEntity>() where TQueryableEntity : IQueryableEntity
+        {
+            var metadata = RepositoryEntityMetadata.FromType<TQueryableEntity>();
+            return metadata.Types.First().Key;
         }
 
         private static void CreatePropertyIfNotExists(this Dictionary<string, object> entityProperties,

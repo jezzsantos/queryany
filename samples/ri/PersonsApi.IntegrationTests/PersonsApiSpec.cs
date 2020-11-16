@@ -23,7 +23,7 @@ namespace PersonsApi.IntegrationTests
         private static IWebHost webHost;
         private static IEventStreamStorage<PersonEntity> eventingStorage;
         private static IQueryStorage<Person> queryStorage;
-        private static IRepository inMemRepository;
+        private static IRepository repository;
 
         [ClassInitialize]
         public static void InitializeAllTests(TestContext context)
@@ -38,11 +38,11 @@ namespace PersonsApi.IntegrationTests
 
             // Override services for testing
             var container = HostContext.Container;
-            inMemRepository = new InProcessInMemRepository();
+            repository = new InProcessInMemRepository();
             eventingStorage = new GeneralEventStreamStorage<PersonEntity>(container.Resolve<ILogger>(),
-                container.Resolve<IDomainFactory>(), inMemRepository);
+                container.Resolve<IDomainFactory>(), repository);
             queryStorage = new GeneralQueryStorage<Person>(container.Resolve<ILogger>(),
-                container.Resolve<IDomainFactory>(), inMemRepository);
+                container.Resolve<IDomainFactory>(), repository);
             container.AddSingleton<IPersonStorage>(c =>
                 new PersonStorage(eventingStorage, queryStorage));
         }

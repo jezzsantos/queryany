@@ -18,6 +18,7 @@ namespace Storage
 
         {
             var orderBy = query.GetDefaultOrdering().ToDynamicLinqFieldName();
+
             orderBy = $"{orderBy}{(query.ResultOptions.OrderBy.Direction == OrderDirection.Descending ? " DESC" : "")}";
 
             return orderBy;

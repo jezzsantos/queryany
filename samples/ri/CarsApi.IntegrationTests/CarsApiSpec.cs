@@ -30,7 +30,7 @@ namespace CarsApi.IntegrationTests
         private static IEventStreamStorage<CarEntity> carEventingStorage;
         private static IQueryStorage<Unavailability> unavailabilityQueryStorage;
         private static int plateCount;
-        private static IRepository inMemRepository;
+        private static IRepository repository;
 
         [ClassInitialize]
         public static void InitializeAllTests(TestContext context)
@@ -46,14 +46,14 @@ namespace CarsApi.IntegrationTests
             // Override services for testing
             var container = HostContext.Container;
             container.AddSingleton<IPersonsService, StubPersonsService>();
-            inMemRepository = new InProcessInMemRepository();
+            repository = new InProcessInMemRepository();
 
             carQueryStorage = new GeneralQueryStorage<Car>(container.Resolve<ILogger>(),
-                container.Resolve<IDomainFactory>(), inMemRepository);
+                container.Resolve<IDomainFactory>(), repository);
             carEventingStorage = new GeneralEventStreamStorage<CarEntity>(container.Resolve<ILogger>(),
-                container.Resolve<IDomainFactory>(), inMemRepository);
+                container.Resolve<IDomainFactory>(), repository);
             unavailabilityQueryStorage = new GeneralQueryStorage<Unavailability>(container.Resolve<ILogger>(),
-                container.Resolve<IDomainFactory>(), inMemRepository);
+                container.Resolve<IDomainFactory>(), repository);
 
             container.AddSingleton(carEventingStorage);
             container.AddSingleton<ICarStorage>(c =>
@@ -62,8 +62,8 @@ namespace CarsApi.IntegrationTests
                 c.Resolve<ILogger>(),
                 new ReadModelProjector(c.Resolve<ILogger>(),
                     new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
-                        c.Resolve<IDomainFactory>(), inMemRepository),
-                    new CarEntityReadModelProjection(c.Resolve<ILogger>(), inMemRepository)),
+                        c.Resolve<IDomainFactory>(), repository),
+                    new CarEntityReadModelProjection(c.Resolve<ILogger>(), repository)),
                 c.Resolve<IEventStreamStorage<CarEntity>>()));
 
             //HACK: subscribe again (see: https://forums.servicestack.net/t/integration-testing-and-overriding-registered-services/8875/5)

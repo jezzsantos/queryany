@@ -28,7 +28,7 @@ namespace Storage.UnitTests.Azure
 
             var result = query.ToAzureCosmosSqlApiQueryClause("acontainername", this.repository.Object);
 
-            result.Should().Be("SELECT * FROM acontainername t ORDER BY t.LastPersistedAtUtc ASC OFFSET 0 LIMIT 99");
+            result.Should().Be("SELECT * FROM acontainername t ORDER BY t.AStringValue ASC OFFSET 0 LIMIT 99");
         }
 
         [TestMethod]
@@ -42,7 +42,7 @@ namespace Storage.UnitTests.Azure
 
             result.Should()
                 .Be(
-                    "SELECT t.id, t.ABooleanValue FROM acontainername t ORDER BY t.LastPersistedAtUtc ASC OFFSET 0 LIMIT 99");
+                    "SELECT t.id, t.ABooleanValue FROM acontainername t ORDER BY t.ABooleanValue ASC OFFSET 0 LIMIT 99");
         }
 
         [TestMethod]
@@ -57,7 +57,7 @@ namespace Storage.UnitTests.Azure
 
             result.Should()
                 .Be(
-                    "SELECT t.id, t.ABooleanValue, t.ADoubleValue FROM acontainername t ORDER BY t.LastPersistedAtUtc ASC OFFSET 0 LIMIT 99");
+                    "SELECT t.id, t.ABooleanValue, t.ADoubleValue FROM acontainername t ORDER BY t.ABooleanValue ASC OFFSET 0 LIMIT 99");
         }
     }
 }
