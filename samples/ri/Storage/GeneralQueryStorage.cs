@@ -37,9 +37,22 @@ namespace Storage
             var entities = this.repository.Query(this.containerName, query,
                 RepositoryEntityMetadata.FromType<TDto>());
 
-            this.logger.LogDebug($" {entities.Count} Entities were retrieved from repository");
+            this.logger.LogDebug($"{entities.Count} Entities were retrieved from repository");
 
             return new QueryResults<TDto>(entities.ConvertAll(x => x.ToEntity<TDto>(this.domainFactory)));
+        }
+
+        public TDtoWithId Get<TDtoWithId>(Identifier id) where TDtoWithId : IQueryableEntity, IHasIdentity, new()
+        {
+            id.GuardAgainstNull(nameof(id));
+
+            var entity = this.repository.Retrieve(this.containerName, id, RepositoryEntityMetadata.FromType<TDto>());
+
+            this.logger.LogDebug($"Entity {id} was retrieved from repository");
+
+            return entity == null
+                ? default
+                : entity.ToQueryDto<TDtoWithId>();
         }
 
         public long Count()

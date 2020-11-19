@@ -4,6 +4,7 @@ using Domain.Interfaces.Entities;
 using QueryAny;
 using QueryAny.Primitives;
 using ServiceStack;
+using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;
 
 namespace Storage
@@ -25,6 +26,11 @@ namespace Storage
         }
 
         public TDto ToReadModelEntity<TDto>() where TDto : IReadModelEntity, new()
+        {
+            return Properties.FromObjectDictionary<TDto>();
+        }
+
+        public TDto ToQueryDto<TDto>() where TDto : IQueryableEntity, IHasIdentity, new()
         {
             return Properties.FromObjectDictionary<TDto>();
         }

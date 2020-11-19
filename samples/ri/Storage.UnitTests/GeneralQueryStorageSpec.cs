@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -83,6 +84,39 @@ namespace Storage.UnitTests
             var result = this.storage.Query(query);
 
             result.Results.Should().BeEquivalentTo(results);
+        }
+
+        [TestMethod]
+        public void WhenGetWithNullId_ThenThrows()
+        {
+            this.storage
+                .Invoking(x => x.Get<TestDtoWithId>(null))
+                .Should().Throw<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void WhenGetAndNotExists_ThenReturnsNull()
+        {
+            this.repository.Setup(repo =>
+                    repo.Retrieve(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<RepositoryEntityMetadata>()))
+                .Returns((CommandEntity) null);
+
+            var result = this.storage.Get<TestDtoWithId>(Identifier.Create("anid"));
+
+            result.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void WhenGet_ThenReturnsDto()
+        {
+            var dto = new TestDtoWithId {Id = "anid"};
+            this.repository.Setup(repo =>
+                    repo.Retrieve(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<RepositoryEntityMetadata>()))
+                .Returns(CommandEntity.FromType(dto));
+
+            var result = this.storage.Get<TestDtoWithId>(Identifier.Create("anid"));
+
+            result.Id.Should().Be("anid");
         }
     }
 }
