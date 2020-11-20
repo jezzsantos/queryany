@@ -387,6 +387,32 @@ With this Entity policy in effect, domain Entities can maintain their full OO be
 
 > Note: Again, this is one strategy, there are many.
 
+### Event Storage
+
+In this reference implementation we utilize a custom event store in any of the `IRepository` implementations. 
+This is possible if we just use 2 simple tables. One for the event streams and one for the checkpoints.
+
+When Events are saved they are currently saved to a table called: `EntityName_Events`
+* They are saved using the repo tech that is configured in `IEventStreamStorage`.
+* They are saved to a container  called: "{ContainerName}_Events" 
+    where "{ContainerName}" is defined by `TAggregateRoot` of the `IEventStreamStorage` instance
+    
+ Each saved `EventEntity` is given:
+ * the EntityType type name of the Entity
+ * the EventType type name of the raised Event
+ * the Id is unique to the event 
+ * the streamName is {EntityName}_{Id} 
+   * where EntityName is defined by TAggregateRoot
+   * where Id is the id of the entity
+> Note: this StreamName is unique for every instance of the event
+    
+ 
+ We store this table in the event store, in a table called: "EntityName_Events"
+ 
+| Id         | LastPersistedAtUtc | StreamName             | Version | EntityType | EventType  | Data          | Metadata                 |
+| ---------- | ------------------ | ---------------------- | ------- | ---------- | ---------- | ------------- | ------------------------ |
+| ev_1234... |   DateTime         | EntityName_en_1234.... |   1     | EntityType | EventType  | {eventasjson} | {"Fqn":"EventType, FQN"} |
+
 # Automated Testing
 
 1. First: [Getting Started](https://github.com/jezzsantos/queryany/wiki/Getting-Started)  for details on what you need installed on your machine.

@@ -54,11 +54,13 @@ namespace CarsApi
             container.AddSingleton<ILogger>(c => new Logger<ServiceHost>(new NullLoggerFactory()));
             container.AddSingleton<IDependencyContainer>(new FuncDependencyContainer(container));
             container.AddSingleton<IIdentifierFactory, CarIdentifierFactory>();
+            container.AddSingleton<IChangeEventMigrator>(c => new ChangeEventTypeMigrator());
             container.AddSingleton<IDomainFactory>(c => DomainFactory.CreateRegistered(
                 c.Resolve<IDependencyContainer>(), typeof(EntityEvent).Assembly,
                 typeof(CarEntity).Assembly));
             container.AddSingleton<IEventStreamStorage<CarEntity>>(c =>
                 new GeneralEventStreamStorage<CarEntity>(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
+                    c.Resolve<IChangeEventMigrator>(),
                     ResolveRepository(c)));
             container.AddSingleton<ICarStorage>(c =>
                 new CarStorage(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
@@ -72,6 +74,7 @@ namespace CarsApi
                     new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
                         c.Resolve<IDomainFactory>(),
                         ResolveRepository(c)),
+                    c.Resolve<IChangeEventMigrator>(),
                     new CarEntityReadModelProjection(c.Resolve<ILogger>(), ResolveRepository(c))),
                 c.Resolve<IEventStreamStorage<CarEntity>>()));
         }

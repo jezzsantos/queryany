@@ -40,11 +40,12 @@ namespace PersonsApi
             container.AddSingleton<ILogger>(c => new Logger<ServiceHost>(new NullLoggerFactory()));
             container.AddSingleton<IDependencyContainer>(new FuncDependencyContainer(container));
             container.AddSingleton<IIdentifierFactory, PersonIdentifierFactory>();
+            container.AddSingleton<IChangeEventMigrator>(c => new ChangeEventTypeMigrator());
             container.AddSingleton<IDomainFactory>(c =>
                 DomainFactory.CreateRegistered(c.Resolve<IDependencyContainer>(), typeof(EntityEvent).Assembly,
                     typeof(PersonEntity).Assembly));
             container.AddSingleton<IPersonStorage>(c =>
-                new PersonStorage(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
+                new PersonStorage(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(), c.Resolve<IChangeEventMigrator>(),
                     AzureCosmosSqlApiRepository.FromAppSettings(c.Resolve<IAppSettings>(), "Production")));
             container.AddSingleton<IPersonsApplication, PersonsApplication.PersonsApplication>();
             container.AddSingleton<IEmailService, EmailService>();

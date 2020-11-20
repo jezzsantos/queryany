@@ -46,7 +46,7 @@ namespace Storage.UnitTests
             throw new NotImplementedException();
         }
 
-        public void LoadChanges(IEnumerable<EntityEvent> history)
+        public void LoadChanges(IEnumerable<EntityEvent> history, IChangeEventMigrator migrator)
         {
             LoadedChanges = history;
         }

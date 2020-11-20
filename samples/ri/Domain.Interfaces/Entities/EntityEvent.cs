@@ -2,6 +2,7 @@
 using QueryAny;
 using QueryAny.Primitives;
 using ServiceStack;
+using ServiceStack.Text;
 
 namespace Domain.Interfaces.Entities
 {
@@ -40,13 +41,25 @@ namespace Domain.Interfaces.Entities
             Version = version;
             EntityType = entityType;
             EventType = @event.GetType().Name;
-            Data = @event.ToJson();
+            Data = ToData(@event);
             Metadata = new EventMetadata(@event.GetType().AssemblyQualifiedName);
         }
 
-        public IChangeEvent ToEvent()
+        public IChangeEvent ToEvent(IChangeEventMigrator migrator)
         {
-            return Metadata.CreateEventFromJson(Id, Data);
+            return Metadata.CreateEventFromJson(Id, Data, migrator);
+        }
+
+        public static string ToData(IChangeEvent @event)
+        {
+            @event.GuardAgainstNull(nameof(@event));
+
+            using (var scope = JsConfig.BeginScope())
+            {
+                scope.ExcludeTypeInfo = true;
+
+                return @event.ToJson();
+            }
         }
     }
 }

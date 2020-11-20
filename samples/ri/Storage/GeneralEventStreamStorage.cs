@@ -17,16 +17,20 @@ namespace Storage
         private readonly string containerName;
         private readonly IDomainFactory domainFactory;
         private readonly ILogger logger;
+        private readonly IChangeEventMigrator migrator;
         private readonly IRepository repository;
 
-        public GeneralEventStreamStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
+        public GeneralEventStreamStorage(ILogger logger, IDomainFactory domainFactory,
+            IChangeEventMigrator migrator, IRepository repository)
         {
             logger.GuardAgainstNull(nameof(logger));
             repository.GuardAgainstNull(nameof(repository));
             domainFactory.GuardAgainstNull(nameof(domainFactory));
+            migrator.GuardAgainstNull(nameof(migrator));
             this.logger = logger;
             this.repository = repository;
             this.domainFactory = domainFactory;
+            this.migrator = migrator;
             this.containerName = typeof(TAggregateRoot).GetEntityNameSafe();
         }
 
@@ -55,7 +59,8 @@ namespace Storage
 
             var lastPersistedAtUtc = events.Last().LastPersistedAtUtc;
             var aggregate = RehydrateAggregateRoot(id, lastPersistedAtUtc);
-            aggregate.LoadChanges(events.ConvertAll(@event => @event.ToEntity<EntityEvent>(this.domainFactory)));
+            aggregate.LoadChanges(events.ConvertAll(@event => @event.ToEntity<EntityEvent>(this.domainFactory)),
+                this.migrator);
 
             return aggregate;
         }

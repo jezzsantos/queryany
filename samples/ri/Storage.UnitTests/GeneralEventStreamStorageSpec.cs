@@ -18,6 +18,7 @@ namespace Storage.UnitTests
     {
         private Mock<IDomainFactory> domainFactory;
         private Mock<ILogger> logger;
+        private Mock<IChangeEventMigrator> migrator;
         private Mock<IRepository> repository;
         private EventStreamStateChangedArgs stateChangedEvent;
         private GeneralEventStreamStorage<TestAggregateRoot> storage;
@@ -27,10 +28,11 @@ namespace Storage.UnitTests
         {
             this.logger = new Mock<ILogger>();
             this.domainFactory = new Mock<IDomainFactory>();
+            this.migrator = new Mock<IChangeEventMigrator>();
             this.repository = new Mock<IRepository>();
             this.storage =
                 new GeneralEventStreamStorage<TestAggregateRoot>(this.logger.Object, this.domainFactory.Object,
-                    this.repository.Object);
+                    this.migrator.Object, this.repository.Object);
 
             this.stateChangedEvent = null;
             this.storage.OnEventStreamStateChanged += (sender, args) => { this.stateChangedEvent = args; };

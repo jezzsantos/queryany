@@ -40,7 +40,8 @@ namespace PersonsApi.IntegrationTests
             var container = HostContext.Container;
             repository = new InProcessInMemRepository();
             eventingStorage = new GeneralEventStreamStorage<PersonEntity>(container.Resolve<ILogger>(),
-                container.Resolve<IDomainFactory>(), repository);
+                container.Resolve<IDomainFactory>(),
+                container.Resolve<IChangeEventMigrator>(), repository);
             queryStorage = new GeneralQueryStorage<Person>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), repository);
             container.AddSingleton<IPersonStorage>(c =>

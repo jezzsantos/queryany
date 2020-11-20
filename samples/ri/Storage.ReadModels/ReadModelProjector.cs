@@ -13,18 +13,22 @@ namespace Storage.ReadModels
     {
         private readonly IReadModelCheckpointStore checkpointStore;
         private readonly ILogger logger;
+        private readonly IChangeEventMigrator migrator;
         private readonly IReadOnlyList<IReadModelProjection> projections;
 
         public ReadModelProjector(ILogger logger, IReadModelCheckpointStore checkpointStore,
+            IChangeEventMigrator migrator,
             params IReadModelProjection[] projections)
         {
             logger.GuardAgainstNull(nameof(logger));
             checkpointStore.GuardAgainstNull(nameof(checkpointStore));
             projections.GuardAgainstNull(nameof(projections));
+            migrator.GuardAgainstNull(nameof(migrator));
 
             this.logger = logger;
             this.checkpointStore = checkpointStore;
             this.projections = projections;
+            this.migrator = migrator;
         }
 
         public void WriteEventStream(string streamName, List<EventStreamStateChangeEvent> eventStream)
@@ -50,7 +54,7 @@ namespace Storage.ReadModels
                 var processed = 0;
                 foreach (var changeEvent in SkipPreviouslyProjectedVersions(eventStream, checkpoint))
                 {
-                    var @event = DeserializeEvent(changeEvent);
+                    var @event = DeserializeEvent(changeEvent, this.migrator);
 
                     ProjectEvent(projection, @event, changeEvent);
 
@@ -97,9 +101,10 @@ namespace Storage.ReadModels
             return projection;
         }
 
-        private static IChangeEvent DeserializeEvent(EventStreamStateChangeEvent changeEvent)
+        private static IChangeEvent DeserializeEvent(EventStreamStateChangeEvent changeEvent,
+            IChangeEventMigrator migrator)
         {
-            return changeEvent.Metadata.CreateEventFromJson(changeEvent.Id, changeEvent.Data);
+            return changeEvent.Metadata.CreateEventFromJson(changeEvent.Id, changeEvent.Data, migrator);
         }
 
         private static void EnsureNextVersion(string streamName, long checkpoint, long firstEventVersion)

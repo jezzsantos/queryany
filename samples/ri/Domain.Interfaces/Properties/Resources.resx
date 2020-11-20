@@ -39,4 +39,7 @@
     <data name="HydrationIdentifierFactory_InvalidId" xml:space="preserve">
         <value>The hydrating properties do not contain an Identifier property with a non null value</value>
     </data>
+    <data name="ChangeEventMigrator_UnknownType" xml:space="preserve">
+        <value>Failed to deserialize event '{0}'. The serialized type: '{1}' cannot be found in the current AppDomain. Perhaps the type '{1}' has been renamed or no longer exists in the codebase?</value>
+    </data>
 </root>

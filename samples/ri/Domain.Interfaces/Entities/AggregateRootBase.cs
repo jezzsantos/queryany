@@ -101,11 +101,11 @@ namespace Domain.Interfaces.Entities
             OnStateChanged(@event);
         }
 
-        void IPersistableAggregateRoot.LoadChanges(IEnumerable<EntityEvent> history)
+        void IPersistableAggregateRoot.LoadChanges(IEnumerable<EntityEvent> history, IChangeEventMigrator migrator)
         {
             foreach (var item in history)
             {
-                var @event = item.ToEvent();
+                var @event = item.ToEvent(migrator);
                 OnStateChanged(@event);
 
                 var expectedVersion = ChangeVersion + 1;

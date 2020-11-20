@@ -17,6 +17,7 @@ namespace Domain.Interfaces.UnitTests
         private Mock<IDependencyContainer> dependencyContainer;
         private Mock<IIdentifierFactory> idFactory;
         private Mock<ILogger> logger;
+        private ChangeEventTypeMigrator typeMigrator;
 
         [TestInitialize]
         public void Initialize()
@@ -30,6 +31,7 @@ namespace Domain.Interfaces.UnitTests
                 .Returns(this.logger.Object);
             this.dependencyContainer.Setup(dc => dc.Resolve<IIdentifierFactory>())
                 .Returns(this.idFactory.Object);
+            this.typeMigrator = new ChangeEventTypeMigrator();
 
             this.aggregate = new TestAggregateRoot(this.logger.Object, this.idFactory.Object);
         }
@@ -128,7 +130,7 @@ namespace Domain.Interfaces.UnitTests
             ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
             {
                 CreateEventEntity("aneventid1", 1)
-            });
+            }, this.typeMigrator);
 
             ((IPersistableAggregateRoot) this.aggregate)
                 .Invoking(x => x.LoadChanges(new List<EntityEvent>
@@ -136,7 +138,7 @@ namespace Domain.Interfaces.UnitTests
                     CreateEventEntity("aneventid1", 1),
                     CreateEventEntity("aneventid2", 2),
                     CreateEventEntity("aneventid3", 3)
-                }))
+                }, this.typeMigrator))
                 .Should()
                 .Throw<InvalidOperationException>();
         }
@@ -147,14 +149,14 @@ namespace Domain.Interfaces.UnitTests
             ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
             {
                 CreateEventEntity("aneventid1", 1)
-            });
+            }, this.typeMigrator);
 
             ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
             {
                 CreateEventEntity("aneventid2", 2),
                 CreateEventEntity("aneventid3", 3),
                 CreateEventEntity("aneventid4", 4)
-            });
+            }, this.typeMigrator);
 
             this.aggregate.ChangeVersion.Should().Be(4);
         }
@@ -167,7 +169,7 @@ namespace Domain.Interfaces.UnitTests
                 CreateEventEntity("aneventid1", 1),
                 CreateEventEntity("aneventid2", 2),
                 CreateEventEntity("aneventid3", 3)
-            });
+            }, this.typeMigrator);
 
             this.aggregate.ChangeVersion.Should().Be(3);
         }
@@ -179,12 +181,12 @@ namespace Domain.Interfaces.UnitTests
 
             var entities = this.aggregate.GetChanges();
 
-            var created = entities[0].ToEvent();
+            var created = entities[0].ToEvent(this.typeMigrator);
 
             created.Should().BeOfType<TestAggregateRoot.CreateEvent>();
             created.As<TestAggregateRoot.CreateEvent>().EntityId.Should().Be("anid");
 
-            var changed = entities[1].ToEvent();
+            var changed = entities[1].ToEvent(this.typeMigrator);
 
             changed.Should().BeOfType<TestAggregateRoot.ChangeEvent>();
             changed.As<TestAggregateRoot.ChangeEvent>().APropertyName.Should().Be("avalue");

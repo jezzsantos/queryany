@@ -51,7 +51,8 @@ namespace CarsApi.IntegrationTests
             carQueryStorage = new GeneralQueryStorage<Car>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), repository);
             carEventingStorage = new GeneralEventStreamStorage<CarEntity>(container.Resolve<ILogger>(),
-                container.Resolve<IDomainFactory>(), repository);
+                container.Resolve<IDomainFactory>(),
+                container.Resolve<IChangeEventMigrator>(), repository);
             unavailabilityQueryStorage = new GeneralQueryStorage<Unavailability>(container.Resolve<ILogger>(),
                 container.Resolve<IDomainFactory>(), repository);
 
@@ -63,6 +64,7 @@ namespace CarsApi.IntegrationTests
                 new ReadModelProjector(c.Resolve<ILogger>(),
                     new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
                         c.Resolve<IDomainFactory>(), repository),
+                    c.Resolve<IChangeEventMigrator>(),
                     new CarEntityReadModelProjection(c.Resolve<ILogger>(), repository)),
                 c.Resolve<IEventStreamStorage<CarEntity>>()));
 

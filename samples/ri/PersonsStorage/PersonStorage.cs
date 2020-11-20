@@ -16,10 +16,12 @@ namespace PersonsStorage
         private readonly IEventStreamStorage<PersonEntity> eventingStorage;
         private readonly IQueryStorage<Person> queryStorage;
 
-        public PersonStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
+        public PersonStorage(ILogger logger, IDomainFactory domainFactory, IChangeEventMigrator migrator,
+            IRepository repository)
         {
             this.queryStorage = new GeneralQueryStorage<Person>(logger, domainFactory, repository);
-            this.eventingStorage = new GeneralEventStreamStorage<PersonEntity>(logger, domainFactory, repository);
+            this.eventingStorage =
+                new GeneralEventStreamStorage<PersonEntity>(logger, domainFactory, migrator, repository);
         }
 
         public PersonStorage(IEventStreamStorage<PersonEntity> eventingStorage, IQueryStorage<Person> queryStorage)

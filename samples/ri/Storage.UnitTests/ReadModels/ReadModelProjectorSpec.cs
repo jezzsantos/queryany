@@ -20,12 +20,14 @@ namespace Storage.UnitTests.ReadModels
         private Mock<IReadModelProjection> projection;
         private List<IReadModelProjection> projections;
         private ReadModelProjector projector;
+        private ChangeEventTypeMigrator typeMigrator;
 
         [TestInitialize]
         public void Initialize()
         {
             this.logger = new Mock<ILogger>();
             this.checkpointStore = new Mock<IReadModelCheckpointStore>();
+            this.typeMigrator = new ChangeEventTypeMigrator();
             this.projection = new Mock<IReadModelProjection>();
             this.projection.Setup(prj => prj.EntityType)
                 .Returns(typeof(string));
@@ -33,7 +35,7 @@ namespace Storage.UnitTests.ReadModels
                 .Returns(true);
             this.projections = new List<IReadModelProjection> {this.projection.Object};
             this.projector = new ReadModelProjector(this.logger.Object, this.checkpointStore.Object,
-                this.projections.ToArray());
+                this.typeMigrator, this.projections.ToArray());
         }
 
         [TestMethod]

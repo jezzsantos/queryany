@@ -16,6 +16,6 @@ namespace Domain.Interfaces.Entities
 
         void OnStateChanged(IChangeEvent @event);
 
-        void LoadChanges(IEnumerable<EntityEvent> history);
+        void LoadChanges(IEnumerable<EntityEvent> history, IChangeEventMigrator migrator);
     }
 }
