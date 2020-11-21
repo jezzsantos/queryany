@@ -36,9 +36,11 @@ namespace CarsApi.Services.Cars
 
         public CreateCarResponse Post(CreateCarRequest request)
         {
+            var car = this.carsApplication.Create(Request.ToCaller(), request.Year, request.Make, request.Model);
+            Response.SetLocation(car);
             return new CreateCarResponse
             {
-                Car = this.carsApplication.Create(Request.ToCaller(), request.Year, request.Make, request.Model)
+                Car = car
             };
         }
 

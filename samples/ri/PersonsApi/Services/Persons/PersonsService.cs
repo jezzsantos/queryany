@@ -20,9 +20,11 @@ namespace PersonsApi.Services.Persons
 
         public CreatePersonResponse Post(CreatePersonRequest request)
         {
+            var person = this.personsApplication.Create(Request.ToCaller(), request.FirstName, request.LastName);
+            Response.SetLocation(person);
             return new CreatePersonResponse
             {
-                Person = this.personsApplication.Create(Request.ToCaller(), request.FirstName, request.LastName)
+                Person = person
             };
         }
 
