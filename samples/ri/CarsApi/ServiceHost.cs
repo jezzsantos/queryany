@@ -27,6 +27,11 @@ namespace CarsApi
     public class ServiceHost : AppHostBase
     {
         private static readonly Assembly[] AssembliesContainingServicesAndDependencies = {typeof(Startup).Assembly};
+        public static readonly Assembly[] AssembliesContainingDomainEntities =
+        {
+            typeof(EntityEvent).Assembly,
+            typeof(CarEntity).Assembly
+        };
         private static IRepository repository;
         private IReadModelSubscription readModelSubscription;
 
@@ -56,8 +61,7 @@ namespace CarsApi
             container.AddSingleton<IIdentifierFactory, CarIdentifierFactory>();
             container.AddSingleton<IChangeEventMigrator>(c => new ChangeEventTypeMigrator());
             container.AddSingleton<IDomainFactory>(c => DomainFactory.CreateRegistered(
-                c.Resolve<IDependencyContainer>(), typeof(EntityEvent).Assembly,
-                typeof(CarEntity).Assembly));
+                c.Resolve<IDependencyContainer>(), AssembliesContainingDomainEntities));
             container.AddSingleton<IEventStreamStorage<CarEntity>>(c =>
                 new GeneralEventStreamStorage<CarEntity>(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
                     c.Resolve<IChangeEventMigrator>(),

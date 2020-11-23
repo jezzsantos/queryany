@@ -3,7 +3,6 @@ using Castle.Core.Logging;
 using Domain.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using PersonsDomain;
 
 namespace PersonsApi.UnitTests
 {
@@ -26,7 +25,7 @@ namespace PersonsApi.UnitTests
         [TestMethod]
         public void WhenRegisterAllEntities_ThenAllEntitiesRegistered()
         {
-            this.domainFactory.RegisterDomainTypesFromAssemblies(typeof(PersonEntity).Assembly);
+            this.domainFactory.RegisterDomainTypesFromAssemblies(ServiceHost.AssembliesContainingDomainEntities);
         }
     }
 }

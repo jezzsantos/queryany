@@ -43,6 +43,11 @@ namespace PersonsStorage
             return person;
         }
 
+        public Person GetPerson(Identifier id)
+        {
+            return this.queryStorage.Get<Person>(id);
+        }
+
         public Person FindByEmailAddress(string emailAddress)
         {
             var persons = this.queryStorage.Query(Query.From<Person>()

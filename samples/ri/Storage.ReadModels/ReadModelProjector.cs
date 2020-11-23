@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;
+using Storage.ReadModels.Properties;
 
 namespace Storage.ReadModels
 {
@@ -67,7 +68,7 @@ namespace Storage.ReadModels
             {
                 this.logger.LogError(ex,
                     $"Failed to project events in event stream '{streamName}'");
-                throw;
+                throw new InvalidOperationException(Resources.ReadModelProjector_UnexpectedError, ex);
             }
         }
 
@@ -77,7 +78,8 @@ namespace Storage.ReadModels
             if (!projection.Project(@event))
             {
                 throw new InvalidOperationException(
-                    $"The projection '{projection.GetType().Name}' did not handle the event '{changeEvent.Id}' with event type '{changeEvent.Metadata.Fqn}'. Aborting projections");
+                    Resources.ReadModelProjector_ProjectionError.Format(projection.GetType().Name, changeEvent.Id,
+                        changeEvent.Metadata.Fqn));
             }
         }
 
@@ -95,7 +97,7 @@ namespace Storage.ReadModels
             if (projection == null)
             {
                 throw new InvalidOperationException(
-                    $"No projection is configured for entity type '{entityTypeName}'. Aborting");
+                    Resources.ReadModelProjector_ProjectionNotConfigured.Format(entityTypeName));
             }
 
             return projection;
@@ -112,7 +114,7 @@ namespace Storage.ReadModels
             if (firstEventVersion > checkpoint)
             {
                 throw new InvalidOperationException(
-                    $"The event stream {streamName} is at checkpoint '{checkpoint}', but new events are at version {firstEventVersion}. Perhaps some event history is missing?");
+                    Resources.ReadModelProjector_CheckpointError.Format(streamName, checkpoint, firstEventVersion));
             }
         }
     }

@@ -11,5 +11,7 @@ namespace PersonsApplication.Storage
         PersonEntity Save(PersonEntity car);
 
         Person FindByEmailAddress(string emailAddress);
+
+        Person GetPerson(Identifier id);
     }
 }

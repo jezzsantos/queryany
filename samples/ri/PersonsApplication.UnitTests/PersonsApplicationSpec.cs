@@ -5,6 +5,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using PersonsApplication.ReadModels;
 using PersonsApplication.Storage;
 using PersonsDomain;
 
@@ -59,8 +60,8 @@ namespace PersonsApplication.UnitTests
         [TestMethod]
         public void WhenGet_ThenReturnsPerson()
         {
-            this.storage.Setup(s => s.Load(It.IsAny<Identifier>()))
-                .Returns(new PersonEntity(this.logger.Object, this.idFactory.Object, this.uniqueEmailService.Object));
+            this.storage.Setup(s => s.GetPerson(It.IsAny<Identifier>()))
+                .Returns(new Person {Id = "anid"});
 
             var result =
                 this.carsApplication.Get(this.caller.Object, "anid", new GetOptions());

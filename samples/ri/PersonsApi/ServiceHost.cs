@@ -1,6 +1,8 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using Api.Common;
 using Api.Common.Validators;
+using ApplicationServices;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using DomainServices;
@@ -14,13 +16,24 @@ using PersonsStorage;
 using ServiceStack;
 using ServiceStack.Configuration;
 using ServiceStack.Validation;
+using Storage;
 using Storage.Azure;
+using Storage.Interfaces;
+using Storage.ReadModels;
+using IRepository = Storage.IRepository;
 
 namespace PersonsApi
 {
     public class ServiceHost : AppHostBase
     {
         private static readonly Assembly[] AssembliesContainingServicesAndDependencies = {typeof(Startup).Assembly};
+        public static readonly Assembly[] AssembliesContainingDomainEntities =
+        {
+            typeof(EntityEvent).Assembly,
+            typeof(PersonEntity).Assembly
+        };
+        private static IRepository repository;
+        private IReadModelProjectionSubscription readModelProjectionSubscription;
 
         public ServiceHost() : base("MyPersonsApi", AssembliesContainingServicesAndDependencies)
         {
@@ -37,16 +50,25 @@ namespace PersonsApi
 
         private static void RegisterDependencies(Container container)
         {
+            static IRepository ResolveRepository(Container c)
+            {
+                return repository ??=
+                    AzureCosmosSqlApiRepository.FromAppSettings(c.Resolve<IAppSettings>(), "Production");
+            }
+
             container.AddSingleton<ILogger>(c => new Logger<ServiceHost>(new NullLoggerFactory()));
             container.AddSingleton<IDependencyContainer>(new FuncDependencyContainer(container));
             container.AddSingleton<IIdentifierFactory, PersonIdentifierFactory>();
             container.AddSingleton<IChangeEventMigrator>(c => new ChangeEventTypeMigrator());
             container.AddSingleton<IDomainFactory>(c =>
-                DomainFactory.CreateRegistered(c.Resolve<IDependencyContainer>(), typeof(EntityEvent).Assembly,
-                    typeof(PersonEntity).Assembly));
+                DomainFactory.CreateRegistered(c.Resolve<IDependencyContainer>(), AssembliesContainingDomainEntities));
+            container.AddSingleton<IEventStreamStorage<PersonEntity>>(c =>
+                new GeneralEventStreamStorage<PersonEntity>(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
+                    c.Resolve<IChangeEventMigrator>(),
+                    ResolveRepository(c)));
             container.AddSingleton<IPersonStorage>(c =>
                 new PersonStorage(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(), c.Resolve<IChangeEventMigrator>(),
-                    AzureCosmosSqlApiRepository.FromAppSettings(c.Resolve<IAppSettings>(), "Production")));
+                    ResolveRepository(c)));
             container.AddSingleton<IPersonsApplication, PersonsApplication.PersonsApplication>();
             container.AddSingleton<IEmailService, EmailService>();
         }

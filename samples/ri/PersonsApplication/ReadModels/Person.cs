@@ -1,8 +1,9 @@
-﻿using Storage.Interfaces.ReadModels;
+﻿using Storage.Interfaces;
+using Storage.Interfaces.ReadModels;
 
 namespace PersonsApplication.ReadModels
 {
-    public class Person : IReadModelEntity
+    public class Person : IReadModelEntity, IHasIdentity
     {
         public string FirstName { get; set; }
 

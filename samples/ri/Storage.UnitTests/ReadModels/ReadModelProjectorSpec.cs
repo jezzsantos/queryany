@@ -5,7 +5,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using ServiceStack;
 using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;
 using Storage.ReadModels;
@@ -15,19 +14,19 @@ namespace Storage.UnitTests.ReadModels
     [TestClass, TestCategory("Unit")]
     public class ReadModelProjectorSpec
     {
+        private ChangeEventTypeMigrator changeEventTypeMigrator;
         private Mock<IReadModelCheckpointStore> checkpointStore;
         private Mock<ILogger> logger;
         private Mock<IReadModelProjection> projection;
         private List<IReadModelProjection> projections;
         private ReadModelProjector projector;
-        private ChangeEventTypeMigrator typeMigrator;
 
         [TestInitialize]
         public void Initialize()
         {
             this.logger = new Mock<ILogger>();
             this.checkpointStore = new Mock<IReadModelCheckpointStore>();
-            this.typeMigrator = new ChangeEventTypeMigrator();
+            this.changeEventTypeMigrator = new ChangeEventTypeMigrator();
             this.projection = new Mock<IReadModelProjection>();
             this.projection.Setup(prj => prj.EntityType)
                 .Returns(typeof(string));
@@ -35,7 +34,7 @@ namespace Storage.UnitTests.ReadModels
                 .Returns(true);
             this.projections = new List<IReadModelProjection> {this.projection.Object};
             this.projector = new ReadModelProjector(this.logger.Object, this.checkpointStore.Object,
-                this.typeMigrator, this.projections.ToArray());
+                this.changeEventTypeMigrator, this.projections.ToArray());
         }
 
         [TestMethod]
@@ -60,7 +59,8 @@ namespace Storage.UnitTests.ReadModels
                     {
                         EntityType = "atypename"
                     }
-                })).Should().Throw<InvalidOperationException>();
+                })).Should().Throw<InvalidOperationException>()
+                .WithMessageLike(Storage.ReadModels.Properties.Resources.ReadModelProjector_UnexpectedError);
 
             this.checkpointStore.Verify(cs => cs.LoadCheckpoint(It.IsAny<string>()), Times.Never);
             this.projection.Verify(prj => prj.Project(It.IsAny<IChangeEvent>()), Times.Never);
@@ -83,7 +83,8 @@ namespace Storage.UnitTests.ReadModels
                         EntityType = nameof(String),
                         Version = 6
                     }
-                })).Should().Throw<InvalidOperationException>();
+                })).Should().Throw<InvalidOperationException>()
+                .WithMessageLike(Storage.ReadModels.Properties.Resources.ReadModelProjector_UnexpectedError);
         }
 
         [TestMethod]
@@ -98,7 +99,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid1",
                     EntityType = nameof(String),
-                    Data = new TestEvent {EntityId = "aneventid1"}.ToJson(),
+                    Data = EntityEvent.ToData(new TestEvent {EntityId = "aneventid1"}),
                     Version = 4,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
@@ -106,7 +107,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid2",
                     EntityType = nameof(String),
-                    Data = new TestEvent {EntityId = "aneventid2"}.ToJson(),
+                    Data = EntityEvent.ToData(new TestEvent {EntityId = "aneventid2"}),
                     Version = 5,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
@@ -114,7 +115,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid3",
                     EntityType = nameof(String),
-                    Data = new TestEvent {EntityId = "aneventid3"}.ToJson(),
+                    Data = EntityEvent.ToData(new TestEvent {EntityId = "aneventid3"}),
                     Version = 6,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 }
@@ -144,12 +145,14 @@ namespace Storage.UnitTests.ReadModels
                 {
                     new EventStreamStateChangeEvent
                     {
+                        Id = "anid",
                         EntityType = nameof(String),
-                        Data = new TestEvent {EntityId = "aneventid"}.ToJson(),
-                        Version = 4,
+                        Data = EntityEvent.ToData(new TestEvent {EntityId = "aneventid"}),
+                        Version = 3,
                         Metadata = new EventMetadata("unknowntype")
                     }
-                })).Should().Throw<InvalidOperationException>();
+                })).Should().Throw<InvalidOperationException>()
+                .WithMessageLike(Storage.ReadModels.Properties.Resources.ReadModelProjector_UnexpectedError);
         }
 
         [TestMethod]
@@ -165,7 +168,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid1",
                     EntityType = nameof(String),
-                    Data = new TestEvent {EntityId = "aneventid1"}.ToJson(),
+                    Data = EntityEvent.ToData(new TestEvent {EntityId = "aneventid1"}),
                     Version = startingCheckpoint,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
@@ -173,7 +176,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid2",
                     EntityType = nameof(String),
-                    Data = new TestEvent {EntityId = "aneventid2"}.ToJson(),
+                    Data = EntityEvent.ToData(new TestEvent {EntityId = "aneventid2"}),
                     Version = startingCheckpoint + 1,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
@@ -181,7 +184,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid3",
                     EntityType = nameof(String),
-                    Data = new TestEvent {EntityId = "aneventid3"}.ToJson(),
+                    Data = EntityEvent.ToData(new TestEvent {EntityId = "aneventid3"}),
                     Version = startingCheckpoint + 2,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 }
@@ -212,7 +215,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid1",
                     EntityType = nameof(String),
-                    Data = new TestEvent {EntityId = "aneventid1"}.ToJson(),
+                    Data = EntityEvent.ToData(new TestEvent {EntityId = "aneventid1"}),
                     Version = 3,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
@@ -220,7 +223,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid2",
                     EntityType = nameof(String),
-                    Data = new TestEvent {EntityId = "aneventid2"}.ToJson(),
+                    Data = EntityEvent.ToData(new TestEvent {EntityId = "aneventid2"}),
                     Version = 4,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 },
@@ -228,7 +231,7 @@ namespace Storage.UnitTests.ReadModels
                 {
                     Id = "anid3",
                     EntityType = nameof(String),
-                    Data = new TestEvent {EntityId = "aneventid3"}.ToJson(),
+                    Data = EntityEvent.ToData(new TestEvent {EntityId = "aneventid3"}),
                     Version = 5,
                     Metadata = new EventMetadata(typeof(TestEvent).AssemblyQualifiedName)
                 }

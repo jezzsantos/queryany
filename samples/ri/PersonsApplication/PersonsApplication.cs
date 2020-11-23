@@ -56,8 +56,8 @@ namespace PersonsApplication
                 return Person.Anonymous;
             }
 
-            var person = this.storage.Load(id.ToIdentifier());
-            if (id == null)
+            var person = this.storage.GetPerson(id.ToIdentifier());
+            if (person == null)
             {
                 throw new ResourceNotFoundException();
             }
@@ -68,6 +68,14 @@ namespace PersonsApplication
 
     public static class PersonConversionExtensions
     {
+        public static Person ToPerson(this ReadModels.Person readModel)
+        {
+            var dto = readModel.ConvertTo<Person>();
+            dto.Name = new Application.Resources.PersonName
+                {FirstName = readModel.FirstName, LastName = readModel.LastName};
+            return dto;
+        }
+
         public static Person ToPerson(this PersonEntity entity)
         {
             var dto = entity.ConvertTo<Person>();

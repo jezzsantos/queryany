@@ -1,5 +1,4 @@
 ﻿using Api.Common;
-using CarsDomain;
 using Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -26,7 +25,7 @@ namespace CarsApi.UnitTests
         [TestMethod]
         public void WhenRegisterAllEntities_ThenAllEntitiesRegistered()
         {
-            this.domainFactory.RegisterDomainTypesFromAssemblies(typeof(CarEntity).Assembly);
+            this.domainFactory.RegisterDomainTypesFromAssemblies(ServiceHost.AssembliesContainingDomainEntities);
         }
     }
 }

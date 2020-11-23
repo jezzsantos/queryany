@@ -20,6 +20,7 @@
         <ProjectReference Include="..\PersonsStorage\PersonsStorage.csproj" />
         <ProjectReference Include="..\Api.Interfaces\Api.Interfaces.csproj" />
         <ProjectReference Include="..\Storage.Azure\Storage.Azure.csproj" />
+        <ProjectReference Include="..\Storage.ReadModels\Storage.ReadModels.csproj" />
     </ItemGroup>
 
     <ItemGroup>
