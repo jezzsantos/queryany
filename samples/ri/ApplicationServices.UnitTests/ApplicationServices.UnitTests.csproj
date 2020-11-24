@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <RootNamespace>Api.Common.UnitTests</RootNamespace>
+        <RootNamespace>ApplicationServices.UnitTests</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
@@ -16,13 +16,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Include="..\..\..\src\Common\FluentAssertionExtensions.cs">
-        <Link>FluentAssertionExtensions.cs</Link>
-      </Compile>
+        <ProjectReference Include="..\ApplicationServices\ApplicationServices.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Api.Common\Api.Common.csproj" />
+        <Compile Include="..\..\..\src\Common\FluentAssertionExtensions.cs">
+            <Link>FluentAssertionExtensions.cs</Link>
+        </Compile>
     </ItemGroup>
 
 </Project>

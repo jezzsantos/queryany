@@ -2,7 +2,7 @@
 using System.Linq;
 using Storage.Interfaces;
 
-namespace Storage.ReadModels
+namespace InfrastructureServices
 {
     internal static class EventStreamExtensions
     {

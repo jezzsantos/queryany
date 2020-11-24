@@ -8,7 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Storage.Properties {
+namespace InfrastructureServices.Properties {
+    using System;
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -36,7 +39,7 @@ namespace Storage.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Storage.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("InfrastructureServices.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -58,38 +61,11 @@ namespace Storage.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Entity has empty identifier.
+        ///   Looks up a localized string similar to The event stream {0} contains events with out of order versions..
         /// </summary>
-        internal static string GeneralCommandStorage_EntityMissingIdentifier {
+        internal static string EventStreamHandlerBase_OutOfOrderEvents {
             get {
-                return ResourceManager.GetString("GeneralCommandStorage_EntityMissingIdentifier", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not write new events to event stream: {0}, another process has updated the stream at the same time, since version {1}.
-        /// </summary>
-        internal static string GeneralEventStreamStorage_LoadConcurrencyConflictWritingEventStream {
-            get {
-                return ResourceManager.GetString("GeneralEventStreamStorage_LoadConcurrencyConflictWritingEventStream", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Handling of event stream failed. Error was: {0}.
-        /// </summary>
-        internal static string GeneralEventStreamStorage_SaveEventRelayFailed {
-            get {
-                return ResourceManager.GetString("GeneralEventStreamStorage_SaveEventRelayFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The aggregate does not have an Identifier.
-        /// </summary>
-        internal static string GeneralEventStreamStorage_SaveWithAggregateIdMissing {
-            get {
-                return ResourceManager.GetString("GeneralEventStreamStorage_SaveWithAggregateIdMissing", resourceCulture);
+                return ResourceManager.GetString("EventStreamHandlerBase_OutOfOrderEvents", resourceCulture);
             }
         }
     }

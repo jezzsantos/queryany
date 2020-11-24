@@ -6,43 +6,36 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Storage.Interfaces;
-using Storage.Interfaces.ReadModels;
-using Storage.ReadModels;
 
-namespace Storage.UnitTests.ReadModels
+namespace InfrastructureServices.UnitTests
 {
     [TestClass, TestCategory("Unit")]
-    public class ReadModelSubscriptionSpec
+    public class EventHandlerBaseSpec
     {
-        private Mock<IEventStreamStorage<TestAggregateRoot>> eventingStorage;
-        private Mock<ILogger> logger;
-        private Mock<IReadModelProjector> readModelStorage;
-        private InProcessReadModelSubscription subscription;
+        private Mock<Action<string, List<EventStreamStateChangeEvent>>> action;
+        private TestEventHandler handler;
 
         [TestInitialize]
         public void Initialize()
         {
-            this.logger = new Mock<ILogger>();
-            this.eventingStorage = new Mock<IEventStreamStorage<TestAggregateRoot>>();
-            this.readModelStorage = new Mock<IReadModelProjector>();
-            this.subscription = new InProcessReadModelSubscription(this.logger.Object, this.readModelStorage.Object,
-                this.eventingStorage.Object);
+            this.action = new Mock<Action<string, List<EventStreamStateChangeEvent>>>();
+            this.handler = new TestEventHandler(this.action);
         }
 
         [TestMethod]
         public void WhenEventStreamChangedEventRaisedAndNoEvents_ThenDoesNotWriteEvents()
         {
-            this.subscription.OnEventStreamStateChanged(null,
+            this.handler.OnEventStreamStateChanged(null,
                 new EventStreamStateChangedArgs(new List<EventStreamStateChangeEvent>()));
 
-            this.readModelStorage.Verify(
-                rms => rms.WriteEventStream("astreamname", It.IsAny<List<EventStreamStateChangeEvent>>()), Times.Never);
+            this.action.Verify(
+                rms => rms("astreamname", It.IsAny<List<EventStreamStateChangeEvent>>()), Times.Never);
         }
 
         [TestMethod]
         public void WhenEventStreamChangedEventRaisedAndFromDifferentStreams_ThenWritesBatchedEvents()
         {
-            this.subscription.OnEventStreamStateChanged(null,
+            this.handler.OnEventStreamStateChanged(null,
                 new EventStreamStateChangedArgs(new List<EventStreamStateChangeEvent>
                 {
                     new EventStreamStateChangeEvent
@@ -65,14 +58,14 @@ namespace Storage.UnitTests.ReadModels
                     }
                 }));
 
-            this.readModelStorage.Verify(
-                rms => rms.WriteEventStream("astreamname1", It.Is<List<EventStreamStateChangeEvent>>(batch =>
+            this.action.Verify(
+                rms => rms("astreamname1", It.Is<List<EventStreamStateChangeEvent>>(batch =>
                     batch.Count() == 2
                     && batch[0].Id == "aneventid3"
                     && batch[1].Id == "aneventid1"
                 )), Times.Once);
-            this.readModelStorage.Verify(
-                rms => rms.WriteEventStream("astreamname2", It.Is<List<EventStreamStateChangeEvent>>(batch =>
+            this.action.Verify(
+                rms => rms("astreamname2", It.Is<List<EventStreamStateChangeEvent>>(batch =>
                     batch.Count() == 1
                     && batch[0].Id == "aneventid2"
                 )), Times.Once);
@@ -81,11 +74,11 @@ namespace Storage.UnitTests.ReadModels
         [TestMethod]
         public void WhenEventStreamChangedEventRaisedAndFromDifferentStreamsAndWriteFails_ThenWritesRemainingBatches()
         {
-            this.readModelStorage.Setup(rms =>
-                    rms.WriteEventStream(It.IsAny<string>(), It.IsAny<List<EventStreamStateChangeEvent>>()))
+            this.action.Setup(rms =>
+                    rms(It.IsAny<string>(), It.IsAny<List<EventStreamStateChangeEvent>>()))
                 .Throws<Exception>();
 
-            this.subscription.OnEventStreamStateChanged(null,
+            this.handler.OnEventStreamStateChanged(null,
                 new EventStreamStateChangedArgs(new List<EventStreamStateChangeEvent>
                 {
                     new EventStreamStateChangeEvent
@@ -108,14 +101,14 @@ namespace Storage.UnitTests.ReadModels
                     }
                 }));
 
-            this.readModelStorage.Verify(
-                rms => rms.WriteEventStream("astreamname1", It.Is<List<EventStreamStateChangeEvent>>(batch =>
+            this.action.Verify(
+                rms => rms("astreamname1", It.Is<List<EventStreamStateChangeEvent>>(batch =>
                     batch.Count() == 2
                     && batch[0].Id == "aneventid3"
                     && batch[1].Id == "aneventid1"
                 )), Times.Once);
-            this.readModelStorage.Verify(
-                rms => rms.WriteEventStream("astreamname2", It.Is<List<EventStreamStateChangeEvent>>(batch =>
+            this.action.Verify(
+                rms => rms("astreamname2", It.Is<List<EventStreamStateChangeEvent>>(batch =>
                     batch.Count() == 1
                     && batch[0].Id == "aneventid2"
                 )), Times.Once);
@@ -124,7 +117,7 @@ namespace Storage.UnitTests.ReadModels
         [TestMethod]
         public void WhenEventStreamChangedEventRaisedAndEventsAreOutOfOrder_ThenThrows()
         {
-            this.subscription.OnEventStreamStateChanged(null,
+            this.handler.OnEventStreamStateChanged(null,
                 new EventStreamStateChangedArgs(new List<EventStreamStateChangeEvent>
                 {
                     new EventStreamStateChangeEvent
@@ -147,8 +140,24 @@ namespace Storage.UnitTests.ReadModels
                     }
                 }));
 
-            this.subscription.ProcessingErrors.Should().HaveCount(1);
-            this.subscription.ProcessingErrors[0].Exception.Should().BeOfType<InvalidOperationException>();
+            this.handler.ProcessingErrors.Should().HaveCount(1);
+            this.handler.ProcessingErrors[0].Exception.Should().BeOfType<InvalidOperationException>();
+        }
+    }
+
+    public class TestEventHandler : EventStreamHandlerBase
+    {
+        private readonly Mock<Action<string, List<EventStreamStateChangeEvent>>> mock;
+
+        public TestEventHandler(Mock<Action<string, List<EventStreamStateChangeEvent>>> mock) : base(Mock.Of<ILogger>(),
+            Mock.Of<IEventStreamStorage<TestAggregateRoot>>())
+        {
+            this.mock = mock;
+        }
+
+        protected override void HandleStreamEvents(string streamName, List<EventStreamStateChangeEvent> eventStream)
+        {
+            this.mock.Object(streamName, eventStream);
         }
     }
 }

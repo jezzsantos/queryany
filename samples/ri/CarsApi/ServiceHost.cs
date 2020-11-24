@@ -10,9 +10,9 @@ using CarsStorage;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Funq;
+using InfrastructureServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ServiceClients;
 using ServiceStack;
 using ServiceStack.Configuration;
 using ServiceStack.Validation;
@@ -33,7 +33,7 @@ namespace CarsApi
             typeof(CarEntity).Assembly
         };
         private static IRepository repository;
-        private IReadModelSubscription readModelSubscription;
+        private IReadModelProjectionSubscription readModelProjectionSubscription;
 
         public ServiceHost() : base("MyCarsApi", AssembliesContainingServicesAndDependencies)
         {
@@ -72,7 +72,7 @@ namespace CarsApi
             container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
             container.AddSingleton<IPersonsService>(c =>
                 new PersonsServiceClient(c.Resolve<IAppSettings>().GetString("PersonsApiBaseUrl")));
-            container.AddSingleton<IReadModelSubscription>(c => new InProcessReadModelSubscription(
+            container.AddSingleton<IReadModelProjectionSubscription>(c => new InProcessReadModelProjectionSubscription(
                 c.Resolve<ILogger>(),
                 new ReadModelProjector(c.Resolve<ILogger>(),
                     new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
@@ -81,6 +81,17 @@ namespace CarsApi
                     c.Resolve<IChangeEventMigrator>(),
                     new CarEntityReadModelProjection(c.Resolve<ILogger>(), ResolveRepository(c))),
                 c.Resolve<IEventStreamStorage<CarEntity>>()));
+            container.AddSingleton<IChangeEventNotificationSubscription>(c =>
+                new InProcessChangeEventNotificationSubscription(
+                    c.Resolve<ILogger>(),
+                    new DomainEventNotificationProducer(c.Resolve<ILogger>(), c.Resolve<IChangeEventMigrator>(),
+<<<<<<< ff1f115c57ea8ce9850b2683edf1fa7e1eef2dea
+                        DomainEventPublisherSubscriberPair.None),
+=======
+                        new DomainEventPublisherSubscriberPair(new PersonDomainEventPublisher(),
+                            new GeneralDomainEventSubscriber(c.Resolve<ICarsApplication>()))),
+>>>>>>> fixed
+                    c.Resolve<IEventStreamStorage<CarEntity>>()));
         }
 
         private void RegisterValidators(Container container)
@@ -95,14 +106,14 @@ namespace CarsApi
         {
             base.OnAfterInit();
 
-            this.readModelSubscription = Container.Resolve<IReadModelSubscription>();
-            this.readModelSubscription.Start();
+            this.readModelProjectionSubscription = Container.Resolve<IReadModelProjectionSubscription>();
+            this.readModelProjectionSubscription.Start();
         }
 
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            (this.readModelSubscription as IDisposable)?.Dispose();
+            (this.readModelProjectionSubscription as IDisposable)?.Dispose();
         }
     }
 }

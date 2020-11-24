@@ -1,33 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using InfrastructureServices.Properties;
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using Storage.Interfaces;
-using Storage.Interfaces.ReadModels;
 
-namespace Storage.ReadModels
+namespace InfrastructureServices
 {
-    /// <summary>
-    ///     Defines a subscription that connects directly to one or more <see cref="IEventPublishingStorage" /> instances, to
-    ///     receive events.
-    /// </summary>
-    public class InProcessReadModelSubscription : IReadModelSubscription, IDisposable
+    public abstract class EventStreamHandlerBase : IDisposable
     {
-        private readonly IEventPublishingStorage[] eventingStorages;
+        private readonly IEventNotifyingStorage[] eventingStorages;
         private readonly ILogger logger;
-        private readonly IReadModelProjector projector;
         private bool isStarted;
 
-        public InProcessReadModelSubscription(ILogger logger, IReadModelProjector readModelProjector,
-            params IEventPublishingStorage[] eventingStorages)
+        protected EventStreamHandlerBase(ILogger logger, params IEventNotifyingStorage[] eventingStorages)
         {
             logger.GuardAgainstNull(nameof(logger));
-            readModelProjector.GuardAgainstNull(nameof(readModelProjector));
             eventingStorages.GuardAgainstNull(nameof(eventingStorages));
 
             this.logger = logger;
-            this.projector = readModelProjector;
             this.eventingStorages = eventingStorages;
             ProcessingErrors = new List<EventProcessingError>();
         }
@@ -58,7 +50,7 @@ namespace Storage.ReadModels
             }
         }
 
-        internal void OnEventStreamStateChanged(object sender, EventStreamStateChangedArgs args)
+        protected internal void OnEventStreamStateChanged(object sender, EventStreamStateChangedArgs args)
         {
             var allEvents = args.Events;
             if (!allEvents.Any())
@@ -80,11 +72,12 @@ namespace Storage.ReadModels
                     try
                     {
                         EnsureContiguousVersions(streamName, eventStream);
-                        this.projector.WriteEventStream(streamName, eventStream);
+                        HandleStreamEvents(streamName, eventStream);
                     }
                     catch (Exception ex)
                     {
-                        ProcessingErrors.Add(new EventProcessingError(ex, streamName));
+                        ProcessingErrors.Add(
+                            new EventProcessingError(ex, streamName));
 
                         //Continue onto next stream
                     }
@@ -92,12 +85,14 @@ namespace Storage.ReadModels
             });
         }
 
+        protected abstract void HandleStreamEvents(string streamName, List<EventStreamStateChangeEvent> eventStream);
+
         private static void EnsureContiguousVersions(string streamName, List<EventStreamStateChangeEvent> eventStream)
         {
             if (!eventStream.HasContiguousVersions())
             {
                 throw new InvalidOperationException(
-                    $"The event stream {streamName} contains events with out of order versions.");
+                    Resources.EventStreamHandlerBase_OutOfOrderEvents.Format(streamName));
             }
         }
 

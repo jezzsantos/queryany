@@ -9,6 +9,7 @@ using CarsStorage;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
+using InfrastructureServices;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
@@ -59,7 +60,7 @@ namespace CarsApi.IntegrationTests
             container.AddSingleton(carEventingStorage);
             container.AddSingleton<ICarStorage>(c =>
                 new CarStorage(carQueryStorage, carEventingStorage, unavailabilityQueryStorage));
-            container.AddSingleton<IReadModelSubscription>(c => new InProcessReadModelSubscription(
+            container.AddSingleton<IReadModelProjectionSubscription>(c => new InProcessReadModelProjectionSubscription(
                 c.Resolve<ILogger>(),
                 new ReadModelProjector(c.Resolve<ILogger>(),
                     new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),

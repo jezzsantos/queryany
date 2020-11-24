@@ -103,7 +103,7 @@ namespace Domain.Interfaces.UnitTests
             this.aggregate.Events[0].Should().BeOfType<TestAggregateRoot.CreateEvent>();
             this.aggregate.Events[1].Should().BeEquivalentTo(new TestAggregateRoot.ChangeEvent
                 {APropertyName = "achangedvalue"});
-            this.aggregate.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
+            this.aggregate.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, 50);
         }
 
         [TestMethod]

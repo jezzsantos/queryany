@@ -16,6 +16,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Api.Common\Api.Common.csproj" />
+        <ProjectReference Include="..\InfrastructureServices\InfrastructureServices.csproj" />
         <ProjectReference Include="..\PersonsApplication\PersonsApplication.csproj" />
         <ProjectReference Include="..\PersonsStorage\PersonsStorage.csproj" />
         <ProjectReference Include="..\Api.Interfaces\Api.Interfaces.csproj" />

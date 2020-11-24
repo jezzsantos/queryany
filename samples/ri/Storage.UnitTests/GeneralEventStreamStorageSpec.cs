@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using QueryAny;
 using Storage.Interfaces;
+using Storage.Properties;
 using Storage.UnitTests.ReadModels;
 
 namespace Storage.UnitTests

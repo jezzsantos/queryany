@@ -2,17 +2,19 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <RootNamespace>ApplicationServices</RootNamespace>
+        <RootNamespace>InfrastructureServices</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="ServiceStack.Client" Version="5.8.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\Application.Common\Application.Common.csproj" />
+      <ProjectReference Include="..\Api.Interfaces\Api.Interfaces.csproj" />
+<<<<<<< ff1f115c57ea8ce9850b2683edf1fa7e1eef2dea
+      <ProjectReference Include="..\ApplicationServices\ApplicationServices.csproj" />
       <ProjectReference Include="..\Storage.Interfaces\Storage.Interfaces.csproj" />
+=======
+      <ProjectReference Include="..\CarsApplication\CarsApplication.csproj" />
+      <ProjectReference Include="..\PersonsDomain\PersonsDomain.csproj" />
+>>>>>>> unused reference
     </ItemGroup>
 
     <ItemGroup>

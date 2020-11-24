@@ -8,7 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Storage.Properties {
+namespace ApplicationServices.Properties {
+    using System;
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -36,7 +39,7 @@ namespace Storage.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Storage.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ApplicationServices.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -58,38 +61,38 @@ namespace Storage.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Entity has empty identifier.
+        ///   Looks up a localized string similar to The publisher &apos;{0}&apos; did not handle the event &apos;{1}&apos; with event type &apos;{2}&apos;. Aborting notifications.
         /// </summary>
-        internal static string GeneralCommandStorage_EntityMissingIdentifier {
+        internal static string DomainEventNotificationProducer_PublisherError {
             get {
-                return ResourceManager.GetString("GeneralCommandStorage_EntityMissingIdentifier", resourceCulture);
+                return ResourceManager.GetString("DomainEventNotificationProducer_PublisherError", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not write new events to event stream: {0}, another process has updated the stream at the same time, since version {1}.
+        ///   Looks up a localized string similar to No publisher/subscriber pair is configured for entity type &apos;{0}&apos;. Aborting.
         /// </summary>
-        internal static string GeneralEventStreamStorage_LoadConcurrencyConflictWritingEventStream {
+        internal static string DomainEventNotificationProducer_PublisherSubscriberPairNotConfigured {
             get {
-                return ResourceManager.GetString("GeneralEventStreamStorage_LoadConcurrencyConflictWritingEventStream", resourceCulture);
+                return ResourceManager.GetString("DomainEventNotificationProducer_PublisherSubscriberPairNotConfigured", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Handling of event stream failed. Error was: {0}.
+        ///   Looks up a localized string similar to The subscriber &apos;{0}&apos; did not handle the event &apos;{1}&apos; with event type &apos;{2}&apos;. Aborting notifications.
         /// </summary>
-        internal static string GeneralEventStreamStorage_SaveEventRelayFailed {
+        internal static string DomainEventNotificationProducer_SubscriberError {
             get {
-                return ResourceManager.GetString("GeneralEventStreamStorage_SaveEventRelayFailed", resourceCulture);
+                return ResourceManager.GetString("DomainEventNotificationProducer_SubscriberError", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The aggregate does not have an Identifier.
+        ///   Looks up a localized string similar to Unexpected error notifying events. Aborting notifications.
         /// </summary>
-        internal static string GeneralEventStreamStorage_SaveWithAggregateIdMissing {
+        internal static string DomainEventNotificationProducer_UnexpectedError {
             get {
-                return ResourceManager.GetString("GeneralEventStreamStorage_SaveWithAggregateIdMissing", resourceCulture);
+                return ResourceManager.GetString("DomainEventNotificationProducer_UnexpectedError", resourceCulture);
             }
         }
     }

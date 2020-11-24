@@ -7,6 +7,7 @@ using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using DomainServices;
 using Funq;
+using InfrastructureServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using PersonsApplication;
@@ -71,6 +72,21 @@ namespace PersonsApi
                     ResolveRepository(c)));
             container.AddSingleton<IPersonsApplication, PersonsApplication.PersonsApplication>();
             container.AddSingleton<IEmailService, EmailService>();
+            container.AddSingleton<IReadModelProjectionSubscription>(c => new InProcessReadModelProjectionSubscription(
+                c.Resolve<ILogger>(),
+                new ReadModelProjector(c.Resolve<ILogger>(),
+                    new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
+                        c.Resolve<IDomainFactory>(),
+                        ResolveRepository(c)),
+                    c.Resolve<IChangeEventMigrator>(),
+                    new PersonEntityReadModelProjection(c.Resolve<ILogger>(), ResolveRepository(c))),
+                c.Resolve<IEventStreamStorage<PersonEntity>>()));
+            container.AddSingleton<IChangeEventNotificationSubscription>(c =>
+                new InProcessChangeEventNotificationSubscription(
+                    c.Resolve<ILogger>(),
+                    new DomainEventNotificationProducer(c.Resolve<ILogger>(), c.Resolve<IChangeEventMigrator>(),
+                        DomainEventPublisherSubscriberPair.None),
+                    c.Resolve<IEventStreamStorage<PersonEntity>>()));
         }
 
         private void RegisterValidators(Container container)
@@ -79,6 +95,20 @@ namespace PersonsApi
             container.RegisterValidators(AssembliesContainingServicesAndDependencies);
             container.AddSingleton<IHasSearchOptionsValidator, HasSearchOptionsValidator>();
             container.AddSingleton<IHasGetOptionsValidator, HasGetOptionsValidator>();
+        }
+
+        public override void OnAfterInit()
+        {
+            base.OnAfterInit();
+
+            this.readModelProjectionSubscription = Container.Resolve<IReadModelProjectionSubscription>();
+            this.readModelProjectionSubscription.Start();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            (this.readModelProjectionSubscription as IDisposable)?.Dispose();
         }
     }
 }
