@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using Domain.Interfaces.Properties;
 
 namespace Domain.Interfaces
 {
@@ -7,7 +8,7 @@ namespace Domain.Interfaces
     public class ResourceConflictException : Exception
     {
         public ResourceConflictException()
-            : base(Properties.Resources.ResourceConflictException_Message)
+            : base(Resources.ResourceConflictException_Message)
         {
         }
 

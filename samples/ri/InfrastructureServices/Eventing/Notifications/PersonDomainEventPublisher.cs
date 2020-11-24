@@ -3,7 +3,7 @@ using ApplicationServices;
 using Domain.Interfaces.Entities;
 using PersonsDomain;
 
-namespace InfrastructureServices
+namespace InfrastructureServices.Eventing.Notifications
 {
     public class PersonDomainEventPublisher : IDomainEventPublisher
     {

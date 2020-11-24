@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using Storage.Interfaces;
 
-namespace InfrastructureServices
+namespace InfrastructureServices.Eventing.Notifications
 {
     /// <summary>
     ///     A general purpose event relay for relaying events to a collection of registered

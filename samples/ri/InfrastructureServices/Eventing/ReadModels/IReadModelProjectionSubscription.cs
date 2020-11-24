@@ -1,4 +1,4 @@
-﻿namespace InfrastructureServices
+﻿namespace InfrastructureServices.Eventing.ReadModels
 {
     public interface IReadModelProjectionSubscription
     {

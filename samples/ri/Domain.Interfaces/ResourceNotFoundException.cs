@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using Domain.Interfaces.Properties;
 
 namespace Domain.Interfaces
 {
@@ -7,7 +8,7 @@ namespace Domain.Interfaces
     public class ResourceNotFoundException : Exception
     {
         public ResourceNotFoundException()
-            : base(Properties.Resources.ResourceNotFoundException_Message)
+            : base(Resources.ResourceNotFoundException_Message)
         {
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ApplicationServices;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
+using InfrastructureServices.Eventing.Notifications;
 using InfrastructureServices.Properties;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

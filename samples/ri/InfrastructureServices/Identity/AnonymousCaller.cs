@@ -1,6 +1,6 @@
 ﻿using Domain.Interfaces;
 
-namespace InfrastructureServices.Auth
+namespace InfrastructureServices.Identity
 {
     public class AnonymousCaller : ICurrentCaller
     {

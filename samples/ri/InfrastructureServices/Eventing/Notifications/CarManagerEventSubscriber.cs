@@ -1,17 +1,17 @@
 ﻿using ApplicationServices;
 using CarsApplication;
 using Domain.Interfaces.Entities;
-using InfrastructureServices.Auth;
+using InfrastructureServices.Identity;
 using PersonsDomain;
 using QueryAny.Primitives;
 
-namespace InfrastructureServices
+namespace InfrastructureServices.Eventing.Notifications
 {
-    public class GeneralDomainEventSubscriber : IDomainEventSubscriber
+    public class CarManagerEventSubscriber : IDomainEventSubscriber
     {
         private readonly ICarsApplication carsApplication;
 
-        public GeneralDomainEventSubscriber(ICarsApplication carsApplication)
+        public CarManagerEventSubscriber(ICarsApplication carsApplication)
         {
             carsApplication.GuardAgainstNull(nameof(carsApplication));
             this.carsApplication = carsApplication;

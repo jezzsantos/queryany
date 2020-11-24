@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using Domain.Interfaces.Properties;
 
 namespace Domain.Interfaces
 {
@@ -13,7 +14,7 @@ namespace Domain.Interfaces
         ///     Creates a new instance of the <see cref="RoleViolationException" /> class.
         /// </summary>
         public RoleViolationException()
-            : base(Properties.Resources.RoleViolationException_Message)
+            : base(Resources.RoleViolationException_Message)
         {
         }
 

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using Storage.Interfaces;
 
-namespace InfrastructureServices
+namespace InfrastructureServices.Eventing
 {
     public abstract class EventStreamHandlerBase : IDisposable
     {

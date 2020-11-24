@@ -1,7 +1,7 @@
 using Api.Interfaces.ServiceOperations;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using InfrastructureServices;
+using InfrastructureServices.Eventing.ReadModels;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;

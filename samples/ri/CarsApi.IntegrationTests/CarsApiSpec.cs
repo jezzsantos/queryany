@@ -9,7 +9,7 @@ using CarsStorage;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using InfrastructureServices;
+using InfrastructureServices.Eventing.ReadModels;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;

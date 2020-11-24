@@ -4,7 +4,7 @@ using ApplicationServices;
 using QueryAny.Primitives;
 using ServiceStack;
 
-namespace InfrastructureServices
+namespace InfrastructureServices.ApplicationServices
 {
     public class PersonsServiceClient : IPersonsService
     {

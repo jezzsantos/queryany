@@ -1,4 +1,4 @@
-﻿namespace InfrastructureServices
+﻿namespace InfrastructureServices.Eventing.Notifications
 {
     public interface IChangeEventNotificationSubscription
     {

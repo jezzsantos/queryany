@@ -2,7 +2,7 @@
 using System.Linq;
 using Storage.Interfaces;
 
-namespace InfrastructureServices
+namespace InfrastructureServices.Eventing
 {
     internal static class EventStreamExtensions
     {

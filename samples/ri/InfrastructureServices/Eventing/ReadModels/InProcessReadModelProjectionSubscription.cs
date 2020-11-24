@@ -4,7 +4,7 @@ using QueryAny.Primitives;
 using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;
 
-namespace InfrastructureServices
+namespace InfrastructureServices.Eventing.ReadModels
 {
     /// <summary>
     ///     Defines a subscription that connects directly to one or more <see cref="IEventStreamStorage{TAggregateRoot}" />

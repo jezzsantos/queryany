@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using Storage.Interfaces;
 
-namespace InfrastructureServices
+namespace InfrastructureServices.Eventing.Notifications
 {
     /// <summary>
     ///     Defines a subscription that connects directly to one or more <see cref="IEventStreamStorage{TAggregateRoot}" />

@@ -8,6 +8,7 @@ using Moq;
 using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;
 using Storage.ReadModels;
+using Storage.ReadModels.Properties;
 
 namespace Storage.UnitTests.ReadModels
 {
@@ -60,7 +61,7 @@ namespace Storage.UnitTests.ReadModels
                         EntityType = "atypename"
                     }
                 })).Should().Throw<InvalidOperationException>()
-                .WithMessageLike(Storage.ReadModels.Properties.Resources.ReadModelProjector_UnexpectedError);
+                .WithMessageLike(Resources.ReadModelProjector_UnexpectedError);
 
             this.checkpointStore.Verify(cs => cs.LoadCheckpoint(It.IsAny<string>()), Times.Never);
             this.projection.Verify(prj => prj.Project(It.IsAny<IChangeEvent>()), Times.Never);
@@ -84,7 +85,7 @@ namespace Storage.UnitTests.ReadModels
                         Version = 6
                     }
                 })).Should().Throw<InvalidOperationException>()
-                .WithMessageLike(Storage.ReadModels.Properties.Resources.ReadModelProjector_UnexpectedError);
+                .WithMessageLike(Resources.ReadModelProjector_UnexpectedError);
         }
 
         [TestMethod]
@@ -152,7 +153,7 @@ namespace Storage.UnitTests.ReadModels
                         Metadata = new EventMetadata("unknowntype")
                     }
                 })).Should().Throw<InvalidOperationException>()
-                .WithMessageLike(Storage.ReadModels.Properties.Resources.ReadModelProjector_UnexpectedError);
+                .WithMessageLike(Resources.ReadModelProjector_UnexpectedError);
         }
 
         [TestMethod]

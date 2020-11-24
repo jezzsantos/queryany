@@ -8,7 +8,7 @@ namespace Domain.Interfaces.Entities
     {
         IPersistableAggregateRoot RehydrateAggregateRoot(Type entityType,
             IReadOnlyDictionary<string, object> rehydratingPropertyValues);
-        
+
         IPersistableEntity RehydrateEntity(Type entityType,
             IReadOnlyDictionary<string, object> rehydratingPropertyValues);
 

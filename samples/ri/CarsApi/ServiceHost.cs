@@ -10,7 +10,9 @@ using CarsStorage;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Funq;
-using InfrastructureServices;
+using InfrastructureServices.ApplicationServices;
+using InfrastructureServices.Eventing.Notifications;
+using InfrastructureServices.Eventing.ReadModels;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ServiceStack;
@@ -86,7 +88,7 @@ namespace CarsApi
                     c.Resolve<ILogger>(),
                     new DomainEventNotificationProducer(c.Resolve<ILogger>(), c.Resolve<IChangeEventMigrator>(),
                         new DomainEventPublisherSubscriberPair(new PersonDomainEventPublisher(),
-                            new GeneralDomainEventSubscriber(c.Resolve<ICarsApplication>()))),
+                            new CarManagerEventSubscriber(c.Resolve<ICarsApplication>()))),
                     c.Resolve<IEventStreamStorage<CarEntity>>()));
         }
 
