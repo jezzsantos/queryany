@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ApplicationServices.Properties;
+using ApplicationServices;
 using Domain.Interfaces.Entities;
+using InfrastructureServices.Properties;
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
 using Storage.Interfaces;
 
-namespace ApplicationServices
+namespace InfrastructureServices
 {
     /// <summary>
     ///     A general purpose event relay for relaying events to a collection of registered

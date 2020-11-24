@@ -19,4 +19,10 @@
       <ProjectReference Include="..\InfrastructureServices\InfrastructureServices.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Include="..\..\..\src\Common\FluentAssertionExtensions.cs">
+        <Link>FluentAssertionExtensions.cs</Link>
+      </Compile>
+    </ItemGroup>
+
 </Project>

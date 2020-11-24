@@ -1,5 +1,5 @@
-﻿using Api.Common.Auth;
-using Domain.Interfaces;
+﻿using Domain.Interfaces;
+using InfrastructureServices.Auth;
 using ServiceStack.Web;
 
 namespace Api.Common

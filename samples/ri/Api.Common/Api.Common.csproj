@@ -8,6 +8,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Api.Interfaces\Api.Interfaces.csproj" />
       <ProjectReference Include="..\Domain.Interfaces\Domain.Interfaces.csproj" />
+      <ProjectReference Include="..\InfrastructureServices\InfrastructureServices.csproj" />
     </ItemGroup>
 
     <ItemGroup>

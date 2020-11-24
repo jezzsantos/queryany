@@ -59,41 +59,5 @@ namespace ApplicationServices.Properties {
                 resourceCulture = value;
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The publisher &apos;{0}&apos; did not handle the event &apos;{1}&apos; with event type &apos;{2}&apos;. Aborting notifications.
-        /// </summary>
-        internal static string DomainEventNotificationProducer_PublisherError {
-            get {
-                return ResourceManager.GetString("DomainEventNotificationProducer_PublisherError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No publisher/subscriber pair is configured for entity type &apos;{0}&apos;. Aborting.
-        /// </summary>
-        internal static string DomainEventNotificationProducer_PublisherSubscriberPairNotConfigured {
-            get {
-                return ResourceManager.GetString("DomainEventNotificationProducer_PublisherSubscriberPairNotConfigured", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The subscriber &apos;{0}&apos; did not handle the event &apos;{1}&apos; with event type &apos;{2}&apos;. Aborting notifications.
-        /// </summary>
-        internal static string DomainEventNotificationProducer_SubscriberError {
-            get {
-                return ResourceManager.GetString("DomainEventNotificationProducer_SubscriberError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unexpected error notifying events. Aborting notifications.
-        /// </summary>
-        internal static string DomainEventNotificationProducer_UnexpectedError {
-            get {
-                return ResourceManager.GetString("DomainEventNotificationProducer_UnexpectedError", resourceCulture);
-            }
-        }
     }
 }

@@ -85,12 +85,8 @@ namespace CarsApi
                 new InProcessChangeEventNotificationSubscription(
                     c.Resolve<ILogger>(),
                     new DomainEventNotificationProducer(c.Resolve<ILogger>(), c.Resolve<IChangeEventMigrator>(),
-<<<<<<< ff1f115c57ea8ce9850b2683edf1fa7e1eef2dea
-                        DomainEventPublisherSubscriberPair.None),
-=======
                         new DomainEventPublisherSubscriberPair(new PersonDomainEventPublisher(),
                             new GeneralDomainEventSubscriber(c.Resolve<ICarsApplication>()))),
->>>>>>> fixed
                     c.Resolve<IEventStreamStorage<CarEntity>>()));
         }
 

@@ -108,6 +108,13 @@ namespace CarsApplication
                 .ConvertAll(c => WithGetOptions(c.ToCar(), getOptions)));
         }
 
+        public void UpdateManagerEmail(ICurrentCaller caller, string managerId, string email)
+        {
+            caller.GuardAgainstNull(nameof(caller));
+
+            //TODO: find the cars that have this manager, and update them, then raise email notification
+        }
+
         // ReSharper disable once UnusedParameter.Local
         private static Car WithGetOptions(Car car, GetOptions options)
         {

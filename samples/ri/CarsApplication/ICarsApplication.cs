@@ -14,5 +14,7 @@ namespace CarsApplication
         Car Offline(ICurrentCaller caller, string id, DateTime fromUtc, DateTime toUtc);
 
         Car Register(ICurrentCaller caller, string id, string jurisdiction, string number);
+
+        void UpdateManagerEmail(ICurrentCaller caller, string managerId, string email);
     }
 }

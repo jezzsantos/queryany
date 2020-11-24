@@ -8,13 +8,11 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Api.Interfaces\Api.Interfaces.csproj" />
-<<<<<<< ff1f115c57ea8ce9850b2683edf1fa7e1eef2dea
       <ProjectReference Include="..\ApplicationServices\ApplicationServices.csproj" />
-      <ProjectReference Include="..\Storage.Interfaces\Storage.Interfaces.csproj" />
-=======
       <ProjectReference Include="..\CarsApplication\CarsApplication.csproj" />
       <ProjectReference Include="..\PersonsDomain\PersonsDomain.csproj" />
->>>>>>> unused reference
+      <ProjectReference Include="..\Storage.Interfaces\Storage.Interfaces.csproj" />
+      <ProjectReference Include="..\CarsApplication\CarsApplication.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using ApplicationServices.Properties;
+using ApplicationServices;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
+using InfrastructureServices.Properties;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Storage.Interfaces;
 
-namespace ApplicationServices.UnitTests
+namespace InfrastructureServices.UnitTests
 {
     [TestClass, TestCategory("Unit")]
     public class DomainEventNotificationProducerSpec

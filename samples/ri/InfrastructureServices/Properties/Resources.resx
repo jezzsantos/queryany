@@ -21,4 +21,16 @@
     <data name="EventStreamHandlerBase_OutOfOrderEvents" xml:space="preserve">
         <value>The event stream {0} contains events with out of order versions.</value>
     </data>
+    <data name="DomainEventNotificationProducer_PublisherError" xml:space="preserve">
+        <value>The publisher '{0}' did not handle the event '{1}' with event type '{2}'. Aborting notifications</value>
+    </data>
+    <data name="DomainEventNotificationProducer_SubscriberError" xml:space="preserve">
+        <value>The subscriber '{0}' did not handle the event '{1}' with event type '{2}'. Aborting notifications</value>
+    </data>
+    <data name="DomainEventNotificationProducer_PublisherSubscriberPairNotConfigured" xml:space="preserve">
+        <value>No publisher/subscriber pair is configured for entity type '{0}'. Aborting</value>
+    </data>
+    <data name="DomainEventNotificationProducer_UnexpectedError" xml:space="preserve">
+        <value>Unexpected error notifying events. Aborting notifications</value>
+    </data>
 </root>

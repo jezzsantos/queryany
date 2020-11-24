@@ -18,16 +18,4 @@
     <resheader name="writer">
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
-    <data name="DomainEventNotificationProducer_PublisherError" xml:space="preserve">
-        <value>The publisher '{0}' did not handle the event '{1}' with event type '{2}'. Aborting notifications</value>
-    </data>    
-    <data name="DomainEventNotificationProducer_SubscriberError" xml:space="preserve">
-        <value>The subscriber '{0}' did not handle the event '{1}' with event type '{2}'. Aborting notifications</value>
-    </data>
-    <data name="DomainEventNotificationProducer_PublisherSubscriberPairNotConfigured" xml:space="preserve">
-        <value>No publisher/subscriber pair is configured for entity type '{0}'. Aborting</value>
-    </data>
-    <data name="DomainEventNotificationProducer_UnexpectedError" xml:space="preserve">
-        <value>Unexpected error notifying events. Aborting notifications</value>
-    </data>
 </root>

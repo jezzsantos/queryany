@@ -1,6 +1,6 @@
 ﻿using Domain.Interfaces;
 
-namespace Api.Common.Auth
+namespace InfrastructureServices.Auth
 {
     public class AnonymousCaller : ICurrentCaller
     {

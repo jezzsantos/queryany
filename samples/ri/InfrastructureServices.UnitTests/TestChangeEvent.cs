@@ -1,7 +1,7 @@
 ﻿using System;
 using Domain.Interfaces.Entities;
 
-namespace ApplicationServices.UnitTests
+namespace InfrastructureServices.UnitTests
 {
     public class TestChangeEvent : IChangeEvent
     {
