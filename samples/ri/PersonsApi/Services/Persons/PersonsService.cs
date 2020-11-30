@@ -1,6 +1,6 @@
 ﻿using Api.Common;
 using Api.Interfaces;
-using Api.Interfaces.ServiceOperations;
+using Api.Interfaces.ServiceOperations.Persons;
 using PersonsApplication;
 using QueryAny.Primitives;
 using ServiceStack;

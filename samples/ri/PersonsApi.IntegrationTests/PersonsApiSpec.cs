@@ -1,20 +1,13 @@
-using Api.Interfaces.ServiceOperations;
-using Domain.Interfaces.Entities;
+using Api.Interfaces.ServiceOperations.Persons;
 using FluentAssertions;
-using InfrastructureServices.Eventing.ReadModels;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PersonsApplication.ReadModels;
-using PersonsApplication.Storage;
 using PersonsDomain;
-using PersonsStorage;
 using ServiceStack;
-using Storage;
 using Storage.Interfaces;
-using Storage.ReadModels;
-using IRepository = Storage.IRepository;
 
 namespace PersonsApi.IntegrationTests
 {
@@ -23,45 +16,23 @@ namespace PersonsApi.IntegrationTests
     {
         private const string ServiceUrl = "http://localhost:2000/";
         private static IWebHost webHost;
-        private static IEventStreamStorage<PersonEntity> eventingStorage;
-        private static IQueryStorage<Person> queryStorage;
-        private static IRepository repository;
+        private static IEventStreamStorage<PersonEntity> personEventingStorage;
+        private static IQueryStorage<Person> personQueryStorage;
 
         [ClassInitialize]
         public static void InitializeAllTests(TestContext context)
         {
             webHost = WebHost.CreateDefaultBuilder(null)
-                .UseModularStartup<Startup>()
+                .UseModularStartup<TestStartup>()
                 .UseUrls(ServiceUrl)
                 .UseKestrel()
                 .ConfigureLogging((ctx, builder) => builder.AddConsole())
                 .Build();
             webHost.Start();
 
-            // Override services for testing
             var container = HostContext.Container;
-            repository = new InProcessInMemRepository();
-
-            queryStorage = new GeneralQueryStorage<Person>(container.Resolve<ILogger>(),
-                container.Resolve<IDomainFactory>(), repository);
-            eventingStorage = new GeneralEventStreamStorage<PersonEntity>(container.Resolve<ILogger>(),
-                container.Resolve<IDomainFactory>(),
-                container.Resolve<IChangeEventMigrator>(), repository);
-
-            container.AddSingleton(eventingStorage);
-            container.AddSingleton<IPersonStorage>(c =>
-                new PersonStorage(eventingStorage, queryStorage));
-            container.AddSingleton<IReadModelProjectionSubscription>(c => new InProcessReadModelProjectionSubscription(
-                c.Resolve<ILogger>(),
-                new ReadModelProjector(c.Resolve<ILogger>(),
-                    new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
-                        c.Resolve<IDomainFactory>(), repository),
-                    c.Resolve<IChangeEventMigrator>(),
-                    new PersonEntityReadModelProjection(c.Resolve<ILogger>(), repository)),
-                c.Resolve<IEventStreamStorage<PersonEntity>>()));
-
-            //HACK: subscribe again (see: https://forums.servicestack.net/t/integration-testing-and-overriding-registered-services/8875/5)
-            HostContext.AppHost.OnAfterInit();
+            personQueryStorage = container.Resolve<IQueryStorage<Person>>();
+            personEventingStorage = container.Resolve<IEventStreamStorage<PersonEntity>>();
         }
 
         [ClassCleanup]
@@ -73,8 +44,8 @@ namespace PersonsApi.IntegrationTests
         [TestInitialize]
         public void Initialize()
         {
-            eventingStorage.DestroyAll();
-            queryStorage.DestroyAll();
+            personEventingStorage.DestroyAll();
+            personQueryStorage.DestroyAll();
         }
 
         [TestMethod]

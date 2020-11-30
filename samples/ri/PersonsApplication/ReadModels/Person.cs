@@ -1,8 +1,10 @@
-﻿using Storage.Interfaces;
+﻿using QueryAny;
+using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;
 
 namespace PersonsApplication.ReadModels
 {
+    [EntityName("Person")]
     public class Person : IReadModelEntity, IHasIdentity
     {
         public string FirstName { get; set; }

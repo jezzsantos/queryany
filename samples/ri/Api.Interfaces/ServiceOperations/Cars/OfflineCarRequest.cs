@@ -1,10 +1,10 @@
 ﻿using System;
 using ServiceStack;
 
-namespace Api.Interfaces.ServiceOperations
+namespace Api.Interfaces.ServiceOperations.Cars
 {
     [Route("/cars/{Id}/offline", "PUT")]
-    public class OfflineCarRequest : IReturn<OfflineCarResponse>, IPut
+    public class OfflineCarRequest : PutOperation<OfflineCarResponse>
     {
         public string Id { get; set; }
 

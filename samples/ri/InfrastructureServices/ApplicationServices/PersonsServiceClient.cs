@@ -1,4 +1,4 @@
-﻿using Api.Interfaces.ServiceOperations;
+﻿using Api.Interfaces.ServiceOperations.Persons;
 using Application.Resources;
 using ApplicationServices;
 using QueryAny.Primitives;

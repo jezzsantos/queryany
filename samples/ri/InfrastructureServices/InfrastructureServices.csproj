@@ -13,6 +13,8 @@
       <ProjectReference Include="..\PersonsDomain\PersonsDomain.csproj" />
       <ProjectReference Include="..\Storage.Interfaces\Storage.Interfaces.csproj" />
       <ProjectReference Include="..\CarsApplication\CarsApplication.csproj" />
+      <ProjectReference Include="..\Storage.ReadModels\Storage.ReadModels.csproj" />
+      <ProjectReference Include="..\Storage\Storage.csproj" />
     </ItemGroup>
 
     <ItemGroup>

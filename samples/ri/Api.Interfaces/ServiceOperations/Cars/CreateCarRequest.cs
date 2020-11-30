@@ -1,9 +1,9 @@
 ﻿using ServiceStack;
 
-namespace Api.Interfaces.ServiceOperations
+namespace Api.Interfaces.ServiceOperations.Cars
 {
     [Route("/cars", "POST")]
-    public class CreateCarRequest : IReturn<CreateCarResponse>, IPost
+    public class CreateCarRequest : PostOperation<CreateCarResponse>
     {
         public int Year { get; set; }
 

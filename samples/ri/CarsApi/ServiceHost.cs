@@ -21,7 +21,6 @@ using ServiceStack.Validation;
 using Storage;
 using Storage.Azure;
 using Storage.Interfaces;
-using Storage.ReadModels;
 using IRepository = Storage.IRepository;
 
 namespace CarsApi
@@ -35,6 +34,7 @@ namespace CarsApi
             typeof(CarEntity).Assembly
         };
         private static IRepository repository;
+        private IChangeEventNotificationSubscription changeEventNotificationSubscription;
         private IReadModelProjectionSubscription readModelProjectionSubscription;
 
         public ServiceHost() : base("MyCarsApi", AssembliesContainingServicesAndDependencies)
@@ -64,6 +64,7 @@ namespace CarsApi
             container.AddSingleton<IChangeEventMigrator>(c => new ChangeEventTypeMigrator());
             container.AddSingleton<IDomainFactory>(c => DomainFactory.CreateRegistered(
                 c.Resolve<IDependencyContainer>(), AssembliesContainingDomainEntities));
+
             container.AddSingleton<IEventStreamStorage<CarEntity>>(c =>
                 new GeneralEventStreamStorage<CarEntity>(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
                     c.Resolve<IChangeEventMigrator>(),
@@ -71,24 +72,28 @@ namespace CarsApi
             container.AddSingleton<ICarStorage>(c =>
                 new CarStorage(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
                     c.Resolve<IEventStreamStorage<CarEntity>>(), ResolveRepository(c)));
+
             container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
             container.AddSingleton<IPersonsService>(c =>
                 new PersonsServiceClient(c.Resolve<IAppSettings>().GetString("PersonsApiBaseUrl")));
+
             container.AddSingleton<IReadModelProjectionSubscription>(c => new InProcessReadModelProjectionSubscription(
-                c.Resolve<ILogger>(),
-                new ReadModelProjector(c.Resolve<ILogger>(),
-                    new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
-                        c.Resolve<IDomainFactory>(),
-                        ResolveRepository(c)),
-                    c.Resolve<IChangeEventMigrator>(),
-                    new CarEntityReadModelProjection(c.Resolve<ILogger>(), ResolveRepository(c))),
+                c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(), c.Resolve<IChangeEventMigrator>(),
+                c.Resolve<IDomainFactory>(), ResolveRepository(c),
+                new[]
+                {
+                    new CarEntityReadModelProjection(c.Resolve<ILogger>(), ResolveRepository(c))
+                },
                 c.Resolve<IEventStreamStorage<CarEntity>>()));
+
             container.AddSingleton<IChangeEventNotificationSubscription>(c =>
                 new InProcessChangeEventNotificationSubscription(
-                    c.Resolve<ILogger>(),
-                    new DomainEventNotificationProducer(c.Resolve<ILogger>(), c.Resolve<IChangeEventMigrator>(),
+                    c.Resolve<ILogger>(), c.Resolve<IChangeEventMigrator>(),
+                    new[]
+                    {
                         new DomainEventPublisherSubscriberPair(new PersonDomainEventPublisher(),
-                            new CarManagerEventSubscriber(c.Resolve<ICarsApplication>()))),
+                            new CarManagerEventSubscriber(c.Resolve<ICarsApplication>()))
+                    },
                     c.Resolve<IEventStreamStorage<CarEntity>>()));
         }
 
@@ -106,12 +111,15 @@ namespace CarsApi
 
             this.readModelProjectionSubscription = Container.Resolve<IReadModelProjectionSubscription>();
             this.readModelProjectionSubscription.Start();
+            this.changeEventNotificationSubscription = Container.Resolve<IChangeEventNotificationSubscription>();
+            this.changeEventNotificationSubscription.Start();
         }
 
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
             (this.readModelProjectionSubscription as IDisposable)?.Dispose();
+            (this.changeEventNotificationSubscription as IDisposable)?.Dispose();
         }
     }
 }

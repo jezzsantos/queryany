@@ -9,7 +9,7 @@ namespace PersonsDomain
         public Email(string emailAddress) : base(emailAddress)
         {
             emailAddress.GuardAgainstNullOrEmpty(nameof(emailAddress));
-            emailAddress.GuardAgainstInvalid(Validations.Person.Email, nameof(emailAddress));
+            emailAddress.GuardAgainstInvalid(Domain.Interfaces.Validations.Email, nameof(emailAddress));
         }
 
         protected override string ToValue(string value)

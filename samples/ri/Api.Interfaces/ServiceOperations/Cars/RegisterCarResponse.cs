@@ -1,8 +1,8 @@
 ﻿using Application.Resources;
 
-namespace Api.Interfaces.ServiceOperations
+namespace Api.Interfaces.ServiceOperations.Cars
 {
-    public class CreateCarResponse
+    public class RegisterCarResponse
     {
         public Car Car { get; set; }
     }

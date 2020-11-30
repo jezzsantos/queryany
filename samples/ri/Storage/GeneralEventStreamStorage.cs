@@ -93,7 +93,7 @@ namespace Storage
                     .ToList();
                 try
                 {
-                    OnEventStreamStateChanged.Invoke(this, new EventStreamStateChangedArgs(changes));
+                    OnEventStreamStateChanged(this, new EventStreamStateChangedArgs(changes));
                 }
                 catch (Exception ex)
                 {

@@ -8,7 +8,7 @@ namespace PersonsApplication.Storage
     {
         PersonEntity Load(Identifier id);
 
-        PersonEntity Save(PersonEntity car);
+        PersonEntity Save(PersonEntity person);
 
         Person FindByEmailAddress(string emailAddress);
 

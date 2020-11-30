@@ -142,6 +142,15 @@ namespace Api.Common.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Email was invalid or missing.
+        /// </summary>
+        internal static string EmailValidator_InvalidEmail {
+            get {
+                return ResourceManager.GetString("EmailValidator_InvalidEmail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The format of the Embed expression is invalid.
         /// </summary>
         internal static string HasGetOptionsValidator_InvalidEmbed {
@@ -192,6 +201,15 @@ namespace Api.Common.Properties {
         internal static string HasSearchOptionsValidator_InvalidSort {
             get {
                 return ResourceManager.GetString("HasSearchOptionsValidator_InvalidSort", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The property was invalid.
+        /// </summary>
+        internal static string ValidationFormatValidator_InvalidFormat {
+            get {
+                return ResourceManager.GetString("ValidationFormatValidator_InvalidFormat", resourceCulture);
             }
         }
     }

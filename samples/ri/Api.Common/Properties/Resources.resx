@@ -153,13 +153,19 @@
   <data name="DomainFactory_EntityFactoryMethodNotFound" xml:space="preserve">
     <value>Failed to register Entity: '{0}' in DomainFactory. This class must declare a factory method with signature 'public static EntityFactory&lt;{0}&gt; {1}()''</value>
   </data>
-  <data name="DomainFactory_ValueObjectFactoryMethodNotFound" xml:space="preserve">
+    <data name="DomainFactory_ValueObjectFactoryMethodNotFound" xml:space="preserve">
     <value>Failed to register ValueObject: '{0}' in DomainFactory. This class must declare a factory method with signature 'public static ValueObjectFactory&lt;{0}&gt; {1}()''</value>
   </data>
-  <data name="DomainFactory_AggregateRootFactoryMethodExists" xml:space="preserve">
+    <data name="DomainFactory_AggregateRootFactoryMethodExists" xml:space="preserve">
       <value>Failed to register method: '{0}.{1}()' in DomainFactory. AggregateRoot: {0} has more than one declared definition of 'AggregateRootFactory&lt;{0}&gt;'</value>
   </data>
-  <data name="DomainFactory_AggregateRootFactoryMethodNotFound" xml:space="preserve">
+    <data name="DomainFactory_AggregateRootFactoryMethodNotFound" xml:space="preserve">
     <value>Failed to register AggregateRoot: '{0}' in DomainFactory. This class must declare a factory method with signature 'public static AggregateRootFactory&lt;{0}&gt; {1}()''</value>
+  </data>
+    <data name="EmailValidator_InvalidEmail" xml:space="preserve">
+      <value>The Email was invalid or missing</value>
+  </data>
+    <data name="ValidationFormatValidator_InvalidFormat" xml:space="preserve">
+      <value>The property was invalid</value>
   </data>
 </root>

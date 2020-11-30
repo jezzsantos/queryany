@@ -19,9 +19,7 @@ using ServiceStack;
 using ServiceStack.Configuration;
 using ServiceStack.Validation;
 using Storage;
-using Storage.Azure;
 using Storage.Interfaces;
-using Storage.ReadModels;
 using IRepository = Storage.IRepository;
 
 namespace PersonsApi
@@ -35,9 +33,10 @@ namespace PersonsApi
             typeof(PersonEntity).Assembly
         };
         private static IRepository repository;
+        private IChangeEventNotificationSubscription changeEventNotificationSubscription;
         private IReadModelProjectionSubscription readModelProjectionSubscription;
 
-        public ServiceHost() : base("MyPersonsApi", AssembliesContainingServicesAndDependencies)
+        public ServiceHost() : base("Persons", AssembliesContainingServicesAndDependencies)
         {
         }
 
@@ -55,7 +54,7 @@ namespace PersonsApi
             static IRepository ResolveRepository(Container c)
             {
                 return repository ??=
-                    AzureCosmosSqlApiRepository.FromAppSettings(c.Resolve<IAppSettings>(), "Production");
+                    LocalMachineFileRepository.FromAppSettings(c.Resolve<IAppSettings>());
             }
 
             container.AddSingleton<ILogger>(c => new Logger<ServiceHost>(new NullLoggerFactory()));
@@ -64,29 +63,31 @@ namespace PersonsApi
             container.AddSingleton<IChangeEventMigrator>(c => new ChangeEventTypeMigrator());
             container.AddSingleton<IDomainFactory>(c =>
                 DomainFactory.CreateRegistered(c.Resolve<IDependencyContainer>(), AssembliesContainingDomainEntities));
+
             container.AddSingleton<IEventStreamStorage<PersonEntity>>(c =>
                 new GeneralEventStreamStorage<PersonEntity>(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
                     c.Resolve<IChangeEventMigrator>(),
                     ResolveRepository(c)));
             container.AddSingleton<IPersonStorage>(c =>
-                new PersonStorage(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(), c.Resolve<IChangeEventMigrator>(),
+                new PersonStorage(c.Resolve<ILogger>(), c.Resolve<IDomainFactory>(),
+                    c.Resolve<IEventStreamStorage<PersonEntity>>(),
                     ResolveRepository(c)));
             container.AddSingleton<IPersonsApplication, PersonsApplication.PersonsApplication>();
             container.AddSingleton<IEmailService, EmailService>();
+
             container.AddSingleton<IReadModelProjectionSubscription>(c => new InProcessReadModelProjectionSubscription(
-                c.Resolve<ILogger>(),
-                new ReadModelProjector(c.Resolve<ILogger>(),
-                    new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
-                        c.Resolve<IDomainFactory>(),
-                        ResolveRepository(c)),
-                    c.Resolve<IChangeEventMigrator>(),
-                    new PersonEntityReadModelProjection(c.Resolve<ILogger>(), ResolveRepository(c))),
+                c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(), c.Resolve<IChangeEventMigrator>(),
+                c.Resolve<IDomainFactory>(), ResolveRepository(c),
+                new[]
+                {
+                    new PersonEntityReadModelProjection(c.Resolve<ILogger>(), ResolveRepository(c))
+                },
                 c.Resolve<IEventStreamStorage<PersonEntity>>()));
+
             container.AddSingleton<IChangeEventNotificationSubscription>(c =>
                 new InProcessChangeEventNotificationSubscription(
-                    c.Resolve<ILogger>(),
-                    new DomainEventNotificationProducer(c.Resolve<ILogger>(), c.Resolve<IChangeEventMigrator>(),
-                        DomainEventPublisherSubscriberPair.None),
+                    c.Resolve<ILogger>(), c.Resolve<IChangeEventMigrator>(),
+                    DomainEventPublisherSubscriberPair.None,
                     c.Resolve<IEventStreamStorage<PersonEntity>>()));
         }
 
@@ -104,12 +105,15 @@ namespace PersonsApi
 
             this.readModelProjectionSubscription = Container.Resolve<IReadModelProjectionSubscription>();
             this.readModelProjectionSubscription.Start();
+            this.changeEventNotificationSubscription = Container.Resolve<IChangeEventNotificationSubscription>();
+            this.changeEventNotificationSubscription.Start();
         }
 
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
             (this.readModelProjectionSubscription as IDisposable)?.Dispose();
+            (this.changeEventNotificationSubscription as IDisposable)?.Dispose();
         }
     }
 }

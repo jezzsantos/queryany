@@ -1,5 +1,5 @@
 ﻿using Api.Common.Validators;
-using Api.Interfaces.ServiceOperations;
+using Api.Interfaces.ServiceOperations.Persons;
 using Domain.Interfaces.Entities;
 using PersonsApi.Properties;
 using QueryAny.Primitives;

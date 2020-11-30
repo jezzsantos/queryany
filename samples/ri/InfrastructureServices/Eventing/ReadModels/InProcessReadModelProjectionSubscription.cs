@@ -1,8 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny.Primitives;
+using Storage;
 using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;
+using Storage.ReadModels;
 
 namespace InfrastructureServices.Eventing.ReadModels
 {
@@ -14,11 +18,19 @@ namespace InfrastructureServices.Eventing.ReadModels
     {
         private readonly IReadModelProjector projector;
 
-        public InProcessReadModelProjectionSubscription(ILogger logger, IReadModelProjector readModelProjector,
+        public InProcessReadModelProjectionSubscription(ILogger logger, IIdentifierFactory idFactory,
+            IChangeEventMigrator migrator, IDomainFactory domainFactory, IRepository repository,
+            IEnumerable<IReadModelProjection> projections,
             params IEventNotifyingStorage[] eventingStorages) : base(logger, eventingStorages)
         {
-            readModelProjector.GuardAgainstNull(nameof(readModelProjector));
-            this.projector = readModelProjector;
+            logger.GuardAgainstNull(nameof(logger));
+            idFactory.GuardAgainstNull(nameof(idFactory));
+            migrator.GuardAgainstNull(nameof(migrator));
+            domainFactory.GuardAgainstNull(nameof(domainFactory));
+            repository.GuardAgainstNull(nameof(repository));
+            projections.GuardAgainstNull(nameof(projections));
+            var checkpointReadModel = new ReadModelCheckpointStore(logger, idFactory, domainFactory, repository);
+            this.projector = new ReadModelProjector(logger, checkpointReadModel, migrator, projections?.ToArray());
         }
 
         protected override void HandleStreamEvents(string streamName, List<EventStreamStateChangeEvent> eventStream)

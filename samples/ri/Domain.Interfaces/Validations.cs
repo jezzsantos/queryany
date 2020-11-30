@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using PhoneNumbers;
 using QueryAny.Primitives;
 
 namespace Domain.Interfaces
 {
     public static class Validations
     {
+        public static readonly ValidationFormat Email =
+            new ValidationFormat(
+                @"^(?:[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+\.)*[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+@(?:(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!\.)){0,61}[a-zA-Z0-9]?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!$)){0,61}[a-zA-Z0-9]?)|(?:\[(?:(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\.){3}(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\]))$");
+
         public static bool IsMatchedWith(this ValidationFormat format, string value)
         {
             if (format.Expression.HasValue())
@@ -24,50 +27,11 @@ namespace Domain.Interfaces
             return false;
         }
 
-        private static ValidationFormat DescriptiveName(int min = 1, int max = 100)
+        public static ValidationFormat DescriptiveName(int min = 1, int max = 100)
         {
             return
                 new ValidationFormat(@"^[\d\w\`\#\(\)\-\'\,\.\/ ]{{{0},{1}}}$".Format(min,
                     max), min, max);
-        }
-
-        public static class Person
-        {
-            public static readonly ValidationFormat Email =
-                new ValidationFormat(
-                    @"^(?:[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+\.)*[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+@(?:(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!\.)){0,61}[a-zA-Z0-9]?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!$)){0,61}[a-zA-Z0-9]?)|(?:\[(?:(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\.){3}(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\]))$");
-
-            public static readonly ValidationFormat Name = DescriptiveName();
-
-            public static readonly ValidationFormat PhoneNumber = new ValidationFormat(value =>
-            {
-                if (!value.HasValue())
-                {
-                    return false;
-                }
-
-                if (!value.StartsWith("+"))
-                {
-                    return false;
-                }
-
-                var util = PhoneNumberUtil.GetInstance();
-                try
-                {
-                    var number = util.Parse(value, null);
-                    return util.IsValidNumber(number);
-                }
-                catch (NumberParseException)
-                {
-                    return false;
-                }
-            });
-        }
-
-        public static class Car
-        {
-            public static readonly ValidationFormat Jurisdiction = new ValidationFormat(@"^[\d\w\-\. ]{1,50}$", 1, 50);
-            public static readonly ValidationFormat Number = new ValidationFormat(@"^[\d\w ]{1,15}$", 1, 15);
         }
     }
 

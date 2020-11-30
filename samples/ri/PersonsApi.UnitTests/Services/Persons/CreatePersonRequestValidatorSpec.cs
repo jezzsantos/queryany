@@ -1,4 +1,4 @@
-﻿using Api.Interfaces.ServiceOperations;
+﻿using Api.Interfaces.ServiceOperations.Persons;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PersonsApi.Properties;

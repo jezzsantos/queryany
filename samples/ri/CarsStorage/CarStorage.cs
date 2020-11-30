@@ -35,8 +35,8 @@ namespace CarsStorage
                 new GeneralQueryStorage<Unavailability>(logger, domainFactory, repository);
         }
 
-        public CarStorage(IQueryStorage<Car> carQueryStorage,
-            IEventStreamStorage<CarEntity> carEventStreamStorage,
+        public CarStorage(IEventStreamStorage<CarEntity> carEventStreamStorage,
+            IQueryStorage<Car> carQueryStorage,
             IQueryStorage<Unavailability> unavailabilitiesQueryStorage)
         {
             carQueryStorage.GuardAgainstNull(nameof(carQueryStorage));

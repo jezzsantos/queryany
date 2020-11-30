@@ -15,9 +15,9 @@ namespace PersonsApplication.UnitTests
     public class PersonsApplicationSpec
     {
         private Mock<ICurrentCaller> caller;
-        private PersonsApplication carsApplication;
         private Mock<IIdentifierFactory> idFactory;
         private Mock<ILogger> logger;
+        private PersonsApplication personsApplication;
         private Mock<IPersonStorage> storage;
         private Mock<IEmailService> uniqueEmailService;
 
@@ -34,7 +34,7 @@ namespace PersonsApplication.UnitTests
                 .Returns(true);
             this.caller = new Mock<ICurrentCaller>();
             this.caller.Setup(c => c.Id).Returns("acallerid");
-            this.carsApplication =
+            this.personsApplication =
                 new PersonsApplication(this.logger.Object, this.idFactory.Object, this.storage.Object,
                     this.uniqueEmailService.Object);
         }
@@ -47,7 +47,7 @@ namespace PersonsApplication.UnitTests
                     s.Save(It.IsAny<PersonEntity>()))
                 .Returns(entity);
 
-            var result = this.carsApplication.Create(this.caller.Object, "afirstname", "alastname");
+            var result = this.personsApplication.Create(this.caller.Object, "afirstname", "alastname");
 
             result.Id.Should().Be("anid");
             this.storage.Verify(s =>
@@ -64,7 +64,7 @@ namespace PersonsApplication.UnitTests
                 .Returns(new Person {Id = "anid"});
 
             var result =
-                this.carsApplication.Get(this.caller.Object, "anid", new GetOptions());
+                this.personsApplication.Get(this.caller.Object, "anid", new GetOptions());
 
             result.Id.Should().Be("anid");
         }
@@ -73,7 +73,8 @@ namespace PersonsApplication.UnitTests
         public void WhenGetAnonymousUser_ThenReturnsAnonymousPerson()
         {
             var result =
-                this.carsApplication.Get(this.caller.Object, CurrentCallerConstants.AnonymousUserId, new GetOptions());
+                this.personsApplication.Get(this.caller.Object, CurrentCallerConstants.AnonymousUserId,
+                    new GetOptions());
 
             result.Id.Should().Be(CurrentCallerConstants.AnonymousUserId);
             result.Name.FirstName.Should().Be(CurrentCallerConstants.AnonymousUserName);

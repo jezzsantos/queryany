@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Application.Resources;
 
-namespace Api.Interfaces.ServiceOperations
+namespace Api.Interfaces.ServiceOperations.Cars
 {
     public class SearchAvailableCarsResponse : SearchOperationResponse
     {

@@ -1,5 +1,5 @@
 ﻿using System;
-using Api.Interfaces.ServiceOperations;
+using Api.Interfaces.ServiceOperations.Cars;
 using CarsApi.Properties;
 using CarsApi.Services.Cars;
 using Domain.Interfaces.Entities;

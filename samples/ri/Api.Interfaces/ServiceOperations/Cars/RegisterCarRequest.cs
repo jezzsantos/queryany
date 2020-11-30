@@ -1,9 +1,9 @@
 ﻿using ServiceStack;
 
-namespace Api.Interfaces.ServiceOperations
+namespace Api.Interfaces.ServiceOperations.Cars
 {
     [Route("/cars/{Id}/register", "PUT")]
-    public class RegisterCarRequest : IReturn<RegisterCarResponse>, IPut
+    public class RegisterCarRequest : PutOperation<RegisterCarResponse>
     {
         public string Id { get; set; }
 

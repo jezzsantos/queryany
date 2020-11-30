@@ -1,8 +1,8 @@
 ﻿using Application.Resources;
 
-namespace Api.Interfaces.ServiceOperations
+namespace Api.Interfaces.ServiceOperations.Persons
 {
-    public class CreatePersonResponse
+    public class GetPersonResponse
     {
         public Person Person { get; set; }
     }

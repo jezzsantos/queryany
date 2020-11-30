@@ -1,24 +1,16 @@
 using System;
 using System.Linq;
-using Api.Interfaces.ServiceOperations;
-using ApplicationServices;
+using Api.Interfaces.ServiceOperations.Cars;
 using CarsApplication.ReadModels;
-using CarsApplication.Storage;
 using CarsDomain;
-using CarsStorage;
 using Domain.Interfaces;
-using Domain.Interfaces.Entities;
 using FluentAssertions;
-using InfrastructureServices.Eventing.ReadModels;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ServiceStack;
-using Storage;
 using Storage.Interfaces;
-using Storage.ReadModels;
-using IRepository = Storage.IRepository;
 
 namespace CarsApi.IntegrationTests
 {
@@ -31,46 +23,22 @@ namespace CarsApi.IntegrationTests
         private static IEventStreamStorage<CarEntity> carEventingStorage;
         private static IQueryStorage<Unavailability> unavailabilityQueryStorage;
         private static int plateCount;
-        private static IRepository repository;
 
         [ClassInitialize]
         public static void InitializeAllTests(TestContext context)
         {
             webHost = WebHost.CreateDefaultBuilder(null)
-                .UseModularStartup<Startup>()
+                .UseModularStartup<TestStartup>()
                 .UseUrls(ServiceUrl)
                 .UseKestrel()
                 .ConfigureLogging((ctx, builder) => builder.AddConsole())
                 .Build();
             webHost.Start();
 
-            // Override services for testing
             var container = HostContext.Container;
-            container.AddSingleton<IPersonsService, StubPersonsService>();
-            repository = new InProcessInMemRepository();
-
-            carQueryStorage = new GeneralQueryStorage<Car>(container.Resolve<ILogger>(),
-                container.Resolve<IDomainFactory>(), repository);
-            carEventingStorage = new GeneralEventStreamStorage<CarEntity>(container.Resolve<ILogger>(),
-                container.Resolve<IDomainFactory>(),
-                container.Resolve<IChangeEventMigrator>(), repository);
-            unavailabilityQueryStorage = new GeneralQueryStorage<Unavailability>(container.Resolve<ILogger>(),
-                container.Resolve<IDomainFactory>(), repository);
-
-            container.AddSingleton(carEventingStorage);
-            container.AddSingleton<ICarStorage>(c =>
-                new CarStorage(carQueryStorage, carEventingStorage, unavailabilityQueryStorage));
-            container.AddSingleton<IReadModelProjectionSubscription>(c => new InProcessReadModelProjectionSubscription(
-                c.Resolve<ILogger>(),
-                new ReadModelProjector(c.Resolve<ILogger>(),
-                    new ReadModelCheckpointStore(c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
-                        c.Resolve<IDomainFactory>(), repository),
-                    c.Resolve<IChangeEventMigrator>(),
-                    new CarEntityReadModelProjection(c.Resolve<ILogger>(), repository)),
-                c.Resolve<IEventStreamStorage<CarEntity>>()));
-
-            //HACK: subscribe again (see: https://forums.servicestack.net/t/integration-testing-and-overriding-registered-services/8875/5)
-            HostContext.AppHost.OnAfterInit();
+            carQueryStorage = container.Resolve<IQueryStorage<Car>>();
+            carEventingStorage = container.Resolve<IEventStreamStorage<CarEntity>>();
+            unavailabilityQueryStorage = container.Resolve<IQueryStorage<Unavailability>>();
         }
 
         [ClassCleanup]
