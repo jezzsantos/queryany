@@ -15,8 +15,9 @@ We use these kinds of terms in this architecture:
 * DTO (Data Transfer Objects),
 * REST Resources,
 * Application Layer (DDD Application Layer),
-* [domain] Entities (DDD Entities), ValueObjects (DDD ValueObject), Aggregates, Domain Services and Repositories
-* Commands and Queries, Storage and [data] Entities. 
+* \[domain\] Entities (DDD Entities), ValueObjects (DDD ValueObject),
+  Aggregates, Domain Services and Repositories
+* Commands and Queries, Storage and \[data\] Entities.
 * Events, Read Models and Projections. 
 
 In terms of data flow, a typical REST API call results in an interaction like this:
@@ -25,7 +26,9 @@ In terms of data flow, a typical REST API call results in an interaction like th
 * The API Service Operations (grouped by REST resource type) then validate the inbound DTO *Command*, and delegate execution to an appropriate Application Layer. (In this pathway, request DTO's are deconstructed into primitive properties - to save on having another explicit mapping layer).
 * The "Application Layer" takes the deconstructed DTO properties, and either instantiates and/or de-hydrates DomainEntities from repositories (via Command Storage), co-ordinates and instructs Entities to do things (Tell-Dont-Ask).
 * The domain aggregates and entities make changes to their state by raising events. 
-* The "Application Layer" uses domain services if necessary, and then re-hydrates the changes of state [events] back to event persistence storage. 
+* The "Application Layer" uses domain services if necessary, and then
+  re-hydrates the changes of state \[events\] back to event persistence
+  storage.
 * The event persistence triggers the replay of the persisted events, and project the changes onto a read model that stores the latest state of the entity. (to be queried later) 
 * The Application Layer then converts the changed Entities into DTOs, and hands them back to the API.
 * The API layer then serializes the DTO over the wire, and handles the conversion of exceptions to HTTP status codes and status descriptions.
@@ -64,7 +67,7 @@ Its likely you will have a separate assembly for each domain. Its likely that ea
 
 What the Entities lack is only *when* to do the things they do in response to the world around them, and who manages their lifecycle (and statelessness). That stimulus will come from the "Application Layer".
 
-### ???.Domain
+### ABC.Domain
 
 Essentially, the core domain logic layer, containing ValueObjects, Entities and Aggregate Roots, and all modelled use cases.
 
@@ -90,7 +93,7 @@ Also intended to be shared to service client libraries (if any).
 
 > If this sample got any larger we might have an assembly for shared code, like primitives etc.
 
-### ???.UnitTests projects
+### ABCDomain.UnitTests projects
 
 Contains all unit level tests for all components in the architecture, separated by component.
 
@@ -112,7 +115,7 @@ Commands essentially follow the same pattern:
 
 > Note: Between your 'transaction scripts/application layer/domain services' and the Infrastructure layer there will always be a mapping (logical or physical) to and from DTO (Data Transfer Objects) or POCO objects. These are bare OO objects with no behaviour in them, that do not use encapsulation (ideally not inheritance), that are the only types that traverse the boundary between Domain<->Infrastructure. The assembly that defines them should contain NO implementation.
 
-### ???Application
+### ABC.Application
 
 Contains the application layer consisting of services that instruct the domain Entities to do things, using the Ask-Dont-Tell pattern.
 
@@ -134,7 +137,7 @@ Contains shared definitions for access to persistence/storage.
 
 Intended to define the interface for implementers of specific storage databases, and repositories.
 
-### ???.UnitTests projects
+### ABCStorage.UnitTests projects
 
 Contains all unit level tests for all components in the architecture, separated by component.
 
@@ -145,7 +148,7 @@ Contains all unit level tests for all components in the architecture, separated 
 
 Contains all Ports & Adapters, all infrastructure classes and anything to do with interacting with the outside world (from the domain's perspective).
 
-### ???Api
+### ABC.Api
 
 This is the web API host. In this case its ASP.NET Core running the [ServiceStack](http://www.servicestack.net) framework on Windows. It could be whatever web host you like.
 
@@ -159,13 +162,13 @@ It contains the `ServiceHost` class (specific to ServiceStack) which loads all s
 
 > A host like this one may contain the service operations of one, or more REST resources of any given API. The division of the API into deployment packages will need to remain flexible so that whole APIs can be factored out into separate hosts when the product needs to scale and be optimized.
 
-### ???Storage
+### ABC.Storage
 
 These are domain specific libraries with repository implementations used in both production code, and during \[integration\] testing.
 
 > Typically, an implementation will have an in-memory class used in integration testing (to increase test speed), and one for (say a database) for use in a production environment - often injected in the ServiceHost of the CarsApi project.
 
-### Storage and Storage.???
+### Storage and Storage.ABC
 
 Concrete implementations of `IRepository` for various storage technologies, and their associated storage abstractions for different persistence patterns. i.e. `ICommandStorage<TEntity>`, etc
 
@@ -191,7 +194,7 @@ These tests have been templatized so that new implementations have a test suite 
 
 >Design Choice: We deliberately chose to use local installations of these repositories rather than cloud based instances. So at this point, you should be able to run all these tests offline.
 
-### ???.UnitTests projects
+### ABC.UnitTests projects
 
 Contains all unit level tests for all components in the architecture, separated by component.
 

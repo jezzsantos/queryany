@@ -12,7 +12,9 @@ namespace Domain.Interfaces.Entities
                 return defaultValue;
             }
 
-            return (TValue) properties[propertyName];
+            return properties[propertyName] is TValue
+                ? (TValue) properties[propertyName]
+                : default;
         }
     }
 }
