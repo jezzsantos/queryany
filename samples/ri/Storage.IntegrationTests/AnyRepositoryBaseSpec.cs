@@ -153,6 +153,8 @@ namespace Storage.IntegrationTests
         {
             var entity = CommandEntity.FromType(new TestRepositoryEntity
             {
+                AStringValue = "astringvalue",
+                AnEnumValue = AnEnum.AValue1,
                 ABinaryValue = new byte[] {0x01},
                 ABooleanValue = true,
                 ANullableBooleanValue = true,
@@ -164,7 +166,6 @@ namespace Storage.IntegrationTests
                 ANullableIntValue = 1,
                 ALongValue = 2,
                 ANullableLongValue = 2,
-                AStringValue = "astringvalue",
                 ADateTimeUtcValue = DateTime.Today.ToUniversalTime(),
                 ANullableDateTimeUtcValue = DateTime.Today.ToUniversalTime(),
                 ADateTimeOffsetValue = DateTimeOffset.UnixEpoch.ToUniversalTime(),
@@ -185,6 +186,8 @@ namespace Storage.IntegrationTests
             result.Id.Should().Be(entity.Id);
             result.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
             result.LastPersistedAtUtc.GetValueOrDefault().Kind.Should().Be(DateTimeKind.Utc);
+            result.GetValueOrDefault<string>(nameof(TestRepositoryEntity.AStringValue)).Should().Be("astringvalue");
+            result.GetValueOrDefault<AnEnum>(nameof(TestRepositoryEntity.AnEnumValue)).Should().Be(AnEnum.AValue1);
             result.GetValueOrDefault<byte[]>(nameof(TestRepositoryEntity.ABinaryValue)).SequenceEqual(new byte[] {0x01})
                 .Should().BeTrue();
             result.GetValueOrDefault<bool>(nameof(TestRepositoryEntity.ABooleanValue)).Should().Be(true);
@@ -199,7 +202,6 @@ namespace Storage.IntegrationTests
             result.GetValueOrDefault<long?>(nameof(TestRepositoryEntity.ANullableLongValue)).Should().Be(2);
             result.GetValueOrDefault<double>(nameof(TestRepositoryEntity.ADoubleValue)).Should().Be(0.1);
             result.GetValueOrDefault<double?>(nameof(TestRepositoryEntity.ANullableDoubleValue)).Should().Be(0.1);
-            result.GetValueOrDefault<string>(nameof(TestRepositoryEntity.AStringValue)).Should().Be("astringvalue");
             result.GetValueOrDefault<DateTime>(nameof(TestRepositoryEntity.ADateTimeUtcValue)).Should()
                 .Be(DateTime.Today.ToUniversalTime());
             result.GetValueOrDefault<DateTime>(nameof(TestRepositoryEntity.ADateTimeUtcValue)).Kind.Should()
@@ -226,6 +228,7 @@ namespace Storage.IntegrationTests
         {
             var entity = CommandEntity.FromType(new TestRepositoryEntity
             {
+                AnEnumValue = default,
                 ABinaryValue = default,
                 ABooleanValue = default,
                 ANullableBooleanValue = default,
@@ -255,6 +258,8 @@ namespace Storage.IntegrationTests
             result.Id.Should().Be(entity.Id);
             result.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
             result.LastPersistedAtUtc.GetValueOrDefault().Kind.Should().Be(DateTimeKind.Utc);
+            result.GetValueOrDefault<string>(nameof(TestRepositoryEntity.AStringValue)).Should().Be(default);
+            result.GetValueOrDefault<AnEnum>(nameof(TestRepositoryEntity.AnEnumValue)).Should().Be(AnEnum.None);
             result.GetValueOrDefault<byte[]>(nameof(TestRepositoryEntity.ABinaryValue)).Should().BeNull();
             result.GetValueOrDefault<bool>(nameof(TestRepositoryEntity.ABooleanValue)).Should().Be(default);
             result.GetValueOrDefault<bool?>(nameof(TestRepositoryEntity.ANullableBooleanValue)).Should().Be(null);
@@ -266,7 +271,6 @@ namespace Storage.IntegrationTests
             result.GetValueOrDefault<long?>(nameof(TestRepositoryEntity.ANullableLongValue)).Should().Be(null);
             result.GetValueOrDefault<double>(nameof(TestRepositoryEntity.ADoubleValue)).Should().Be(default);
             result.GetValueOrDefault<double?>(nameof(TestRepositoryEntity.ANullableDoubleValue)).Should().Be(null);
-            result.GetValueOrDefault<string>(nameof(TestRepositoryEntity.AStringValue)).Should().Be(default);
             result.GetValueOrDefault<DateTime>(nameof(TestRepositoryEntity.ADateTimeUtcValue)).Should()
                 .Be(DateTime.MinValue);
             result.GetValueOrDefault<DateTime>(nameof(TestRepositoryEntity.ADateTimeUtcValue)).Kind.Should()
@@ -543,6 +547,40 @@ namespace Storage.IntegrationTests
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForAnEnumValue_ThenReturnsResult()
+        {
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestRepositoryEntity {AnEnumValue = AnEnum.AValue1}));
+            var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestRepositoryEntity {AnEnumValue = AnEnum.AValue2}));
+            var query = Query.From<TestRepositoryEntity>()
+                .Where(e => e.AnEnumValue, ConditionOperator.EqualTo, AnEnum.AValue2);
+
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
+
+            results.Count.Should().Be(1);
+            results[0].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public void WhenQueryForANullableAnEnumValue_ThenReturnsResult()
+        {
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestRepositoryEntity {AnNullableEnumValue = AnEnum.AValue1}));
+            var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestRepositoryEntity {AnNullableEnumValue = null}));
+            var query = Query.From<TestRepositoryEntity>()
+                .Where(e => e.AnNullableEnumValue, ConditionOperator.EqualTo, null);
+
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
+
+            results.Count.Should().Be(1);
+            results[0].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]

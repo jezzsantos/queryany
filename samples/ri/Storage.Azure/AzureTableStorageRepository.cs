@@ -276,7 +276,7 @@ namespace Storage.Azure
                 .OrderBy(query.ToDynamicLinqOrderByClause())
                 .Skip(query.GetDefaultSkip())
                 .Take(take)
-                .Select(ped => QueryEntity.FromProperties(ped.Value, metadata))
+                .Select(pe => QueryEntity.FromProperties(pe.Value, metadata))
                 .ToList();
         }
 
@@ -435,7 +435,7 @@ namespace Storage.Azure
     }
 
     // ReSharper disable once InconsistentNaming
-    internal static class AzureTableStorageRepositoryExtensions
+    internal static class AzureTableStorageEntityExtensions
     {
         public static DynamicTableEntity ToTableEntity(this CommandEntity entity,
             AzureTableStorageRepository.TableStorageApiOptions options)
@@ -474,7 +474,7 @@ namespace Storage.Azure
         {
             switch (targetPropertyType)
             {
-                case { } _ when targetPropertyType == typeof(DateTime) || targetPropertyType == typeof(DateTime?):
+                case Type _ when targetPropertyType == typeof(DateTime) || targetPropertyType == typeof(DateTime?):
                 {
                     DateTimeOffset? dateTimeOffset = null;
                     var dateTime = (DateTime?) property;
@@ -490,8 +490,8 @@ namespace Storage.Azure
                     return EntityProperty.GeneratePropertyForDateTimeOffset(dateTimeOffset);
                 }
 
-                case { } _ when targetPropertyType == typeof(DateTimeOffset) ||
-                                targetPropertyType == typeof(DateTimeOffset?):
+                case Type _ when targetPropertyType == typeof(DateTimeOffset) ||
+                                 targetPropertyType == typeof(DateTimeOffset?):
                 {
                     var dateTimeOffset = (DateTimeOffset?) property;
                     if (dateTimeOffset.HasValue)
@@ -504,22 +504,22 @@ namespace Storage.Azure
                     return EntityProperty.GeneratePropertyForDateTimeOffset(dateTimeOffset);
                 }
 
-                case { } _ when targetPropertyType == typeof(bool) || targetPropertyType == typeof(bool?):
+                case Type _ when targetPropertyType == typeof(bool) || targetPropertyType == typeof(bool?):
                     return EntityProperty.GeneratePropertyForBool((bool?) property);
 
-                case { } _ when targetPropertyType == typeof(int) || targetPropertyType == typeof(int?):
+                case Type _ when targetPropertyType == typeof(int) || targetPropertyType == typeof(int?):
                     return EntityProperty.GeneratePropertyForInt((int?) property);
 
-                case { } _ when targetPropertyType == typeof(long) || targetPropertyType == typeof(long?):
+                case Type _ when targetPropertyType == typeof(long) || targetPropertyType == typeof(long?):
                     return EntityProperty.GeneratePropertyForLong((long?) property);
 
-                case { } _ when targetPropertyType == typeof(double) || targetPropertyType == typeof(double?):
+                case Type _ when targetPropertyType == typeof(double) || targetPropertyType == typeof(double?):
                     return EntityProperty.GeneratePropertyForDouble((double?) property);
 
-                case { } _ when targetPropertyType == typeof(Guid) || targetPropertyType == typeof(Guid?):
+                case Type _ when targetPropertyType == typeof(Guid) || targetPropertyType == typeof(Guid?):
                     return EntityProperty.GeneratePropertyForGuid((Guid?) property);
 
-                case { } _ when targetPropertyType == typeof(byte[]):
+                case Type _ when targetPropertyType == typeof(byte[]):
                     return EntityProperty.GeneratePropertyForByteArray((byte[]) property);
 
                 default:
@@ -556,13 +556,30 @@ namespace Storage.Azure
         private static object FromTableEntityProperty(this EntityProperty property, Type targetPropertyType,
             AzureTableStorageRepository.TableStorageApiOptions options)
         {
-            var value = property.PropertyAsObject;
-            switch (value)
+            var propertyValue = property.PropertyAsObject;
+            switch (propertyValue)
             {
                 case string text:
                     if (text.EqualsOrdinal(AzureTableStorageRepository.NullValue))
                     {
                         return null;
+                    }
+
+                    if (targetPropertyType.IsEnum || targetPropertyType.IsNullableEnum())
+                    {
+                        if (targetPropertyType.IsEnum)
+                        {
+                            return Enum.Parse(targetPropertyType, text);
+                        }
+
+                        if (targetPropertyType.IsNullableEnum())
+                        {
+                            if (text.HasValue())
+                            {
+                                return targetPropertyType.ParseNullable(text);
+                            }
+                            return null;
+                        }
                     }
 
                     if (targetPropertyType.IsComplexStorageType())
@@ -594,7 +611,7 @@ namespace Storage.Azure
                 case double _:
                 case Guid _:
                 case byte[] _:
-                    return value;
+                    return propertyValue;
 
                 case null:
                     return null;
@@ -606,7 +623,7 @@ namespace Storage.Azure
     }
 
     // ReSharper disable once InconsistentNaming
-    internal static class AzureTableStorageWhereExtensions
+    public static class AzureTableStorageWhereExtensions
     {
         public static string ToAzureTableStorageWhereClause(this IEnumerable<WhereExpression> wheres)
         {
@@ -695,6 +712,8 @@ namespace Storage.Azure
             {
                 case string text:
                     return TableQuery.GenerateFilterCondition(fieldName, conditionOperator, text);
+                case Enum @enum:
+                    return TableQuery.GenerateFilterCondition(fieldName, conditionOperator, @enum.ToString());
                 case DateTime dateTime:
                     return TableQuery.GenerateFilterConditionForDate(fieldName, conditionOperator,
                         new DateTimeOffset(dateTime.ToUniversalTime(), TimeSpan.Zero));

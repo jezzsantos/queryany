@@ -421,6 +421,23 @@ namespace Storage.Redis
                 return Convert.FromBase64String(propertyValue);
             }
 
+            if (targetPropertyType.IsEnum || targetPropertyType.IsNullableEnum())
+            {
+                if (targetPropertyType.IsEnum)
+                {
+                    return Enum.Parse(targetPropertyType, propertyValue);
+                }
+
+                if (targetPropertyType.IsNullableEnum())
+                {
+                    if (propertyValue.HasValue())
+                    {
+                        return targetPropertyType.ParseNullable(propertyValue);
+                    }
+                    return null;
+                }
+            }
+
             if (targetPropertyType.IsComplexStorageType())
             {
                 if (propertyValue.HasValue())

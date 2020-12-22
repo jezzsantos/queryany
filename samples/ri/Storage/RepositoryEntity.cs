@@ -67,7 +67,10 @@ namespace Storage
                 return defaultValue;
             }
 
-            return (TValue) ConvertToDomainProperty(this.propertyValues[propertyName], typeof(TValue), null);
+            var propertyValue = ConvertToDomainProperty(this.propertyValues[propertyName], typeof(TValue), null);
+            return propertyValue is TValue value
+                ? value
+                : default;
         }
 
         public TValueObject GetValueOrDefault<TValueObject>(string propertyName, IDomainFactory domainFactory)

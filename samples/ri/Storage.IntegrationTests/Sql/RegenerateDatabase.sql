@@ -22,6 +22,8 @@ GO
 CREATE TABLE [dbo].[testentities](
 	[Id] [nvarchar](100) NOT NULL,
 	[AStringValue] [nvarchar](max) NULL,
+    [AnEnumValue] [nvarchar](max) NULL,
+    [AnNullableEnumValue] [nvarchar](max) NULL,
 	[ABooleanValue] [bit] NULL,
 	[ANullableBooleanValue] [bit] NULL,
 	[ADateTimeUtcValue] [datetime] NULL,

@@ -23,6 +23,10 @@ namespace Storage.IntegrationTests
 
         public string AStringValue { get; set; }
 
+        public AnEnum AnEnumValue { get; set; }
+
+        public AnEnum? AnNullableEnumValue { get; set; }
+
         public bool ABooleanValue { get; set; }
 
         public bool? ANullableBooleanValue { get; set; }
@@ -172,5 +176,12 @@ namespace Storage.IntegrationTests
         {
             return new object[] {AStringProperty, AnIntName, ABooleanPropertyName};
         }
+    }
+
+    public enum AnEnum
+    {
+        None = 0,
+        AValue1 = 1,
+        AValue2 = 2
     }
 }

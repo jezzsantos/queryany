@@ -334,6 +334,11 @@ namespace Storage.Azure
                 var value = pair.Value;
                 if (value != null)
                 {
+                    if (value is Enum)
+                    {
+                        value = value.ToString();
+                    }
+
                     if (value.GetType().IsComplexStorageType())
                     {
                         value = value.ToString();
@@ -397,6 +402,23 @@ namespace Storage.Azure
                         }
 
                         return Guid.Empty;
+                    }
+
+                    if (targetPropertyType.IsEnum || targetPropertyType.IsNullableEnum())
+                    {
+                        if (targetPropertyType.IsEnum)
+                        {
+                            return Enum.Parse(targetPropertyType, text);
+                        }
+
+                        if (targetPropertyType.IsNullableEnum())
+                        {
+                            if (text.HasValue())
+                            {
+                                return targetPropertyType.ParseNullable(text);
+                            }
+                            return null;
+                        }
                     }
 
                     if (targetPropertyType.IsComplexStorageType())
@@ -629,6 +651,9 @@ namespace Storage.Azure
             {
                 case string text:
                     return $"{escapedFieldName} {@operator} '{text}'";
+
+                case Enum @enum:
+                    return $"{escapedFieldName} {@operator} '{@enum.ToString()}'";
 
                 case DateTime dateTime:
                     return dateTime.HasValue()
