@@ -15,27 +15,23 @@ namespace Storage.UnitTests.ReadModels
     [TestClass, TestCategory("Unit")]
     public class ReadModelProjectorSpec
     {
-        private ChangeEventTypeMigrator changeEventTypeMigrator;
-        private Mock<IReadModelCheckpointStore> checkpointStore;
-        private Mock<ILogger> logger;
-        private Mock<IReadModelProjection> projection;
-        private List<IReadModelProjection> projections;
-        private ReadModelProjector projector;
+        private readonly Mock<IReadModelCheckpointStore> checkpointStore;
+        private readonly Mock<IReadModelProjection> projection;
+        private readonly ReadModelProjector projector;
 
-        [TestInitialize]
-        public void Initialize()
+        public ReadModelProjectorSpec()
         {
-            this.logger = new Mock<ILogger>();
+            var logger = new Mock<ILogger>();
             this.checkpointStore = new Mock<IReadModelCheckpointStore>();
-            this.changeEventTypeMigrator = new ChangeEventTypeMigrator();
+            var changeEventTypeMigrator = new ChangeEventTypeMigrator();
             this.projection = new Mock<IReadModelProjection>();
             this.projection.Setup(prj => prj.EntityType)
                 .Returns(typeof(string));
             this.projection.Setup(prj => prj.Project(It.IsAny<IChangeEvent>()))
                 .Returns(true);
-            this.projections = new List<IReadModelProjection> {this.projection.Object};
-            this.projector = new ReadModelProjector(this.logger.Object, this.checkpointStore.Object,
-                this.changeEventTypeMigrator, this.projections.ToArray());
+            var projections = new List<IReadModelProjection> {this.projection.Object};
+            this.projector = new ReadModelProjector(logger.Object, this.checkpointStore.Object,
+                changeEventTypeMigrator, projections.ToArray());
         }
 
         [TestMethod]

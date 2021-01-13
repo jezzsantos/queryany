@@ -17,13 +17,16 @@ namespace Storage.UnitTests
         public string AStringValue { get; set; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
-        public bool ABooleanValue { get; }
+        public bool ABooleanValue { get; set; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
-        public double ADoubleValue { get; }
+        public double ADoubleValue { get; set; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
-        internal string AnInternalProperty { get; }
+        internal string AnInternalProperty { get; set; }
+
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
+        public bool? IsDeleted { get; set; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         public DateTime? LastPersistedAtUtc { get; }

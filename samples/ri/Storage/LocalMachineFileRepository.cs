@@ -9,6 +9,7 @@ using QueryAny.Primitives;
 using ServiceStack;
 using ServiceStack.Configuration;
 using ServiceStack.Text;
+using Storage.Interfaces;
 
 namespace Storage
 {
@@ -16,7 +17,7 @@ namespace Storage
     ///     Defines a file repository on the local machine, that stores each entity as raw JSON.
     ///     store is located in named folders under the <see cref="rootPath" />
     /// </summary>
-    public class LocalMachineFileRepository : IRepository
+    public class LocalMachineFileRepository : IRepository, IBlobository
     {
         private const string PathSettingName = "LocalMachineRepositoryRootPath";
         public const string NullToken = @"null";
@@ -28,6 +29,39 @@ namespace Storage
             rootPath.GuardAgainstInvalid(ValidateRootPath, nameof(rootPath));
 
             this.rootPath = rootPath;
+        }
+
+        public Blob Download(string containerName, string blobName, Stream stream)
+        {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            blobName.GuardAgainstNullOrEmpty(nameof(blobName));
+            stream.GuardAgainstNull(nameof(stream));
+
+            var container = EnsureContainer(containerName);
+
+            if (container.Exists(blobName))
+            {
+                var file = container.GetBinary(blobName);
+                stream.Write(file.Data);
+                return new Blob
+                {
+                    ContentType = file.ContentType
+                };
+            }
+
+            return null;
+        }
+
+        public void Upload(string containerName, string blobName, string contentType, byte[] data)
+        {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            blobName.GuardAgainstNullOrEmpty(nameof(blobName));
+            contentType.GuardAgainstNullOrEmpty(nameof(contentType));
+            data.GuardAgainstNull(nameof(data));
+
+            var container = EnsureContainer(containerName);
+
+            container.AddBinary(blobName, contentType, data);
         }
 
         public int MaxQueryResults => 1000;
@@ -155,7 +189,7 @@ namespace Storage
             container.Erase();
         }
 
-        public static LocalMachineFileRepository FromAppSettings(IAppSettings settings)
+        public static LocalMachineFileRepository FromSettings(IAppSettings settings)
         {
             var configPath = settings.GetString(PathSettingName);
             var rootPath = Environment.ExpandEnvironmentVariables(configPath);
@@ -308,6 +342,15 @@ namespace Storage
                 }
             }
 
+            public void AddBinary(string name, string contentType, byte[] data)
+            {
+                Add(name, new Dictionary<string, string>
+                {
+                    {nameof(BinaryFile.ContentType), contentType},
+                    {nameof(BinaryFile.Data), Convert.ToBase64String(data)}
+                });
+            }
+
             public IReadOnlyDictionary<string, string> Get(string entityId)
             {
                 if (Exists(entityId))
@@ -318,6 +361,21 @@ namespace Storage
                 }
 
                 return null;
+            }
+
+            public BinaryFile GetBinary(string name)
+            {
+                var properties = Get(name);
+                if (properties == null)
+                {
+                    return null;
+                }
+
+                return new BinaryFile
+                {
+                    ContentType = properties[nameof(BinaryFile.ContentType)],
+                    Data = Convert.FromBase64String(properties[nameof(BinaryFile.Data)])
+                };
             }
 
             public IEnumerable<string> GetEntityIds()
@@ -378,11 +436,18 @@ namespace Storage
                 return Path.Combine(this.dirPath, filename);
             }
 
-            private string GetIdFromFullFilePath(string path)
+            private static string GetIdFromFullFilePath(string path)
             {
                 return Path.GetFileNameWithoutExtension(path);
             }
         }
+    }
+
+    internal class BinaryFile
+    {
+        public string ContentType { get; set; }
+
+        public byte[] Data { get; set; }
     }
 
     internal static class LocalMachineFileRepositoryExtensions
@@ -437,7 +502,7 @@ namespace Storage
                         break;
 
                     default:
-                        value = pair.Value.ToString();
+                        value = pair.Value.ComplexTypeToContainerProperty();
 
                         break;
                 }

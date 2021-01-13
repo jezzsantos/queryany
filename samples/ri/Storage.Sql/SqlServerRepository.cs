@@ -358,7 +358,7 @@ namespace Storage.Sql
             {
                 if (value.GetType().IsComplexStorageType())
                 {
-                    value = value.ToString();
+                    value = value.ComplexTypeToContainerProperty();
                 }
             }
 

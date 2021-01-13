@@ -7,7 +7,6 @@ using QueryAny.Primitives;
 
 namespace Storage.IntegrationTests.Azure
 {
-    // ReSharper disable once InconsistentNaming
     public static class AzureStorageAccountBase
     {
         private const string EmulatorProcessName = @"AzureStorageEmulator";

@@ -1,17 +1,67 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using Domain.Interfaces;
 using QueryAny;
 using QueryAny.Primitives;
+using Storage.Interfaces;
 
 namespace Storage
 {
-    public class InProcessInMemRepository : IRepository
+    public class InProcessInMemRepository : IRepository, IBlobository
     {
         private readonly Dictionary<string, Dictionary<string, IReadOnlyDictionary<string, object>>> containers =
             new Dictionary<string, Dictionary<string, IReadOnlyDictionary<string, object>>>();
+
+        public Blob Download(string containerName, string blobName, Stream stream)
+        {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            blobName.GuardAgainstNullOrEmpty(nameof(blobName));
+            stream.GuardAgainstNull(nameof(stream));
+
+            if (this.containers.ContainsKey(containerName))
+            {
+                if (this.containers[containerName].ContainsKey(blobName))
+                {
+                    var properties = this.containers[containerName][blobName].FromDictionaryProperties();
+                    stream.Write(Convert.FromBase64String(properties["Data"].ToString()));
+                    return new Blob
+                    {
+                        ContentType = properties[nameof(Blob.ContentType)].ToString()
+                    };
+                }
+            }
+
+            return null;
+        }
+
+        public void Upload(string containerName, string blobName, string contentType, byte[] data)
+        {
+            containerName.GuardAgainstNullOrEmpty(nameof(containerName));
+            blobName.GuardAgainstNullOrEmpty(nameof(blobName));
+            contentType.GuardAgainstNullOrEmpty(nameof(contentType));
+            data.GuardAgainstNull(nameof(data));
+
+            if (!this.containers.ContainsKey(containerName))
+            {
+                this.containers.Add(containerName, new Dictionary<string, IReadOnlyDictionary<string, object>>());
+            }
+
+            var properties = new Dictionary<string, object>
+            {
+                {"ContentType", contentType},
+                {"Data", Convert.ToBase64String(data)}
+            };
+            if (this.containers[containerName].ContainsKey(blobName))
+            {
+                this.containers[containerName][blobName] = properties;
+                return;
+            }
+
+            this.containers[containerName].Add(blobName, properties);
+        }
 
         public int MaxQueryResults => 1000;
 

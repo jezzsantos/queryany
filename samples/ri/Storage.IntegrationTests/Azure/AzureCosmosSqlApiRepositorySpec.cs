@@ -7,8 +7,6 @@ using Storage.Azure;
 namespace Storage.IntegrationTests.Azure
 {
     [TestClass, TestCategory("Integration.Storage.NOCI")]
-
-    // ReSharper disable once InconsistentNaming
     public class AzureCosmosSqlApiRepositorySpec : AnyRepositoryBaseSpec
     {
         private static AzureCosmosSqlApiRepository repository;
@@ -19,7 +17,7 @@ namespace Storage.IntegrationTests.Azure
             InitializeAllTests();
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var settings = new NetCoreAppSettings(config);
-            repository = AzureCosmosSqlApiRepository.FromAppSettings(settings, "TestDatabase");
+            repository = AzureCosmosSqlApiRepository.FromSettings(settings, "TestDatabase");
             AzureCosmosStorageBase.InitializeAllTests(context, null);
         }
 

@@ -24,4 +24,26 @@ namespace Storage.IntegrationTests
             };
         }
     }
+
+    [TestClass, TestCategory("Integration.Storage")]
+    public class InProcessInMemBlobositorySpec : AnyBlobositoryBaseSpec
+    {
+        private static InProcessInMemRepository blobository;
+
+        [ClassInitialize]
+        public static void InitializeAllTests(TestContext context)
+        {
+            InitializeAllTests();
+            blobository = new InProcessInMemRepository();
+        }
+
+        protected override BloboInfo GetBlobository<TEntity>()
+        {
+            return new BloboInfo
+            {
+                Blobository = blobository,
+                ContainerName = typeof(TEntity).GetEntityNameSafe()
+            };
+        }
+    }
 }

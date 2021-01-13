@@ -10,7 +10,7 @@ namespace Storage.Azure
         {
         }
 
-        public static AzureCosmosTableApiRepository FromAppSettings(IAppSettings settings)
+        public new static AzureCosmosTableApiRepository FromSettings(IAppSettings settings)
         {
             var accountKey = settings.GetString("AzureCosmosDbAccountKey");
             var hostName = settings.GetString("AzureCosmosDbHostName");

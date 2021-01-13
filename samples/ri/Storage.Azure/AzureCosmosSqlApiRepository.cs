@@ -183,7 +183,7 @@ namespace Storage.Azure
             this.containers.Remove(containerName);
         }
 
-        public static AzureCosmosSqlApiRepository FromAppSettings(IAppSettings settings, string databaseName)
+        public static AzureCosmosSqlApiRepository FromSettings(IAppSettings settings, string databaseName)
         {
             settings.GuardAgainstNull(nameof(settings));
             databaseName.GuardAgainstNullOrEmpty(nameof(databaseName));
@@ -341,7 +341,7 @@ namespace Storage.Azure
 
                     if (value.GetType().IsComplexStorageType())
                     {
-                        value = value.ToString();
+                        value = value.ComplexTypeToContainerProperty();
                     }
                 }
 

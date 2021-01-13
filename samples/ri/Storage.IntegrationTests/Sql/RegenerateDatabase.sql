@@ -41,7 +41,8 @@ CREATE TABLE [dbo].[testentities](
 	[ABinaryValue] [varbinary](max) NULL,
 	[AComplexNonValueObjectValue] [nvarchar](max) NULL,
 	[AComplexValueObjectValue] [nvarchar](max) NULL,
-	[LastPersistedAtUtc] [datetime] NULL
+	[LastPersistedAtUtc] [datetime] NULL,
+	[IsDeleted] [bit] NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
@@ -49,7 +50,8 @@ CREATE TABLE [dbo].[firstjoiningtestentities](
 	[Id] [nvarchar](100) NOT NULL,
 	[AStringValue] [nvarchar](1000) NULL,
 	[AIntValue] [int] NULL,
-	[LastPersistedAtUtc] [datetime] NULL
+	[LastPersistedAtUtc] [datetime] NULL,
+    [IsDeleted] [bit] NULL
 ) ON [PRIMARY]
 GO
 
@@ -58,6 +60,7 @@ CREATE TABLE [dbo].[secondjoiningtestentities](
 	[AStringValue] [nvarchar](1000) NULL,
 	[AIntValue] [int] NULL,
 	[ALongValue] [bigint] NULL,
-	[LastPersistedAtUtc] [datetime] NULL
-) ON [PRIMARY]
+	[LastPersistedAtUtc] [datetime] NULL,
+    [IsDeleted] [bit] NULL
+    ) ON [PRIMARY]
 GO

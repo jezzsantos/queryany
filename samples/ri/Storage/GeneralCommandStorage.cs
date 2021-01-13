@@ -29,29 +29,77 @@ namespace Storage
             this.containerName = typeof(TEntity).GetEntityNameSafe();
         }
 
-        public void Delete(Identifier id)
+        public void Delete(Identifier id, bool destroy = true)
         {
             id.GuardAgainstNull(nameof(id));
 
-            this.repository.Remove(this.containerName, id);
-            this.logger.LogDebug("Entity {Id} was deleted from repository", id);
+            var entity = this.repository.Retrieve(this.containerName, id,
+                RepositoryEntityMetadata.FromType<TEntity>());
+            if (entity == null)
+            {
+                return;
+            }
+
+            if (destroy)
+            {
+                this.repository.Remove(this.containerName, id);
+                this.logger.LogDebug("Entity {Id} was destroyed in repository", id);
+                return;
+            }
+
+            if (entity.IsDeleted.GetValueOrDefault(false))
+            {
+                return;
+            }
+
+            entity.IsDeleted = true;
+            this.repository.Replace(this.containerName, id, entity);
+            this.logger.LogDebug("Entity {Id} was soft-deleted in repository", id);
         }
 
-        public TEntity Get(Identifier id)
+        public TEntity ResurrectDeleted(Identifier id)
+        {
+            var entity = this.repository.Retrieve(this.containerName, id,
+                RepositoryEntityMetadata.FromType<TEntity>());
+            if (entity == null)
+            {
+                return default;
+            }
+
+            if (!entity.IsDeleted.GetValueOrDefault(false))
+            {
+                return entity.ToDomainEntity<TEntity>(this.domainFactory);
+            }
+
+            entity.IsDeleted = false;
+            this.repository.Replace(this.containerName, id, entity);
+
+            this.logger.LogDebug("Entity {Id} was resurrected in repository", id);
+            return entity.ToDomainEntity<TEntity>(this.domainFactory);
+        }
+
+        public TEntity Get(Identifier id, bool includeDeleted = false)
         {
             id.GuardAgainstNull(nameof(id));
 
             var entity = this.repository.Retrieve(this.containerName, id,
                 RepositoryEntityMetadata.FromType<TEntity>());
 
-            this.logger.LogDebug("Entity {Id} was retrieved from repository", id);
+            if (entity == null)
+            {
+                return default;
+            }
 
-            return entity != null
-                ? entity.ToDomainEntity<TEntity>(this.domainFactory)
-                : default;
+            if (entity.IsDeleted.GetValueOrDefault(false) && !includeDeleted)
+            {
+                return default;
+            }
+
+            this.logger.LogDebug("Entity {Id} was retrieved from repository", id);
+            return entity.ToDomainEntity<TEntity>(this.domainFactory);
         }
 
-        public TEntity Upsert(TEntity entity)
+        public TEntity Upsert(TEntity entity, bool includeDeleted = false)
         {
             entity.GuardAgainstNull(nameof(entity));
             if (!entity.Id.HasValue() || entity.Id.IsEmpty())
@@ -59,8 +107,9 @@ namespace Storage
                 throw new ResourceNotFoundException(Resources.GeneralCommandStorage_EntityMissingIdentifier);
             }
 
-            var latest = Get(entity.Id);
-            if (latest == null)
+            var current = this.repository.Retrieve(this.containerName, entity.Id,
+                RepositoryEntityMetadata.FromType<TEntity>());
+            if (current == null)
             {
                 var added = this.repository.Add(this.containerName, CommandEntity.FromDomainEntity(entity));
                 this.logger.LogDebug("Entity {Id} was added to repository", added.Id);
@@ -68,10 +117,18 @@ namespace Storage
                 return added.ToDomainEntity<TEntity>(this.domainFactory);
             }
 
-            latest.PopulateWithNonDefaultValues(entity);
+            if (current.IsDeleted.GetValueOrDefault(false))
+            {
+                if (!includeDeleted)
+                {
+                    throw new ResourceNotFoundException(Resources.GeneralCommandStorage_EntityDeleted);
+                }
+                current.IsDeleted = false;
+            }
 
-            var updated = this.repository.Replace(this.containerName, entity.Id,
-                CommandEntity.FromDomainEntity(entity));
+            var latest = MergeEntity(entity, current);
+
+            var updated = this.repository.Replace(this.containerName, entity.Id, latest);
             this.logger.LogDebug("Entity {Id} was updated in repository", entity.Id);
 
             return updated.ToDomainEntity<TEntity>(this.domainFactory);
@@ -86,6 +143,14 @@ namespace Storage
         {
             this.repository.DestroyAll(this.containerName);
             this.logger.LogDebug("All entities were deleted from repository");
+        }
+
+        private CommandEntity MergeEntity(TEntity entity, CommandEntity current)
+        {
+            var currentAsEntity = current.ToDomainEntity<TEntity>(this.domainFactory);
+            currentAsEntity.PopulateWithNonDefaultValues(entity);
+
+            return CommandEntity.FromDomainEntity(currentAsEntity);
         }
     }
 }

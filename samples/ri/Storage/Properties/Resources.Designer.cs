@@ -9,6 +9,9 @@
 //------------------------------------------------------------------------------
 
 namespace Storage.Properties {
+    using System;
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -58,11 +61,38 @@ namespace Storage.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Entity cannot be updated as it is already deleted.
+        /// </summary>
+        internal static string GeneralCommandStorage_EntityDeleted {
+            get {
+                return ResourceManager.GetString("GeneralCommandStorage_EntityDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Entity has empty identifier.
         /// </summary>
         internal static string GeneralCommandStorage_EntityMissingIdentifier {
             get {
                 return ResourceManager.GetString("GeneralCommandStorage_EntityMissingIdentifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DTO cannot be updated as it is already deleted.
+        /// </summary>
+        internal static string GeneralCrudStorage_DtoDeleted {
+            get {
+                return ResourceManager.GetString("GeneralCrudStorage_DtoDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DTO has empty identifier.
+        /// </summary>
+        internal static string GeneralCrudStorage_DtoMissingIdentifier {
+            get {
+                return ResourceManager.GetString("GeneralCrudStorage_DtoMissingIdentifier", resourceCulture);
             }
         }
         

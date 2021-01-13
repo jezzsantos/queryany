@@ -7,9 +7,9 @@ using Storage.Azure;
 namespace Storage.IntegrationTests.Azure
 {
     [TestClass, TestCategory("Integration.Storage")]
-    public class AzureTableRepositorySpec : AnyRepositoryBaseSpec
+    public class AzureBlobBlobositorySpec : AnyBlobositoryBaseSpec
     {
-        private static AzureTableStorageRepository repository;
+        private static AzureBlobStorageRepository blobository;
 
         [ClassInitialize]
         public static void InitializeAllTests(TestContext context)
@@ -17,7 +17,7 @@ namespace Storage.IntegrationTests.Azure
             InitializeAllTests();
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var settings = new NetCoreAppSettings(config);
-            repository = AzureTableStorageRepository.FromSettings(settings);
+            blobository = AzureBlobStorageRepository.FromSettings(settings);
             AzureStorageAccountBase.InitializeAllTests(context);
         }
 
@@ -27,11 +27,11 @@ namespace Storage.IntegrationTests.Azure
             AzureStorageAccountBase.CleanupAllTests();
         }
 
-        protected override RepoInfo GetRepository<TEntity>()
+        protected override BloboInfo GetBlobository<TEntity>()
         {
-            return new RepoInfo
+            return new BloboInfo
             {
-                Repository = repository,
+                Blobository = blobository,
                 ContainerName = typeof(TEntity).GetEntityNameSafe()
             };
         }

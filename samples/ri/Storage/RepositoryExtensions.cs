@@ -172,10 +172,31 @@ namespace Storage
             return QueryEntity.FromProperties(propertyValues, metadata);
         }
 
+        public static string ComplexTypeToContainerProperty(this object propertyValue)
+        {
+            var propertyType = propertyValue.GetType();
+            if (!propertyType.IsComplexStorageType())
+            {
+                return propertyValue.ToString();
+            }
+
+            if (HasToStringMethodBeenOverriden(propertyType))
+            {
+                return propertyValue.ToString();
+            }
+
+            return propertyValue.ToJson();
+        }
+
         public static object ComplexTypeFromContainerProperty(this string propertyValue, Type targetPropertyType)
         {
             if (propertyValue.HasValue())
             {
+                if (!targetPropertyType.IsComplexStorageType())
+                {
+                    return propertyValue;
+                }
+
                 try
                 {
                     if (propertyValue.StartsWith("{") && propertyValue.EndsWith("}"))
@@ -224,6 +245,11 @@ namespace Storage
         {
             toEntityProperties[select.FieldName] =
                 fromEntityProperties[select.JoinedFieldName];
+        }
+
+        private static bool HasToStringMethodBeenOverriden(Type propertyType)
+        {
+            return propertyType.GetMethod(nameof(ToString))?.DeclaringType == propertyType;
         }
     }
 }

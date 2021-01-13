@@ -30,9 +30,14 @@ namespace Storage
             return Properties.FromObjectDictionary<TDto>();
         }
 
-        public TDto ToQueryDto<TDto>() where TDto : IQueryableEntity, IHasIdentity, new()
+        public TDto ToDto<TDto>() where TDto : IQueryableEntity, IHasIdentity, new()
         {
             return Properties.FromObjectDictionary<TDto>();
+        }
+
+        public static CommandEntity FromDto<TDto>(TDto dto) where TDto : IQueryableEntity, IHasIdentity, new()
+        {
+            return FromType(dto);
         }
 
         public static CommandEntity FromDomainEntity<TEntity>(TEntity entity) where TEntity : IPersistableEntity

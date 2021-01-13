@@ -152,7 +152,7 @@ namespace Storage.Redis
             }
         }
 
-        public static RedisInMemRepository FromAppSettings(IAppSettings settings)
+        public static RedisInMemRepository FromSettings(IAppSettings settings)
         {
             var localServerConnectionString = settings.GetString("RedisConnectionString");
             return new RedisInMemRepository(localServerConnectionString);
@@ -344,7 +344,7 @@ namespace Storage.Redis
                         break;
 
                     default:
-                        value = pair.Value.ToString();
+                        value = pair.Value.ComplexTypeToContainerProperty();
 
                         break;
                 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -12,19 +11,16 @@ namespace Storage.UnitTests
     [TestClass, TestCategory("Unit")]
     public class GeneralQueryStorageSpec
     {
-        private Mock<IDomainFactory> domainFactory;
-        private Mock<ILogger> logger;
-        private Mock<IRepository> repository;
-        private GeneralQueryStorage<TestDto> storage;
+        private readonly Mock<IRepository> repository;
+        private readonly GeneralQueryStorage<TestDto> storage;
 
-        [TestInitialize]
-        public void Initialize()
+        public GeneralQueryStorageSpec()
         {
-            this.logger = new Mock<ILogger>();
-            this.domainFactory = new Mock<IDomainFactory>();
+            var logger = new Mock<ILogger>();
+            var domainFactory = new Mock<IDomainFactory>();
             this.repository = new Mock<IRepository>();
             this.storage =
-                new GeneralQueryStorage<TestDto>(this.logger.Object, this.domainFactory.Object,
+                new GeneralQueryStorage<TestDto>(logger.Object, domainFactory.Object,
                     this.repository.Object);
         }
 
@@ -72,7 +68,52 @@ namespace Storage.UnitTests
         }
 
         [TestMethod]
-        public void WhenQuery_ThenQueriesRepo()
+        public void WhenQueryAndDeleted_ThenReturnsNonDeletedResults()
+        {
+            var query = Query.From<TestDto>().WhereAll();
+            var results = new List<QueryEntity>
+            {
+                new QueryEntity {Id = "anid1", IsDeleted = true},
+                new QueryEntity {Id = "anid2", IsDeleted = false},
+                new QueryEntity {Id = "anid3", IsDeleted = null}
+            };
+            this.repository.Setup(repo =>
+                    repo.Query("acontainername", It.IsAny<QueryClause<TestDto>>(),
+                        It.IsAny<RepositoryEntityMetadata>()))
+                .Returns(results);
+
+            var result = this.storage.Query(query);
+
+            result.Results.Count.Should().Be(2);
+            result.Results[0].Id.Should().Be("anid2");
+            result.Results[1].Id.Should().Be("anid3");
+        }
+
+        [TestMethod]
+        public void WhenQueryAndDeletedAndIncludeDeleted_ThenReturnsDeletedResults()
+        {
+            var query = Query.From<TestDto>().WhereAll();
+            var results = new List<QueryEntity>
+            {
+                new QueryEntity {Id = "anid1", IsDeleted = true},
+                new QueryEntity {Id = "anid2", IsDeleted = false},
+                new QueryEntity {Id = "anid3", IsDeleted = null}
+            };
+            this.repository.Setup(repo =>
+                    repo.Query("acontainername", It.IsAny<QueryClause<TestDto>>(),
+                        It.IsAny<RepositoryEntityMetadata>()))
+                .Returns(results);
+
+            var result = this.storage.Query(query, true);
+
+            result.Results.Count.Should().Be(3);
+            result.Results[0].Id.Should().Be("anid1");
+            result.Results[1].Id.Should().Be("anid2");
+            result.Results[2].Id.Should().Be("anid3");
+        }
+
+        [TestMethod]
+        public void WhenQuery_ThenReturnsAllResults()
         {
             var query = Query.From<TestDto>().WhereAll();
             var results = new List<QueryEntity>();
@@ -87,36 +128,73 @@ namespace Storage.UnitTests
         }
 
         [TestMethod]
-        public void WhenGetWithNullId_ThenThrows()
-        {
-            this.storage
-                .Invoking(x => x.Get<TestDtoWithId>(null))
-                .Should().Throw<ArgumentNullException>();
-        }
-
-        [TestMethod]
         public void WhenGetAndNotExists_ThenReturnsNull()
         {
             this.repository.Setup(repo =>
-                    repo.Retrieve(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<RepositoryEntityMetadata>()))
+                    repo.Retrieve("acontainername", "anid",
+                        It.IsAny<RepositoryEntityMetadata>()))
                 .Returns((CommandEntity) null);
 
-            var result = this.storage.Get<TestDtoWithId>(Identifier.Create("anid"));
+            var result = this.storage.Get<TestDto>("anid".ToIdentifier());
 
             result.Should().BeNull();
+            this.repository.Verify(repo =>
+                repo.Retrieve("acontainername", "anid",
+                    It.IsAny<RepositoryEntityMetadata>()));
         }
 
         [TestMethod]
-        public void WhenGet_ThenReturnsDto()
+        public void WhenGetAndSoftDeleted_ThenReturnsNull()
         {
-            var dto = new TestDtoWithId {Id = "anid"};
             this.repository.Setup(repo =>
-                    repo.Retrieve(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<RepositoryEntityMetadata>()))
-                .Returns(CommandEntity.FromType(dto));
+                    repo.Retrieve("acontainername", "anid",
+                        It.IsAny<RepositoryEntityMetadata>()))
+                .Returns(new CommandEntity("anid")
+                {
+                    IsDeleted = true
+                });
 
-            var result = this.storage.Get<TestDtoWithId>(Identifier.Create("anid"));
+            var result = this.storage.Get<TestDto>("anid".ToIdentifier());
 
-            result.Id.Should().Be("anid");
+            result.Should().BeNull();
+            this.repository.Verify(repo =>
+                repo.Retrieve("acontainername", "anid",
+                    It.IsAny<RepositoryEntityMetadata>()));
+        }
+
+        [TestMethod]
+        public void WhenGetAndSoftDeletedAndIncludeDeleted_ThenRetrievesFromRepository()
+        {
+            this.repository.Setup(repo =>
+                    repo.Retrieve("acontainername", "anid",
+                        It.IsAny<RepositoryEntityMetadata>()))
+                .Returns(new CommandEntity("anid")
+                {
+                    IsDeleted = true
+                });
+
+            var result = this.storage.Get<TestDto>("anid".ToIdentifier(), true);
+
+            result.Id.Should().Be("anid".ToIdentifier());
+            this.repository.Verify(repo =>
+                repo.Retrieve("acontainername", "anid",
+                    It.IsAny<RepositoryEntityMetadata>()));
+        }
+
+        [TestMethod]
+        public void WhenGet_ThenRetrievesFromRepository()
+        {
+            this.repository.Setup(repo =>
+                    repo.Retrieve("acontainername", "anid",
+                        It.IsAny<RepositoryEntityMetadata>()))
+                .Returns(new CommandEntity("anid"));
+
+            var result = this.storage.Get<TestDto>("anid".ToIdentifier());
+
+            result.Id.Should().Be("anid".ToIdentifier());
+            this.repository.Verify(repo =>
+                repo.Retrieve("acontainername", "anid",
+                    It.IsAny<RepositoryEntityMetadata>()));
         }
     }
 }

@@ -14,28 +14,25 @@ namespace Storage.UnitTests.ReadModels
     [TestClass, TestCategory("Unit")]
     public class ReadModelCheckpointStoreSpec
     {
-        private Mock<IDomainFactory> domainFactory;
-        private Mock<IIdentifierFactory> idFactory;
-        private Mock<ILogger> logger;
-        private Mock<IRepository> repository;
-        private ReadModelCheckpointStore store;
+        private readonly Mock<IIdentifierFactory> idFactory;
+        private readonly Mock<IRepository> repository;
+        private readonly ReadModelCheckpointStore store;
 
-        [TestInitialize]
-        public void Initialize()
+        public ReadModelCheckpointStoreSpec()
         {
-            this.logger = new Mock<ILogger>();
+            var logger = new Mock<ILogger>();
             this.idFactory = new Mock<IIdentifierFactory>();
             this.idFactory.Setup(idf => idf.Create(It.IsAny<IIdentifiableEntity>()))
                 .Returns("anid".ToIdentifier);
-            this.domainFactory = new Mock<IDomainFactory>();
-            this.domainFactory.Setup(df => df.RehydrateValueObject(typeof(Identifier), It.IsAny<string>()))
+            var domainFactory = new Mock<IDomainFactory>();
+            domainFactory.Setup(df => df.RehydrateValueObject(typeof(Identifier), It.IsAny<string>()))
                 .Returns((Type type, string value) => Identifier.Create(value));
             this.repository = new Mock<IRepository>();
             this.repository.Setup(repo => repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<Checkpoint>>(),
                     It.IsAny<RepositoryEntityMetadata>()))
                 .Returns(new List<QueryEntity>());
-            this.store = new ReadModelCheckpointStore(this.logger.Object, this.idFactory.Object,
-                this.domainFactory.Object, this.repository.Object);
+            this.store = new ReadModelCheckpointStore(logger.Object, this.idFactory.Object,
+                domainFactory.Object, this.repository.Object);
         }
 
         [TestMethod]

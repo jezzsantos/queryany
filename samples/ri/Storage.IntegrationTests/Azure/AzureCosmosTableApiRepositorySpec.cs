@@ -7,8 +7,6 @@ using Storage.Azure;
 namespace Storage.IntegrationTests.Azure
 {
     [TestClass, TestCategory("Integration.Storage")]
-
-    // ReSharper disable once InconsistentNaming
     public class AzureCosmosTableApiRepositorySpec : AnyRepositoryBaseSpec
     {
         private static AzureCosmosTableApiRepository repository;
@@ -19,7 +17,7 @@ namespace Storage.IntegrationTests.Azure
             InitializeAllTests();
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var settings = new NetCoreAppSettings(config);
-            repository = AzureCosmosTableApiRepository.FromAppSettings(settings);
+            repository = AzureCosmosTableApiRepository.FromSettings(settings);
             AzureCosmosStorageBase.InitializeAllTests(context, "/EnableTableEndpoint");
         }
 

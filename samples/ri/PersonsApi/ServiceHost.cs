@@ -54,7 +54,7 @@ namespace PersonsApi
             static IRepository ResolveRepository(Container c)
             {
                 return repository ??=
-                    LocalMachineFileRepository.FromAppSettings(c.Resolve<IAppSettings>());
+                    LocalMachineFileRepository.FromSettings(c.Resolve<IAppSettings>());
             }
 
             container.AddSingleton<ILogger>(c => new Logger<ServiceHost>(new NullLoggerFactory()));

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Domain.Interfaces;
+﻿using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -10,27 +8,17 @@ using Moq;
 namespace Storage.UnitTests
 {
     [TestClass, TestCategory("Unit")]
-    public class GeneralCommandStorageSpec
+    public class GeneralCrudStorageSpec
     {
-        private readonly Mock<IDomainFactory> domainFactory;
         private readonly Mock<IRepository> repository;
-        private readonly GeneralCommandStorage<TestDomainEntity> storage;
+        private readonly GeneralCrudStorage<TestDto> storage;
 
-        public GeneralCommandStorageSpec()
+        public GeneralCrudStorageSpec()
         {
             var logger = new Mock<ILogger>();
-            this.domainFactory = new Mock<IDomainFactory>();
-            this.domainFactory.Setup(df =>
-                    df.RehydrateEntity(It.IsAny<Type>(), It.IsAny<IReadOnlyDictionary<string, object>>()))
-                .Returns((Type type, IReadOnlyDictionary<string, object> props) =>
-                    new TestDomainEntity(props[nameof(TestDomainEntity.Id)].ToString().ToIdentifier())
-                    {
-                        IsDeleted = (bool?) props[nameof(TestDomainEntity.IsDeleted)]
-                    });
             this.repository = new Mock<IRepository>();
             this.storage =
-                new GeneralCommandStorage<TestDomainEntity>(logger.Object, this.domainFactory.Object,
-                    this.repository.Object);
+                new GeneralCrudStorage<TestDto>(logger.Object, this.repository.Object);
         }
 
         [TestMethod]
@@ -213,7 +201,7 @@ namespace Storage.UnitTests
         public void WhenUpsertAndEntityIdNotExists_ThenThrowsNotFound()
         {
             this.storage
-                .Invoking(x => x.Upsert(new TestDomainEntity(null)))
+                .Invoking(x => x.Upsert(new TestDto()))
                 .Should().Throw<ResourceNotFoundException>();
         }
 
@@ -221,7 +209,7 @@ namespace Storage.UnitTests
         public void WhenUpsertAndEntityIdIsEmpty_ThenThrowsNotFound()
         {
             this.storage
-                .Invoking(x => x.Upsert(new TestDomainEntity(Identifier.Empty())))
+                .Invoking(x => x.Upsert(new TestDto {Id = Identifier.Empty()}))
                 .Should().Throw<ResourceNotFoundException>();
         }
 
@@ -237,7 +225,7 @@ namespace Storage.UnitTests
                 });
 
             this.storage
-                .Invoking(x => x.Upsert(new TestDomainEntity("anid".ToIdentifier())))
+                .Invoking(x => x.Upsert(new TestDto {Id = "anid".ToIdentifier()}))
                 .Should().Throw<ResourceNotFoundException>();
         }
 
@@ -258,20 +246,21 @@ namespace Storage.UnitTests
                     IsDeleted = false
                 });
 
-            this.storage.Upsert(new TestDomainEntity("anid".ToIdentifier())
+            this.storage.Upsert(new TestDto
             {
+                Id = "anid".ToIdentifier(),
                 AStringValue = "astringvalue"
             }, true);
 
             this.repository.Verify(repo => repo.Replace("acontainername", "anid", It.Is<CommandEntity>(ce =>
                 ce.IsDeleted == false
-                && (string) ce.Properties[nameof(TestDomainEntity.AStringValue)] == "astringvalue")));
+                && (string) ce.Properties[nameof(TestDto.AStringValue)] == "astringvalue")));
         }
 
         [TestMethod]
         public void WhenUpsertAndEntityNotExists_ThenAddsToRepository()
         {
-            var entity = new TestDomainEntity("anid".ToIdentifier());
+            var entity = new TestDto {Id = "anid".ToIdentifier()};
             var addedEntity = new CommandEntity("anid");
             this.repository.Setup(repo => repo.Retrieve("acontainername", "anid",
                     It.IsAny<RepositoryEntityMetadata>()))
@@ -290,10 +279,10 @@ namespace Storage.UnitTests
         [TestMethod]
         public void WhenUpsertAndEntityExists_ThenReplacesInRepository()
         {
-            var entity = new TestDomainEntity("anupsertedid".ToIdentifier()) {AStringValue = "anewvalue"};
+            var entity = new TestDto {Id = "anupsertedid".ToIdentifier(), AStringValue = "anewvalue"};
             var fetchedEntity = new CommandEntity("anid");
             var updatedEntity = new CommandEntity("anid");
-            var hydratedEntity = new TestDomainEntity("anid".ToIdentifier());
+            var hydratedEntity = new TestDto {Id = "anid".ToIdentifier()};
             this.repository.Setup(repo =>
                     repo.Retrieve("acontainername", It.IsAny<string>(),
                         It.IsAny<RepositoryEntityMetadata>()))
@@ -301,9 +290,6 @@ namespace Storage.UnitTests
             this.repository.Setup(repo =>
                     repo.Replace("acontainername", It.IsAny<string>(), It.IsAny<CommandEntity>()))
                 .Returns(updatedEntity);
-            this.domainFactory.Setup(df =>
-                    df.RehydrateEntity(It.IsAny<Type>(), It.IsAny<IReadOnlyDictionary<string, object>>()))
-                .Returns(hydratedEntity);
 
             var result = this.storage.Upsert(entity);
 

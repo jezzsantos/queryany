@@ -6,9 +6,8 @@ using Storage.Azure;
 
 namespace Storage.UnitTests.Azure
 {
-    [TestClass, TestCategory("Unit")]
-
     // ReSharper disable once InconsistentNaming
+    [TestClass, TestCategory("Unit")]
     public class AzureStorageTableWhereExtensionsSpec
     {
         [TestMethod]

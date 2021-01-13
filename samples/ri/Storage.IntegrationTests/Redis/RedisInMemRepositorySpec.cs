@@ -17,7 +17,7 @@ namespace Storage.IntegrationTests.Redis
             InitializeAllTests();
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var settings = new NetCoreAppSettings(config);
-            repository = RedisInMemRepository.FromAppSettings(settings);
+            repository = RedisInMemRepository.FromSettings(settings);
             RedisInMemStorageBase.InitializeAllTests(context);
         }
 

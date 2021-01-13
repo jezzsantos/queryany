@@ -165,7 +165,7 @@ namespace Storage.Azure
 
             var table = EnsureTable(containerName);
 
-            // HACK: deleting the entire table takes far too long (only reliable in testing)
+            // NOTE: deleting the entire table may take far too long (this method is only tenable in testing)
             List<DynamicTableEntity> GetRemaining()
             {
                 var query = new TableQuery()
@@ -240,10 +240,10 @@ namespace Storage.Azure
 
             var accountKey = settings.GetString("AzureTableStorageAccountKey");
             var hostName = settings.GetString("AzureTableStorageHostName");
-            var localEmulatorConnectionString = accountKey.HasValue()
+            var connectionString = accountKey.HasValue()
                 ? $"DefaultEndpointsProtocol=https;AccountName={hostName};AccountKey={accountKey};EndpointSuffix=core.windows.net"
                 : "UseDevelopmentStorage=true";
-            return new AzureTableStorageRepository(localEmulatorConnectionString);
+            return new AzureTableStorageRepository(connectionString);
         }
 
         private List<QueryEntity> QueryPrimaryEntities<TQueryableEntity>(CloudTable table,
@@ -524,7 +524,7 @@ namespace Storage.Azure
 
                 default:
                     var @string = property != null
-                        ? property.ToString()
+                        ? property.ComplexTypeToContainerProperty()
                         : AzureTableStorageRepository.NullValue;
                     return EntityProperty.GeneratePropertyForString(@string);
             }

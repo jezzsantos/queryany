@@ -17,23 +17,20 @@ namespace Storage.UnitTests
     [TestClass, TestCategory("Unit")]
     public class GeneralEventStreamStorageSpec
     {
-        private Mock<IDomainFactory> domainFactory;
-        private Mock<ILogger> logger;
-        private Mock<IChangeEventMigrator> migrator;
-        private Mock<IRepository> repository;
+        private readonly Mock<IDomainFactory> domainFactory;
+        private readonly Mock<IRepository> repository;
+        private readonly GeneralEventStreamStorage<TestAggregateRoot> storage;
         private EventStreamStateChangedArgs stateChangedEvent;
-        private GeneralEventStreamStorage<TestAggregateRoot> storage;
 
-        [TestInitialize]
-        public void Initialize()
+        public GeneralEventStreamStorageSpec()
         {
-            this.logger = new Mock<ILogger>();
+            var logger = new Mock<ILogger>();
             this.domainFactory = new Mock<IDomainFactory>();
-            this.migrator = new Mock<IChangeEventMigrator>();
+            var migrator = new Mock<IChangeEventMigrator>();
             this.repository = new Mock<IRepository>();
             this.storage =
-                new GeneralEventStreamStorage<TestAggregateRoot>(this.logger.Object, this.domainFactory.Object,
-                    this.migrator.Object, this.repository.Object);
+                new GeneralEventStreamStorage<TestAggregateRoot>(logger.Object, this.domainFactory.Object,
+                    migrator.Object, this.repository.Object);
 
             this.stateChangedEvent = null;
             this.storage.OnEventStreamStateChanged += (sender, args) => { this.stateChangedEvent = args; };

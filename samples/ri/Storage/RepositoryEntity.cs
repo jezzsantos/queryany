@@ -19,6 +19,7 @@ namespace Storage
             Metadata = new RepositoryEntityMetadata();
             Add(nameof(Id), id, typeof(string));
             Add(nameof(LastPersistedAtUtc), null, typeof(DateTime?));
+            Add(nameof(IsDeleted), null, typeof(bool?));
         }
 
         public RepositoryEntityMetadata Metadata { get; }
@@ -35,6 +36,12 @@ namespace Storage
         {
             get => this.propertyValues.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
             set => this.propertyValues[nameof(LastPersistedAtUtc)] = value;
+        }
+
+        public bool? IsDeleted
+        {
+            get => this.propertyValues.GetValueOrDefault<bool?>(nameof(IsDeleted));
+            set => this.propertyValues[nameof(IsDeleted)] = value;
         }
 
         public Type GetPropertyType(string propertyName)

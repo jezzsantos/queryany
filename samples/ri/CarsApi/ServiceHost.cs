@@ -55,7 +55,7 @@ namespace CarsApi
             static IRepository ResolveRepository(Container c)
             {
                 return repository ??=
-                    AzureCosmosSqlApiRepository.FromAppSettings(c.Resolve<IAppSettings>(), "Production");
+                    AzureCosmosSqlApiRepository.FromSettings(c.Resolve<IAppSettings>(), "Production");
             }
 
             container.AddSingleton<ILogger>(c => new Logger<ServiceHost>(new NullLoggerFactory()));

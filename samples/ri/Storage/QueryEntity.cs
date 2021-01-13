@@ -17,6 +17,11 @@ namespace Storage
             return properties.FromObjectDictionary<TEntity>();
         }
 
+        public TDto ToDto<TDto>() where TDto : IQueryableEntity, new()
+        {
+            return Properties.FromObjectDictionary<TDto>();
+        }
+
         public static QueryEntity FromType<TType>(TType instance)
             where TType : IQueryableEntity
         {

@@ -6,15 +6,13 @@ using Storage.Azure;
 
 namespace Storage.UnitTests.Azure
 {
-    [TestClass, TestCategory("Unit")]
-
     // ReSharper disable once InconsistentNaming
+    [TestClass, TestCategory("Unit")]
     public class AzureCosmosSqlApiQueryExtensionsSpec
     {
-        private Mock<IRepository> repository;
+        private readonly Mock<IRepository> repository;
 
-        [TestInitialize]
-        public void Initialize()
+        public AzureCosmosSqlApiQueryExtensionsSpec()
         {
             this.repository = new Mock<IRepository>();
             this.repository.Setup(repo => repo.MaxQueryResults)

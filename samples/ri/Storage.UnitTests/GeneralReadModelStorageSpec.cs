@@ -9,19 +9,17 @@ namespace Storage.UnitTests
     [TestClass, TestCategory("Unit")]
     public class GeneralReadModelStorageSpec
     {
-        private Mock<ILogger> logger;
-        private Mock<IRepository> repository;
-        private GeneralReadModelStorage<TestReadModel> storage;
+        private readonly Mock<IRepository> repository;
+        private readonly GeneralReadModelStorage<TestReadModel> storage;
 
-        [TestInitialize]
-        public void Initialize()
+        public GeneralReadModelStorageSpec()
         {
-            this.logger = new Mock<ILogger>();
+            var logger = new Mock<ILogger>();
             this.repository = new Mock<IRepository>();
             this.repository.Setup(repo => repo.Add(It.IsAny<string>(), It.IsAny<CommandEntity>()))
                 .Returns((string containerName, CommandEntity entity) => new CommandEntity(entity.Id));
             this.storage =
-                new GeneralReadModelStorage<TestReadModel>(this.logger.Object, this.repository.Object);
+                new GeneralReadModelStorage<TestReadModel>(logger.Object, this.repository.Object);
         }
 
         [TestMethod]
