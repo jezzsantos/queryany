@@ -155,7 +155,7 @@ namespace Domain.Interfaces.UnitTests
         {
             var result = new TestSingleStringValueObject("avalue").Equals(null);
 
-            Assert.IsFalse(result);
+            result.Should().BeFalse();
         }
 
         [TestMethod]
@@ -164,7 +164,7 @@ namespace Domain.Interfaces.UnitTests
             var result =
                 new TestSingleStringValueObject("avalue").Equals(new TestSingleStringValueObject("anothervalue"));
 
-            Assert.IsFalse(result);
+            result.Should().BeFalse();
         }
 
         [TestMethod]
@@ -181,7 +181,7 @@ namespace Domain.Interfaces.UnitTests
             var result =
                 new TestMultiValueObject("avalue1", 25, true).Equals(new TestMultiValueObject("avalue2", 50, false));
 
-            Assert.IsFalse(result);
+            result.Should().BeFalse();
         }
 
         [TestMethod]
@@ -353,6 +353,27 @@ namespace Domain.Interfaces.UnitTests
         {
             return value;
         }
+    }
+
+    public class TestSingleEnumValueObject : SingleValueObjectBase<TestSingleEnumValueObject, AnEnum>
+    {
+        public TestSingleEnumValueObject(AnEnum value) : base(value)
+        {
+        }
+
+        public AnEnum EnumValue => Value;
+
+        protected override AnEnum ToValue(string value)
+        {
+            return value.ToEnumOrDefault(AnEnum.ADefault);
+        }
+    }
+
+    public enum AnEnum
+    {
+        ADefault = 0,
+        AValue1 = 1,
+        AValue2 = 2
     }
 
     public class TestSingleListValueObjectValueObject : SingleValueObjectBase<TestSingleListValueObjectValueObject,

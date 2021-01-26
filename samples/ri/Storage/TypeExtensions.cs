@@ -38,7 +38,7 @@ namespace Storage
             {
                 throw new ArgumentNullException();
             }
-            return Enum.Parse(enumType, value);
+            return Enum.Parse(enumType, value, true);
         }
     }
 }

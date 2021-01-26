@@ -48,6 +48,10 @@ namespace Domain.Interfaces.Entities
                 {
                     return value.ToString();
                 }
+                if (value is Enum)
+                {
+                    return value.ToString();
+                }
                 return DehydrateInternal(parts[0]).ToJson();
             }
 

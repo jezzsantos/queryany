@@ -581,7 +581,7 @@ namespace Storage
             {
                 if (targetPropertyType.IsEnum)
                 {
-                    return Enum.Parse(targetPropertyType, propertyValue);
+                    return Enum.Parse(targetPropertyType, propertyValue, true);
                 }
 
                 if (targetPropertyType.IsNullableEnum())

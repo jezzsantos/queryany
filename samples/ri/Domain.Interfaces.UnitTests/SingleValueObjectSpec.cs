@@ -17,9 +17,39 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenAssignInstanceToString_ThenValueAssigned()
         {
-            string stringValue = this.valueObject;
+            var stringValue = new TestSingleStringValueObject("avalue");
 
-            stringValue.Should().Be("avalue");
+            stringValue.StringValue.Should().Be("avalue");
+        }
+
+        [TestMethod]
+        public void WhenAssignInstanceToEnumThenValueAssigned()
+        {
+            var enumValue = new TestSingleEnumValueObject(AnEnum.AValue1);
+
+            enumValue.EnumValue.Should().Be(AnEnum.AValue1);
+        }
+
+        [TestMethod]
+        public void WhenRehydrateStringThenValueAssigned()
+        {
+            var stringValue = new TestSingleStringValueObject("avalue");
+            var dehydrated = stringValue.Dehydrate();
+
+            stringValue.Rehydrate(dehydrated);
+
+            stringValue.StringValue.Should().Be("avalue");
+        }
+
+        [TestMethod]
+        public void WhenRehydrateEnumThenValueAssigned()
+        {
+            var enumValue = new TestSingleEnumValueObject(AnEnum.AValue1);
+            var dehydrated = enumValue.Dehydrate();
+
+            enumValue.Rehydrate(dehydrated);
+
+            enumValue.EnumValue.Should().Be(AnEnum.AValue1);
         }
 
         [TestMethod]

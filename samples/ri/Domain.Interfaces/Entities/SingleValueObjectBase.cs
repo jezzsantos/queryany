@@ -40,7 +40,9 @@ namespace Domain.Interfaces.Entities
 
         public static implicit operator TValue(SingleValueObjectBase<TValueObject, TValue> valueObject)
         {
-            return valueObject.Value;
+            return valueObject == null
+                ? default
+                : valueObject.Value;
         }
 
         public static bool operator ==(SingleValueObjectBase<TValueObject, TValue> obj1,

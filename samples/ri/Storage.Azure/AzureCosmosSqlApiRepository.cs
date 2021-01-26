@@ -408,7 +408,7 @@ namespace Storage.Azure
                     {
                         if (targetPropertyType.IsEnum)
                         {
-                            return Enum.Parse(targetPropertyType, text);
+                            return Enum.Parse(targetPropertyType, text, true);
                         }
 
                         if (targetPropertyType.IsNullableEnum())
