@@ -112,16 +112,9 @@ namespace Api.Common
                                         factoryMethod.Name, FactoryMethodName));
                             }
 
-                            if (AggregateRootFactories.ContainsKey(type))
-                            {
-                                throw new InvalidOperationException(
-                                    Resources.DomainFactory_AggregateRootFactoryMethodExists.Format(type.Name,
-                                        factoryMethod.Name));
-                            }
-
                             var @delegate =
                                 (AggregateRootFactory<IPersistableAggregateRoot>) factoryMethod.Invoke(null, null);
-                            this.aggregateRootFactories.Add(type, @delegate);
+                            this.aggregateRootFactories[type] = @delegate;
                         }
                         else
                         {
@@ -143,15 +136,8 @@ namespace Api.Common
                                         factoryMethod.Name, FactoryMethodName));
                             }
 
-                            if (EntityFactories.ContainsKey(type))
-                            {
-                                throw new InvalidOperationException(
-                                    Resources.DomainFactory_EntityFactoryMethodExists.Format(type.Name,
-                                        factoryMethod.Name));
-                            }
-
                             var @delegate = (EntityFactory<IPersistableEntity>) factoryMethod.Invoke(null, null);
-                            this.entityFactories.Add(type, @delegate);
+                            this.entityFactories[type] = @delegate;
                         }
                         else
                         {
@@ -173,16 +159,9 @@ namespace Api.Common
                                         factoryMethod.Name, FactoryMethodName));
                             }
 
-                            if (ValueObjectFactories.ContainsKey(type))
-                            {
-                                throw new InvalidOperationException(
-                                    Resources.DomainFactory_ValueObjectFactoryMethodExists.Format(type.Name,
-                                        factoryMethod.Name));
-                            }
-
                             var @delegate =
                                 (ValueObjectFactory<IPersistableValueObject>) factoryMethod.Invoke(null, null);
-                            this.valueObjectFactories.Add(type, @delegate);
+                            this.valueObjectFactories[type] = @delegate;
                         }
                         else
                         {

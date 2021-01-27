@@ -61,29 +61,11 @@ namespace Api.Common.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to register method: &apos;{0}.{1}()&apos; in DomainFactory. AggregateRoot: {0} has more than one declared definition of &apos;AggregateRootFactory&lt;{0}&gt;&apos;.
-        /// </summary>
-        internal static string DomainFactory_AggregateRootFactoryMethodExists {
-            get {
-                return ResourceManager.GetString("DomainFactory_AggregateRootFactoryMethodExists", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to register AggregateRoot: &apos;{0}&apos; in DomainFactory. This class must declare a factory method with signature &apos;public static AggregateRootFactory&lt;{0}&gt; {1}()&apos;&apos;.
         /// </summary>
         internal static string DomainFactory_AggregateRootFactoryMethodNotFound {
             get {
                 return ResourceManager.GetString("DomainFactory_AggregateRootFactoryMethodNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to register method: &apos;{0}.{1}()&apos; in DomainFactory. Entity: {0} has more than one declared definition of &apos;EntityFactory&lt;{0}&gt;&apos;.
-        /// </summary>
-        internal static string DomainFactory_EntityFactoryMethodExists {
-            get {
-                return ResourceManager.GetString("DomainFactory_EntityFactoryMethodExists", resourceCulture);
             }
         }
         
@@ -111,15 +93,6 @@ namespace Api.Common.Properties {
         internal static string DomainFactory_FactoryMethodHasParameters {
             get {
                 return ResourceManager.GetString("DomainFactory_FactoryMethodHasParameters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to register method: &apos;{0}.{1}()&apos; in DomainFactory. ValueObject: {0} has more than one declared definition of &apos;ValueObjectFactory&lt;{0}&gt;&apos;.
-        /// </summary>
-        internal static string DomainFactory_ValueObjectFactoryMethodExists {
-            get {
-                return ResourceManager.GetString("DomainFactory_ValueObjectFactoryMethodExists", resourceCulture);
             }
         }
         
