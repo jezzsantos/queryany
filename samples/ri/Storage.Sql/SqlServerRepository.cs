@@ -356,6 +356,11 @@ namespace Storage.Sql
             var value = propertyValue;
             if (value != null)
             {
+                if (targetPropertyType.IsEnum || targetPropertyType.IsNullableEnum())
+                {
+                    value = value.ToString();
+                }
+
                 if (value.GetType().IsComplexStorageType())
                 {
                     value = value.ComplexTypeToContainerProperty();
@@ -423,6 +428,23 @@ namespace Storage.Sql
                     if (targetPropertyType == typeof(Guid) || targetPropertyType == typeof(Guid?))
                     {
                         return Guid.Parse(text);
+                    }
+
+                    if (targetPropertyType.IsEnum || targetPropertyType.IsNullableEnum())
+                    {
+                        if (targetPropertyType.IsEnum)
+                        {
+                            return Enum.Parse(targetPropertyType, text, true);
+                        }
+
+                        if (targetPropertyType.IsNullableEnum())
+                        {
+                            if (text.HasValue())
+                            {
+                                return targetPropertyType.ParseNullable(text);
+                            }
+                            return null;
+                        }
                     }
 
                     if (targetPropertyType.IsComplexStorageType())
