@@ -65,7 +65,7 @@ namespace Storage
 
             return primarySelects
                 .Select(select => select.FieldName)
-                .Concat(joinedSelects.Select(select => select.FieldName))
+                .Concat(joinedSelects.Select(select => select.JoinedFieldName))
                 .ToList();
         }
 
@@ -127,12 +127,12 @@ namespace Storage
                 var rightEntityProperties = rightEntity.Value.ToObjectDictionary();
                 foreach (var select in selectedFromJoinPropertyNames)
                 {
-                    if (!rightEntityProperties.HasPropertyValue(select.JoinedFieldName))
+                    if (!rightEntityProperties.HasPropertyValue(select.FieldName)) //select.FieldName
                     {
                         continue;
                     }
 
-                    leftEntityProperties.CreatePropertyIfNotExists(select.FieldName);
+                    leftEntityProperties.CreatePropertyIfNotExists(select.JoinedFieldName); //select.JoinedFiledName
                     leftEntityProperties.CopyPropertyValue(rightEntityProperties, select);
                 }
 
@@ -243,8 +243,8 @@ namespace Storage
             Dictionary<string, object> fromEntityProperties,
             SelectDefinition select)
         {
-            toEntityProperties[select.FieldName] =
-                fromEntityProperties[select.JoinedFieldName];
+            toEntityProperties[select.JoinedFieldName] =
+                fromEntityProperties[select.FieldName];
         }
 
         private static bool HasToStringMethodBeenOverriden(Type propertyType)

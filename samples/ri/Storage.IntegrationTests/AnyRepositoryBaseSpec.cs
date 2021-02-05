@@ -1844,7 +1844,8 @@ namespace Storage.IntegrationTests
                 .SelectFromJoin<FirstJoiningTestQueryableEntity, int>(e => e.AIntValue, je => je.AIntValue);
 
             var results = this.repo.Repository.Query(this.repo.ContainerName, query,
-                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
+                    RepositoryEntityMetadata.FromType<TestRepositoryEntity>())
+                .OrderBy(x => x.Id).ToList();
 
             results.Count.Should().Be(3);
             results[0].Id.Should().Be(entity1.Id);

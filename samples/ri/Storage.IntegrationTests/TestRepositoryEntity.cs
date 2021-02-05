@@ -16,7 +16,7 @@ namespace Storage.IntegrationTests
 
         public TestRepositoryEntity()
         {
-            Id = Identifier.Create($"anid{++instanceCounter}");
+            Id = Identifier.Create($"anid{++instanceCounter:000}");
         }
 
         public DateTime? LastPersistedAtUtc { get; set; }
