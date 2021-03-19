@@ -8,13 +8,13 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("jezzsantos")]
 [assembly: AssemblyProduct("QueryAny")]
-[assembly: AssemblyCopyright("Copyright 2020, jezzsantos")]
+[assembly: AssemblyCopyright("Copyright 2021, jezzsantos")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
 
 [assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.2.0")]
-[assembly: AssemblyInformationalVersion("1.0.2")]
+[assembly: AssemblyFileVersion("1.0.3.0")]
+[assembly: AssemblyInformationalVersion("1.0.3")]
 
 [assembly: InternalsVisibleTo("QueryAny.UnitTests")]
