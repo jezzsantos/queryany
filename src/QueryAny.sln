@@ -116,6 +116,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{5E3D766B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationServices.UnitTests", "..\samples\ri\ApplicationServices.UnitTests\ApplicationServices.UnitTests.csproj", "{1796394E-3FA5-401C-BB7E-342748C145B3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{26E6E2CD-1CB2-4B7E-BAA8-D67835F58948}"
+ProjectSection(SolutionItems) = preProject
+	..\appveyor.yml = ..\appveyor.yml
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -16,9 +16,9 @@ environment:
   - test_type: Integration.Testing.Web
     test_assemblies: samples\ri\CarsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\CarsApi.IntegrationTests.dll;samples\ri\PersonsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\PersonsApi.IntegrationTests.dll;samples\ri\Storage.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\Storage.IntegrationTests.dll
     test_category: Integration.Web
-  - test_type: Integration.Testing.Storage
-    test_assemblies: samples\ri\CarsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\CarsApi.IntegrationTests.dll;samples\ri\PersonsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\PersonsApi.IntegrationTests.dll;samples\ri\Storage.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\Storage.IntegrationTests.dll
-    test_category: Integration.Storage
+#  - test_type: Integration.Testing.Storage
+#    test_assemblies: samples\ri\CarsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\CarsApi.IntegrationTests.dll;samples\ri\PersonsApi.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\PersonsApi.IntegrationTests.dll;samples\ri\Storage.IntegrationTests\bin\$env:CONFIGURATION\netcoreapp3.1\Storage.IntegrationTests.dll
+#    test_category: Integration.Storage
 matrix:
     fast_finish: false
 install:
@@ -53,7 +53,7 @@ artifacts:
 deploy:
 - provider: NuGet
   api_key:
-    secure: IOhQyRtNmDLFQCHDAlihYB9gVTqimDBKBPEcjSvJEwRF7Hlkxncz3a+FEWsKCSJv
+    secure: 8aeZAmikK85S7COgBdnSeW5g89bi87eL30OvCW2H/m3jDE5hHsnHOBrObwsOW8PF
   skip_symbols: true
   on:
     branch: master
