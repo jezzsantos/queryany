@@ -1,9 +1,6 @@
-﻿using QueryAny;
-
-namespace Storage.Interfaces.ReadModels
+﻿namespace Storage.Interfaces.ReadModels
 {
-    public interface IReadModelEntity : IQueryableEntity
+    public interface IReadModelEntity : IPersistableDto
     {
-        string Id { get; set; }
     }
 }

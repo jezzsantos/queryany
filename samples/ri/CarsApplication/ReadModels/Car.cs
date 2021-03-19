@@ -5,7 +5,7 @@ using Storage.Interfaces.ReadModels;
 namespace CarsApplication.ReadModels
 {
     [EntityName("Car")]
-    public class Car : IReadModelEntity
+    public class Car : ReadModelEntity
     {
         public int ManufactureYear { get; set; }
 
@@ -20,7 +20,5 @@ namespace CarsApplication.ReadModels
         public string LicenseJurisdiction { get; set; }
 
         public string LicenseNumber { get; set; }
-
-        public string Id { get; set; }
     }
 }

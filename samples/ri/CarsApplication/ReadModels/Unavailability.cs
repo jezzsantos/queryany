@@ -6,7 +6,7 @@ using Storage.Interfaces.ReadModels;
 namespace CarsApplication.ReadModels
 {
     [EntityName("Unavailability")]
-    public class Unavailability : IReadModelEntity
+    public class Unavailability : ReadModelEntity
     {
         public string CarId { get; set; }
 
@@ -17,7 +17,5 @@ namespace CarsApplication.ReadModels
         public UnavailabilityCausedBy CausedBy { get; set; }
 
         public string CausedByReference { get; set; }
-
-        public string Id { get; set; }
     }
 }

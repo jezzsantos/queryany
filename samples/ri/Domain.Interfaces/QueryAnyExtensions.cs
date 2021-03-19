@@ -65,8 +65,9 @@ namespace Domain.Interfaces
 
             var variable = Expression.Parameter(typeof(TEntity));
             var propertySelector = Expression.Property(variable, propertyInfo);
+            var propertyConversion = Expression.Convert(propertySelector, typeof(object));
 
-            return Expression.Lambda<Func<TEntity, object>>(propertySelector, variable);
+            return Expression.Lambda<Func<TEntity, object>>(propertyConversion, variable);
         }
     }
 }

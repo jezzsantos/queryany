@@ -1,11 +1,10 @@
 ﻿using QueryAny;
-using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;
 
 namespace PersonsApplication.ReadModels
 {
     [EntityName("Person")]
-    public class Person : IReadModelEntity, IHasIdentity
+    public class Person : ReadModelEntity
     {
         public string FirstName { get; set; }
 
@@ -16,7 +15,5 @@ namespace PersonsApplication.ReadModels
         public string Email { get; set; }
 
         public string Phone { get; set; }
-
-        public string Id { get; set; }
     }
 }
