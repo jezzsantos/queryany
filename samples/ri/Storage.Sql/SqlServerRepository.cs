@@ -14,11 +14,9 @@ namespace Storage.Sql
     public class SqlServerRepository : IRepository
     {
         internal const string PrimaryTableAlias = @"t";
-
         internal const string JoinedEntityFieldAliasPrefix = @"je_";
-
         public static readonly DateTime MinimumAllowableDate = SqlDateTime.MinValue.Value;
-
+        public static readonly DateTime MaximumAllowableDate = SqlDateTime.MaxValue.Value;
         private readonly string connectionString;
 
         public SqlServerRepository(string connectionString)
@@ -150,8 +148,19 @@ namespace Storage.Sql
 
             static Dictionary<string, object> ReaderToObjectDictionary(SqlDataReader sqlDataReader)
             {
-                return Enumerable.Range(0, sqlDataReader.FieldCount)
-                    .ToDictionary(sqlDataReader.GetName, sqlDataReader.GetValue);
+                var result = new Dictionary<string, object>();
+                Enumerable.Range(0, sqlDataReader.FieldCount)
+                    .ToList()
+                    .ForEach(column =>
+                    {
+                        var name = sqlDataReader.GetName(column);
+                        if (!result.ContainsKey(name))
+                        {
+                            result.Add(name, sqlDataReader.GetValue(column));
+                        }
+                    });
+
+                return result;
             }
 
             using (var connection = new SqlConnection(this.connectionString))
@@ -254,7 +263,9 @@ namespace Storage.Sql
         {
             var columnIndex = 1;
             var columnValueExpressions = string.Join(',', properties.Select(p => $"{p.Key}=@{columnIndex++}"));
-            var commandText = $"UPDATE {tableName} SET {columnValueExpressions}";
+            var id = properties[nameof(CommandEntity.Id)];
+            var commandText =
+                $"UPDATE {tableName} SET {columnValueExpressions} WHERE {nameof(CommandEntity.Id)}='{id}'";
 
             using (var connection = new SqlConnection(this.connectionString))
             {
@@ -494,7 +505,12 @@ namespace Storage.Sql
 
         private static bool IsMinimumAllowableDate(this DateTime dateTime)
         {
-            return dateTime == SqlServerRepository.MinimumAllowableDate;
+            return dateTime <= SqlServerRepository.MinimumAllowableDate;
+        }
+
+        public static bool IsMaximumAllowableDate(this DateTime dateTime)
+        {
+            return dateTime >= SqlServerRepository.MaximumAllowableDate;
         }
 
         private static bool IsNotAllowableDate(this DateTime dateTime)
@@ -778,7 +794,9 @@ namespace Storage.Sql
 
                 case DateTime dateTime:
                     return dateTime.HasValue()
-                        ? $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-dd HH:mm:ss.fff}'"
+                        ? dateTime.IsMaximumAllowableDate()
+                            ? $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{SqlServerRepository.MaximumAllowableDate:yyyy-MM-dd HH:mm:ss.fff}'"
+                            : $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-dd HH:mm:ss.fff}'"
                         : $"({SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{SqlServerRepository.MinimumAllowableDate:yyyy-MM-dd HH:mm:ss.fff}' OR {SqlServerRepository.PrimaryTableAlias}.{fieldName} {(condition.Operator == ConditionOperator.EqualTo ? "IS" : @operator)} NULL)";
 
                 case DateTimeOffset dateTimeOffset:
