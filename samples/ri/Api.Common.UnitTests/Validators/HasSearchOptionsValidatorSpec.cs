@@ -21,7 +21,7 @@ namespace Api.Common.UnitTests.Validators
         public void Initialize()
         {
             this.getOptionsValidator = new Mock<IHasGetOptionsValidator>();
-            this.getOptionsValidator.Setup(gv => gv.Validate(It.IsAny<ValidationContext>()))
+            this.getOptionsValidator.Setup(gv => gv.Validate(It.IsAny<IValidationContext>()))
                 .Returns(new ValidationResult());
             this.validator = new HasSearchOptionsValidator(this.getOptionsValidator.Object);
             this.dto = new HasSearchOptionsDto
