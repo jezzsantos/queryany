@@ -88,51 +88,9 @@ namespace Domain.Interfaces.UnitTests
         }
 
         [TestMethod]
-        public void WhenRehydrateSingleValue_ThenReturnsInstance()
-        {
-            var valueObject = new TestSingleStringValueObject("avalue");
-            valueObject.Rehydrate("anothervalue");
-
-            valueObject.StringValue.Should().Be("anothervalue");
-        }
-
-        [TestMethod]
-        public void WhenRehydrateSingleListStringValue_ThenReturnsInstance()
-        {
-            var valueObject = new TestSingleListStringValueObject(new List<string>());
-            valueObject.Rehydrate("[\"avalue1\",\"avalue2\"]");
-
-            valueObject.Values.Count.Should().Be(2);
-            valueObject.Values[0].Should().Be("avalue1");
-            valueObject.Values[1].Should().Be("avalue2");
-        }
-
-        [TestMethod]
-        public void WhenRehydrateSingleListValueObjectValueWithNullValues_ThenReturnsInstance()
-        {
-            var valueObject = new TestSingleListValueObjectValueObject(new List<TestSingleStringValueObject>());
-            valueObject.Rehydrate("[\"NULL\",\"avalue2\"]");
-
-            valueObject.Values.Count.Should().Be(1);
-            valueObject.Values[0].StringValue.Should().Be("avalue2");
-        }
-
-        [TestMethod]
-        public void WhenRehydrateSingleListValueObjectValue_ThenReturnsInstance()
-        {
-            var valueObject = new TestSingleListValueObjectValueObject(new List<TestSingleStringValueObject>());
-            valueObject.Rehydrate("[\"avalue1\",\"avalue2\"]");
-
-            valueObject.Values.Count.Should().Be(2);
-            valueObject.Values[0].StringValue.Should().Be("avalue1");
-            valueObject.Values[1].StringValue.Should().Be("avalue2");
-        }
-
-        [TestMethod]
         public void WhenRehydrateMultiValueWithNullValue_ThenReturnsInstance()
         {
-            var valueObject = new TestMultiValueObject("astringvalue", 25, true);
-            valueObject.Rehydrate("{\"Val1\":\"NULL\",\"Val2\":25,\"Val3\":True}");
+            var valueObject = TestMultiValueObject.Rehydrate()("{\"Val1\":\"NULL\",\"Val2\":25,\"Val3\":True}", null);
 
             valueObject.AStringValue.Should().BeNull();
             valueObject.AnIntegerValue.Should().Be(25);
@@ -142,8 +100,8 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenRehydrateMultiValue_ThenReturnsInstance()
         {
-            var valueObject = new TestMultiValueObject("astringvalue", 25, true);
-            valueObject.Rehydrate("{\"Val1\":\"astringvalue\",\"Val2\":25,\"Val3\":True}");
+            var valueObject =
+                TestMultiValueObject.Rehydrate()("{\"Val1\":\"astringvalue\",\"Val2\":25,\"Val3\":True}", null);
 
             valueObject.AStringValue.Should().Be("astringvalue");
             valueObject.AnIntegerValue.Should().Be(25);
@@ -335,9 +293,9 @@ namespace Domain.Interfaces.UnitTests
 
         public List<string> Values => Value;
 
-        protected override List<string> ToValue(string value)
+        public static ValueObjectFactory<TestSingleListStringValueObject> Rehydrate()
         {
-            return value.FromJson<List<string>>();
+            return (property, container) => new TestSingleListStringValueObject(property.FromJson<List<string>>());
         }
     }
 
@@ -349,31 +307,24 @@ namespace Domain.Interfaces.UnitTests
 
         public string StringValue => Value;
 
-        protected override string ToValue(string value)
+        public static ValueObjectFactory<TestSingleStringValueObject> Rehydrate()
         {
-            return value;
+            return (property, container) => new TestSingleStringValueObject(property);
         }
     }
 
-    public class TestSingleEnumValueObject : SingleValueObjectBase<TestSingleEnumValueObject, AnEnum>
+    public class TestSingleEnumValueObject : SingleValueObjectBase<TestSingleEnumValueObject, TestEnum>
     {
-        public TestSingleEnumValueObject(AnEnum value) : base(value)
+        public TestSingleEnumValueObject(TestEnum value) : base(value)
         {
         }
 
-        public AnEnum EnumValue => Value;
+        public TestEnum EnumValue => Value;
 
-        protected override AnEnum ToValue(string value)
+        public static ValueObjectFactory<TestSingleEnumValueObject> Rehydrate()
         {
-            return value.ToEnumOrDefault(AnEnum.ADefault);
+            return (property, container) => new TestSingleEnumValueObject(property.ToEnumOrDefault(TestEnum.ADefault));
         }
-    }
-
-    public enum AnEnum
-    {
-        ADefault = 0,
-        AValue1 = 1,
-        AValue2 = 2
     }
 
     public class TestSingleListValueObjectValueObject : SingleValueObjectBase<TestSingleListValueObjectValueObject,
@@ -385,11 +336,11 @@ namespace Domain.Interfaces.UnitTests
 
         public List<TestSingleStringValueObject> Values => Value;
 
-        protected override List<TestSingleStringValueObject> ToValue(string value)
+        public static ValueObjectFactory<TestSingleListValueObjectValueObject> Rehydrate()
         {
-            return value.FromJson<List<string>>()
+            return (property, container) => new TestSingleListValueObjectValueObject(property.FromJson<List<string>>()
                 .Select(item => new TestSingleStringValueObject(item))
-                .ToList();
+                .ToList());
         }
     }
 
@@ -402,24 +353,32 @@ namespace Domain.Interfaces.UnitTests
             ABooleanValue = boolean;
         }
 
-        public string AStringValue { get; private set; }
+        public string AStringValue { get; }
 
-        public int AnIntegerValue { get; private set; }
+        public int AnIntegerValue { get; }
 
-        public bool ABooleanValue { get; private set; }
+        public bool ABooleanValue { get; }
 
-        public override void Rehydrate(string value)
+        public static ValueObjectFactory<TestMultiValueObject> Rehydrate()
         {
-            var values = RehydrateToList(value);
-            AStringValue = values[0];
-            AnIntegerValue = values[1].ToInt();
-            ABooleanValue = values[2].ToBool();
+            return (property, container) =>
+            {
+                var values = RehydrateToList(property, false);
+                return new TestMultiValueObject(values[0], values[1].ToInt(), values[2].ToBool());
+            };
         }
 
         protected override IEnumerable<object> GetAtomicValues()
         {
             return new object[] {AStringValue, AnIntegerValue, ABooleanValue};
         }
+    }
+
+    public enum TestEnum
+    {
+        ADefault = 0,
+        AValue1 = 1,
+        AValue2 = 2
     }
 
     [TestClass, TestCategory("Unit")]

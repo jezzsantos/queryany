@@ -14,25 +14,21 @@ namespace Api.Common.UnitTests
     [TestClass, TestCategory("Unit")]
     public class DomainFactorySpec
     {
-        private Mock<IDependencyContainer> dependencyContainer;
-        private DomainFactory factory;
-        private Mock<IIdentifierFactory> identifierFactory;
-        private Mock<ILogger> logger;
+        private readonly DomainFactory factory;
 
-        [TestInitialize]
-        public void Initialize()
+        public DomainFactorySpec()
         {
-            this.logger = new Mock<ILogger>();
-            this.identifierFactory = new Mock<IIdentifierFactory>();
-            this.identifierFactory.Setup(f => f.Create(It.IsAny<IIdentifiableEntity>()))
+            var logger = new Mock<ILogger>();
+            var identifierFactory = new Mock<IIdentifierFactory>();
+            identifierFactory.Setup(f => f.Create(It.IsAny<IIdentifiableEntity>()))
                 .Returns("anid".ToIdentifier);
-            this.dependencyContainer = new Mock<IDependencyContainer>();
-            this.dependencyContainer.Setup(dc => dc.Resolve<ILogger>())
-                .Returns(this.logger.Object);
-            this.dependencyContainer.Setup(dc => dc.Resolve<IIdentifierFactory>())
-                .Returns(this.identifierFactory.Object);
+            var dependencyContainer = new Mock<IDependencyContainer>();
+            dependencyContainer.Setup(dc => dc.Resolve<ILogger>())
+                .Returns(logger.Object);
+            dependencyContainer.Setup(dc => dc.Resolve<IIdentifierFactory>())
+                .Returns(identifierFactory.Object);
 
-            this.factory = new DomainFactory(this.dependencyContainer.Object);
+            this.factory = new DomainFactory(dependencyContainer.Object);
         }
 
         [TestMethod]

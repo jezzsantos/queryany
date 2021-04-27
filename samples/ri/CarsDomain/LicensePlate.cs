@@ -20,18 +20,11 @@ namespace CarsDomain
             Number = number;
         }
 
-        public string Jurisdiction { get; private set; }
+        public string Jurisdiction { get; }
 
-        public string Number { get; private set; }
+        public string Number { get; }
 
-        public override void Rehydrate(string value)
-        {
-            var parts = RehydrateToList(value);
-            Jurisdiction = parts[0];
-            Number = parts[1];
-        }
-
-        public static ValueObjectFactory<LicensePlate> Instantiate()
+        public static ValueObjectFactory<LicensePlate> Rehydrate()
         {
             return (property, container) =>
             {

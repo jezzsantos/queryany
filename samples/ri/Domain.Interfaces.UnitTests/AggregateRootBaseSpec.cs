@@ -67,16 +67,16 @@ namespace Domain.Interfaces.UnitTests
         }
 
         [TestMethod]
-        public void WhenInstantiateAndCreates_ThenReturnsInstance()
+        public void WhenRehydrateAndCreates_ThenReturnsInstance()
         {
-            var result = TestAggregateRoot.Instantiate()("anid".ToIdentifier(), this.dependencyContainer.Object,
+            var result = TestAggregateRoot.Rehydrate()("anid".ToIdentifier(), this.dependencyContainer.Object,
                 new Dictionary<string, object>());
 
             result.Id.Should().Be("anid".ToIdentifier());
         }
 
         [TestMethod]
-        public void WhenInstantiate_ThenRaisesNoEvents()
+        public void WhenRehydrate_ThenRaisesNoEvents()
         {
             var container = new Mock<IDependencyContainer>();
             container.Setup(c => c.Resolve<ILogger>())
@@ -85,7 +85,7 @@ namespace Domain.Interfaces.UnitTests
                 .Returns(new NullIdentifierFactory());
 
             var created =
-                TestAggregateRoot.Instantiate()("anid".ToIdentifier(), container.Object,
+                TestAggregateRoot.Rehydrate()("anid".ToIdentifier(), container.Object,
                     new Dictionary<string, object>());
 
             created.GetChanges().Should().BeEmpty();

@@ -11,7 +11,7 @@ namespace Api.Common
 {
     public class DomainFactory : IDomainFactory
     {
-        private const string FactoryMethodName = "Instantiate";
+        private const string FactoryMethodName = "Rehydrate";
         private readonly Dictionary<Type, AggregateRootFactory<IPersistableAggregateRoot>> aggregateRootFactories;
         private readonly IDependencyContainer container;
         private readonly Dictionary<Type, EntityFactory<IPersistableEntity>> entityFactories;
@@ -41,13 +41,12 @@ namespace Api.Common
 
             if (!this.aggregateRootFactories.ContainsKey(entityType))
             {
-                throw new InvalidOperationException(Resources.DomainFactory_EntityTypeNotFound.Format(entityType.Name));
+                throw new InvalidOperationException(Resources.DomainFactory_EntityTypeNotFound.Fmt(entityType.Name));
             }
 
             var identifier = rehydratingPropertyValues.GetValueOrDefault<Identifier>(nameof(IIdentifiableEntity.Id));
             var factory = this.aggregateRootFactories[entityType];
-            var aggregate = factory(identifier, this.container, rehydratingPropertyValues);
-            return aggregate;
+            return factory(identifier, this.container, rehydratingPropertyValues);
         }
 
         public IPersistableEntity RehydrateEntity(Type entityType,
@@ -57,14 +56,12 @@ namespace Api.Common
 
             if (!this.entityFactories.ContainsKey(entityType))
             {
-                throw new InvalidOperationException(Resources.DomainFactory_EntityTypeNotFound.Format(entityType.Name));
+                throw new InvalidOperationException(Resources.DomainFactory_EntityTypeNotFound.Fmt(entityType.Name));
             }
 
             var identifier = rehydratingPropertyValues.GetValueOrDefault<Identifier>(nameof(IIdentifiableEntity.Id));
             var factory = this.entityFactories[entityType];
-            var entity = factory(identifier, this.container, rehydratingPropertyValues);
-            entity.Rehydrate(rehydratingPropertyValues);
-            return entity;
+            return factory(identifier, this.container, rehydratingPropertyValues);
         }
 
         public IPersistableValueObject RehydrateValueObject(Type valueObjectType, string rehydratingPropertyValue)
@@ -75,12 +72,10 @@ namespace Api.Common
             if (!this.valueObjectFactories.ContainsKey(valueObjectType))
             {
                 throw new InvalidOperationException(
-                    Resources.DomainFactory_ValueObjectTypeNotFound.Format(valueObjectType.Name));
+                    Resources.DomainFactory_ValueObjectTypeNotFound.Fmt(valueObjectType.Name));
             }
 
-            var valueObject = this.valueObjectFactories[valueObjectType](rehydratingPropertyValue, this.container);
-            valueObject.Rehydrate(rehydratingPropertyValue);
-            return valueObject;
+            return this.valueObjectFactories[valueObjectType](rehydratingPropertyValue, this.container);
         }
 
         public void RegisterDomainTypesFromAssemblies(params Assembly[] assembliesContainingFactories)
@@ -107,7 +102,7 @@ namespace Api.Common
                             if (IsWrongNamedOrHasParameters(factoryMethod))
                             {
                                 throw new InvalidOperationException(
-                                    Resources.DomainFactory_FactoryMethodHasParameters.Format(type.Name,
+                                    Resources.DomainFactory_FactoryMethodHasParameters.Fmt(type.Name,
                                         factoryMethod.Name, FactoryMethodName));
                             }
 
@@ -118,7 +113,7 @@ namespace Api.Common
                         else
                         {
                             throw new InvalidOperationException(
-                                Resources.DomainFactory_AggregateRootFactoryMethodNotFound.Format(type.Name,
+                                Resources.DomainFactory_AggregateRootFactoryMethodNotFound.Fmt(type.Name,
                                     FactoryMethodName));
                         }
                     }
@@ -131,7 +126,7 @@ namespace Api.Common
                             if (IsWrongNamedOrHasParameters(factoryMethod))
                             {
                                 throw new InvalidOperationException(
-                                    Resources.DomainFactory_FactoryMethodHasParameters.Format(type.Name,
+                                    Resources.DomainFactory_FactoryMethodHasParameters.Fmt(type.Name,
                                         factoryMethod.Name, FactoryMethodName));
                             }
 
@@ -141,7 +136,7 @@ namespace Api.Common
                         else
                         {
                             throw new InvalidOperationException(
-                                Resources.DomainFactory_EntityFactoryMethodNotFound.Format(type.Name,
+                                Resources.DomainFactory_EntityFactoryMethodNotFound.Fmt(type.Name,
                                     FactoryMethodName));
                         }
                     }
@@ -154,7 +149,7 @@ namespace Api.Common
                             if (IsWrongNamedOrHasParameters(factoryMethod))
                             {
                                 throw new InvalidOperationException(
-                                    Resources.DomainFactory_FactoryMethodHasParameters.Format(type.Name,
+                                    Resources.DomainFactory_FactoryMethodHasParameters.Fmt(type.Name,
                                         factoryMethod.Name, FactoryMethodName));
                             }
 
@@ -165,7 +160,7 @@ namespace Api.Common
                         else
                         {
                             throw new InvalidOperationException(
-                                Resources.DomainFactory_ValueObjectFactoryMethodNotFound.Format(type.Name,
+                                Resources.DomainFactory_ValueObjectFactoryMethodNotFound.Fmt(type.Name,
                                     FactoryMethodName));
                         }
                     }

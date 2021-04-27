@@ -6,9 +6,14 @@ namespace Api.Common.UnitTests
 {
     public class TestEntity : IPersistableEntity
     {
-        private TestEntity(IIdentifierFactory idFactory)
+        private TestEntity(IReadOnlyDictionary<string, object> properties)
         {
-            Id = idFactory.Create(this);
+            var id = properties.GetValueOrDefault<Identifier>(nameof(Id));
+            Id = id.HasValue()
+                ? id
+                : null;
+            LastPersistedAtUtc = properties.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
+            APropertyValue = properties.GetValueOrDefault<string>(nameof(APropertyValue));
         }
 
         public string APropertyValue { get; private set; }
@@ -16,6 +21,9 @@ namespace Api.Common.UnitTests
         public Identifier Id { get; private set; }
 
         public DateTime? LastPersistedAtUtc { get; private set; }
+
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
+        public bool? IsDeleted { get; }
 
         public Dictionary<string, object> Dehydrate()
         {
@@ -27,20 +35,9 @@ namespace Api.Common.UnitTests
             };
         }
 
-        public void Rehydrate(IReadOnlyDictionary<string, object> properties)
+        public static EntityFactory<TestEntity> Rehydrate()
         {
-            var id = properties.GetValueOrDefault<Identifier>(nameof(Id));
-            Id = id.HasValue()
-                ? id
-                : null;
-            LastPersistedAtUtc = properties.GetValueOrDefault<DateTime?>(nameof(LastPersistedAtUtc));
-            APropertyValue = properties.GetValueOrDefault<string>(nameof(APropertyValue));
-        }
-
-        public static EntityFactory<TestEntity> Instantiate()
-        {
-            return (identifier, container, rehydratingProperties) =>
-                new TestEntity(container.Resolve<IIdentifierFactory>());
+            return (identifier, container, properties) => new TestEntity(properties);
         }
     }
 }

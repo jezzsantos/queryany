@@ -119,11 +119,11 @@ namespace Storage.IntegrationTests
             ABooleanPropertyName = boolean;
         }
 
-        public string AStringProperty { get; private set; }
+        public string AStringProperty { get; }
 
-        public int AnIntName { get; private set; }
+        public int AnIntName { get; }
 
-        public bool ABooleanPropertyName { get; private set; }
+        public bool ABooleanPropertyName { get; }
 
         public static ComplexValueObject Create(string @string, int integer, bool boolean)
         {
@@ -135,22 +135,7 @@ namespace Storage.IntegrationTests
             return $"{AStringProperty}::{AnIntName}::{ABooleanPropertyName}";
         }
 
-        public override void Rehydrate(string value)
-        {
-            if (value.HasValue())
-            {
-                var parts = RehydrateToList(value);
-                AStringProperty = parts[0];
-                AnIntName = parts[1].HasValue()
-                    ? int.Parse(parts[1])
-                    : 0;
-                ABooleanPropertyName = parts[2].HasValue()
-                    ? bool.Parse(parts[2])
-                    : false;
-            }
-        }
-
-        private new static List<string> RehydrateToList(string hydratedValue)
+        private static List<string> RehydrateToList(string hydratedValue)
         {
             if (!hydratedValue.HasValue())
             {
@@ -162,7 +147,7 @@ namespace Storage.IntegrationTests
                 .ToList();
         }
 
-        public static ValueObjectFactory<ComplexValueObject> Instantiate()
+        public static ValueObjectFactory<ComplexValueObject> Rehydrate()
         {
             return (value, container) =>
             {

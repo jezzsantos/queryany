@@ -18,18 +18,11 @@ namespace CarsDomain
             To = to;
         }
 
-        public DateTime From { get; private set; }
+        public DateTime From { get; }
 
-        public DateTime To { get; private set; }
+        public DateTime To { get; }
 
-        public override void Rehydrate(string value)
-        {
-            var parts = RehydrateToList(value);
-            From = parts[0].FromIso8601();
-            To = parts[1].FromIso8601();
-        }
-
-        public static ValueObjectFactory<TimeSlot> Instantiate()
+        public static ValueObjectFactory<TimeSlot> Rehydrate()
         {
             return (property, container) =>
             {

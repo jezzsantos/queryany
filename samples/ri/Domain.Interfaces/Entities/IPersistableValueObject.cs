@@ -3,7 +3,5 @@
     public interface IPersistableValueObject
     {
         string Dehydrate();
-
-        void Rehydrate(string value);
     }
 }

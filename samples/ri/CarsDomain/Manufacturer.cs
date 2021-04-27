@@ -26,24 +26,13 @@ namespace CarsDomain
             Model = model;
         }
 
-        public int Year { get; private set; }
+        public int Year { get; }
 
-        public string Make { get; private set; }
+        public string Make { get; }
 
-        public string Model { get; private set; }
+        public string Model { get; }
 
-        public override void Rehydrate(string value)
-        {
-            if (value.HasValue())
-            {
-                var parts = RehydrateToList(value);
-                Year = parts[0].ToInt(0);
-                Make = parts[1];
-                Model = parts[2];
-            }
-        }
-
-        public static ValueObjectFactory<Manufacturer> Instantiate()
+        public static ValueObjectFactory<Manufacturer> Rehydrate()
         {
             return (value, container) =>
             {

@@ -10,12 +10,7 @@ namespace Domain.Interfaces.Entities
 
         public string Fqn => Value;
 
-        protected override string ToValue(string value)
-        {
-            return value;
-        }
-
-        public static ValueObjectFactory<EventMetadata> Instantiate()
+        public static ValueObjectFactory<EventMetadata> Rehydrate()
         {
             return (property, container) => new EventMetadata(property);
         }

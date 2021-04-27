@@ -125,7 +125,7 @@ namespace CarsDomain
             return isValid;
         }
 
-        public static AggregateRootFactory<CarEntity> Instantiate()
+        public static AggregateRootFactory<CarEntity> Rehydrate()
         {
             return (identifier, container, rehydratingProperties) => new CarEntity(container.Resolve<ILogger>(),
                 container.Resolve<IIdentifierFactory>(), identifier);

@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using ServiceStack;
 
 namespace Domain.Interfaces.Entities
 {
@@ -12,30 +10,7 @@ namespace Domain.Interfaces.Entities
             Value = value;
         }
 
-        protected TValue Value { get; private set; }
-
-        protected abstract TValue ToValue(string value);
-
-        public override void Rehydrate(string hydratedValue)
-        {
-            var values = RehydrateToList(hydratedValue);
-            if (Value is IEnumerable<IPersistableValueObject>)
-            {
-                Value = ToValue(values
-                    .Where(value => value != null)
-                    .ToJson());
-                return;
-            }
-
-            Value = ToValue(values.FirstOrDefault());
-        }
-
-        protected new static List<string> RehydrateToList(string hydratedValue)
-        {
-            var isList = typeof(IEnumerable<IPersistableValueObject>).IsAssignableFrom(typeof(TValue));
-
-            return RehydrateToList(hydratedValue, true, isList);
-        }
+        protected TValue Value { get; }
 
         public static implicit operator TValue(SingleValueObjectBase<TValueObject, TValue> valueObject)
         {

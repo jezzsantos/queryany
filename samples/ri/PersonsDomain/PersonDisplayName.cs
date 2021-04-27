@@ -10,12 +10,7 @@ namespace PersonsDomain
 
         public string DisplayName => Value;
 
-        protected override string ToValue(string value)
-        {
-            return value;
-        }
-
-        public static ValueObjectFactory<PersonDisplayName> Instantiate()
+        public static ValueObjectFactory<PersonDisplayName> Rehydrate()
         {
             return (property, container) => new PersonDisplayName(property);
         }

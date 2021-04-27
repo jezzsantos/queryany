@@ -1,32 +1,25 @@
 ﻿using System.Collections.Generic;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 
 namespace Api.Common.UnitTests
 {
     public class TestValueObject : ValueObjectBase<TestValueObject>
     {
-        // ReSharper disable once UnusedParameter.Local
-        private TestValueObject(ILogger logger)
+        private TestValueObject(string property)
         {
-            APropertyValue = null;
+            APropertyValue = property;
         }
 
-        public string APropertyValue { get; private set; }
+        public string APropertyValue { get; }
 
-        public override void Rehydrate(string value)
+        public static ValueObjectFactory<TestValueObject> Rehydrate()
         {
-            APropertyValue = value;
+            return (property, container) => new TestValueObject(property);
         }
 
         protected override IEnumerable<object> GetAtomicValues()
         {
             return new[] {APropertyValue};
-        }
-
-        public static ValueObjectFactory<TestValueObject> Instantiate()
-        {
-            return (hydratingProperty, container) => new TestValueObject(container.Resolve<ILogger>());
         }
     }
 }

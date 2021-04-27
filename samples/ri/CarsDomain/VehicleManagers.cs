@@ -7,7 +7,7 @@ namespace CarsDomain
 {
     public class VehicleManagers : ValueObjectBase<VehicleManagers>
     {
-        private List<Identifier> managers;
+        private readonly List<Identifier> managers;
 
         public VehicleManagers()
         {
@@ -33,17 +33,7 @@ namespace CarsDomain
                 .Join(";");
         }
 
-        public override void Rehydrate(string value)
-        {
-            if (value.HasValue())
-            {
-                this.managers = value.SafeSplit(";")
-                    .Select(Identifier.Create)
-                    .ToList();
-            }
-        }
-
-        public static ValueObjectFactory<VehicleManagers> Instantiate()
+        public static ValueObjectFactory<VehicleManagers> Rehydrate()
         {
             return (value, container) => new VehicleManagers();
         }

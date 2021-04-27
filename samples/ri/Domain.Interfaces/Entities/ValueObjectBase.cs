@@ -60,52 +60,6 @@ namespace Domain.Interfaces.Entities
             return properties.ToJson();
         }
 
-        public abstract void Rehydrate(string hydratedValue);
-
-        protected static List<string> RehydrateToList(string hydratedValue, bool isSingleValueObject,
-            bool isSingleListValueObject = false)
-        {
-            if (isSingleValueObject)
-            {
-                if (isSingleListValueObject)
-                {
-                    return hydratedValue
-                        .FromJson<List<string>>()
-                        .Select(value => value.Equals(NullValue)
-                            ? null
-                            : value)
-                        .ToList();
-                }
-
-                return new List<string> {hydratedValue};
-            }
-
-            return hydratedValue
-                .FromJson<Dictionary<string, object>>()
-                .Select(pair =>
-                {
-                    var value = pair.Value;
-                    if (value.Equals(NullValue))
-                    {
-                        return null;
-                    }
-
-                    return value.ToString();
-                })
-                .ToList();
-        }
-
-        protected virtual List<string> RehydrateToList(string hydratedValue)
-        {
-            var parts = GetAtomicValues().ToList();
-            var isSingleValue = parts.Count == 1;
-            var isListValue = isSingleValue && parts[0] is IEnumerable<IPersistableValueObject>;
-
-            return RehydrateToList(hydratedValue, isSingleValue, isListValue);
-        }
-
-        protected abstract IEnumerable<object> GetAtomicValues();
-
         public static bool operator ==(ValueObjectBase<TValueObject> obj1, ValueObjectBase<TValueObject> obj2)
         {
             if ((object) obj1 == null)
@@ -193,6 +147,41 @@ namespace Domain.Interfaces.Entities
         {
             return Dehydrate();
         }
+
+        protected static List<string> RehydrateToList(string hydratedValue, bool isSingleValueObject,
+            bool isSingleListValueObject = false)
+        {
+            if (isSingleValueObject)
+            {
+                if (isSingleListValueObject)
+                {
+                    return hydratedValue
+                        .FromJson<List<string>>()
+                        .Select(value => value.Equals(NullValue)
+                            ? null
+                            : value)
+                        .ToList();
+                }
+
+                return new List<string> {hydratedValue};
+            }
+
+            return hydratedValue
+                .FromJson<Dictionary<string, object>>()
+                .Select(pair =>
+                {
+                    var value = pair.Value;
+                    if (value.Equals(NullValue))
+                    {
+                        return null;
+                    }
+
+                    return value.ToString();
+                })
+                .ToList();
+        }
+
+        protected abstract IEnumerable<object> GetAtomicValues();
 
         private static object DehydrateInternal(object value)
         {

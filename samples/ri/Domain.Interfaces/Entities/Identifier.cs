@@ -31,12 +31,7 @@ namespace Domain.Interfaces.Entities
             return new Identifier(value);
         }
 
-        protected override string ToValue(string value)
-        {
-            return value;
-        }
-
-        public static ValueObjectFactory<Identifier> Instantiate()
+        public static ValueObjectFactory<Identifier> Rehydrate()
         {
             return (property, container) => new Identifier(property);
         }

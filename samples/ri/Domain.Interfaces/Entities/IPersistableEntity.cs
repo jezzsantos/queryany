@@ -8,8 +8,8 @@ namespace Domain.Interfaces.Entities
     {
         DateTime? LastPersistedAtUtc { get; }
 
-        Dictionary<string, object> Dehydrate();
+        bool? IsDeleted { get; }
 
-        void Rehydrate(IReadOnlyDictionary<string, object> properties);
+        Dictionary<string, object> Dehydrate();
     }
 }

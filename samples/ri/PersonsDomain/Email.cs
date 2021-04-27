@@ -11,12 +11,7 @@ namespace PersonsDomain
             emailAddress.GuardAgainstInvalid(Domain.Interfaces.Validations.Email, nameof(emailAddress));
         }
 
-        protected override string ToValue(string value)
-        {
-            return value;
-        }
-
-        public static ValueObjectFactory<Email> Instantiate()
+        public static ValueObjectFactory<Email> Rehydrate()
         {
             return (property, container) => new Email(property);
         }

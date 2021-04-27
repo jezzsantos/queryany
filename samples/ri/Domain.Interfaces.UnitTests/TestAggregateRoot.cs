@@ -28,7 +28,7 @@ namespace Domain.Interfaces.UnitTests
             //Not used in testing
         }
 
-        public static AggregateRootFactory<TestAggregateRoot> Instantiate()
+        public static AggregateRootFactory<TestAggregateRoot> Rehydrate()
         {
             return (identifier, container, rehydratingProperties) => new TestAggregateRoot(container.Resolve<ILogger>(),
                 container.Resolve<IIdentifierFactory>(), identifier);

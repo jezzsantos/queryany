@@ -17,18 +17,11 @@ namespace PersonsDomain
             LastName = lastName;
         }
 
-        public string FirstName { get; private set; }
+        public string FirstName { get; }
 
-        public string LastName { get; private set; }
+        public string LastName { get; }
 
-        public override void Rehydrate(string value)
-        {
-            var parts = RehydrateToList(value);
-            FirstName = parts[0];
-            LastName = parts[1];
-        }
-
-        public static ValueObjectFactory<PersonName> Instantiate()
+        public static ValueObjectFactory<PersonName> Rehydrate()
         {
             return (property, container) =>
             {

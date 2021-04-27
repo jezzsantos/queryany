@@ -267,12 +267,12 @@ Unlike Entities, they are _immutable_. That means, once they have been created, 
 * Commands that change the state of a ValueObject must return a new instance of the ValueObject. Since they are immutable.
 * You should not expect a caller to know how to change the state of an ValueObject. You should provide a method that validates the value, and any constraints, that would mutate it. So, no public setters.
 * ValueObjects support persistence of their internal state through the `IPersistableValueObject` interface, which is used by persistence layers. A ValueObject never persists itself. Only Application Layers do that.
-* ValueObjects derive from `ValueObjectBase<TValueObject>`, they can have any constructor, they must implement Dehydration/Rehydration, and must have a static, public, parameter-less method called `Instantiate` that returns a `ValueObjectFactory<ValueObjectBase<TValueObject>>` used for instantiation by persistence layers.
+* ValueObjects derive from `ValueObjectBase<TValueObject>`, they can have any constructor, they must implement Dehydration/Rehydration, and must have a static, public, parameter-less method called `Rehydrate` that returns a `ValueObjectFactory<ValueObjectBase<TValueObject>>` used for instantiation by persistence layers.
 
-Example of `Instantiate` Method:
+Example of `Rehydrate` Method:
 
 ```
-     public static ValueObjectFactory<Manufacturer> Instantiate()
+     public static ValueObjectFactory<Manufacturer> Rehydrate()
      {
          return (value, container) =>
          {
@@ -303,12 +303,12 @@ In practice:
 * Entities will derive from `EntityBase` and they will implement the inherited methods that provide identification and persistence support.
 * Entities support persistence of their internal state through the `IPersisableEntity` interface, which is used by persistence layers. An Entity never persists itself. Only Application Layers do that.
 * Entity identifiers are created by a `IIdentifierFactory` which generates the ID for the Entity. This is expected to be generated when the Entity is first created.
-* Entities derive from `EntityBase` they can have any constructor, they must implement Dehydration/Rehydration, and must have a static, public, parameter-less method called `Instantiate` that returns a `EntityFactory<EntityBase>` used for instantiation by persistence layers.
+* Entities derive from `EntityBase` they can have any constructor, they must implement Dehydration/Rehydration, and must have a static, public, parameter-less method called `Rehydrate` that returns a `EntityFactory<EntityBase>` used for instantiation by persistence layers.
 
-Example of `Instantiate` Method:
+Example of `Rehydrate` Method:
 
 ```
-       public static EntityFactory<CarEntity> Instantiate()
+       public static EntityFactory<CarEntity> Rehydrate()
        {
            return (hydratingProperties, container) => new CarEntity(container.Resolve<ILogger>(),
                new HydrationIdentifierFactory(hydratingProperties));

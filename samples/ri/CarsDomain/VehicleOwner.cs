@@ -12,12 +12,7 @@ namespace CarsDomain
 
         public string OwnerId => Value;
 
-        protected override string ToValue(string value)
-        {
-            return value;
-        }
-
-        public static ValueObjectFactory<VehicleOwner> Instantiate()
+        public static ValueObjectFactory<VehicleOwner> Rehydrate()
         {
             return (property, container) => new VehicleOwner(property);
         }
