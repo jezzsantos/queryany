@@ -5,7 +5,6 @@ using ApplicationServices;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using InfrastructureServices.Properties;
-using Microsoft.Extensions.Logging;
 using Storage.Interfaces;
 
 namespace InfrastructureServices.Eventing.Notifications
@@ -16,18 +15,18 @@ namespace InfrastructureServices.Eventing.Notifications
     /// </summary>
     public class DomainEventNotificationProducer : IDomainEventNotificationProducer
     {
-        private readonly ILogger logger;
         private readonly IChangeEventMigrator migrator;
         private readonly IReadOnlyList<IDomainEventPublisherSubscriberPair> pubSubPairs;
+        private readonly IRecorder recorder;
 
-        public DomainEventNotificationProducer(ILogger logger, IChangeEventMigrator migrator,
+        public DomainEventNotificationProducer(IRecorder recorder, IChangeEventMigrator migrator,
             params IDomainEventPublisherSubscriberPair[] pubSubPairs)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             pubSubPairs.GuardAgainstNull(nameof(pubSubPairs));
             migrator.GuardAgainstNull(nameof(migrator));
 
-            this.logger = logger;
+            this.recorder = recorder;
             this.pubSubPairs = pubSubPairs;
             this.migrator = migrator;
         }
@@ -60,7 +59,7 @@ namespace InfrastructureServices.Eventing.Notifications
             }
             catch (Exception ex)
             {
-                this.logger.LogError(ex,
+                this.recorder.TraceError(ex,
                     $"Failed to relay events in event stream '{streamName}'");
                 throw new InvalidOperationException(Resources.DomainEventNotificationProducer_UnexpectedError, ex);
             }

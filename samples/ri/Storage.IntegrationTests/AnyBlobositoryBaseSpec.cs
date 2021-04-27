@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
+using Domain.Interfaces;
 using FluentAssertions;
 using Funq;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 using ServiceStack;
@@ -19,14 +18,14 @@ namespace Storage.IntegrationTests
 
     public abstract class AnyBlobositoryBaseSpec
     {
-        private static readonly ILogger Logger = new Logger<AnyRepositoryBaseSpec>(new NullLoggerFactory());
+        private static readonly IRecorder Recorder = NullRecorder.Instance;
         private static Container container;
         private BloboInfo blobo;
 
         protected static void InitializeAllTests()
         {
             container = new Container();
-            container.AddSingleton(Logger);
+            container.AddSingleton(Recorder);
         }
 
         [TestInitialize]

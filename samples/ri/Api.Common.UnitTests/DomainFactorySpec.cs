@@ -5,7 +5,6 @@ using Api.Common.Properties;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -18,13 +17,13 @@ namespace Api.Common.UnitTests
 
         public DomainFactorySpec()
         {
-            var logger = new Mock<ILogger>();
+            var recorder = new Mock<IRecorder>();
             var identifierFactory = new Mock<IIdentifierFactory>();
             identifierFactory.Setup(f => f.Create(It.IsAny<IIdentifiableEntity>()))
                 .Returns("anid".ToIdentifier);
             var dependencyContainer = new Mock<IDependencyContainer>();
-            dependencyContainer.Setup(dc => dc.Resolve<ILogger>())
-                .Returns(logger.Object);
+            dependencyContainer.Setup(dc => dc.Resolve<IRecorder>())
+                .Returns(recorder.Object);
             dependencyContainer.Setup(dc => dc.Resolve<IIdentifierFactory>())
                 .Returns(identifierFactory.Object);
 

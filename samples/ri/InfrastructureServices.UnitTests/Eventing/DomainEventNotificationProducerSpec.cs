@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using ApplicationServices;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using InfrastructureServices.Eventing.Notifications;
 using InfrastructureServices.Properties;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Storage.Interfaces;
@@ -16,15 +16,15 @@ namespace InfrastructureServices.UnitTests.Eventing
     public class DomainEventNotificationProducerSpec
     {
         private ChangeEventTypeMigrator changeEventTypeMigrator;
-        private Mock<ILogger> logger;
         private DomainEventNotificationProducer notificationProducer;
         private Mock<IDomainEventPublisherSubscriberPair> pair;
         private List<IDomainEventPublisherSubscriberPair> pairs;
+        private Mock<IRecorder> recorder;
 
         [TestInitialize]
         public void Initialize()
         {
-            this.logger = new Mock<ILogger>();
+            this.recorder = new Mock<IRecorder>();
             this.changeEventTypeMigrator = new ChangeEventTypeMigrator();
             this.pair = new Mock<IDomainEventPublisherSubscriberPair>();
             this.pair.Setup(p => p.Publisher.EntityType)
@@ -34,7 +34,7 @@ namespace InfrastructureServices.UnitTests.Eventing
             this.pair.Setup(p => p.Subscriber.Notify(It.IsAny<IChangeEvent>()))
                 .Returns(true);
             this.pairs = new List<IDomainEventPublisherSubscriberPair> {this.pair.Object};
-            this.notificationProducer = new DomainEventNotificationProducer(this.logger.Object,
+            this.notificationProducer = new DomainEventNotificationProducer(this.recorder.Object,
                 this.changeEventTypeMigrator,
                 this.pairs.ToArray());
         }

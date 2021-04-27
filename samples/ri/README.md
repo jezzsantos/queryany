@@ -310,7 +310,7 @@ Example of `Rehydrate` Method:
 ```
        public static EntityFactory<CarEntity> Rehydrate()
        {
-           return (hydratingProperties, container) => new CarEntity(container.Resolve<ILogger>(),
+           return (hydratingProperties, container) => new CarEntity(container.Resolve<IRecorder>(),
                new HydrationIdentifierFactory(hydratingProperties));
        }
 ```

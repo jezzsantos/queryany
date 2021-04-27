@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Api.Common;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Funq;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 using ServiceStack;
@@ -24,7 +23,7 @@ namespace Storage.IntegrationTests
     public abstract class AnyRepositoryBaseSpec
 
     {
-        private static readonly ILogger Logger = new Logger<AnyRepositoryBaseSpec>(new NullLoggerFactory());
+        private static readonly IRecorder Recorder = NullRecorder.Instance;
         private static Container container;
         private IDomainFactory domainFactory;
         private RepoInfo firstJoiningRepo;
@@ -34,13 +33,13 @@ namespace Storage.IntegrationTests
         protected static void InitializeAllTests()
         {
             container = new Container();
-            container.AddSingleton(Logger);
+            container.AddSingleton(Recorder);
         }
 
         [TestInitialize]
         public void Initialize()
         {
-            this.domainFactory = DomainFactory.CreateRegistered(new FuncDependencyContainer(container),
+            this.domainFactory = DomainFactory.CreateRegistered(new FunqDependencyContainer(container),
                 typeof(TestRepositoryEntity).Assembly);
             this.repo = GetRepository<TestRepositoryEntity>();
             this.repo.Repository.DestroyAll(this.repo.ContainerName);

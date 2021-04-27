@@ -1,10 +1,10 @@
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using InfrastructureServices.Eventing.ReadModels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using PersonsApplication.ReadModels;
 using PersonsApplication.Storage;
 using PersonsDomain;
@@ -38,6 +38,7 @@ namespace PersonsApi.IntegrationTests
                     {
                         var container = host.GetContainer();
                         container.AddSingleton<IAppSettings>(appSettings);
+                        host.AppSettings = appSettings;
                     }
                 },
                 AfterConfigure =
@@ -50,11 +51,11 @@ namespace PersonsApi.IntegrationTests
                         var repository = new InProcessInMemRepository();
 
                         container.AddSingleton<IQueryStorage<Person>>(new GeneralQueryStorage<Person>(
-                            container.Resolve<ILogger>(),
+                            container.Resolve<IRecorder>(),
                             container.Resolve<IDomainFactory>(), repository));
                         container.AddSingleton<IEventStreamStorage<PersonEntity>>(
                             new GeneralEventStreamStorage<PersonEntity>(
-                                container.Resolve<ILogger>(),
+                                container.Resolve<IRecorder>(),
                                 container.Resolve<IDomainFactory>(),
                                 container.Resolve<IChangeEventMigrator>(), repository));
                         container.AddSingleton<IPersonStorage>(c =>
@@ -63,12 +64,12 @@ namespace PersonsApi.IntegrationTests
 
                         container.AddSingleton<IReadModelProjectionSubscription>(c =>
                             new InProcessReadModelProjectionSubscription(
-                                c.Resolve<ILogger>(), c.Resolve<IIdentifierFactory>(),
+                                c.Resolve<IRecorder>(), c.Resolve<IIdentifierFactory>(),
                                 c.Resolve<IChangeEventMigrator>(),
                                 c.Resolve<IDomainFactory>(), repository,
                                 new[]
                                 {
-                                    new PersonEntityReadModelProjection(c.Resolve<ILogger>(), repository)
+                                    new PersonEntityReadModelProjection(c.Resolve<IRecorder>(), repository)
                                 },
                                 c.Resolve<IEventStreamStorage<PersonEntity>>()));
                     }

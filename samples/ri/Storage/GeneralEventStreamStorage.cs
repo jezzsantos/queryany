@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 using QueryAny;
 using ServiceStack;
 using Storage.Interfaces;
@@ -16,18 +15,18 @@ namespace Storage
     {
         private readonly string containerName;
         private readonly IDomainFactory domainFactory;
-        private readonly ILogger logger;
         private readonly IChangeEventMigrator migrator;
+        private readonly IRecorder recorder;
         private readonly IRepository repository;
 
-        public GeneralEventStreamStorage(ILogger logger, IDomainFactory domainFactory,
+        public GeneralEventStreamStorage(IRecorder recorder, IDomainFactory domainFactory,
             IChangeEventMigrator migrator, IRepository repository)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             repository.GuardAgainstNull(nameof(repository));
             domainFactory.GuardAgainstNull(nameof(domainFactory));
             migrator.GuardAgainstNull(nameof(migrator));
-            this.logger = logger;
+            this.recorder = recorder;
             this.repository = repository;
             this.domainFactory = domainFactory;
             this.migrator = migrator;
@@ -97,7 +96,7 @@ namespace Storage
                 catch (Exception ex)
                 {
                     //Ignore exception and continue
-                    this.logger.LogError(ex, Resources.GeneralEventStreamStorage_SaveEventRelayFailed.Format(ex));
+                    this.recorder.TraceError(ex, Resources.GeneralEventStreamStorage_SaveEventRelayFailed.Format(ex));
                 }
             }
 

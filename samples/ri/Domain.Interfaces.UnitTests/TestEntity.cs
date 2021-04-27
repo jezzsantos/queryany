@@ -1,13 +1,12 @@
 ﻿using System;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 
 namespace Domain.Interfaces.UnitTests
 {
     public class TestEntity : EntityBase
     {
-        public TestEntity(ILogger logger, IIdentifierFactory idFactory)
-            : base(logger, idFactory)
+        public TestEntity(IRecorder recorder, IIdentifierFactory idFactory)
+            : base(recorder, idFactory)
         {
         }
 

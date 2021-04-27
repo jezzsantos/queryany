@@ -159,4 +159,7 @@
   <data name="ValidationFormatValidator_InvalidFormat" xml:space="preserve">
       <value>The property was invalid</value>
   </data>
+  <data name="UnexpectedException_Message" xml:space="preserve">
+      <value>An unexpected exception occurred</value>
+  </data>
 </root>

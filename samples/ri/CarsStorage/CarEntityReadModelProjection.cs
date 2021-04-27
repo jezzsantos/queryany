@@ -4,7 +4,6 @@ using CarsApplication.ReadModels;
 using CarsDomain;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 using Storage;
 using Storage.Interfaces.ReadModels;
 
@@ -13,17 +12,17 @@ namespace CarsStorage
     public class CarEntityReadModelProjection : IReadModelProjection
     {
         private readonly IReadModelStorage<Car> carStorage;
-        private readonly ILogger logger;
+        private readonly IRecorder recorder;
         private readonly IReadModelStorage<Unavailability> unavailabilityStorage;
 
-        public CarEntityReadModelProjection(ILogger logger, IRepository repository)
+        public CarEntityReadModelProjection(IRecorder recorder, IRepository repository)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             repository.GuardAgainstNull(nameof(repository));
 
-            this.logger = logger;
-            this.carStorage = new GeneralReadModelStorage<Car>(logger, repository);
-            this.unavailabilityStorage = new GeneralReadModelStorage<Unavailability>(logger, repository);
+            this.recorder = recorder;
+            this.carStorage = new GeneralReadModelStorage<Car>(recorder, repository);
+            this.unavailabilityStorage = new GeneralReadModelStorage<Unavailability>(recorder, repository);
         }
 
         public Type EntityType => typeof(CarEntity);
@@ -73,7 +72,7 @@ namespace CarsStorage
                     break;
 
                 default:
-                    this.logger.LogDebug($"Unknown entity type '{originalEvent.GetType().Name}'");
+                    this.recorder.TraceDebug($"Unknown entity type '{originalEvent.GetType().Name}'");
                     return false;
             }
 

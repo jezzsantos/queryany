@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;
 using Storage.ReadModels.Properties;
@@ -13,20 +12,20 @@ namespace Storage.ReadModels
     public sealed class ReadModelProjector : IReadModelProjector
     {
         private readonly IReadModelCheckpointStore checkpointStore;
-        private readonly ILogger logger;
         private readonly IChangeEventMigrator migrator;
         private readonly IReadOnlyList<IReadModelProjection> projections;
+        private readonly IRecorder recorder;
 
-        public ReadModelProjector(ILogger logger, IReadModelCheckpointStore checkpointStore,
+        public ReadModelProjector(IRecorder recorder, IReadModelCheckpointStore checkpointStore,
             IChangeEventMigrator migrator,
             params IReadModelProjection[] projections)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             checkpointStore.GuardAgainstNull(nameof(checkpointStore));
             projections.GuardAgainstNull(nameof(projections));
             migrator.GuardAgainstNull(nameof(migrator));
 
-            this.logger = logger;
+            this.recorder = recorder;
             this.checkpointStore = checkpointStore;
             this.projections = projections;
             this.migrator = migrator;
@@ -66,7 +65,7 @@ namespace Storage.ReadModels
             }
             catch (Exception ex)
             {
-                this.logger.LogError(ex,
+                this.recorder.TraceError(ex,
                     $"Failed to project events in event stream '{streamName}'");
                 throw new InvalidOperationException(Resources.ReadModelProjector_UnexpectedError, ex);
             }

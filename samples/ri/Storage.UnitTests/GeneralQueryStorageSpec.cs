@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using QueryAny;
@@ -16,11 +16,11 @@ namespace Storage.UnitTests
 
         public GeneralQueryStorageSpec()
         {
-            var logger = new Mock<ILogger>();
+            var recorder = new Mock<IRecorder>();
             var domainFactory = new Mock<IDomainFactory>();
             this.repository = new Mock<IRepository>();
             this.storage =
-                new GeneralQueryStorage<TestDto>(logger.Object, domainFactory.Object,
+                new GeneralQueryStorage<TestDto>(recorder.Object, domainFactory.Object,
                     this.repository.Object);
         }
 

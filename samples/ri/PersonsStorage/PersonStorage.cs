@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 using PersonsApplication.ReadModels;
 using PersonsApplication.Storage;
 using PersonsDomain;
@@ -16,11 +15,11 @@ namespace PersonsStorage
         private readonly IEventStreamStorage<PersonEntity> eventingStorage;
         private readonly IQueryStorage<Person> queryStorage;
 
-        public PersonStorage(ILogger logger, IDomainFactory domainFactory,
+        public PersonStorage(IRecorder recorder, IDomainFactory domainFactory,
             IEventStreamStorage<PersonEntity> eventStreamStorage,
             IRepository repository)
         {
-            this.queryStorage = new GeneralQueryStorage<Person>(logger, domainFactory, repository);
+            this.queryStorage = new GeneralQueryStorage<Person>(recorder, domainFactory, repository);
             this.eventingStorage = eventStreamStorage;
         }
 

@@ -6,7 +6,6 @@ using CarsApplication.Storage;
 using CarsDomain;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 using QueryAny;
 using Storage;
 using Storage.Interfaces;
@@ -19,19 +18,19 @@ namespace CarsStorage
         private readonly IQueryStorage<Car> carQueryStorage;
         private readonly IQueryStorage<Unavailability> unavailabilitiesQueryStorage;
 
-        public CarStorage(ILogger logger, IDomainFactory domainFactory,
+        public CarStorage(IRecorder recorder, IDomainFactory domainFactory,
             IEventStreamStorage<CarEntity> eventStreamStorage,
             IRepository repository)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             domainFactory.GuardAgainstNull(nameof(domainFactory));
             eventStreamStorage.GuardAgainstNull(nameof(eventStreamStorage));
             repository.GuardAgainstNull(nameof(repository));
 
-            this.carQueryStorage = new GeneralQueryStorage<Car>(logger, domainFactory, repository);
+            this.carQueryStorage = new GeneralQueryStorage<Car>(recorder, domainFactory, repository);
             this.carEventStreamStorage = eventStreamStorage;
             this.unavailabilitiesQueryStorage =
-                new GeneralQueryStorage<Unavailability>(logger, domainFactory, repository);
+                new GeneralQueryStorage<Unavailability>(recorder, domainFactory, repository);
         }
 
         public CarStorage(IEventStreamStorage<CarEntity> carEventStreamStorage,

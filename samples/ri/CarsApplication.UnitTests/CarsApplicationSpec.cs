@@ -8,7 +8,6 @@ using CarsDomain;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Car = CarsApplication.ReadModels.Car;
@@ -21,14 +20,14 @@ namespace CarsApplication.UnitTests
         private Mock<ICurrentCaller> caller;
         private CarsApplication carsApplication;
         private Mock<IIdentifierFactory> idFactory;
-        private Mock<ILogger> logger;
         private Mock<IPersonsService> personService;
+        private Mock<IRecorder> recorder;
         private Mock<ICarStorage> storage;
 
         [TestInitialize]
         public void Initialize()
         {
-            this.logger = new Mock<ILogger>();
+            this.recorder = new Mock<IRecorder>();
             this.idFactory = new Mock<IIdentifierFactory>();
             this.idFactory.Setup(idf => idf.Create(It.IsAny<IIdentifiableEntity>()))
                 .Returns("anid".ToIdentifier());
@@ -38,7 +37,7 @@ namespace CarsApplication.UnitTests
             this.personService = new Mock<IPersonsService>();
             this.caller = new Mock<ICurrentCaller>();
             this.caller.Setup(c => c.Id).Returns("acallerid");
-            this.carsApplication = new CarsApplication(this.logger.Object, this.idFactory.Object, this.storage.Object,
+            this.carsApplication = new CarsApplication(this.recorder.Object, this.idFactory.Object, this.storage.Object,
                 this.personService.Object);
         }
 
@@ -51,7 +50,7 @@ namespace CarsApplication.UnitTests
                 .Returns(person);
             var make = Manufacturer.Makes[0];
             var model = Manufacturer.Models[0];
-            var entity = new CarEntity(this.logger.Object, this.idFactory.Object);
+            var entity = new CarEntity(this.recorder.Object, this.idFactory.Object);
             this.storage.Setup(s =>
                     s.Save(It.IsAny<CarEntity>()))
                 .Returns(entity);
@@ -71,7 +70,7 @@ namespace CarsApplication.UnitTests
         [TestMethod]
         public void WhenRegister_ThenRegistersCar()
         {
-            var entity = new CarEntity(this.logger.Object, this.idFactory.Object);
+            var entity = new CarEntity(this.recorder.Object, this.idFactory.Object);
             this.storage.Setup(s => s.Load(It.Is<Identifier>(i => i == "acarid")))
                 .Returns(entity);
             this.storage.Setup(s =>
@@ -92,7 +91,7 @@ namespace CarsApplication.UnitTests
         {
             var fromUtc = DateTime.UtcNow.AddMinutes(1);
             var toUtc = fromUtc.AddMinutes(1);
-            var entity = new CarEntity(this.logger.Object, this.idFactory.Object);
+            var entity = new CarEntity(this.recorder.Object, this.idFactory.Object);
             entity.SetManufacturer(new Manufacturer(2010, Manufacturer.Makes[0], Manufacturer.Models[0]));
             entity.SetOwnership(new VehicleOwner("anownerid"));
             entity.Register(new LicensePlate(LicensePlate.Jurisdictions[0], "anumber"));

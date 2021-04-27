@@ -8,7 +8,6 @@ using CarsApplication.Storage;
 using CarsDomain;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 using ServiceStack;
 
 namespace CarsApplication
@@ -16,18 +15,18 @@ namespace CarsApplication
     public class CarsApplication : ApplicationBase, ICarsApplication
     {
         private readonly IIdentifierFactory idFactory;
-        private readonly ILogger logger;
         private readonly IPersonsService personsService;
+        private readonly IRecorder recorder;
         private readonly ICarStorage storage;
 
-        public CarsApplication(ILogger logger, IIdentifierFactory idFactory, ICarStorage storage,
+        public CarsApplication(IRecorder recorder, IIdentifierFactory idFactory, ICarStorage storage,
             IPersonsService personsService)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             idFactory.GuardAgainstNull(nameof(idFactory));
             storage.GuardAgainstNull(nameof(storage));
             personsService.GuardAgainstNull(nameof(personsService));
-            this.logger = logger;
+            this.recorder = recorder;
             this.idFactory = idFactory;
             this.storage = storage;
             this.personsService = personsService;
@@ -40,13 +39,13 @@ namespace CarsApplication
             var owner = this.personsService.Get(caller.Id)
                 .ToOwner();
 
-            var car = new CarEntity(this.logger, this.idFactory);
+            var car = new CarEntity(this.recorder, this.idFactory);
             car.SetOwnership(new VehicleOwner(owner.Id));
             car.SetManufacturer(new Manufacturer(year, make, model));
 
             var created = this.storage.Save(car);
 
-            this.logger.LogInformation("Car {Id} was created by {Caller}", created.Id, caller.Id);
+            this.recorder.TraceInformation("Car {Id} was created by {Caller}", created.Id, caller.Id);
 
             return created.ToCar();
         }
@@ -67,7 +66,7 @@ namespace CarsApplication
             car.Offline(new TimeSlot(fromUtc, toUtc));
             var updated = this.storage.Save(car);
 
-            this.logger.LogInformation("Car {Id} was taken offline from {From} until {To}, by {Caller}",
+            this.recorder.TraceInformation("Car {Id} was taken offline from {From} until {To}, by {Caller}",
                 id, fromUtc, toUtc, caller.Id);
 
             return updated.ToCar();
@@ -88,7 +87,8 @@ namespace CarsApplication
             car.Register(plate);
             var updated = this.storage.Save(car);
 
-            this.logger.LogInformation("Car {Id} was registered with plate {Plate}, by {Caller}", id, plate, caller.Id);
+            this.recorder.TraceInformation("Car {Id} was registered with plate {Plate}, by {Caller}", id, plate,
+                caller.Id);
 
             return updated.ToCar();
         }
@@ -101,7 +101,7 @@ namespace CarsApplication
 
             var cars = this.storage.SearchAvailable(fromUtc, toUtc, searchOptions);
 
-            this.logger.LogInformation("Available carsApplication were retrieved by {Caller}", caller.Id);
+            this.recorder.TraceInformation("Available carsApplication were retrieved by {Caller}", caller.Id);
 
             return searchOptions.ApplyWithMetadata(cars
                 .ConvertAll(c => WithGetOptions(c.ToCar(), getOptions)));

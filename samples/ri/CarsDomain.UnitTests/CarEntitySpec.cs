@@ -4,7 +4,6 @@ using CarsDomain.Properties;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -15,12 +14,12 @@ namespace CarsDomain.UnitTests
     {
         private CarEntity entity;
         private Mock<IIdentifierFactory> identifierFactory;
-        private Mock<ILogger> logger;
+        private Mock<IRecorder> recorder;
 
         [TestInitialize]
         public void Initialize()
         {
-            this.logger = new Mock<ILogger>();
+            this.recorder = new Mock<IRecorder>();
             this.identifierFactory = new Mock<IIdentifierFactory>();
             var entityCount = 0;
             this.identifierFactory.Setup(f => f.Create(It.IsAny<IIdentifiableEntity>()))
@@ -32,7 +31,7 @@ namespace CarsDomain.UnitTests
                     }
                     return "anid".ToIdentifier();
                 });
-            this.entity = new CarEntity(this.logger.Object, this.identifierFactory.Object);
+            this.entity = new CarEntity(this.recorder.Object, this.identifierFactory.Object);
         }
 
         [TestMethod]

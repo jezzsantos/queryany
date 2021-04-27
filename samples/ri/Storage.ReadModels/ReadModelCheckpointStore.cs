@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 using QueryAny;
 using Storage.Interfaces.ReadModels;
 
@@ -12,17 +11,17 @@ namespace Storage.ReadModels
         public const long StartingCheckpointPosition = 1;
         private readonly IDomainFactory domainFactory;
         private readonly IIdentifierFactory idFactory;
-        private readonly ILogger logger;
+        private readonly IRecorder recorder;
         private readonly IRepository repository;
 
-        public ReadModelCheckpointStore(ILogger logger, IIdentifierFactory idFactory,
+        public ReadModelCheckpointStore(IRecorder recorder, IIdentifierFactory idFactory,
             IDomainFactory domainFactory, IRepository repository)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             idFactory.GuardAgainstNull(nameof(idFactory));
             repository.GuardAgainstNull(nameof(repository));
             domainFactory.GuardAgainstNull(nameof(domainFactory));
-            this.logger = logger;
+            this.recorder = recorder;
             this.idFactory = idFactory;
             this.repository = repository;
             this.domainFactory = domainFactory;
@@ -57,7 +56,7 @@ namespace Storage.ReadModels
                 this.repository.Replace(ContainerName, checkpoint.Id, CommandEntity.FromType(checkpoint));
             }
 
-            this.logger.LogDebug("Saved checkpoint {StreamName} to position: {Position}", streamName,
+            this.recorder.TraceDebug("Saved checkpoint {StreamName} to position: {Position}", streamName,
                 position);
         }
 

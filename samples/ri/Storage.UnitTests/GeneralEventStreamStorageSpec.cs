@@ -4,7 +4,6 @@ using System.Linq;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using QueryAny;
@@ -24,12 +23,12 @@ namespace Storage.UnitTests
 
         public GeneralEventStreamStorageSpec()
         {
-            var logger = new Mock<ILogger>();
+            var recorder = new Mock<IRecorder>();
             this.domainFactory = new Mock<IDomainFactory>();
             var migrator = new Mock<IChangeEventMigrator>();
             this.repository = new Mock<IRepository>();
             this.storage =
-                new GeneralEventStreamStorage<TestAggregateRoot>(logger.Object, this.domainFactory.Object,
+                new GeneralEventStreamStorage<TestAggregateRoot>(recorder.Object, this.domainFactory.Object,
                     migrator.Object, this.repository.Object);
 
             this.stateChangedEvent = null;

@@ -3,7 +3,6 @@ using System.Linq;
 using ApplicationServices;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 using Storage.Interfaces;
 
 namespace InfrastructureServices.Eventing.Notifications
@@ -17,15 +16,15 @@ namespace InfrastructureServices.Eventing.Notifications
     {
         private readonly IDomainEventNotificationProducer notificationProducer;
 
-        public InProcessChangeEventNotificationSubscription(ILogger logger,
+        public InProcessChangeEventNotificationSubscription(IRecorder recorder,
             IChangeEventMigrator migrator,
             IEnumerable<IDomainEventPublisherSubscriberPair> pubSubPairs,
-            params IEventNotifyingStorage[] eventingStorages) : base(logger, eventingStorages)
+            params IEventNotifyingStorage[] eventingStorages) : base(recorder, eventingStorages)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             migrator.GuardAgainstNull(nameof(migrator));
             pubSubPairs.GuardAgainstNull(nameof(pubSubPairs));
-            this.notificationProducer = new DomainEventNotificationProducer(logger, migrator, pubSubPairs.ToArray());
+            this.notificationProducer = new DomainEventNotificationProducer(recorder, migrator, pubSubPairs.ToArray());
         }
 
         protected override void HandleStreamEvents(string streamName, List<EventStreamStateChangeEvent> eventStream)

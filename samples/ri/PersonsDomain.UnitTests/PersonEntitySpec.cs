@@ -2,7 +2,6 @@ using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using DomainServices;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using PersonsDomain.Properties;
@@ -14,20 +13,20 @@ namespace PersonsDomain.UnitTests
     {
         private PersonEntity entity;
         private Mock<IIdentifierFactory> identifierFactory;
-        private Mock<ILogger> logger;
+        private Mock<IRecorder> recorder;
         private Mock<IEmailService> uniqueEmailService;
 
         [TestInitialize]
         public void Initialize()
         {
-            this.logger = new Mock<ILogger>();
+            this.recorder = new Mock<IRecorder>();
             this.identifierFactory = new Mock<IIdentifierFactory>();
             this.identifierFactory.Setup(f => f.Create(It.IsAny<IIdentifiableEntity>()))
                 .Returns("apersonid".ToIdentifier);
             this.uniqueEmailService = new Mock<IEmailService>();
             this.uniqueEmailService.Setup(ues => ues.EnsureEmailIsUnique(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(true);
-            this.entity = new PersonEntity(this.logger.Object, this.identifierFactory.Object,
+            this.entity = new PersonEntity(this.recorder.Object, this.identifierFactory.Object,
                 this.uniqueEmailService.Object);
         }
 

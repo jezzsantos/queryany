@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Domain.Interfaces;
-using Microsoft.Extensions.Logging;
 using QueryAny;
 using ServiceStack;
 using Storage.Interfaces;
@@ -13,15 +12,15 @@ namespace Storage
     {
         private readonly string containerName;
 
-        private readonly ILogger logger;
+        private readonly IRecorder recorder;
 
         private readonly IRepository repository;
 
-        public GeneralCrudStorage(ILogger logger, IRepository repository)
+        public GeneralCrudStorage(IRecorder recorder, IRepository repository)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             repository.GuardAgainstNull(nameof(repository));
-            this.logger = logger;
+            this.recorder = recorder;
             this.repository = repository;
             this.containerName = typeof(TDto).GetEntityNameSafe();
         }
@@ -40,7 +39,7 @@ namespace Storage
             if (destroy)
             {
                 this.repository.Remove(this.containerName, id);
-                this.logger.LogDebug("Entity {Id} was destroyed in repository", id);
+                this.recorder.TraceDebug("Entity {Id} was destroyed in repository", id);
                 return;
             }
 
@@ -51,7 +50,7 @@ namespace Storage
 
             entity.IsDeleted = true;
             this.repository.Replace(this.containerName, id, entity);
-            this.logger.LogDebug("Entity {Id} was soft-deleted in repository", id);
+            this.recorder.TraceDebug("Entity {Id} was soft-deleted in repository", id);
         }
 
         public TDto ResurrectDeleted(string id)
@@ -71,7 +70,7 @@ namespace Storage
             entity.IsDeleted = false;
             this.repository.Replace(this.containerName, id, entity);
 
-            this.logger.LogDebug("Entity {Id} was resurrected in repository", id);
+            this.recorder.TraceDebug("Entity {Id} was resurrected in repository", id);
             return entity.ToDto<TDto>();
         }
 
@@ -88,7 +87,7 @@ namespace Storage
             if (current == null)
             {
                 var added = this.repository.Add(this.containerName, CommandEntity.FromDto(dto));
-                this.logger.LogDebug("Entity {Id} was added to repository", added.Id);
+                this.recorder.TraceDebug("Entity {Id} was added to repository", added.Id);
 
                 return added.ToDto<TDto>();
             }
@@ -105,7 +104,7 @@ namespace Storage
             var latest = MergeDto(dto, current);
 
             var updated = this.repository.Replace(this.containerName, dto.Id, latest);
-            this.logger.LogDebug("Entity {Id} was updated in repository", dto.Id);
+            this.recorder.TraceDebug("Entity {Id} was updated in repository", dto.Id);
 
             return updated.ToDto<TDto>();
         }
@@ -125,7 +124,7 @@ namespace Storage
                 return default;
             }
 
-            this.logger.LogDebug($"Entity {id} was retrieved from repository");
+            this.recorder.TraceDebug($"Entity {id} was retrieved from repository");
             return entity.ToDto<TDto>();
         }
 
@@ -133,7 +132,7 @@ namespace Storage
         {
             if (query == null || query.Options.IsEmpty)
             {
-                this.logger.LogDebug("No entities were retrieved from repository, the query is empty");
+                this.recorder.TraceDebug("No entities were retrieved from repository, the query is empty");
 
                 return new QueryResults<TDto>(new List<TDto>());
             }
@@ -145,7 +144,7 @@ namespace Storage
                 .Where(e => !e.IsDeleted.GetValueOrDefault(false) || includeDeleted)
                 .ToList();
 
-            this.logger.LogDebug($"{entities.Count} Entities were retrieved from repository");
+            this.recorder.TraceDebug($"{entities.Count} Entities were retrieved from repository");
             return new QueryResults<TDto>(entities.ConvertAll(x => x.ToDto<TDto>()));
         }
 
@@ -157,7 +156,7 @@ namespace Storage
         public void DestroyAll()
         {
             this.repository.DestroyAll(this.containerName);
-            this.logger.LogDebug("All entities were deleted from repository");
+            this.recorder.TraceDebug("All entities were deleted from repository");
         }
 
         private static CommandEntity MergeDto(TDto dto, CommandEntity current)

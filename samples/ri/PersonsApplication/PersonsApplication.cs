@@ -3,7 +3,6 @@ using Application.Resources;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using DomainServices;
-using Microsoft.Extensions.Logging;
 using PersonsApplication.Storage;
 using PersonsDomain;
 using ServiceStack;
@@ -15,17 +14,17 @@ namespace PersonsApplication
     {
         private readonly IEmailService emailService;
         private readonly IIdentifierFactory idFactory;
-        private readonly ILogger logger;
+        private readonly IRecorder recorder;
         private readonly IPersonStorage storage;
 
-        public PersonsApplication(ILogger logger, IIdentifierFactory idFactory, IPersonStorage storage,
+        public PersonsApplication(IRecorder recorder, IIdentifierFactory idFactory, IPersonStorage storage,
             IEmailService emailService)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             idFactory.GuardAgainstNull(nameof(idFactory));
             storage.GuardAgainstNull(nameof(storage));
             emailService.GuardAgainstNull(nameof(emailService));
-            this.logger = logger;
+            this.recorder = recorder;
             this.idFactory = idFactory;
             this.storage = storage;
             this.emailService = emailService;
@@ -35,12 +34,12 @@ namespace PersonsApplication
         {
             caller.GuardAgainstNull(nameof(caller));
 
-            var person = new PersonEntity(this.logger, this.idFactory, this.emailService);
+            var person = new PersonEntity(this.recorder, this.idFactory, this.emailService);
             person.SetName(new PersonName(firstName, lastName));
 
             var created = this.storage.Save(person);
 
-            this.logger.LogInformation("Person {Id} was created by {Caller}", created.Id, caller.Id);
+            this.recorder.TraceInformation("Person {Id} was created by {Caller}", created.Id, caller.Id);
 
             return created.ToPerson();
         }

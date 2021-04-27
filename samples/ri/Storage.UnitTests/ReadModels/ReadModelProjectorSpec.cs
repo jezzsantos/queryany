@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Storage.Interfaces;
@@ -21,7 +21,7 @@ namespace Storage.UnitTests.ReadModels
 
         public ReadModelProjectorSpec()
         {
-            var logger = new Mock<ILogger>();
+            var recorder = new Mock<IRecorder>();
             this.checkpointStore = new Mock<IReadModelCheckpointStore>();
             var changeEventTypeMigrator = new ChangeEventTypeMigrator();
             this.projection = new Mock<IReadModelProjection>();
@@ -30,7 +30,7 @@ namespace Storage.UnitTests.ReadModels
             this.projection.Setup(prj => prj.Project(It.IsAny<IChangeEvent>()))
                 .Returns(true);
             var projections = new List<IReadModelProjection> {this.projection.Object};
-            this.projector = new ReadModelProjector(logger.Object, this.checkpointStore.Object,
+            this.projector = new ReadModelProjector(recorder.Object, this.checkpointStore.Object,
                 changeEventTypeMigrator, projections.ToArray());
         }
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -13,22 +12,22 @@ namespace Domain.Interfaces.UnitTests
         private Mock<IDependencyContainer> dependencyContainer;
         private TestEntity entity;
         private Mock<IIdentifierFactory> idFactory;
-        private Mock<ILogger> logger;
+        private Mock<IRecorder> recorder;
 
         [TestInitialize]
         public void Initialize()
         {
-            this.logger = new Mock<ILogger>();
+            this.recorder = new Mock<IRecorder>();
             this.idFactory = new Mock<IIdentifierFactory>();
             this.idFactory.Setup(idf => idf.Create(It.IsAny<TestEntity>()))
                 .Returns("anid".ToIdentifier());
             this.dependencyContainer = new Mock<IDependencyContainer>();
-            this.dependencyContainer.Setup(dc => dc.Resolve<ILogger>())
-                .Returns(this.logger.Object);
+            this.dependencyContainer.Setup(dc => dc.Resolve<IRecorder>())
+                .Returns(this.recorder.Object);
             this.dependencyContainer.Setup(dc => dc.Resolve<IIdentifierFactory>())
                 .Returns(this.idFactory.Object);
 
-            this.entity = new TestEntity(this.logger.Object, this.idFactory.Object);
+            this.entity = new TestEntity(this.recorder.Object, this.idFactory.Object);
         }
 
         [TestMethod]

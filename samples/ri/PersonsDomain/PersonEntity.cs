@@ -2,7 +2,6 @@
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using DomainServices;
-using Microsoft.Extensions.Logging;
 using PersonsDomain.Properties;
 using QueryAny;
 
@@ -13,15 +12,16 @@ namespace PersonsDomain
     {
         private readonly IEmailService emailService;
 
-        public PersonEntity(ILogger logger, IIdentifierFactory idFactory, IEmailService emailService) : base(logger,
+        public PersonEntity(IRecorder recorder, IIdentifierFactory idFactory, IEmailService emailService) : base(
+            recorder,
             idFactory, PersonsDomain.Events.Person.Created.Create)
         {
             emailService.GuardAgainstNull(nameof(emailService));
             this.emailService = emailService;
         }
 
-        private PersonEntity(ILogger logger, IIdentifierFactory idFactory, IEmailService emailService,
-            Identifier identifier) : base(logger,
+        private PersonEntity(IRecorder recorder, IIdentifierFactory idFactory, IEmailService emailService,
+            Identifier identifier) : base(recorder,
             idFactory, identifier)
         {
             emailService.GuardAgainstNull(nameof(emailService));
@@ -66,23 +66,23 @@ namespace PersonsDomain
                 case Events.Person.NameChanged changed:
                     Name = new PersonName(changed.FirstName, changed.LastName);
                     DisplayName = new PersonDisplayName(changed.FirstName);
-                    Logger.LogDebug("Person {Id} changed name to {FirstName}, {LastName}", Id, changed.FirstName,
+                    Recorder.TraceDebug("Person {Id} changed name to {FirstName}, {LastName}", Id, changed.FirstName,
                         changed.LastName);
                     break;
 
                 case Events.Person.DisplayNameChanged changed:
                     DisplayName = new PersonDisplayName(changed.DisplayName);
-                    Logger.LogDebug("Person {Id} changed display name to {DisplayName}", Id, changed.DisplayName);
+                    Recorder.TraceDebug("Person {Id} changed display name to {DisplayName}", Id, changed.DisplayName);
                     break;
 
                 case Events.Person.EmailChanged changed:
                     Email = new Email(changed.EmailAddress);
-                    Logger.LogDebug("Person {Id} changed email to {EmailAddress}", Id, changed.EmailAddress);
+                    Recorder.TraceDebug("Person {Id} changed email to {EmailAddress}", Id, changed.EmailAddress);
                     break;
 
                 case Events.Person.PhoneNumberChanged changed:
                     Phone = new PhoneNumber(changed.PhoneNumber);
-                    Logger.LogDebug("Person {Id} changed phone number to {PhoneNumber}", Id, changed.PhoneNumber);
+                    Recorder.TraceDebug("Person {Id} changed phone number to {PhoneNumber}", Id, changed.PhoneNumber);
                     break;
                 default:
                     throw new InvalidOperationException($"Unknown event {@event.GetType()}");
@@ -107,7 +107,7 @@ namespace PersonsDomain
         public static AggregateRootFactory<PersonEntity> Rehydrate()
         {
             return (identifier, container, rehydratingProperties) =>
-                new PersonEntity(container.Resolve<ILogger>(), container.Resolve<IIdentifierFactory>(),
+                new PersonEntity(container.Resolve<IRecorder>(), container.Resolve<IIdentifierFactory>(),
                     container.Resolve<IEmailService>(), identifier);
         }
     }

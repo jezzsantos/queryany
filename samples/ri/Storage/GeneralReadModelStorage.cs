@@ -1,6 +1,5 @@
 ﻿using System;
 using Domain.Interfaces;
-using Microsoft.Extensions.Logging;
 using QueryAny;
 using Storage.Interfaces.ReadModels;
 
@@ -8,15 +7,15 @@ namespace Storage
 {
     public class GeneralReadModelStorage<TDto> : IReadModelStorage<TDto> where TDto : IReadModelEntity, new()
     {
-        private readonly ILogger logger;
+        private readonly IRecorder recorder;
         private readonly IRepository repository;
 
-        public GeneralReadModelStorage(ILogger logger, IRepository repository)
+        public GeneralReadModelStorage(IRecorder recorder, IRepository repository)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             repository.GuardAgainstNull(nameof(repository));
 
-            this.logger = logger;
+            this.recorder = recorder;
             this.repository = repository;
         }
 
@@ -31,7 +30,7 @@ namespace Storage
 
             var entity = this.repository.Add(ContainerName, CommandEntity.FromType(dto));
 
-            this.logger.LogDebug("Created new read model for entity {Id}", id);
+            this.recorder.TraceDebug("Created new read model for entity {Id}", id);
 
             return entity.ToReadModelEntity<TDto>();
         }
@@ -52,7 +51,7 @@ namespace Storage
             action(dto);
             var updated = this.repository.Replace(ContainerName, id, CommandEntity.FromType(dto));
 
-            this.logger.LogDebug("Updated read model for entity {Id}", id);
+            this.recorder.TraceDebug("Updated read model for entity {Id}", id);
 
             return updated.ToReadModelEntity<TDto>();
         }

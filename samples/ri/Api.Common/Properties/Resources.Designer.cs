@@ -178,6 +178,15 @@ namespace Api.Common.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An unexpected exception occurred.
+        /// </summary>
+        internal static string UnexpectedException_Message {
+            get {
+                return ResourceManager.GetString("UnexpectedException_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The property was invalid.
         /// </summary>
         internal static string ValidationFormatValidator_InvalidFormat {

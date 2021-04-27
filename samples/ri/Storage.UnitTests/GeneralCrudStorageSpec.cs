@@ -1,7 +1,6 @@
 ﻿using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -15,10 +14,10 @@ namespace Storage.UnitTests
 
         public GeneralCrudStorageSpec()
         {
-            var logger = new Mock<ILogger>();
+            var recorder = new Mock<IRecorder>();
             this.repository = new Mock<IRepository>();
             this.storage =
-                new GeneralCrudStorage<TestDto>(logger.Object, this.repository.Object);
+                new GeneralCrudStorage<TestDto>(recorder.Object, this.repository.Object);
         }
 
         [TestMethod]

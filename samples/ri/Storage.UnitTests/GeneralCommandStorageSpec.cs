@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -18,7 +17,7 @@ namespace Storage.UnitTests
 
         public GeneralCommandStorageSpec()
         {
-            var logger = new Mock<ILogger>();
+            var recorder = new Mock<IRecorder>();
             this.domainFactory = new Mock<IDomainFactory>();
             this.domainFactory.Setup(df =>
                     df.RehydrateEntity(It.IsAny<Type>(), It.IsAny<IReadOnlyDictionary<string, object>>()))
@@ -29,7 +28,7 @@ namespace Storage.UnitTests
                     });
             this.repository = new Mock<IRepository>();
             this.storage =
-                new GeneralCommandStorage<TestDomainEntity>(logger.Object, this.domainFactory.Object,
+                new GeneralCommandStorage<TestDomainEntity>(recorder.Object, this.domainFactory.Object,
                     this.repository.Object);
         }
 

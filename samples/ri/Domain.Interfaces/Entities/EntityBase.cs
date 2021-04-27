@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.Extensions.Logging;
 
 namespace Domain.Interfaces.Entities
 {
@@ -12,11 +11,11 @@ namespace Domain.Interfaces.Entities
     {
         private Action<IChangeEvent> aggregateEntityEventHandler;
 
-        protected EntityBase(ILogger logger, IIdentifierFactory idFactory)
+        protected EntityBase(IRecorder recorder, IIdentifierFactory idFactory)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             idFactory.GuardAgainstNull(nameof(idFactory));
-            Logger = logger;
+            Recorder = recorder;
             IdFactory = idFactory;
             Id = idFactory.Create(this);
 
@@ -29,7 +28,7 @@ namespace Domain.Interfaces.Entities
 
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         // ReSharper disable once MemberCanBePrivate.Global
-        protected ILogger Logger { get; }
+        protected IRecorder Recorder { get; }
 
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         // ReSharper disable once MemberCanBePrivate.Global

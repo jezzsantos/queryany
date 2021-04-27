@@ -2,7 +2,6 @@
 using CarsDomain.Properties;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 using QueryAny;
 
 namespace CarsDomain
@@ -10,12 +9,13 @@ namespace CarsDomain
     [EntityName("Car")]
     public class CarEntity : AggregateRootBase
     {
-        public CarEntity(ILogger logger, IIdentifierFactory idFactory) : base(logger, idFactory,
+        public CarEntity(IRecorder recorder, IIdentifierFactory idFactory) : base(recorder, idFactory,
             CarsDomain.Events.Car.Created.Create)
         {
         }
 
-        private CarEntity(ILogger logger, IIdentifierFactory idFactory, Identifier identifier) : base(logger, idFactory,
+        private CarEntity(IRecorder recorder, IIdentifierFactory idFactory, Identifier identifier) : base(recorder,
+            idFactory,
             identifier)
         {
         }
@@ -39,7 +39,7 @@ namespace CarsDomain
 
                 case Events.Car.ManufacturerChanged changed:
                     Manufacturer = new Manufacturer(changed.Year, changed.Make, changed.Model);
-                    Logger.LogDebug("Car {Id} changed manufacturer to {Year}, {Make}, {Model}", Id, changed.Year,
+                    Recorder.TraceDebug("Car {Id} changed manufacturer to {Year}, {Make}, {Model}", Id, changed.Year,
                         changed.Make, changed.Model);
                     break;
 
@@ -48,23 +48,23 @@ namespace CarsDomain
                     Managers = new VehicleManagers();
                     Managers.Add(changed.Owner.ToIdentifier());
 
-                    Logger.LogDebug("Car {Id} changed ownership to {Owner}", Id, Owner);
+                    Recorder.TraceDebug("Car {Id} changed ownership to {Owner}", Id, Owner);
                     break;
 
                 case Events.Car.RegistrationChanged changed:
                     Plate = new LicensePlate(changed.Jurisdiction, changed.Number);
 
-                    Logger.LogDebug("Car {Id} registration changed to {Jurisdiction}, {Number}", Id,
+                    Recorder.TraceDebug("Car {Id} registration changed to {Jurisdiction}, {Number}", Id,
                         changed.Jurisdiction, changed.Number);
                     break;
 
                 case Events.Car.UnavailabilitySlotAdded added:
-                    var unavailability = new UnavailabilityEntity(Logger, IdFactory);
+                    var unavailability = new UnavailabilityEntity(Recorder, IdFactory);
                     added.EntityId = unavailability.Id;
                     unavailability.SetAggregateEventHandler(RaiseChangeEvent);
                     RaiseToEntity(unavailability, @event);
                     Unavailabilities.Add(unavailability);
-                    Logger.LogDebug("Car {Id} had been made unavailable from {From} until {To}", Id, added.From,
+                    Recorder.TraceDebug("Car {Id} had been made unavailable from {From} until {To}", Id, added.From,
                         added.To);
                     break;
 
@@ -127,7 +127,7 @@ namespace CarsDomain
 
         public static AggregateRootFactory<CarEntity> Rehydrate()
         {
-            return (identifier, container, rehydratingProperties) => new CarEntity(container.Resolve<ILogger>(),
+            return (identifier, container, rehydratingProperties) => new CarEntity(container.Resolve<IRecorder>(),
                 container.Resolve<IIdentifierFactory>(), identifier);
         }
     }

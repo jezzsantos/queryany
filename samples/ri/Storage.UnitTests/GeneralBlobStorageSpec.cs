@@ -1,6 +1,6 @@
 ﻿using System.IO;
+using Domain.Interfaces;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Storage.Interfaces;
@@ -15,9 +15,9 @@ namespace Storage.UnitTests
 
         public GeneralBlobStorageSpec()
         {
-            var logger = new Mock<ILogger>();
+            var recorder = new Mock<IRecorder>();
             this.blobository = new Mock<IBlobository>();
-            this.storage = new GeneralBlobStorage(logger.Object, "acontainername", this.blobository.Object);
+            this.storage = new GeneralBlobStorage(recorder.Object, "acontainername", this.blobository.Object);
         }
 
         [TestMethod]

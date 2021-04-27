@@ -2,7 +2,6 @@
 using System.Linq;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 using QueryAny;
 using Storage.Interfaces;
 
@@ -12,15 +11,15 @@ namespace Storage
     {
         private readonly string containerName;
         private readonly IDomainFactory domainFactory;
-        private readonly ILogger logger;
+        private readonly IRecorder recorder;
         private readonly IRepository repository;
 
-        public GeneralQueryStorage(ILogger logger, IDomainFactory domainFactory, IRepository repository)
+        public GeneralQueryStorage(IRecorder recorder, IDomainFactory domainFactory, IRepository repository)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             repository.GuardAgainstNull(nameof(repository));
             domainFactory.GuardAgainstNull(nameof(domainFactory));
-            this.logger = logger;
+            this.recorder = recorder;
             this.repository = repository;
             this.domainFactory = domainFactory;
             this.containerName = typeof(TDto).GetEntityNameSafe();
@@ -30,7 +29,7 @@ namespace Storage
         {
             if (query == null || query.Options.IsEmpty)
             {
-                this.logger.LogDebug("No entities were retrieved from repository, the query is empty");
+                this.recorder.TraceDebug("No entities were retrieved from repository, the query is empty");
 
                 return new QueryResults<TDto>(new List<TDto>());
             }
@@ -42,7 +41,7 @@ namespace Storage
                 .Where(e => !e.IsDeleted.GetValueOrDefault(false) || includeDeleted)
                 .ToList();
 
-            this.logger.LogDebug($"{entities.Count} Entities were retrieved from repository");
+            this.recorder.TraceDebug($"{entities.Count} Entities were retrieved from repository");
             return new QueryResults<TDto>(entities.ConvertAll(x => x.ToEntity<TDto>(this.domainFactory)));
         }
 
@@ -62,7 +61,7 @@ namespace Storage
                 return default;
             }
 
-            this.logger.LogDebug($"Entity {id} was retrieved from repository");
+            this.recorder.TraceDebug($"Entity {id} was retrieved from repository");
             return entity.ToDto<TDtoWithId>();
         }
 
@@ -74,7 +73,7 @@ namespace Storage
         public void DestroyAll()
         {
             this.repository.DestroyAll(this.containerName);
-            this.logger.LogDebug("All entities were deleted from repository");
+            this.recorder.TraceDebug("All entities were deleted from repository");
         }
     }
 }

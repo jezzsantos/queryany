@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Domain.Interfaces;
 using InfrastructureServices.Properties;
-using Microsoft.Extensions.Logging;
 using Storage.Interfaces;
 
 namespace InfrastructureServices.Eventing
@@ -11,15 +10,15 @@ namespace InfrastructureServices.Eventing
     public abstract class EventStreamHandlerBase : IDisposable
     {
         private readonly IEventNotifyingStorage[] eventingStorages;
-        private readonly ILogger logger;
+        private readonly IRecorder recorder;
         private bool isStarted;
 
-        protected EventStreamHandlerBase(ILogger logger, params IEventNotifyingStorage[] eventingStorages)
+        protected EventStreamHandlerBase(IRecorder recorder, params IEventNotifyingStorage[] eventingStorages)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             eventingStorages.GuardAgainstNull(nameof(eventingStorages));
 
-            this.logger = logger;
+            this.recorder = recorder;
             this.eventingStorages = eventingStorages;
             ProcessingErrors = new List<EventProcessingError>();
         }
@@ -44,7 +43,7 @@ namespace InfrastructureServices.Eventing
                 foreach (var storage in this.eventingStorages)
                 {
                     storage.OnEventStreamStateChanged += OnEventStreamStateChanged;
-                    this.logger.LogDebug("Subscribed to events for {Storage}", storage.GetType().Name);
+                    this.recorder.TraceDebug("Subscribed to events for {Storage}", storage.GetType().Name);
                 }
                 this.isStarted = true;
             }
@@ -105,7 +104,7 @@ namespace InfrastructureServices.Eventing
             if (ProcessingErrors.Any())
             {
                 ProcessingErrors.ForEach(error =>
-                    this.logger.LogError(error.Exception,
+                    this.recorder.TraceError(error.Exception,
                         "Failed to relay new events to read model for: {StreamName}", error.StreamName));
             }
         }

@@ -1,6 +1,6 @@
 ﻿using System;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 using QueryAny;
 
 namespace CarsDomain
@@ -8,7 +8,7 @@ namespace CarsDomain
     [EntityName("Unavailability")]
     public class UnavailabilityEntity : EntityBase
     {
-        public UnavailabilityEntity(ILogger logger, IIdentifierFactory idFactory) : base(logger,
+        public UnavailabilityEntity(IRecorder recorder, IIdentifierFactory idFactory) : base(recorder,
             idFactory)
         {
         }

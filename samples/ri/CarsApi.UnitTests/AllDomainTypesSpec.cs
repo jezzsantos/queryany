@@ -1,6 +1,5 @@
 ﻿using Api.Common;
 using Domain.Interfaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -11,14 +10,14 @@ namespace CarsApi.UnitTests
     {
         private Mock<IDependencyContainer> dependencyContainer;
         private DomainFactory domainFactory;
-        private Mock<ILogger> logger;
+        private Mock<IRecorder> recorder;
 
         [TestInitialize]
         public void Initialize()
         {
-            this.logger = new Mock<ILogger>();
+            this.recorder = new Mock<IRecorder>();
             this.dependencyContainer = new Mock<IDependencyContainer>();
-            this.dependencyContainer.Setup(dc => dc.Resolve<ILogger>()).Returns(this.logger.Object);
+            this.dependencyContainer.Setup(dc => dc.Resolve<IRecorder>()).Returns(this.recorder.Object);
             this.domainFactory = new DomainFactory(this.dependencyContainer.Object);
         }
 

@@ -1,18 +1,17 @@
 ﻿using System;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 
 namespace Domain.Interfaces.UnitTests
 {
     public class TestAggregateRoot : AggregateRootBase
     {
-        public TestAggregateRoot(ILogger logger, IIdentifierFactory idFactory)
-            : base(logger, idFactory, id => new CreateEvent {EntityId = id})
+        public TestAggregateRoot(IRecorder recorder, IIdentifierFactory idFactory)
+            : base(recorder, idFactory, id => new CreateEvent {EntityId = id})
         {
         }
 
-        private TestAggregateRoot(ILogger logger, IIdentifierFactory idFactory, Identifier identifier)
-            : base(logger, idFactory, identifier)
+        private TestAggregateRoot(IRecorder recorder, IIdentifierFactory idFactory, Identifier identifier)
+            : base(recorder, idFactory, identifier)
         {
         }
 
@@ -30,7 +29,8 @@ namespace Domain.Interfaces.UnitTests
 
         public static AggregateRootFactory<TestAggregateRoot> Rehydrate()
         {
-            return (identifier, container, rehydratingProperties) => new TestAggregateRoot(container.Resolve<ILogger>(),
+            return (identifier, container, rehydratingProperties) => new TestAggregateRoot(
+                container.Resolve<IRecorder>(),
                 container.Resolve<IIdentifierFactory>(), identifier);
         }
 

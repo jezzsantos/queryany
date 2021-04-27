@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
 
 namespace Domain.Interfaces.Entities
 {
@@ -11,15 +10,15 @@ namespace Domain.Interfaces.Entities
     /// </summary>
     public abstract class PersistableEntityBase : IPersistableEntity
     {
-        protected PersistableEntityBase(ILogger logger, IIdentifierFactory idFactory)
-            : this(logger, idFactory, Identifier.Empty())
+        protected PersistableEntityBase(IRecorder recorder, IIdentifierFactory idFactory)
+            : this(recorder, idFactory, Identifier.Empty())
         {
             Id = idFactory.Create(this);
         }
 
         protected PersistableEntityBase(Identifier identifier, IDependencyContainer container,
             IReadOnlyDictionary<string, object> properties)
-            : this(container.Resolve<ILogger>(), container.Resolve<IIdentifierFactory>(), identifier)
+            : this(container.Resolve<IRecorder>(), container.Resolve<IIdentifierFactory>(), identifier)
         {
             var id = properties.GetValueOrDefault<Identifier>(nameof(Id));
             Id = id.HasValue()
@@ -31,12 +30,12 @@ namespace Domain.Interfaces.Entities
             LastModifiedAtUtc = properties.GetValueOrDefault<DateTime>(nameof(LastModifiedAtUtc));
         }
 
-        private PersistableEntityBase(ILogger logger, IIdentifierFactory idFactory, Identifier identifier)
+        private PersistableEntityBase(IRecorder recorder, IIdentifierFactory idFactory, Identifier identifier)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             idFactory.GuardAgainstNull(nameof(idFactory));
             identifier.GuardAgainstNull(nameof(identifier));
-            Logger = logger;
+            Recorder = recorder;
             IdFactory = idFactory;
             Id = identifier;
 
@@ -53,7 +52,7 @@ namespace Domain.Interfaces.Entities
 
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         // ReSharper disable once MemberCanBePrivate.Global
-        protected ILogger Logger { get; }
+        protected IRecorder Recorder { get; }
 
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         // ReSharper disable once MemberCanBePrivate.Global

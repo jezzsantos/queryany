@@ -1,6 +1,5 @@
 ﻿using Domain.Interfaces;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -14,12 +13,12 @@ namespace Storage.UnitTests
 
         public GeneralReadModelStorageSpec()
         {
-            var logger = new Mock<ILogger>();
+            var recorder = new Mock<IRecorder>();
             this.repository = new Mock<IRepository>();
             this.repository.Setup(repo => repo.Add(It.IsAny<string>(), It.IsAny<CommandEntity>()))
                 .Returns((string containerName, CommandEntity entity) => new CommandEntity(entity.Id));
             this.storage =
-                new GeneralReadModelStorage<TestReadModel>(logger.Object, this.repository.Object);
+                new GeneralReadModelStorage<TestReadModel>(recorder.Object, this.repository.Object);
         }
 
         [TestMethod]

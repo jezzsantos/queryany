@@ -2,7 +2,6 @@ using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using DomainServices;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using PersonsApplication.ReadModels;
@@ -16,15 +15,15 @@ namespace PersonsApplication.UnitTests
     {
         private Mock<ICurrentCaller> caller;
         private Mock<IIdentifierFactory> idFactory;
-        private Mock<ILogger> logger;
         private PersonsApplication personsApplication;
+        private Mock<IRecorder> recorder;
         private Mock<IPersonStorage> storage;
         private Mock<IEmailService> uniqueEmailService;
 
         [TestInitialize]
         public void Initialize()
         {
-            this.logger = new Mock<ILogger>();
+            this.recorder = new Mock<IRecorder>();
             this.idFactory = new Mock<IIdentifierFactory>();
             this.idFactory.Setup(idf => idf.Create(It.IsAny<IIdentifiableEntity>()))
                 .Returns("anid".ToIdentifier());
@@ -35,14 +34,14 @@ namespace PersonsApplication.UnitTests
             this.caller = new Mock<ICurrentCaller>();
             this.caller.Setup(c => c.Id).Returns("acallerid");
             this.personsApplication =
-                new PersonsApplication(this.logger.Object, this.idFactory.Object, this.storage.Object,
+                new PersonsApplication(this.recorder.Object, this.idFactory.Object, this.storage.Object,
                     this.uniqueEmailService.Object);
         }
 
         [TestMethod]
         public void WhenCreate_ThenReturnsPerson()
         {
-            var entity = new PersonEntity(this.logger.Object, this.idFactory.Object, this.uniqueEmailService.Object);
+            var entity = new PersonEntity(this.recorder.Object, this.idFactory.Object, this.uniqueEmailService.Object);
             this.storage.Setup(s =>
                     s.Save(It.IsAny<PersonEntity>()))
                 .Returns(entity);

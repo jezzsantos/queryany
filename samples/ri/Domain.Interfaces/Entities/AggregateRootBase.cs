@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Logging;
 using QueryAny;
 
 namespace Domain.Interfaces.Entities
@@ -17,8 +16,8 @@ namespace Domain.Interfaces.Entities
         private readonly List<IChangeEvent> events;
         private readonly bool isInstantiating;
 
-        protected AggregateRootBase(ILogger logger, IIdentifierFactory idFactory,
-            Func<Identifier, IChangeEvent> createdEventFactory) : this(logger, idFactory,
+        protected AggregateRootBase(IRecorder recorder, IIdentifierFactory idFactory,
+            Func<Identifier, IChangeEvent> createdEventFactory) : this(recorder, idFactory,
             Identifier.Empty())
 
         {
@@ -32,12 +31,12 @@ namespace Domain.Interfaces.Entities
         ///     Creates a new instance of the aggregate with the specified <see cref="Identifier" />,
         ///     used during persistence instantiation. Does not raise any create event.
         /// </summary>
-        protected AggregateRootBase(ILogger logger, IIdentifierFactory idFactory, Identifier identifier)
+        protected AggregateRootBase(IRecorder recorder, IIdentifierFactory idFactory, Identifier identifier)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             idFactory.GuardAgainstNull(nameof(idFactory));
             identifier.GuardAgainstNull(nameof(identifier));
-            Logger = logger;
+            Recorder = recorder;
             IdFactory = idFactory;
             Id = identifier;
             this.events = new List<IChangeEvent>();
@@ -55,7 +54,7 @@ namespace Domain.Interfaces.Entities
             ChangeVersion = 0;
         }
 
-        protected ILogger Logger { get; }
+        protected IRecorder Recorder { get; }
 
         protected IIdentifierFactory IdFactory { get; }
 

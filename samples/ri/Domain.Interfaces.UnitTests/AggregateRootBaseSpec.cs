@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -16,24 +14,24 @@ namespace Domain.Interfaces.UnitTests
         private TestAggregateRoot aggregate;
         private Mock<IDependencyContainer> dependencyContainer;
         private Mock<IIdentifierFactory> idFactory;
-        private Mock<ILogger> logger;
+        private Mock<IRecorder> recorder;
         private ChangeEventTypeMigrator typeMigrator;
 
         [TestInitialize]
         public void Initialize()
         {
-            this.logger = new Mock<ILogger>();
+            this.recorder = new Mock<IRecorder>();
             this.idFactory = new Mock<IIdentifierFactory>();
             this.idFactory.Setup(idf => idf.Create(It.IsAny<IIdentifiableEntity>()))
                 .Returns("anid".ToIdentifier());
             this.dependencyContainer = new Mock<IDependencyContainer>();
-            this.dependencyContainer.Setup(dc => dc.Resolve<ILogger>())
-                .Returns(this.logger.Object);
+            this.dependencyContainer.Setup(dc => dc.Resolve<IRecorder>())
+                .Returns(this.recorder.Object);
             this.dependencyContainer.Setup(dc => dc.Resolve<IIdentifierFactory>())
                 .Returns(this.idFactory.Object);
             this.typeMigrator = new ChangeEventTypeMigrator();
 
-            this.aggregate = new TestAggregateRoot(this.logger.Object, this.idFactory.Object);
+            this.aggregate = new TestAggregateRoot(this.recorder.Object, this.idFactory.Object);
         }
 
         [TestMethod]
@@ -79,8 +77,8 @@ namespace Domain.Interfaces.UnitTests
         public void WhenRehydrate_ThenRaisesNoEvents()
         {
             var container = new Mock<IDependencyContainer>();
-            container.Setup(c => c.Resolve<ILogger>())
-                .Returns(NullLogger.Instance);
+            container.Setup(c => c.Resolve<IRecorder>())
+                .Returns(NullRecorder.Instance);
             container.Setup(c => c.Resolve<IIdentifierFactory>())
                 .Returns(new NullIdentifierFactory());
 

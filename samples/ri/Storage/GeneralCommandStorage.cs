@@ -1,6 +1,5 @@
 ﻿using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 using QueryAny;
 using ServiceStack;
 using Storage.Interfaces;
@@ -13,16 +12,16 @@ namespace Storage
     {
         private readonly string containerName;
         private readonly IDomainFactory domainFactory;
-        private readonly ILogger logger;
+        private readonly IRecorder recorder;
         private readonly IRepository repository;
 
-        public GeneralCommandStorage(ILogger logger, IDomainFactory domainFactory,
+        public GeneralCommandStorage(IRecorder recorder, IDomainFactory domainFactory,
             IRepository repository)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             domainFactory.GuardAgainstNull(nameof(domainFactory));
             repository.GuardAgainstNull(nameof(repository));
-            this.logger = logger;
+            this.recorder = recorder;
             this.domainFactory = domainFactory;
             this.repository = repository;
             this.containerName = typeof(TEntity).GetEntityNameSafe();
@@ -42,7 +41,7 @@ namespace Storage
             if (destroy)
             {
                 this.repository.Remove(this.containerName, id);
-                this.logger.LogDebug("Entity {Id} was destroyed in repository", id);
+                this.recorder.TraceDebug("Entity {Id} was destroyed in repository", id);
                 return;
             }
 
@@ -53,7 +52,7 @@ namespace Storage
 
             entity.IsDeleted = true;
             this.repository.Replace(this.containerName, id, entity);
-            this.logger.LogDebug("Entity {Id} was soft-deleted in repository", id);
+            this.recorder.TraceDebug("Entity {Id} was soft-deleted in repository", id);
         }
 
         public TEntity ResurrectDeleted(Identifier id)
@@ -73,7 +72,7 @@ namespace Storage
             entity.IsDeleted = false;
             this.repository.Replace(this.containerName, id, entity);
 
-            this.logger.LogDebug("Entity {Id} was resurrected in repository", id);
+            this.recorder.TraceDebug("Entity {Id} was resurrected in repository", id);
             return entity.ToDomainEntity<TEntity>(this.domainFactory);
         }
 
@@ -94,7 +93,7 @@ namespace Storage
                 return default;
             }
 
-            this.logger.LogDebug("Entity {Id} was retrieved from repository", id);
+            this.recorder.TraceDebug("Entity {Id} was retrieved from repository", id);
             return entity.ToDomainEntity<TEntity>(this.domainFactory);
         }
 
@@ -111,7 +110,7 @@ namespace Storage
             if (current == null)
             {
                 var added = this.repository.Add(this.containerName, CommandEntity.FromDomainEntity(entity));
-                this.logger.LogDebug("Entity {Id} was added to repository", added.Id);
+                this.recorder.TraceDebug("Entity {Id} was added to repository", added.Id);
 
                 return added.ToDomainEntity<TEntity>(this.domainFactory);
             }
@@ -128,7 +127,7 @@ namespace Storage
             var latest = MergeEntity(entity, current);
 
             var updated = this.repository.Replace(this.containerName, entity.Id, latest);
-            this.logger.LogDebug("Entity {Id} was updated in repository", entity.Id);
+            this.recorder.TraceDebug("Entity {Id} was updated in repository", entity.Id);
 
             return updated.ToDomainEntity<TEntity>(this.domainFactory);
         }
@@ -141,7 +140,7 @@ namespace Storage
         public void DestroyAll()
         {
             this.repository.DestroyAll(this.containerName);
-            this.logger.LogDebug("All entities were deleted from repository");
+            this.recorder.TraceDebug("All entities were deleted from repository");
         }
 
         private CommandEntity MergeEntity(TEntity entity, CommandEntity current)

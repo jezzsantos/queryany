@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Domain.Interfaces;
 using FluentAssertions;
 using InfrastructureServices.Eventing;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Storage.Interfaces;
@@ -150,7 +150,7 @@ namespace InfrastructureServices.UnitTests.Eventing
         private readonly Mock<Action<string, List<EventStreamStateChangeEvent>>> mock;
 
         public TestEventHandler(Mock<Action<string, List<EventStreamStateChangeEvent>>> mock) : base(
-            Mock.Of<ILogger>(),
+            Mock.Of<IRecorder>(),
             Mock.Of<IEventStreamStorage<TestAggregateRoot>>())
         {
             this.mock = mock;

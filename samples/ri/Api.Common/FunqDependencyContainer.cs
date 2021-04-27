@@ -3,11 +3,11 @@ using Funq;
 
 namespace Api.Common
 {
-    public class FuncDependencyContainer : IDependencyContainer
+    public class FunqDependencyContainer : IDependencyContainer
     {
         private readonly Container container;
 
-        public FuncDependencyContainer(Container container)
+        public FunqDependencyContainer(Container container)
         {
             container.GuardAgainstNull(nameof(container));
             this.container = container;

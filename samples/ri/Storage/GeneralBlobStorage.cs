@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using Domain.Interfaces;
-using Microsoft.Extensions.Logging;
 using Storage.Interfaces;
 
 namespace Storage
@@ -9,14 +8,14 @@ namespace Storage
     {
         private readonly IBlobository blobository;
         private readonly string containerName;
-        private readonly ILogger logger;
+        private readonly IRecorder recorder;
 
-        public GeneralBlobStorage(ILogger logger, string containerName, IBlobository blobository)
+        public GeneralBlobStorage(IRecorder recorder, string containerName, IBlobository blobository)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             blobository.GuardAgainstNull(nameof(blobository));
             containerName.GuardAgainstNull(nameof(containerName));
-            this.logger = logger;
+            this.recorder = recorder;
             this.blobository = blobository;
             this.containerName = containerName;
         }
@@ -27,7 +26,7 @@ namespace Storage
             stream.GuardAgainstNull(nameof(stream));
 
             var blob = this.blobository.Download(this.containerName, blobName, stream);
-            this.logger.LogDebug("Blob {Name} was retrieved from the {Container} blobository", blobName,
+            this.recorder.TraceDebug("Blob {Name} was retrieved from the {Container} blobository", blobName,
                 this.containerName);
 
             return blob;
@@ -40,7 +39,8 @@ namespace Storage
             data.GuardAgainstNull(nameof(data));
 
             this.blobository.Upload(this.containerName, blobName, contentType, data);
-            this.logger.LogDebug("Blob {Name} was saved to the {Container} blobository", blobName, this.containerName);
+            this.recorder.TraceDebug("Blob {Name} was saved to the {Container} blobository", blobName,
+                this.containerName);
         }
 
         public void DestroyAll()

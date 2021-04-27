@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using QueryAny;
@@ -20,7 +20,7 @@ namespace Storage.UnitTests.ReadModels
 
         public ReadModelCheckpointStoreSpec()
         {
-            var logger = new Mock<ILogger>();
+            var recorder = new Mock<IRecorder>();
             this.idFactory = new Mock<IIdentifierFactory>();
             this.idFactory.Setup(idf => idf.Create(It.IsAny<IIdentifiableEntity>()))
                 .Returns("anid".ToIdentifier);
@@ -31,7 +31,7 @@ namespace Storage.UnitTests.ReadModels
             this.repository.Setup(repo => repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<Checkpoint>>(),
                     It.IsAny<RepositoryEntityMetadata>()))
                 .Returns(new List<QueryEntity>());
-            this.store = new ReadModelCheckpointStore(logger.Object, this.idFactory.Object,
+            this.store = new ReadModelCheckpointStore(recorder.Object, this.idFactory.Object,
                 domainFactory.Object, this.repository.Object);
         }
 

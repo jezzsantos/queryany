@@ -1,7 +1,6 @@
 ﻿using System;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using Microsoft.Extensions.Logging;
 using PersonsApplication.ReadModels;
 using PersonsDomain;
 using Storage;
@@ -11,16 +10,16 @@ namespace PersonsStorage
 {
     public class PersonEntityReadModelProjection : IReadModelProjection
     {
-        private readonly ILogger logger;
         private readonly IReadModelStorage<Person> personStorage;
+        private readonly IRecorder recorder;
 
-        public PersonEntityReadModelProjection(ILogger logger, IRepository repository)
+        public PersonEntityReadModelProjection(IRecorder recorder, IRepository repository)
         {
-            logger.GuardAgainstNull(nameof(logger));
+            recorder.GuardAgainstNull(nameof(recorder));
             repository.GuardAgainstNull(nameof(repository));
 
-            this.logger = logger;
-            this.personStorage = new GeneralReadModelStorage<Person>(logger, repository);
+            this.recorder = recorder;
+            this.personStorage = new GeneralReadModelStorage<Person>(recorder, repository);
         }
 
         public Type EntityType => typeof(PersonEntity);
@@ -53,7 +52,7 @@ namespace PersonsStorage
                     break;
 
                 default:
-                    this.logger.LogDebug($"Unknown entity type '{originalEvent.GetType().Name}'");
+                    this.recorder.TraceDebug($"Unknown entity type '{originalEvent.GetType().Name}'");
                     return false;
             }
 
