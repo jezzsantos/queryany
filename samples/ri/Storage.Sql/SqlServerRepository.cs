@@ -18,10 +18,13 @@ namespace Storage.Sql
         public static readonly DateTime MinimumAllowableDate = SqlDateTime.MinValue.Value;
         public static readonly DateTime MaximumAllowableDate = SqlDateTime.MaxValue.Value;
         private readonly string connectionString;
+        private readonly IRecorder recorder;
 
-        public SqlServerRepository(string connectionString)
+        private SqlServerRepository(IRecorder recorder, string connectionString)
         {
+            recorder.GuardAgainstNull(nameof(recorder));
             connectionString.GuardAgainstNullOrEmpty(nameof(connectionString));
+            this.recorder = recorder;
             this.connectionString = connectionString;
         }
 
@@ -110,14 +113,14 @@ namespace Storage.Sql
             ExecuteCommand($"DELETE FROM {tableName}");
         }
 
-        public static SqlServerRepository FromSettings(IAppSettings settings, string databaseName)
+        public static SqlServerRepository FromSettings(IRecorder recorder, IAppSettings settings)
         {
             settings.GuardAgainstNull(nameof(settings));
-            databaseName.GuardAgainstNull(nameof(databaseName));
 
             var serverName = settings.GetString("SqlServerDbServerName");
             var credentials = settings.GetString("SqlServerDbCredentials");
-            return new SqlServerRepository(
+            var databaseName = settings.GetString("SqlServerDbName");
+            return new SqlServerRepository(recorder,
                 $"Persist Security Info=False;Integrated Security=true;Initial Catalog={databaseName};Server={serverName}{(credentials.HasValue() ? ";" + credentials : "")}");
         }
 
@@ -165,9 +168,9 @@ namespace Storage.Sql
 
             using (var connection = new SqlConnection(this.connectionString))
             {
-                var results = new List<Dictionary<string, object>>();
                 try
                 {
+                    var results = new List<Dictionary<string, object>>();
                     connection.Open();
                     using (var command = new SqlCommand(commandText, connection))
                     {
@@ -179,12 +182,14 @@ namespace Storage.Sql
                                 OverwriteJoinedSelects(result);
                                 results.Add(result);
                             }
-                            return results;
                         }
                     }
+                    this.recorder.TraceInformation($"Executed SQL statement: {commandText}");
+                    return results;
                 }
-                catch (SqlException)
+                catch (Exception ex)
                 {
+                    this.recorder.Crash(CrashLevel.NonCritical, ex, $"Failed executing SQL statement: {commandText}");
                     if (throwOnError)
                     {
                         throw;
@@ -200,6 +205,7 @@ namespace Storage.Sql
             {
                 try
                 {
+                    Dictionary<string, object> result;
                     connection.Open();
                     using (var command = new SqlCommand(commandText, connection))
                     {
@@ -209,13 +215,17 @@ namespace Storage.Sql
                             {
                                 return null;
                             }
-                            return Enumerable.Range(0, reader.FieldCount)
+                            result = Enumerable.Range(0, reader.FieldCount)
                                 .ToDictionary(x => reader.GetName(x), x => reader.GetValue(x));
                         }
                     }
+                    connection.Close();
+                    this.recorder.TraceInformation($"Executed SQL statement: {commandText}");
+                    return result;
                 }
-                catch (SqlException)
+                catch (Exception ex)
                 {
+                    this.recorder.Crash(CrashLevel.NonCritical, ex, $"Failed executing SQL statement: {commandText}");
                     if (throwOnError)
                     {
                         throw;
@@ -248,9 +258,11 @@ namespace Storage.Sql
                         command.ExecuteNonQuery();
                     }
                     connection.Close();
+                    this.recorder.TraceInformation($"Executed SQL statement: {commandText}");
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    this.recorder.Crash(CrashLevel.NonCritical, ex, $"Failed executing SQL statement: {commandText}");
                     if (throwOnError)
                     {
                         throw;
@@ -283,9 +295,11 @@ namespace Storage.Sql
                         command.ExecuteNonQuery();
                     }
                     connection.Close();
+                    this.recorder.TraceInformation($"Executed SQL statement: {commandText}");
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    this.recorder.Crash(CrashLevel.NonCritical, ex, $"Failed executing SQL statement: {commandText}");
                     if (throwOnError)
                     {
                         throw;
@@ -300,14 +314,20 @@ namespace Storage.Sql
             {
                 try
                 {
+                    object result;
                     connection.Open();
                     using (var command = new SqlCommand(commandText, connection))
                     {
-                        return command.ExecuteScalar();
+                        result = command.ExecuteScalar();
                     }
+                    connection.Close();
+                    this.recorder.TraceInformation($"Executed SQL statement: {commandText}");
+
+                    return result;
                 }
-                catch (SqlException)
+                catch (Exception ex)
                 {
+                    this.recorder.Crash(CrashLevel.NonCritical, ex, $"Failed executing SQL statement: {commandText}");
                     if (throwOnError)
                     {
                         throw;
@@ -325,7 +345,7 @@ namespace Storage.Sql
             }
         }
 
-        private static void ExecuteCommand(string commandText, SqlConnection connection, bool throwOnError = true)
+        private void ExecuteCommand(string commandText, SqlConnection connection, bool throwOnError = true)
         {
             try
             {
@@ -335,9 +355,11 @@ namespace Storage.Sql
                     command.ExecuteNonQuery();
                 }
                 connection.Close();
+                this.recorder.TraceInformation($"Executed SQL statement: {commandText}");
             }
-            catch (SqlException)
+            catch (Exception ex)
             {
+                this.recorder.Crash(CrashLevel.NonCritical, ex, $"Failed executing SQL statement: {commandText}");
                 if (throwOnError)
                 {
                     throw;
@@ -360,6 +382,34 @@ namespace Storage.Sql
             tableEntityProperties[nameof(CommandEntity.LastPersistedAtUtc)] = DateTime.UtcNow;
 
             return tableEntityProperties;
+        }
+
+        public static Dictionary<string, object> FromTableEntity(this Dictionary<string, object> tableProperties,
+            RepositoryEntityMetadata metadata)
+
+        {
+            var propertyValues = tableProperties
+                .Where(pair =>
+                    metadata.HasType(pair.Key) && pair.Value != null)
+                .ToDictionary(pair => pair.Key,
+                    pair => pair.FromTableEntityProperty(metadata.GetPropertyType(pair.Key)));
+
+            var id = tableProperties[nameof(CommandEntity.Id)].ToString();
+            propertyValues[nameof(CommandEntity.Id)] = id;
+
+            return propertyValues;
+        }
+
+        public static bool IsDbNull(this object value)
+        {
+            return value == null
+                   || value == DBNull.Value
+                   || value is SqlBinary binary && binary.IsNull;
+        }
+
+        public static bool IsMaximumAllowableDate(this DateTime dateTime)
+        {
+            return dateTime >= SqlServerRepository.MaximumAllowableDate;
         }
 
         private static object ToTableEntityProperty(object propertyValue, Type targetPropertyType)
@@ -410,22 +460,6 @@ namespace Storage.Sql
             }
 
             return value;
-        }
-
-        public static Dictionary<string, object> FromTableEntity(this Dictionary<string, object> tableProperties,
-            RepositoryEntityMetadata metadata)
-
-        {
-            var propertyValues = tableProperties
-                .Where(pair =>
-                    metadata.HasType(pair.Key) && pair.Value != null)
-                .ToDictionary(pair => pair.Key,
-                    pair => pair.FromTableEntityProperty(metadata.GetPropertyType(pair.Key)));
-
-            var id = tableProperties[nameof(CommandEntity.Id)].ToString();
-            propertyValues[nameof(CommandEntity.Id)] = id;
-
-            return propertyValues;
         }
 
         private static object FromTableEntityProperty(this KeyValuePair<string, object> property,
@@ -496,21 +530,9 @@ namespace Storage.Sql
             }
         }
 
-        public static bool IsDbNull(this object value)
-        {
-            return value == null
-                   || value == DBNull.Value
-                   || value is SqlBinary binary && binary.IsNull;
-        }
-
         private static bool IsMinimumAllowableDate(this DateTime dateTime)
         {
             return dateTime <= SqlServerRepository.MinimumAllowableDate;
-        }
-
-        public static bool IsMaximumAllowableDate(this DateTime dateTime)
-        {
-            return dateTime >= SqlServerRepository.MaximumAllowableDate;
         }
 
         private static bool IsNotAllowableDate(this DateTime dateTime)
@@ -527,27 +549,26 @@ namespace Storage.Sql
     internal static class SqlServerQueryExtensions
     {
         public static string ToSqlServerQueryClause<TQueryableEntity>(this QueryClause<TQueryableEntity> query,
-            string tableName,
-            IRepository repository)
+            string tableName, IRepository repository)
             where TQueryableEntity : IQueryableEntity
         {
             var builder = new StringBuilder();
-            builder.Append($"SELECT {query.ToSqlServerSelectClause()}");
+            builder.Append($"SELECT {query.ToSelectClause()}");
             builder.Append($" FROM {tableName} {SqlServerRepository.PrimaryTableAlias}");
 
-            var joins = query.JoinedEntities.ToSqlServerJoinClause();
+            var joins = query.JoinedEntities.ToJoinClause();
             if (joins.HasValue())
             {
                 builder.Append($"{joins}");
             }
 
-            var wheres = query.Wheres.ToSqlServerWhereClause();
+            var wheres = query.Wheres.ToWhereClause(query.JoinedEntities);
             if (wheres.HasValue())
             {
                 builder.Append($" WHERE {wheres}");
             }
 
-            var orderBy = query.ToSqlServerOrderByClause();
+            var orderBy = query.ToOrderByClause(query.JoinedEntities);
             if (orderBy.HasValue())
             {
                 builder.Append($" ORDER BY {orderBy}");
@@ -572,7 +593,7 @@ namespace Storage.Sql
         ///     No               No                Yes         GetAllPrimaryEntityProperties
         ///     Yes              No                Yes         GetPrimarySelectedProperties
         /// </summary>
-        private static string ToSqlServerSelectClause<TQueryableEntity>(this QueryClause<TQueryableEntity> query)
+        private static string ToSelectClause<TQueryableEntity>(this QueryClause<TQueryableEntity> query)
             where TQueryableEntity : IQueryableEntity
         {
             static string GetAllPrimaryEntityProperties()
@@ -652,7 +673,8 @@ namespace Storage.Sql
             return @"*";
         }
 
-        private static string ToSqlServerOrderByClause<TQueryableEntity>(this QueryClause<TQueryableEntity> query)
+        private static string ToOrderByClause<TQueryableEntity>(this QueryClause<TQueryableEntity> query,
+            IReadOnlyList<QueriedEntity> joinedEntities)
             where TQueryableEntity : IQueryableEntity
         {
             var orderBy = query.ResultOptions.OrderBy;
@@ -661,10 +683,30 @@ namespace Storage.Sql
                 : "DESC";
             var by = query.GetDefaultOrdering();
 
-            return $"{SqlServerRepository.PrimaryTableAlias}.{by} {direction}";
+            var fieldName = ToOrderByFieldName(by, joinedEntities);
+            return $"{fieldName} {direction}";
         }
 
-        private static string ToSqlServerWhereClause(this IReadOnlyList<WhereExpression> wheres)
+        private static string ToOrderByFieldName(string by, IReadOnlyList<QueriedEntity> joinedEntities)
+        {
+            if (joinedEntities.Any())
+            {
+                var joinedField = joinedEntities
+                    .SelectMany(je => je.Selects)
+                    .FirstOrDefault(sel => sel.JoinedFieldName.EqualsIgnoreCase(by));
+                if (joinedField.Exists())
+                {
+                    var joinLeftFieldName =
+                        $"{SqlServerRepository.JoinedEntityFieldAliasPrefix}{joinedField?.JoinedFieldName}";
+                    return joinLeftFieldName;
+                }
+            }
+
+            return $"{SqlServerRepository.PrimaryTableAlias}.{by}";
+        }
+
+        private static string ToWhereClause(this IReadOnlyList<WhereExpression> wheres,
+            IReadOnlyList<QueriedEntity> joinedEntities)
         {
             if (!wheres.Any())
             {
@@ -674,13 +716,13 @@ namespace Storage.Sql
             var builder = new StringBuilder();
             foreach (var where in wheres)
             {
-                builder.Append(where.ToSqlServerWhereClause());
+                builder.Append(where.ToWhereClause(joinedEntities));
             }
 
             return builder.ToString();
         }
 
-        private static string ToSqlServerJoinClause(this IReadOnlyList<QueriedEntity> joinedEntities)
+        private static string ToJoinClause(this IReadOnlyList<QueriedEntity> joinedEntities)
         {
             if (!joinedEntities.Any())
             {
@@ -690,21 +732,21 @@ namespace Storage.Sql
             var builder = new StringBuilder();
             foreach (var entity in joinedEntities)
             {
-                builder.Append(entity.Join.ToSqlServerJoinClause());
+                builder.Append(entity.Join.ToJoinClause());
             }
 
             return builder.ToString();
         }
 
-        private static string ToSqlServerJoinClause(this JoinDefinition join)
+        private static string ToJoinClause(this JoinDefinition join)
         {
-            var joinType = join.Type.ToSqlServerJoinType();
+            var joinType = join.Type.ToJoinType();
 
             return
                 $" {joinType} JOIN {join.Right.EntityName} ON {SqlServerRepository.PrimaryTableAlias}.{join.Left.JoinedFieldName}={join.Right.EntityName}.{join.Right.JoinedFieldName}";
         }
 
-        private static string ToSqlServerJoinType(this JoinType type)
+        private static string ToJoinType(this JoinType type)
         {
             switch (type)
             {
@@ -717,24 +759,25 @@ namespace Storage.Sql
             }
         }
 
-        private static string ToSqlServerWhereClause(this WhereExpression where)
+        private static string ToWhereClause(this WhereExpression where,
+            IReadOnlyList<QueriedEntity> joinedEntities)
         {
             if (where.Condition != null)
             {
                 var condition = where.Condition;
 
                 return
-                    $"{where.Operator.ToSqlServerOperatorClause()}{condition.ToSqlServerConditionClause()}";
+                    $"{where.Operator.ToLogicalOperatorClause()}{condition.ToWhereConditionClause(joinedEntities)}";
             }
 
             if (where.NestedWheres != null && where.NestedWheres.Any())
             {
                 var builder = new StringBuilder();
-                builder.Append($"{where.Operator.ToSqlServerOperatorClause()}");
+                builder.Append($"{where.Operator.ToLogicalOperatorClause()}");
                 builder.Append("(");
                 foreach (var nestedWhere in where.NestedWheres)
                 {
-                    builder.Append($"{nestedWhere.ToSqlServerWhereClause()}");
+                    builder.Append($"{nestedWhere.ToWhereClause(joinedEntities)}");
                 }
 
                 builder.Append(")");
@@ -745,7 +788,7 @@ namespace Storage.Sql
             return string.Empty;
         }
 
-        private static string ToSqlServerOperatorClause(this LogicalOperator op)
+        private static string ToLogicalOperatorClause(this LogicalOperator op)
         {
             switch (op)
             {
@@ -760,7 +803,56 @@ namespace Storage.Sql
             }
         }
 
-        private static string ToSqlServerConditionClause(this ConditionOperator op)
+        private static string ToWhereConditionClause(this WhereCondition condition,
+            IReadOnlyList<QueriedEntity> joinedEntities)
+        {
+            var fieldName = ToWhereConditionFieldName(condition.FieldName, joinedEntities);
+            var @operator = condition.Operator.ToWhereConditionOperatorClause();
+
+            var value = condition.Value;
+            switch (value)
+            {
+                case string text:
+                    return $"{fieldName} {@operator} '{text}'";
+
+                case DateTime dateTime:
+                    return dateTime.HasValue()
+                        ? dateTime.IsMaximumAllowableDate()
+                            ? $"{fieldName} {@operator} '{SqlServerRepository.MaximumAllowableDate:yyyy-MM-dd HH:mm:ss.fff}'"
+                            : $"{fieldName} {@operator} '{dateTime:yyyy-MM-dd HH:mm:ss.fff}'"
+                        : $"({fieldName} {@operator} '{SqlServerRepository.MinimumAllowableDate:yyyy-MM-dd HH:mm:ss.fff}' OR {fieldName} {(condition.Operator == ConditionOperator.EqualTo ? "IS" : @operator)} NULL)";
+
+                case DateTimeOffset dateTimeOffset:
+                    return
+                        $"{fieldName} {@operator} '{dateTimeOffset:O}'";
+
+                case bool boolean:
+                    return
+                        $"{fieldName} {@operator} {(boolean ? 1 : 0)}";
+
+                case double _:
+                case int _:
+                case long _:
+                    return $"{fieldName} {@operator} {value}";
+
+                case byte[] bytes:
+                    return
+                        $"{fieldName} {@operator} {ToWhereConditionHexByteArray(bytes)}";
+
+                case Guid guid:
+                    return $"{fieldName} {@operator} '{guid:D}'";
+
+                case null:
+                    return condition.Operator == ConditionOperator.EqualTo
+                        ? $"{fieldName} IS NULL"
+                        : $"{fieldName} IS NOT NULL";
+
+                default:
+                    return value.ToWhereConditionOtherValueString(fieldName, @operator);
+            }
+        }
+
+        private static string ToWhereConditionOperatorClause(this ConditionOperator op)
         {
             switch (op)
             {
@@ -781,55 +873,24 @@ namespace Storage.Sql
             }
         }
 
-        private static string ToSqlServerConditionClause(this WhereCondition condition)
+        private static string ToWhereConditionFieldName(string fieldName, IReadOnlyList<QueriedEntity> joinedEntities)
         {
-            var fieldName = condition.FieldName;
-            var @operator = condition.Operator.ToSqlServerConditionClause();
-
-            var value = condition.Value;
-            switch (value)
+            if (joinedEntities.Any())
             {
-                case string text:
-                    return $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{text}'";
-
-                case DateTime dateTime:
-                    return dateTime.HasValue()
-                        ? dateTime.IsMaximumAllowableDate()
-                            ? $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{SqlServerRepository.MaximumAllowableDate:yyyy-MM-dd HH:mm:ss.fff}'"
-                            : $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{dateTime:yyyy-MM-dd HH:mm:ss.fff}'"
-                        : $"({SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{SqlServerRepository.MinimumAllowableDate:yyyy-MM-dd HH:mm:ss.fff}' OR {SqlServerRepository.PrimaryTableAlias}.{fieldName} {(condition.Operator == ConditionOperator.EqualTo ? "IS" : @operator)} NULL)";
-
-                case DateTimeOffset dateTimeOffset:
-                    return
-                        $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{dateTimeOffset:O}'";
-
-                case bool boolean:
-                    return
-                        $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} {(boolean ? 1 : 0)}";
-
-                case double _:
-                case int _:
-                case long _:
-                    return $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} {value}";
-
-                case byte[] bytes:
-                    return
-                        $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} {ToHexByteArray(bytes)}";
-
-                case Guid guid:
-                    return $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{guid:D}'";
-
-                case null:
-                    return condition.Operator == ConditionOperator.EqualTo
-                        ? $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} IS NULL"
-                        : $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} IS NOT NULL";
-
-                default:
-                    return value.ToOtherValueString(fieldName, @operator);
+                var joinedField = joinedEntities
+                    .SelectMany(je => je.Selects)
+                    .FirstOrDefault(sel => sel.JoinedFieldName.EqualsIgnoreCase(fieldName));
+                if (joinedField.Exists())
+                {
+                    var joinLeftFieldName = $"{joinedField?.EntityName}.{joinedField?.FieldName}";
+                    return joinLeftFieldName;
+                }
             }
+
+            return $"{SqlServerRepository.PrimaryTableAlias}.{fieldName}";
         }
 
-        private static string ToHexByteArray(byte[] bytes)
+        private static string ToWhereConditionHexByteArray(byte[] bytes)
         {
             if (bytes == null || bytes.Length == 0)
             {
@@ -840,20 +901,20 @@ namespace Storage.Sql
             return $"0x{sequence}";
         }
 
-        private static string ToOtherValueString(this object value, string fieldName, string @operator)
+        private static string ToWhereConditionOtherValueString(this object value, string fieldName, string @operator)
         {
             if (value == null)
             {
-                return $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} NULL";
+                return $"{fieldName} {@operator} NULL";
             }
 
             if (value is IPersistableValueObject valueObject)
             {
                 return
-                    $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{valueObject.Dehydrate()}'";
+                    $"{fieldName} {@operator} '{valueObject.Dehydrate()}'";
             }
 
-            return $"{SqlServerRepository.PrimaryTableAlias}.{fieldName} {@operator} '{value}'";
+            return $"{fieldName} {@operator} '{value}'";
         }
     }
 }

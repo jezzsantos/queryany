@@ -20,7 +20,11 @@ namespace Storage.UnitTests
             var recorder = new Mock<IRecorder>();
             this.domainFactory = new Mock<IDomainFactory>();
             this.domainFactory.Setup(df =>
-                    df.RehydrateEntity(It.IsAny<Type>(), It.IsAny<IReadOnlyDictionary<string, object>>()))
+                    df.RehydrateValueObject(typeof(Identifier), It.IsAny<string>()))
+                .Returns((Type type, string property) =>
+                    "anid".ToIdentifier().As<IPersistableValueObject>());
+            this.domainFactory.Setup(df =>
+                    df.RehydrateEntity(typeof(TestDomainEntity), It.IsAny<IReadOnlyDictionary<string, object>>()))
                 .Returns((Type type, IReadOnlyDictionary<string, object> props) =>
                     new TestDomainEntity(props[nameof(TestDomainEntity.Id)].ToString().ToIdentifier())
                     {
@@ -251,20 +255,17 @@ namespace Storage.UnitTests
                     IsDeleted = true
                 });
             this.repository.Setup(repo =>
-                    repo.Replace("acontainername", It.IsAny<string>(), It.IsAny<CommandEntity>()))
-                .Returns(new CommandEntity("anid")
-                {
-                    IsDeleted = false
-                });
+                    repo.Replace(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CommandEntity>()))
+                .Returns((string containerName, string id, CommandEntity entity) => entity);
 
-            this.storage.Upsert(new TestDomainEntity("anid".ToIdentifier())
+            var result = this.storage.Upsert(new TestDomainEntity("anid".ToIdentifier())
             {
-                AStringValue = "astringvalue"
+                AStringValue = "astringvalue",
+                IsDeleted = true
             }, true);
 
-            this.repository.Verify(repo => repo.Replace("acontainername", "anid", It.Is<CommandEntity>(ce =>
-                ce.IsDeleted == false
-                && (string) ce.Properties[nameof(TestDomainEntity.AStringValue)] == "astringvalue")));
+            result.IsDeleted.Should().BeFalse();
+            result.Id.Should().Be("anid".ToIdentifier());
         }
 
         [TestMethod]

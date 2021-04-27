@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Domain.Interfaces;
 
 namespace Storage
 {
     public class RepositoryEntityMetadata
     {
+        private static readonly Dictionary<Type, IEnumerable<PropertyInfo>> TypePropertiesCache =
+            new Dictionary<Type, IEnumerable<PropertyInfo>>();
         private readonly Dictionary<string, Type> propertyTypes;
 
         internal RepositoryEntityMetadata(Dictionary<string, Type> propertyTypes = null)
@@ -52,8 +55,8 @@ namespace Storage
         {
             type.GuardAgainstNull(nameof(type));
 
-            var properties = type.GetProperties();
-            return new RepositoryEntityMetadata(properties.ToDictionary(prop => prop.Name, prop => prop.PropertyType));
+            var properties = GetProperties(type);
+            return new RepositoryEntityMetadata(properties);
         }
 
         public void Update(string propertyName, Type type)
@@ -61,6 +64,23 @@ namespace Storage
             propertyName.GuardAgainstNullOrEmpty(nameof(propertyName));
 
             this.propertyTypes[propertyName] = type;
+        }
+
+        private static Dictionary<string, Type> GetProperties(Type type)
+        {
+            var properties = WithCache(type, t => t.GetProperties());
+
+            return properties.ToDictionary(prop => prop.Name, prop => prop.PropertyType);
+        }
+
+        private static IEnumerable<PropertyInfo> WithCache(Type type, Func<Type, PropertyInfo[]> propertyInfoFactory)
+        {
+            if (!TypePropertiesCache.ContainsKey(type))
+            {
+                TypePropertiesCache[type] = propertyInfoFactory(type);
+            }
+
+            return TypePropertiesCache[type];
         }
     }
 }

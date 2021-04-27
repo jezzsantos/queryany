@@ -21,13 +21,13 @@ namespace Storage.UnitTests
 
         public IEnumerable<EntityEvent> LoadedChanges { get; private set; }
 
-        // ReSharper disable once UnassignedGetOnlyAutoProperty
-        public bool? IsDeleted { get; }
-
         public Identifier Id { get; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         public DateTime? LastPersistedAtUtc { get; }
+
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
+        public bool? IsDeleted { get; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         public long ChangeVersion => Events.Any()

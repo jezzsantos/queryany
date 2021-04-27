@@ -24,7 +24,7 @@ namespace Storage.UnitTests.Azure
         {
             var query = Query.Empty<TestQueryEntity>();
 
-            var result = query.ToAzureCosmosSqlApiQueryClause("acontainername", this.repository.Object);
+            var result = query.ToCosmosSqlApiQueryClause("acontainername", this.repository.Object);
 
             result.Should().Be("SELECT * FROM acontainername t ORDER BY t.AStringValue ASC OFFSET 0 LIMIT 99");
         }
@@ -36,7 +36,7 @@ namespace Storage.UnitTests.Azure
                 .WhereAll()
                 .Select(e => e.ABooleanValue);
 
-            var result = query.ToAzureCosmosSqlApiQueryClause("acontainername", this.repository.Object);
+            var result = query.ToCosmosSqlApiQueryClause("acontainername", this.repository.Object);
 
             result.Should()
                 .Be(
@@ -51,7 +51,7 @@ namespace Storage.UnitTests.Azure
                 .Select(e => e.ABooleanValue)
                 .Select(e => e.ADoubleValue);
 
-            var result = query.ToAzureCosmosSqlApiQueryClause("acontainername", this.repository.Object);
+            var result = query.ToCosmosSqlApiQueryClause("acontainername", this.repository.Object);
 
             result.Should()
                 .Be(

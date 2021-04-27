@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Dynamic.Core;
 using Domain.Interfaces;
 using QueryAny;
 using Storage.Interfaces;
@@ -150,37 +149,10 @@ namespace Storage
                 return new List<QueryEntity>();
             }
 
-            var primaryEntities = QueryPrimaryEntities(containerName, query, metadata);
+            var results = query.FetchAllIntoMemory(this, metadata, () => QueryPrimaryEntities(containerName),
+                je => QueryJoiningContainer(je));
 
-            var joinedContainers = query.JoinedEntities
-                .Where(je => je.Join != null)
-                .ToDictionary(je => je.EntityName, je => new
-                {
-                    Collection = this.containers.ContainsKey(je.EntityName)
-                        ? this.containers[je.EntityName]
-                            .ToDictionary(pair => pair.Key, pair => pair.Value.AsDictionary())
-                        : new Dictionary<string, Dictionary<string, object>>(),
-                    JoinedEntity = je
-                });
-
-            if (joinedContainers.Any())
-            {
-                foreach (var joinedContainer in joinedContainers)
-                {
-                    var joinedEntity = joinedContainer.Value.JoinedEntity;
-                    var join = joinedEntity.Join;
-                    var leftEntities = primaryEntities
-                        .ToDictionary(e => e.Id, e => e.Properties);
-                    var rightEntities = joinedContainer.Value.Collection
-                        .ToDictionary(e => e.Key, e => e.Value.AsReadOnly());
-
-                    primaryEntities = join
-                        .JoinResults(leftEntities, rightEntities, metadata,
-                            joinedEntity.Selects.ProjectSelectedJoinedProperties());
-                }
-            }
-
-            return primaryEntities.CherryPickSelectedProperties(query, metadata);
+            return results;
         }
 
         public void DestroyAll(string containerName)
@@ -193,31 +165,18 @@ namespace Storage
             }
         }
 
-        private List<QueryEntity> QueryPrimaryEntities<TQueryableEntity>(string containerName,
-            QueryClause<TQueryableEntity> query, RepositoryEntityMetadata metadata)
-            where TQueryableEntity : IQueryableEntity
-
+        private Dictionary<string, IReadOnlyDictionary<string, object>> QueryPrimaryEntities(string containerName)
         {
-            var primaryEntities = this.containers[containerName];
+            return this.containers[containerName];
+        }
 
-            var orderByExpression = query.ToDynamicLinqOrderByClause();
-            var primaryEntitiesDynamic = primaryEntities.AsQueryable()
-                .OrderBy(orderByExpression)
-                .Skip(query.GetDefaultSkip())
-                .Take(query.GetDefaultTake(this));
-
-            if (!query.Wheres.Any())
-            {
-                return primaryEntitiesDynamic
-                    .Select(ped => QueryEntity.FromProperties(ped.Value, metadata))
-                    .ToList();
-            }
-
-            var queryExpression = query.Wheres.ToDynamicLinqWhereClause();
-            return primaryEntitiesDynamic
-                .Where(queryExpression)
-                .Select(ped => QueryEntity.FromProperties(ped.Value, metadata))
-                .ToList();
+        private Dictionary<string, IReadOnlyDictionary<string, object>> QueryJoiningContainer(
+            QueriedEntity joinedEntity)
+        {
+            return this.containers.ContainsKey(joinedEntity.EntityName)
+                ? this.containers[joinedEntity.EntityName]
+                    .ToDictionary(pair => pair.Key, pair => pair.Value)
+                : new Dictionary<string, IReadOnlyDictionary<string, object>>();
         }
     }
 

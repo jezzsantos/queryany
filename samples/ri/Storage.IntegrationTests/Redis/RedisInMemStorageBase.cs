@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ServiceProcess;
 using System.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Storage.IntegrationTests.Redis
 {
@@ -9,7 +8,7 @@ namespace Storage.IntegrationTests.Redis
     {
         private const string RedisServerServiceName = @"redis";
 
-        public static void InitializeAllTests(TestContext context)
+        public static void InitializeAllTests()
         {
             EnsureRedisServerIsStarted();
         }

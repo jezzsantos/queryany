@@ -121,10 +121,14 @@ namespace Storage
                 {
                     throw new ResourceNotFoundException(Resources.GeneralCommandStorage_EntityDeleted);
                 }
-                current.IsDeleted = false;
             }
 
             var latest = MergeEntity(entity, current);
+
+            if (current.IsDeleted.GetValueOrDefault(false))
+            {
+                latest.IsDeleted = false;
+            }
 
             var updated = this.repository.Replace(this.containerName, entity.Id, latest);
             this.recorder.TraceDebug("Entity {Id} was updated in repository", entity.Id);
@@ -143,12 +147,11 @@ namespace Storage
             this.recorder.TraceDebug("All entities were deleted from repository");
         }
 
-        private CommandEntity MergeEntity(TEntity entity, CommandEntity current)
+        private CommandEntity MergeEntity(TEntity updated, CommandEntity persisted)
         {
-            var currentAsEntity = current.ToDomainEntity<TEntity>(this.domainFactory);
-            currentAsEntity.PopulateWithNonDefaultValues(entity);
-
-            return CommandEntity.FromDomainEntity(currentAsEntity);
+            var persistedAsEntity = persisted.ToDomainEntity<TEntity>(this.domainFactory);
+            persistedAsEntity.PopulateWith(updated);
+            return CommandEntity.FromDomainEntity(persistedAsEntity);
         }
     }
 }

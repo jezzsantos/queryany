@@ -239,21 +239,18 @@ namespace Storage.UnitTests
                     IsDeleted = true
                 });
             this.repository.Setup(repo =>
-                    repo.Replace("acontainername", It.IsAny<string>(), It.IsAny<CommandEntity>()))
-                .Returns(new CommandEntity("anid")
-                {
-                    IsDeleted = false
-                });
+                    repo.Replace(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CommandEntity>()))
+                .Returns((string containerName, string id, CommandEntity entity) => entity);
 
-            this.storage.Upsert(new TestDto
+            var result = this.storage.Upsert(new TestDto
             {
                 Id = "anid".ToIdentifier(),
-                AStringValue = "astringvalue"
+                AStringValue = "astringvalue",
+                IsDeleted = true
             }, true);
 
-            this.repository.Verify(repo => repo.Replace("acontainername", "anid", It.Is<CommandEntity>(ce =>
-                ce.IsDeleted == false
-                && (string) ce.Properties[nameof(TestDto.AStringValue)] == "astringvalue")));
+            result.IsDeleted.Should().BeFalse();
+            result.Id.Should().Be("anid".ToIdentifier());
         }
 
         [TestMethod]

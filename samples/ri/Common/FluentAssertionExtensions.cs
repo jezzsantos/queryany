@@ -2,8 +2,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Domain.Interfaces;
+using FluentAssertions;
 using FluentAssertions.Execution;
+using FluentAssertions.Primitives;
 using FluentAssertions.Specialized;
 
 // ReSharper disable once CheckNamespace
@@ -14,14 +15,14 @@ public static class ExceptionAssertionExtensions
         this ExceptionAssertions<TException> @throw, string messageWithFormatters, string because = "",
         params object[] becauseArgs) where TException : Exception
     {
-        if (messageWithFormatters.HasValue())
+        if (!string.IsNullOrEmpty(messageWithFormatters))
         {
             var exception = @throw.Subject.Single();
             var expectedFormat = messageWithFormatters.Replace("{", "{{").Replace("}", "}}");
             Execute.Assertion
                 .BecauseOf(because, becauseArgs)
-                .UsingLineBreaks
                 .ForCondition(IsFormattedFrom(exception.Message, messageWithFormatters))
+                .UsingLineBreaks
                 .FailWith(
                     $"Expected exception message to match the equivalent of\n\"{expectedFormat}\", but\n\"{exception.Message}\" does not.")
                 ;
@@ -30,7 +31,7 @@ public static class ExceptionAssertionExtensions
         return new ExceptionAssertions<TException>(@throw.Subject);
     }
 
-    public static bool IsFormattedFrom(string actualExceptionMessage, string expectedMessageWithFormatters)
+    internal static bool IsFormattedFrom(string actualExceptionMessage, string expectedMessageWithFormatters)
     {
         var escapedPattern = expectedMessageWithFormatters
             .Replace("[", "\\[")
@@ -45,5 +46,18 @@ public static class ExceptionAssertionExtensions
             .Replace(" ", @"\s");
 
         return new Regex(pattern).IsMatch(actualExceptionMessage);
+    }
+}
+
+[ExcludeFromCodeCoverage]
+public static class DateTimeAssertionExtensions
+{
+    public static AndConstraint<DateTimeAssertions> BeNear(this DateTimeAssertions assertions,
+        DateTime nearbyTime,
+        int precision = 850,
+        string because = "",
+        params object[] becauseArgs)
+    {
+        return assertions.BeCloseTo(nearbyTime, precision, because, becauseArgs);
     }
 }

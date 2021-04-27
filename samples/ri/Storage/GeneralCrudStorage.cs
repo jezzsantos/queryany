@@ -98,10 +98,14 @@ namespace Storage
                 {
                     throw new ResourceNotFoundException(Resources.GeneralCrudStorage_DtoDeleted);
                 }
-                current.IsDeleted = false;
             }
 
             var latest = MergeDto(dto, current);
+
+            if (current.IsDeleted.GetValueOrDefault(false))
+            {
+                latest.IsDeleted = false;
+            }
 
             var updated = this.repository.Replace(this.containerName, dto.Id, latest);
             this.recorder.TraceDebug("Entity {Id} was updated in repository", dto.Id);
@@ -159,10 +163,10 @@ namespace Storage
             this.recorder.TraceDebug("All entities were deleted from repository");
         }
 
-        private static CommandEntity MergeDto(TDto dto, CommandEntity current)
+        private static CommandEntity MergeDto(TDto updated, CommandEntity current)
         {
             var currentAsDto = current.ToDto<TDto>();
-            currentAsDto.PopulateWithNonDefaultValues(dto);
+            currentAsDto.PopulateWith(updated);
             return CommandEntity.FromDto(currentAsDto);
         }
     }

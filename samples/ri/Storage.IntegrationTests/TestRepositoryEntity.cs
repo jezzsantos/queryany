@@ -63,6 +63,14 @@ namespace Storage.IntegrationTests
         public Identifier Id { get; set; }
     }
 
+    [EntityName("testentities")]
+    public class TestJoinedRepositoryEntity : TestRepositoryEntity
+    {
+        public int AFirstIntValue { get; set; }
+
+        public string AFirstStringValue { get; set; }
+    }
+
     [EntityName("firstjoiningtestentities")]
     public class FirstJoiningTestQueryableEntity : IIdentifiableEntity, IQueryableEntity
     {
@@ -135,6 +143,15 @@ namespace Storage.IntegrationTests
             return $"{AStringProperty}::{AnIntName}::{ABooleanPropertyName}";
         }
 
+        public static ValueObjectFactory<ComplexValueObject> Rehydrate()
+        {
+            return (value, container) =>
+            {
+                var parts = RehydrateToList(value);
+                return new ComplexValueObject(parts[0], parts[1].ToInt(), parts[2].ToBool());
+            };
+        }
+
         private static List<string> RehydrateToList(string hydratedValue)
         {
             if (!hydratedValue.HasValue())
@@ -145,15 +162,6 @@ namespace Storage.IntegrationTests
             return hydratedValue
                 .Split("::")
                 .ToList();
-        }
-
-        public static ValueObjectFactory<ComplexValueObject> Rehydrate()
-        {
-            return (value, container) =>
-            {
-                var parts = RehydrateToList(value);
-                return new ComplexValueObject(parts[0], parts[1].ToInt(), parts[2].ToBool());
-            };
         }
 
         protected override IEnumerable<object> GetAtomicValues()

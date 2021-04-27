@@ -74,6 +74,18 @@ namespace Storage.Azure
             });
         }
 
+        public static AzureBlobStorageRepository FromSettings(IAppSettings settings)
+        {
+            settings.GuardAgainstNull(nameof(settings));
+
+            var accountKey = settings.GetString("AzureStorageAccountKey");
+            var accountName = settings.GetString("AzureStorageAccountName");
+            var connectionString = accountKey.HasValue()
+                ? $"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={accountKey};EndpointSuffix=core.windows.net"
+                : "UseDevelopmentStorage=true";
+            return new AzureBlobStorageRepository(connectionString);
+        }
+
         private CloudBlobContainer EnsureContainer(string containerName)
         {
             EnsureConnected();
@@ -118,18 +130,6 @@ namespace Storage.Azure
             this.containerExistenceChecks[containerName] = true;
 
             return false;
-        }
-
-        public static AzureBlobStorageRepository FromSettings(IAppSettings settings)
-        {
-            settings.GuardAgainstNull(nameof(settings));
-
-            var accountKey = settings.GetString("AzureTableStorageAccountKey");
-            var hostName = settings.GetString("AzureTableStorageHostName");
-            var connectionString = accountKey.HasValue()
-                ? $"DefaultEndpointsProtocol=https;AccountName={hostName};AccountKey={accountKey};EndpointSuffix=core.windows.net"
-                : "UseDevelopmentStorage=true";
-            return new AzureBlobStorageRepository(connectionString);
         }
     }
 }

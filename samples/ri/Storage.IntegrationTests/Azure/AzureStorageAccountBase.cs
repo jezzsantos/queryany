@@ -3,10 +3,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Domain.Interfaces;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Storage.IntegrationTests.Azure
 {
+    // ReSharper disable once InconsistentNaming
     public static class AzureStorageAccountBase
     {
         private const string EmulatorProcessName = @"AzureStorageEmulator";
@@ -14,7 +14,7 @@ namespace Storage.IntegrationTests.Azure
         private const string EmulatorResetArgs = @"clear all";
         private const string EmulatorShutdownArgs = @"stop";
 
-        public static void InitializeAllTests(TestContext context)
+        public static void InitializeAllTests()
         {
             EnsureAzureStorageEmulatorIsStarted();
         }

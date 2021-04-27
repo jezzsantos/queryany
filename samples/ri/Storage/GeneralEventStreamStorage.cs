@@ -96,7 +96,7 @@ namespace Storage
                 catch (Exception ex)
                 {
                     //Ignore exception and continue
-                    this.recorder.TraceError(ex, Resources.GeneralEventStreamStorage_SaveEventRelayFailed.Format(ex));
+                    this.recorder.TraceError(ex, Resources.GeneralEventStreamStorage_SaveEventRelayFailed.Fmt(ex));
                 }
             }
 
@@ -121,7 +121,7 @@ namespace Storage
             if (latestStoredVersion > loadedVersion)
             {
                 throw new ResourceConflictException(
-                    Resources.GeneralEventStreamStorage_LoadConcurrencyConflictWritingEventStream.Format(streamName,
+                    Resources.GeneralEventStreamStorage_LoadConcurrencyConflictWritingEventStream.Fmt(streamName,
                         loadedVersion));
             }
         }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Dynamic.Core;
 using System.Net;
 using System.Text;
 using Domain.Interfaces;
@@ -122,40 +121,12 @@ namespace Storage.Azure
                 return new List<QueryEntity>();
             }
 
-            var table = EnsureTable(containerName);
+            //HACK: AzureTableStorage does not support Skip, Take, OrderBy or Joins, so we need to do those things all in memory
+            var results = query.FetchAllIntoMemory(this, metadata,
+                () => QueryPrimaryEntities(containerName, query, metadata),
+                je => QueryJoiningContainer(je, metadata));
 
-            var primaryEntities = QueryPrimaryEntities(table, query, metadata);
-
-            var joinedTables = query.JoinedEntities
-                .Where(je => je.Join != null)
-                .ToDictionary(je => je.EntityName, je => new
-                {
-                    Collection = QueryJoiningTable(je,
-                        primaryEntities.Select(e =>
-                            CommandEntity.FromProperties(e.Properties, metadata).ToTableEntity(this.options)[
-                                je.Join.Left.JoinedFieldName])),
-                    JoinedEntity = je
-                });
-
-            if (joinedTables.Any())
-            {
-                foreach (var joinedTable in joinedTables)
-                {
-                    var joinedEntity = joinedTable.Value.JoinedEntity;
-                    var join = joinedEntity.Join;
-                    var leftEntities = primaryEntities.ToDictionary(e => e.Id.ToString(), e => e.Properties);
-                    var rightEntities = joinedTable.Value.Collection
-                        .ToDictionary(e => e.RowKey,
-                            e => e.FromTableEntity(RepositoryEntityMetadata.FromType(join.Right.EntityType),
-                                this.options));
-
-                    primaryEntities = join
-                        .JoinResults(leftEntities, rightEntities, metadata,
-                            joinedEntity.Selects.ProjectSelectedJoinedProperties());
-                }
-            }
-
-            return primaryEntities.CherryPickSelectedProperties(query, metadata);
+            return results;
         }
 
         public void DestroyAll(string containerName)
@@ -237,81 +208,49 @@ namespace Storage.Azure
         {
             settings.GuardAgainstNull(nameof(settings));
 
-            var accountKey = settings.GetString("AzureTableStorageAccountKey");
-            var hostName = settings.GetString("AzureTableStorageHostName");
+            var accountKey = settings.GetString("AzureStorageAccountKey");
+            var accountName = settings.GetString("AzureStorageAccountName");
             var connectionString = accountKey.HasValue()
-                ? $"DefaultEndpointsProtocol=https;AccountName={hostName};AccountKey={accountKey};EndpointSuffix=core.windows.net"
+                ? $"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={accountKey};EndpointSuffix=core.windows.net"
                 : "UseDevelopmentStorage=true";
             return new AzureTableStorageRepository(connectionString);
         }
 
-        private List<QueryEntity> QueryPrimaryEntities<TQueryableEntity>(CloudTable table,
-            QueryClause<TQueryableEntity> query, RepositoryEntityMetadata metadata)
-            where TQueryableEntity : IQueryableEntity
+        private Dictionary<string, IReadOnlyDictionary<string, object>> QueryPrimaryEntities<TQueryableEntity>(
+            string containerName,
+            QueryClause<TQueryableEntity> query,
+            RepositoryEntityMetadata metadata) where TQueryableEntity : IQueryableEntity
         {
-            var filter = query.Wheres.ToAzureTableStorageWhereClause();
-            var tableQuery = new TableQuery<DynamicTableEntity>()
-                .Where(filter);
+            var table = EnsureTable(containerName);
+            var tableQuery = new TableQuery<DynamicTableEntity>();
 
-            if (query.PrimaryEntity.Selects.Any())
+            if (!query.HasAnyJoins())
             {
-                tableQuery.SelectColumns = query.PrimaryEntity.Selects
-                    .Select(sel => sel.FieldName)
-                    .Concat(new[] {query.GetDefaultOrdering()})
-                    .ToList();
+                var where = query.Wheres.ToAzureTableStorageWhereClause();
+                tableQuery = tableQuery.Where(where);
+
+                if (query.PrimaryEntity.Selects.Any())
+                {
+                    tableQuery.SelectColumns = query.PrimaryEntity.Selects
+                        .Select(sel => sel.FieldName)
+                        .Concat(new[] {query.GetDefaultOrdering()})
+                        .Distinct()
+                        .ToList();
+                }
             }
 
-            var take = query.GetDefaultTake(this);
-            if (take == 0)
-            {
-                return new List<QueryEntity>();
-            }
-
-            // HACK: AzureTableStorage does not support Skip, nor OrderBy, nor Distinct
-            // HACK: so we have to fetch all data and do Skip, OrderBy in memory
             return SafeExecute(table, () => table.ExecuteQuery(tableQuery))
-                .ToDictionary(e => e.RowKey, e => e.FromTableEntity(metadata, this.options))
-                .AsQueryable()
-                .OrderBy(query.ToDynamicLinqOrderByClause())
-                .Skip(query.GetDefaultSkip())
-                .Take(take)
-                .Select(pe => QueryEntity.FromProperties(pe.Value, metadata))
-                .ToList();
+                .ToDictionary(e => e.RowKey, e => e.FromTableEntity(metadata, this.options));
         }
 
-        private List<DynamicTableEntity> QueryJoiningTable(QueriedEntity joinedEntity,
-            IEnumerable<EntityProperty> propertyValues)
+        private Dictionary<string, IReadOnlyDictionary<string, object>> QueryJoiningContainer(
+            QueriedEntity joinedEntity, RepositoryEntityMetadata metadata)
         {
             var tableName = joinedEntity.EntityName;
             var table = EnsureTable(tableName);
-
-            //HACK: pretty limited way to query lots of entities by individual Id
-            var counter = 0;
-            var query = propertyValues.Select(propertyValue => new WhereExpression
-            {
-                Condition = new WhereCondition
-                {
-                    FieldName = joinedEntity.Join.Right.JoinedFieldName,
-                    Operator = ConditionOperator.EqualTo,
-                    Value = propertyValue.PropertyAsObject
-                },
-                Operator = counter++ == 0
-                    ? LogicalOperator.None
-                    : LogicalOperator.Or
-            }).ToAzureTableStorageWhereClause();
-
-            var selectedPropertyNames = joinedEntity.Selects
-                .Where(sel => sel.JoinedFieldName.HasValue())
-                .Select(j => j.JoinedFieldName)
-                .Concat(new[] {joinedEntity.Join.Right.JoinedFieldName, nameof(QueryEntity.Id)})
-                .ToList();
-
-            var filter = $"({TableConstants.PartitionKey} eq '{this.options.DefaultPartitionKey}') and ({query})";
-            var tableQuery = new TableQuery<DynamicTableEntity>().Where(filter);
-            tableQuery.SelectColumns = selectedPropertyNames;
-
+            var tableQuery = new TableQuery<DynamicTableEntity>();
             return SafeExecute(table, () => table.ExecuteQuery(tableQuery))
-                .ToList();
+                .ToDictionary(e => e.RowKey, e => e.FromTableEntity(metadata, this.options));
         }
 
         private void EnsureConnected()
@@ -458,6 +397,23 @@ namespace Storage.Azure
             return tableEntity;
         }
 
+        public static IReadOnlyDictionary<string, object> FromTableEntity(this DynamicTableEntity tableEntity,
+            RepositoryEntityMetadata metadata,
+            AzureTableStorageRepository.TableStorageApiOptions options)
+
+        {
+            var containerEntityProperties = tableEntity.Properties
+                .Where(pair =>
+                    metadata.HasType(pair.Key) && pair.Value.PropertyAsObject != null)
+                .ToDictionary(pair => pair.Key,
+                    pair => pair.Value.FromTableEntityProperty(metadata.GetPropertyType(pair.Key), options));
+
+            var id = tableEntity.RowKey;
+            containerEntityProperties[nameof(CommandEntity.Id)] = id;
+
+            return containerEntityProperties;
+        }
+
         private static Dictionary<string, EntityProperty> ToTableEntityProperties(
             this IEnumerable<KeyValuePair<string, object>> entityProperties,
             RepositoryEntityMetadata metadata,
@@ -533,23 +489,6 @@ namespace Storage.Azure
             AzureTableStorageRepository.TableStorageApiOptions options)
         {
             return dateTime == options.MinimumAllowableUtcDateTime;
-        }
-
-        public static IReadOnlyDictionary<string, object> FromTableEntity(this DynamicTableEntity tableEntity,
-            RepositoryEntityMetadata metadata,
-            AzureTableStorageRepository.TableStorageApiOptions options)
-
-        {
-            var containerEntityProperties = tableEntity.Properties
-                .Where(pair =>
-                    metadata.HasType(pair.Key) && pair.Value.PropertyAsObject != null)
-                .ToDictionary(pair => pair.Key,
-                    pair => pair.Value.FromTableEntityProperty(metadata.GetPropertyType(pair.Key), options));
-
-            var id = tableEntity.RowKey;
-            containerEntityProperties[nameof(CommandEntity.Id)] = id;
-
-            return containerEntityProperties;
         }
 
         private static object FromTableEntityProperty(this EntityProperty property, Type targetPropertyType,

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
+using ServiceStack;
 using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;
 using Storage.ReadModels.Properties;
@@ -77,7 +78,7 @@ namespace Storage.ReadModels
             if (!projection.Project(@event))
             {
                 throw new InvalidOperationException(
-                    Resources.ReadModelProjector_ProjectionError.Format(projection.GetType().Name, changeEvent.Id,
+                    Resources.ReadModelProjector_ProjectionError.Fmt(projection.GetType().Name, changeEvent.Id,
                         changeEvent.Metadata.Fqn));
             }
         }
@@ -96,7 +97,7 @@ namespace Storage.ReadModels
             if (projection == null)
             {
                 throw new InvalidOperationException(
-                    Resources.ReadModelProjector_ProjectionNotConfigured.Format(entityTypeName));
+                    Resources.ReadModelProjector_ProjectionNotConfigured.Fmt(entityTypeName));
             }
 
             return projection;
@@ -113,7 +114,7 @@ namespace Storage.ReadModels
             if (firstEventVersion > checkpoint)
             {
                 throw new InvalidOperationException(
-                    Resources.ReadModelProjector_CheckpointError.Format(streamName, checkpoint, firstEventVersion));
+                    Resources.ReadModelProjector_CheckpointError.Fmt(streamName, checkpoint, firstEventVersion));
             }
         }
     }

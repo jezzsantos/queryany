@@ -2,8 +2,7 @@
 using System.Diagnostics;
 using System.ServiceProcess;
 using System.Threading;
-using Domain.Interfaces;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using ServiceStack;
 
 namespace Storage.IntegrationTests.Sql
 {
@@ -13,9 +12,9 @@ namespace Storage.IntegrationTests.Sql
         private const string CreateDatabaseCommandArgs = "-Q \"CREATE DATABASE {0}\"";
         private const string RegenerateScriptCommandArgs = "-i \"{0}\\Sql\\RegenerateDatabase.sql\"";
 
-        public static void InitializeAllTests(TestContext context, string serviceName, string databaseName)
+        public static void InitializeAllTests(string serviceName, string databaseName)
         {
-            EnsureSqlServerServerIsStarted(context.DeploymentDirectory, serviceName, databaseName);
+            EnsureSqlServerServerIsStarted(Environment.CurrentDirectory, serviceName, databaseName);
         }
 
         public static void CleanupAllTests(string serviceName)
@@ -37,8 +36,8 @@ namespace Storage.IntegrationTests.Sql
 
         private static void RegenerateDatabase(string databaseName, string scriptPath)
         {
-            ExecuteSqlCommand(SqlCommandLineTool, CreateDatabaseCommandArgs.Format(databaseName));
-            ExecuteSqlCommand(SqlCommandLineTool, RegenerateScriptCommandArgs.Format(scriptPath));
+            ExecuteSqlCommand(SqlCommandLineTool, CreateDatabaseCommandArgs.Fmt(databaseName));
+            ExecuteSqlCommand(SqlCommandLineTool, RegenerateScriptCommandArgs.Fmt(scriptPath));
         }
 
         private static void StartSqlServerServer(string serviceName)

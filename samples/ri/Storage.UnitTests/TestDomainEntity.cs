@@ -26,10 +26,10 @@ namespace Storage.UnitTests
         internal string AnInternalProperty { get; set; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
-        public bool? IsDeleted { get; set; }
+        public DateTime? LastPersistedAtUtc { get; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
-        public DateTime? LastPersistedAtUtc { get; }
+        public bool? IsDeleted { get; set; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         public Identifier Id { get; }

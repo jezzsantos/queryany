@@ -18,7 +18,7 @@ namespace Storage.IntegrationTests.Azure
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var settings = new NetCoreAppSettings(config);
             blobository = AzureBlobStorageRepository.FromSettings(settings);
-            AzureStorageAccountBase.InitializeAllTests(context);
+            AzureStorageAccountBase.InitializeAllTests();
         }
 
         [ClassCleanup]

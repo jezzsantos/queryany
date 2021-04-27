@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Dynamic.Core;
 using Domain.Interfaces;
 using QueryAny;
 using ServiceStack;
@@ -149,34 +148,11 @@ namespace Storage
                 return new List<QueryEntity>();
             }
 
-            var primaryEntities = QueryPrimaryEntities(container, query, metadata);
+            var results = query.FetchAllIntoMemory(this, metadata,
+                () => QueryPrimaryEntities(container, metadata),
+                QueryJoiningContainer);
 
-            var joinedContainers = query.JoinedEntities
-                .Where(je => je.Join != null)
-                .ToDictionary(je => je.EntityName, je => new
-                {
-                    Collection = QueryJoiningContainer(je),
-                    JoinedEntity = je
-                });
-
-            if (joinedContainers.Any())
-            {
-                foreach (var joinedContainer in joinedContainers)
-                {
-                    var joinedEntity = joinedContainer.Value.JoinedEntity;
-                    var join = joinedEntity.Join;
-                    var leftEntities = primaryEntities
-                        .ToDictionary(e => e.Id.ToString(), e => e.Properties);
-                    var rightEntities = joinedContainer.Value.Collection
-                        .ToDictionary(e => e.Key, e => e.Value.Properties);
-
-                    primaryEntities = join
-                        .JoinResults(leftEntities, rightEntities, metadata,
-                            joinedEntity.Selects.ProjectSelectedJoinedProperties());
-                }
-            }
-
-            return primaryEntities.CherryPickSelectedProperties(query, metadata);
+            return results;
         }
 
         public void DestroyAll(string containerName)
@@ -191,7 +167,8 @@ namespace Storage
         public static LocalMachineFileRepository FromSettings(IAppSettings settings)
         {
             var configPath = settings.GetString(PathSettingName);
-            var rootPath = Environment.ExpandEnvironmentVariables(configPath);
+            var basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var rootPath = Path.Combine(basePath, configPath);
             if (!Directory.Exists(rootPath))
             {
                 try
@@ -208,46 +185,28 @@ namespace Storage
             return new LocalMachineFileRepository(rootPath);
         }
 
-        private List<QueryEntity> QueryPrimaryEntities<TQueryableEntity>(FileContainer container,
-            QueryClause<TQueryableEntity> query, RepositoryEntityMetadata metadata)
-            where TQueryableEntity : IQueryableEntity
+        private static Dictionary<string, IReadOnlyDictionary<string, object>> QueryPrimaryEntities(
+            FileContainer container, RepositoryEntityMetadata metadata)
         {
             var primaryEntities = container.GetEntityIds()
                 .ToDictionary(id => id, id => GetEntityFromFile(container, id, metadata));
 
-            var orderByExpression = query.ToDynamicLinqOrderByClause();
-            var primaryEntitiesDynamic = primaryEntities.AsQueryable()
-                .OrderBy(orderByExpression)
-                .Skip(query.GetDefaultSkip())
-                .Take(query.GetDefaultTake(this));
-
-            if (!query.Wheres.Any())
-            {
-                return primaryEntitiesDynamic
-                    .Select(ped => QueryEntity.FromProperties(ped.Value, metadata))
-                    .ToList();
-            }
-
-            var queryExpression = query.Wheres.ToDynamicLinqWhereClause();
-            return primaryEntitiesDynamic
-                .Where(queryExpression)
-                .Select(ped => QueryEntity.FromProperties(ped.Value, metadata))
-                .ToList();
+            return primaryEntities;
         }
 
-        private Dictionary<string, QueryEntity> QueryJoiningContainer(QueriedEntity joinedEntity)
+        private Dictionary<string, IReadOnlyDictionary<string, object>> QueryJoiningContainer(
+            QueriedEntity joinedEntity)
         {
             var containerName = joinedEntity.EntityName;
             var container = EnsureContainer(containerName);
             if (container.IsEmpty())
             {
-                return new Dictionary<string, QueryEntity>();
+                return new Dictionary<string, IReadOnlyDictionary<string, object>>();
             }
 
             var metadata = RepositoryEntityMetadata.FromType(joinedEntity.Join.Right.EntityType);
             return container.GetEntityIds()
-                .ToDictionary(id => id,
-                    id => QueryEntity.FromProperties(GetEntityFromFile(container, id, metadata), metadata));
+                .ToDictionary(id => id, id => GetEntityFromFile(container, id, metadata));
         }
 
         private static IReadOnlyDictionary<string, object> GetEntityFromFile(FileContainer container,
@@ -323,7 +282,7 @@ namespace Storage
                 }
             }
 
-            public long Count => Directory.GetFiles(this.dirPath).Length;
+            public long Count => GetFilesExcludingIgnored(this.dirPath).Count();
 
             public bool IsEmpty()
             {
@@ -379,7 +338,7 @@ namespace Storage
 
             public IEnumerable<string> GetEntityIds()
             {
-                return Directory.GetFiles(this.dirPath)
+                return GetFilesExcludingIgnored(this.dirPath)
                     .Select(GetIdFromFullFilePath)
                     .ToList();
             }
@@ -416,7 +375,10 @@ namespace Storage
             public void Erase()
             {
                 var dir = new DirectoryInfo(this.dirPath);
-                dir.Delete(true);
+                if (dir.Exists)
+                {
+                    Try.Safely(() => dir.Delete(true));
+                }
             }
 
             private static string CleanDirectoryPath(string path)
@@ -438,6 +400,18 @@ namespace Storage
             private static string GetIdFromFullFilePath(string path)
             {
                 return Path.GetFileNameWithoutExtension(path);
+            }
+
+            private static IEnumerable<string> GetFilesExcludingIgnored(string dirPath)
+            {
+                return Directory.GetFiles(dirPath)
+                    .Where(filePath => !ShouldIgnoreFile(Path.GetFileName(filePath)));
+            }
+
+            private static bool ShouldIgnoreFile(string fileName)
+            {
+                // Causes issues on Mac OS - https://en.wikipedia.org/wiki/.DS_Store
+                return fileName == ".DS_Store";
             }
         }
     }

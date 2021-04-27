@@ -31,16 +31,6 @@ namespace Storage
             return FromProperties<TType>(properties);
         }
 
-        private static QueryEntity FromProperties<TType>(IReadOnlyDictionary<string, object> properties)
-            where TType : IQueryableEntity
-        {
-            properties.GuardAgainstNull(nameof(properties));
-
-            var metadata = RepositoryEntityMetadata.FromType<TType>();
-
-            return FromProperties(properties, metadata);
-        }
-
         public static QueryEntity FromProperties(IReadOnlyDictionary<string, object> properties,
             RepositoryEntityMetadata metadata)
         {
@@ -58,6 +48,16 @@ namespace Storage
             }
 
             return dataEntity;
+        }
+
+        private static QueryEntity FromProperties<TType>(IReadOnlyDictionary<string, object> properties)
+            where TType : IQueryableEntity
+        {
+            properties.GuardAgainstNull(nameof(properties));
+
+            var metadata = RepositoryEntityMetadata.FromType<TType>();
+
+            return FromProperties(properties, metadata);
         }
     }
 }

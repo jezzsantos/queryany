@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Dynamic.Core;
 using Domain.Interfaces;
 using QueryAny;
 using ServiceStack;
@@ -109,34 +108,11 @@ namespace Storage.Redis
                 return new List<QueryEntity>();
             }
 
-            var primaryEntities = QueryPrimaryEntities(client, containerName, query, metadata);
+            var results = query.FetchAllIntoMemory(this, metadata,
+                () => QueryPrimaryEntities(client, containerName, metadata),
+                je => QueryJoiningContainer(client, je));
 
-            var joinedContainers = query.JoinedEntities
-                .Where(je => je.Join != null)
-                .ToDictionary(je => je.EntityName, je => new
-                {
-                    Collection = QueryJoiningContainer(client, je),
-                    JoinedEntity = je
-                });
-
-            if (joinedContainers.Any())
-            {
-                foreach (var joinedContainer in joinedContainers)
-                {
-                    var joinedEntity = joinedContainer.Value.JoinedEntity;
-                    var join = joinedEntity.Join;
-                    var leftEntities = primaryEntities
-                        .ToDictionary(e => e.Id.ToString(), e => e.Properties);
-                    var rightEntities = joinedContainer.Value.Collection
-                        .ToDictionary(e => e.Key, e => e.Value.Properties);
-
-                    primaryEntities = join
-                        .JoinResults(leftEntities, rightEntities, metadata,
-                            joinedEntity.Selects.ProjectSelectedJoinedProperties());
-                }
-            }
-
-            return primaryEntities.CherryPickSelectedProperties(query, metadata);
+            return results;
         }
 
         public void DestroyAll(string containerName)
@@ -158,46 +134,26 @@ namespace Storage.Redis
             return new RedisInMemRepository(localServerConnectionString);
         }
 
-        private List<QueryEntity> QueryPrimaryEntities<TQueryableEntity>(IRedisClient client, string containerName,
-            QueryClause<TQueryableEntity> query, RepositoryEntityMetadata metadata)
-            where TQueryableEntity : IQueryableEntity
+        private Dictionary<string, IReadOnlyDictionary<string, object>> QueryPrimaryEntities(IRedisClient client,
+            string containerName, RepositoryEntityMetadata metadata)
         {
-            var primaryEntities = GetRowKeys(client, containerName)
+            return GetRowKeys(client, containerName)
                 .ToDictionary(key => key, key => GetEntityFromContainer(client, key, metadata));
-
-            var orderByExpression = query.ToDynamicLinqOrderByClause();
-            var primaryEntitiesDynamic = primaryEntities.AsQueryable()
-                .OrderBy(orderByExpression)
-                .Skip(query.GetDefaultSkip())
-                .Take(query.GetDefaultTake(this));
-
-            if (!query.Wheres.Any())
-            {
-                return primaryEntitiesDynamic
-                    .Select(ped => QueryEntity.FromProperties(ped.Value, metadata))
-                    .ToList();
-            }
-
-            var queryExpression = query.Wheres.ToDynamicLinqWhereClause();
-            return primaryEntitiesDynamic
-                .Where(queryExpression)
-                .Select(ped => QueryEntity.FromProperties(ped.Value, metadata))
-                .ToList();
         }
 
-        private static Dictionary<string, QueryEntity> QueryJoiningContainer(IRedisClient client,
-            QueriedEntity joinedEntity)
+        private static Dictionary<string, IReadOnlyDictionary<string, object>> QueryJoiningContainer(
+            IRedisClient client, QueriedEntity joinedEntity)
         {
             var containerName = joinedEntity.EntityName;
             if (!Exists(client, containerName))
             {
-                return new Dictionary<string, QueryEntity>();
+                return new Dictionary<string, IReadOnlyDictionary<string, object>>();
             }
 
             var metadata = RepositoryEntityMetadata.FromType(joinedEntity.Join.Right.EntityType);
             return GetRowKeys(client, containerName)
                 .ToDictionary(rowKey => rowKey,
-                    rowKey => QueryEntity.FromProperties(GetEntityFromContainer(client, rowKey, metadata), metadata));
+                    rowKey => GetEntityFromContainer(client, rowKey, metadata));
         }
 
         private static string CreateRowKey(string containerName, CommandEntity entity)

@@ -21,9 +21,8 @@ namespace Storage.IntegrationTests
     }
 
     public abstract class AnyRepositoryBaseSpec
-
     {
-        private static readonly IRecorder Recorder = NullRecorder.Instance;
+        protected static readonly IRecorder Recorder = NullRecorder.Instance;
         private static Container container;
         private IDomainFactory domainFactory;
         private RepoInfo firstJoiningRepo;
@@ -183,7 +182,7 @@ namespace Storage.IntegrationTests
                     RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
 
             result.Id.Should().Be(entity.Id);
-            result.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            result.LastPersistedAtUtc.Should().BeNear(DateTime.UtcNow);
             result.LastPersistedAtUtc.GetValueOrDefault().Kind.Should().Be(DateTimeKind.Utc);
             result.GetValueOrDefault<string>(nameof(TestRepositoryEntity.AStringValue)).Should().Be("astringvalue");
             result.GetValueOrDefault<AnEnum>(nameof(TestRepositoryEntity.AnEnumValue)).Should().Be(AnEnum.AValue1);
@@ -255,7 +254,7 @@ namespace Storage.IntegrationTests
                     RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
 
             result.Id.Should().Be(entity.Id);
-            result.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            result.LastPersistedAtUtc.Should().BeNear(DateTime.UtcNow);
             result.LastPersistedAtUtc.GetValueOrDefault().Kind.Should().Be(DateTimeKind.Utc);
             result.GetValueOrDefault<string>(nameof(TestRepositoryEntity.AStringValue)).Should().Be(default);
             result.GetValueOrDefault<AnEnum>(nameof(TestRepositoryEntity.AnEnumValue)).Should().Be(AnEnum.None);
@@ -325,7 +324,7 @@ namespace Storage.IntegrationTests
             updated.Id.Should().Be(entity.Id);
             updated.Properties.GetValueOrDefault<string>(nameof(TestRepositoryEntity.AStringValue)).Should()
                 .Be("updated");
-            updated.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(0.5));
+            updated.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
         }
 
         [TestMethod]
@@ -1689,12 +1688,12 @@ namespace Storage.IntegrationTests
         {
             this.repo.Repository.Add(this.repo.ContainerName,
                 CommandEntity.FromType(new TestRepositoryEntity {AStringValue = "avalue1"}));
-            var query = Query.From<TestRepositoryEntity>()
+            var query = Query.From<TestJoinedRepositoryEntity>()
                 .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
                 .WhereAll();
 
             var results = this.repo.Repository.Query(this.repo.ContainerName, query,
-                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
+                RepositoryEntityMetadata.FromType<TestJoinedRepositoryEntity>());
 
             results.Count.Should().Be(0);
         }
@@ -1710,12 +1709,12 @@ namespace Storage.IntegrationTests
                 CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue1"}));
             this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
                 CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue3"}));
-            var query = Query.From<TestRepositoryEntity>()
+            var query = Query.From<TestJoinedRepositoryEntity>()
                 .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
                 .WhereAll();
 
             var results = this.repo.Repository.Query(this.repo.ContainerName, query,
-                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
+                RepositoryEntityMetadata.FromType<TestJoinedRepositoryEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -1726,12 +1725,12 @@ namespace Storage.IntegrationTests
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
                 CommandEntity.FromType(new TestRepositoryEntity {AStringValue = "avalue1"}));
-            var query = Query.From<TestRepositoryEntity>()
+            var query = Query.From<TestJoinedRepositoryEntity>()
                 .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
                 .WhereAll();
 
             var results = this.repo.Repository.Query(this.repo.ContainerName, query,
-                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
+                RepositoryEntityMetadata.FromType<TestJoinedRepositoryEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
@@ -1750,12 +1749,12 @@ namespace Storage.IntegrationTests
                 CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue1"}));
             this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
                 CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue5"}));
-            var query = Query.From<TestRepositoryEntity>()
+            var query = Query.From<TestJoinedRepositoryEntity>()
                 .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
                 .WhereAll();
 
             var results = this.repo.Repository.Query(this.repo.ContainerName, query,
-                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
+                RepositoryEntityMetadata.FromType<TestJoinedRepositoryEntity>());
 
             results.Count.Should().Be(3);
             results[0].Id.Should().Be(entity1.Id);
@@ -1768,13 +1767,13 @@ namespace Storage.IntegrationTests
         {
             this.repo.Repository.Add(this.repo.ContainerName,
                 CommandEntity.FromType(new TestRepositoryEntity {AStringValue = "avalue1"}));
-            var query = Query.From<TestRepositoryEntity>()
+            var query = Query.From<TestJoinedRepositoryEntity>()
                 .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
                 .WhereAll()
                 .SelectFromJoin<FirstJoiningTestQueryableEntity, int>(e => e.AIntValue, je => je.AIntValue);
 
             var results = this.repo.Repository.Query(this.repo.ContainerName, query,
-                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
+                RepositoryEntityMetadata.FromType<TestJoinedRepositoryEntity>());
 
             results.Count.Should().Be(0);
         }
@@ -1791,18 +1790,76 @@ namespace Storage.IntegrationTests
                     {AStringValue = "avalue1", AIntValue = 9}));
             this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
                 CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue3"}));
-            var query = Query.From<TestRepositoryEntity>()
+            var query = Query.From<TestJoinedRepositoryEntity>()
                 .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
                 .WhereAll()
                 .SelectFromJoin<FirstJoiningTestQueryableEntity, int>(e => e.AIntValue, je => je.AIntValue);
 
             var results = this.repo.Repository.Query(this.repo.ContainerName, query,
-                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
+                RepositoryEntityMetadata.FromType<TestJoinedRepositoryEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
-            results[0].GetValueOrDefault<int>(nameof(TestRepositoryEntity.AIntValue)).Should().Be(9);
-            results[0].GetValueOrDefault<bool>(nameof(TestRepositoryEntity.ABooleanValue)).Should().Be(false);
+            results[0].GetValueOrDefault<int>(nameof(TestJoinedRepositoryEntity.AIntValue)).Should().Be(9);
+            results[0].GetValueOrDefault<bool>(nameof(TestJoinedRepositoryEntity.ABooleanValue)).Should().Be(false);
+        }
+
+        [TestMethod]
+        public void
+            WhenQueryWithSelectFromInnerJoinOnOtherCollectionAndWhereOnAProjectField_ThenReturnsAggregatedResults()
+        {
+            var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestRepositoryEntity {AStringValue = "avalue1", AIntValue = 7}));
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestRepositoryEntity {AStringValue = "avalue2"}));
+            this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity
+                    {AStringValue = "avalue1", AIntValue = 9}));
+            this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue3"}));
+            var query = Query.From<TestJoinedRepositoryEntity>()
+                .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
+                .Where(e => e.AFirstIntValue, ConditionOperator.EqualTo, 9)
+                .SelectFromJoin<FirstJoiningTestQueryableEntity, int>(e => e.AFirstIntValue, je => je.AIntValue);
+
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestJoinedRepositoryEntity>());
+
+            results.Count.Should().Be(1);
+            results[0].Id.Should().Be(entity1.Id);
+            results[0].GetValueOrDefault<int>(nameof(TestJoinedRepositoryEntity.AFirstIntValue)).Should().Be(9);
+            results[0].GetValueOrDefault<bool>(nameof(TestJoinedRepositoryEntity.ABooleanValue)).Should().Be(false);
+        }
+
+        [TestMethod]
+        public void WhenQueryWithSelectFromInnerJoinAndResultContainsDuplicateFieldNames_ThenReturnsAggregatedResults()
+        {
+            var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestRepositoryEntity
+                    {AStringValue = "avalue1", AIntValue = 7}));
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestRepositoryEntity
+                    {AStringValue = "avalue2", AIntValue = 8}));
+
+            this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity
+                    {AStringValue = "avalue1", AIntValue = 9}));
+            this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity
+                    {AStringValue = "avalue3", AIntValue = 10}));
+
+            var query = Query.From<TestJoinedRepositoryEntity>()
+                .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
+                .WhereAll()
+                .SelectFromJoin<FirstJoiningTestQueryableEntity, int>(e => e.AIntValue, je => je.AIntValue)
+                .Select(e => e.AIntValue);
+
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestJoinedRepositoryEntity>());
+
+            results.Count.Should().Be(1);
+            results[0].Id.Should().Be(entity1.Id);
+            results[0].GetValueOrDefault<int>(nameof(TestJoinedRepositoryEntity.AIntValue)).Should().Be(9);
         }
 
         [TestMethod]
@@ -1816,11 +1873,11 @@ namespace Storage.IntegrationTests
                 .SelectFromJoin<FirstJoiningTestQueryableEntity, int>(e => e.AIntValue, je => je.AIntValue);
 
             var results = this.repo.Repository.Query(this.repo.ContainerName, query,
-                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
+                RepositoryEntityMetadata.FromType<TestJoinedRepositoryEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
-            results[0].GetValueOrDefault<int>(nameof(TestRepositoryEntity.AIntValue)).Should().Be(7);
+            results[0].GetValueOrDefault<int>(nameof(TestJoinedRepositoryEntity.AIntValue)).Should().Be(7);
         }
 
         [TestMethod]
@@ -1837,22 +1894,22 @@ namespace Storage.IntegrationTests
                     {AStringValue = "avalue1", AIntValue = 9}));
             this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
                 CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue5"}));
-            var query = Query.From<TestRepositoryEntity>()
+            var query = Query.From<TestJoinedRepositoryEntity>()
                 .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue, JoinType.Left)
                 .WhereAll()
                 .SelectFromJoin<FirstJoiningTestQueryableEntity, int>(e => e.AIntValue, je => je.AIntValue);
 
             var results = this.repo.Repository.Query(this.repo.ContainerName, query,
-                    RepositoryEntityMetadata.FromType<TestRepositoryEntity>())
+                    RepositoryEntityMetadata.FromType<TestJoinedRepositoryEntity>())
                 .OrderBy(x => x.Id).ToList();
 
             results.Count.Should().Be(3);
             results[0].Id.Should().Be(entity1.Id);
-            results[0].GetValueOrDefault<int>(nameof(TestRepositoryEntity.AIntValue)).Should().Be(9);
+            results[0].GetValueOrDefault<int>(nameof(TestJoinedRepositoryEntity.AIntValue)).Should().Be(9);
             results[1].Id.Should().Be(entity2.Id);
-            results[1].GetValueOrDefault<int>(nameof(TestRepositoryEntity.AIntValue)).Should().Be(7);
+            results[1].GetValueOrDefault<int>(nameof(TestJoinedRepositoryEntity.AIntValue)).Should().Be(7);
             results[2].Id.Should().Be(entity3.Id);
-            results[2].GetValueOrDefault<int>(nameof(TestRepositoryEntity.AIntValue)).Should().Be(7);
+            results[2].GetValueOrDefault<int>(nameof(TestJoinedRepositoryEntity.AIntValue)).Should().Be(7);
         }
 
         [TestMethod]
@@ -1873,7 +1930,7 @@ namespace Storage.IntegrationTests
                     {AStringValue = "avalue1", AIntValue = 9, ALongValue = 8}));
             this.secondJoiningRepo.Repository.Add(this.secondJoiningRepo.ContainerName,
                 CommandEntity.FromType(new SecondJoiningTestQueryableEntity {AStringValue = "avalue3"}));
-            var query = Query.From<TestRepositoryEntity>()
+            var query = Query.From<TestJoinedRepositoryEntity>()
                 .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
                 .AndJoin<SecondJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
                 .WhereAll()
@@ -1881,12 +1938,41 @@ namespace Storage.IntegrationTests
                 .SelectFromJoin<SecondJoiningTestQueryableEntity, long>(e => e.ALongValue, je => je.ALongValue);
 
             var results = this.repo.Repository.Query(this.repo.ContainerName, query,
-                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
+                RepositoryEntityMetadata.FromType<TestJoinedRepositoryEntity>());
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
-            results[0].GetValueOrDefault<int>(nameof(TestRepositoryEntity.AIntValue)).Should().Be(9);
-            results[0].GetValueOrDefault<long>(nameof(TestRepositoryEntity.ALongValue)).Should().Be(8);
+            results[0].GetValueOrDefault<int>(nameof(TestJoinedRepositoryEntity.AIntValue)).Should().Be(9);
+            results[0].GetValueOrDefault<long>(nameof(TestJoinedRepositoryEntity.ALongValue)).Should().Be(8);
+        }
+
+        [TestMethod]
+        public void WhenQueryWithSelectFromInnerJoinAndOrderByOnAProjectedField_ThenReturnsAggregatedResults()
+        {
+            var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestRepositoryEntity {AStringValue = "avalue1", AIntValue = 7}));
+            this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestRepositoryEntity {AStringValue = "avalue2"}));
+            this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity
+                    {AStringValue = "avalue1", AIntValue = 9}));
+            this.firstJoiningRepo.Repository.Add(this.firstJoiningRepo.ContainerName,
+                CommandEntity.FromType(new FirstJoiningTestQueryableEntity {AStringValue = "avalue3"}));
+            var query = Query.From<TestJoinedRepositoryEntity>()
+                .Join<FirstJoiningTestQueryableEntity, string>(e => e.AStringValue, j => j.AStringValue)
+                .WhereAll()
+                .SelectFromJoin<FirstJoiningTestQueryableEntity, int>(e => e.AIntValue, je => je.AIntValue)
+                .SelectFromJoin<FirstJoiningTestQueryableEntity, string>(e => e.AFirstStringValue,
+                    je => je.AStringValue)
+                .OrderBy(je => je.AFirstStringValue);
+
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestJoinedRepositoryEntity>());
+
+            results.Count.Should().Be(1);
+            results[0].Id.Should().Be(entity1.Id);
+            results[0].GetValueOrDefault<int>(nameof(TestJoinedRepositoryEntity.AIntValue)).Should().Be(9);
+            results[0].GetValueOrDefault<bool>(nameof(TestJoinedRepositoryEntity.ABooleanValue)).Should().Be(false);
         }
 
         [TestMethod]

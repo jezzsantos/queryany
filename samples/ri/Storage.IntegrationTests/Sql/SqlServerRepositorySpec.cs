@@ -19,8 +19,8 @@ namespace Storage.IntegrationTests.Sql
             var settings = new NetCoreAppSettings(config);
             var serviceName = settings.GetString("SqlServerServiceName");
             const string databaseName = "TestDatabase";
-            repository = SqlServerRepository.FromSettings(settings, databaseName);
-            SqlServerStorageBase.InitializeAllTests(context, serviceName, databaseName);
+            repository = SqlServerRepository.FromSettings(Recorder, settings);
+            SqlServerStorageBase.InitializeAllTests(serviceName, databaseName);
         }
 
         [ClassCleanup]

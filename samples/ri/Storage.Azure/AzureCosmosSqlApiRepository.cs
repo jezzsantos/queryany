@@ -26,7 +26,7 @@ namespace Storage.Azure
         private CosmosClient client;
         private bool databaseExistenceHasBeenChecked;
 
-        public AzureCosmosSqlApiRepository(string connectionString, string databaseName)
+        private AzureCosmosSqlApiRepository(string connectionString, string databaseName)
         {
             connectionString.GuardAgainstNullOrEmpty(nameof(connectionString));
             databaseName.GuardAgainstNullOrEmpty(nameof(databaseName));
@@ -127,41 +127,23 @@ namespace Storage.Azure
 
             try
             {
-                var primaryResults = QueryPrimaryResults(query, container, containerName);
-
-                var joinedTables = query.JoinedEntities
-                    .Where(je => je.Join != null)
-                    .ToDictionary(je => je.EntityName, je => new
-                    {
-                        Collection = QueryJoiningContainer(je,
-                            primaryResults.Select(e => e[je.Join.Left.JoinedFieldName])),
-                        JoinedEntity = je
-                    });
-
-                var primaryEntities = primaryResults
-                    .ConvertAll(r =>
-                        QueryEntity.FromProperties(r.FromContainerEntity(metadata), metadata));
-
-                if (joinedTables.Any())
+                List<QueryEntity> results;
+                if (!query.HasAnyJoins())
                 {
-                    foreach (var joinedTable in joinedTables)
-                    {
-                        var joinedEntity = joinedTable.Value.JoinedEntity;
-                        var join = joinedEntity.Join;
-                        var leftEntities = primaryEntities.ToDictionary(e => e.Id.ToString(), e => e.Properties);
-                        var rightEntities = joinedTable.Value.Collection.ToDictionary(
-                            e => e[IdentifierPropertyName].Value<string>(),
-                            e => e.FromContainerEntity(
-                                RepositoryEntityMetadata.FromType(join.Right.EntityType)));
+                    var containerQuery = query.ToCosmosSqlApiQueryClause(containerName, this);
+                    results = container.GetItemQueryIterator<object>(new QueryDefinition(containerQuery)).ToList()
+                        .Select(jObj => QueryEntity.FromProperties(jObj.FromContainerEntity(metadata), metadata))
+                        .ToList();
 
-                        primaryEntities = join
-                            .JoinResults(leftEntities, rightEntities, metadata,
-                                joinedEntity.Selects.ProjectSelectedJoinedProperties());
-                    }
+                    return results;
                 }
 
-                return primaryEntities.CherryPickSelectedProperties(query, metadata,
-                    new[] {IdentifierPropertyName});
+                //HACK: AzureCosmosSqlApiStorage does not support Joins, so we need to do the Join, OrderBy, Skip and Take in memory
+                results = query.FetchAllIntoMemory(this, metadata,
+                    () => QueryPrimaryEntities(containerName, container, query, metadata),
+                    je => QueryJoiningContainer(je, metadata));
+
+                return results;
             }
             catch (CosmosException ex)
             {
@@ -183,6 +165,40 @@ namespace Storage.Azure
             this.containers.Remove(containerName);
         }
 
+        private Dictionary<string, IReadOnlyDictionary<string, object>> QueryPrimaryEntities<TQueryableEntity>(
+            string containerName, Container container, QueryClause<TQueryableEntity> query,
+            RepositoryEntityMetadata metadata)
+            where TQueryableEntity : IQueryableEntity
+        {
+            var filter = query.PrimaryEntity.Selects.ToCosmosSqlApiSelectClause(containerName);
+            return container.GetItemQueryIterator<object>(new QueryDefinition(filter))
+                .ToList()
+                .ToDictionary(jObj => jObj.Property(IdentifierPropertyName).Value.ToString(),
+                    jObj => jObj.FromContainerEntity(metadata));
+        }
+
+        private Dictionary<string, IReadOnlyDictionary<string, object>> QueryJoiningContainer(QueriedEntity je,
+            RepositoryEntityMetadata metadata)
+        {
+            var containerName = je.EntityName;
+            var container = EnsureContainer(containerName);
+
+            var selected = je.Selects
+                .Where(sel => sel.JoinedFieldName.HasValue())
+                .ToList();
+
+            if (!selected.Any(sel => sel.EntityName.EqualsOrdinal(je.Join.Right.EntityName)))
+            {
+                selected.Add(new SelectDefinition(je.Join.Right.EntityName, je.Join.Right.JoinedFieldName, null, null));
+            }
+
+            var filter = selected.ToCosmosSqlApiSelectClause(containerName);
+            return container.GetItemQueryIterator<object>(new QueryDefinition(filter))
+                .ToList()
+                .ToDictionary(jObj => jObj.Property(IdentifierPropertyName).Value.ToString(),
+                    jObj => jObj.FromContainerEntity(metadata));
+        }
+
         public static AzureCosmosSqlApiRepository FromSettings(IAppSettings settings, string databaseName)
         {
             settings.GuardAgainstNull(nameof(settings));
@@ -193,53 +209,6 @@ namespace Storage.Azure
             var localEmulatorConnectionString = $"AccountEndpoint=https://{hostName}:8081/;AccountKey={accountKey}";
 
             return new AzureCosmosSqlApiRepository(localEmulatorConnectionString, databaseName);
-        }
-
-        private List<JObject> QueryPrimaryResults<TQueryableEntity>(QueryClause<TQueryableEntity> query,
-            Container container,
-            string containerName)
-            where TQueryableEntity : IQueryableEntity
-        {
-            var containerQuery = new QueryDefinition(query.ToAzureCosmosSqlApiQueryClause(containerName, this));
-
-            return container.GetItemQueryIterator<object>(containerQuery)
-                .ToList();
-        }
-
-        private List<JObject> QueryJoiningContainer(QueriedEntity joinedEntity,
-            IEnumerable<JToken> propertyValues)
-        {
-            var containerName = joinedEntity.EntityName;
-            var container = EnsureContainer(containerName);
-
-            //HACK: pretty limited way to query lots of entities by individual Id
-            var counter = 0;
-            var query = propertyValues.Select(propertyValue => new WhereExpression
-            {
-                Condition = new WhereCondition
-                {
-                    FieldName = joinedEntity.Join.Right.JoinedFieldName,
-                    Operator = ConditionOperator.EqualTo,
-                    Value = propertyValue.ToObject<object>()
-                },
-                Operator = counter++ == 0
-                    ? LogicalOperator.None
-                    : LogicalOperator.Or
-            }).ToList().ToAzureCosmosSqlApiWhereClause();
-
-            var selectedPropertyNames = joinedEntity.Selects
-                .Where(sel => sel.JoinedFieldName.HasValue())
-                .Select(j => j.JoinedFieldName)
-                .Concat(new[] {joinedEntity.Join.Right.JoinedFieldName, IdentifierPropertyName});
-            var selectedFields = string.Join(", ",
-                selectedPropertyNames
-                    .Select(name => $"{PrimaryContainerAlias}.{name}"));
-
-            var filter = $"SELECT {selectedFields} FROM {containerName} {PrimaryContainerAlias} WHERE ({query})";
-            var containerQuery = new QueryDefinition(filter);
-
-            return container.GetItemQueryIterator<object>(containerQuery)
-                .ToList();
         }
 
         private void EnsureConnected()
@@ -492,23 +461,38 @@ namespace Storage.Azure
         }
     }
 
-    // ReSharper disable once InconsistentNaming
-    internal static class AzureCosmosSqlApiQueryExtensions
+    internal static class CosmosSqlApiQueryExtensions
     {
-        public static string ToAzureCosmosSqlApiQueryClause<TQueryableEntity>(this QueryClause<TQueryableEntity> query,
+        public static string ToCosmosSqlApiSelectClause(
+            this IEnumerable<SelectDefinition> selects, string containerName)
+        {
+            var builder = new StringBuilder();
+            builder.Append($"SELECT {selects.ToSelectClause()}");
+            builder.Append($" FROM {containerName} {AzureCosmosSqlApiRepository.PrimaryContainerAlias}");
+
+            return builder.ToString();
+        }
+
+        public static string ToCosmosSqlApiQueryClause<TQueryableEntity>(this QueryClause<TQueryableEntity> query,
             string containerName, IRepository repository) where TQueryableEntity : IQueryableEntity
         {
             var builder = new StringBuilder();
-            builder.Append($"SELECT {query.ToAzureCosmosSqlApiSelectClause()}");
+            builder.Append($"SELECT {query.PrimaryEntity.Selects.ToSelectClause()}");
             builder.Append($" FROM {containerName} {AzureCosmosSqlApiRepository.PrimaryContainerAlias}");
 
-            var wheres = query.Wheres.ToAzureCosmosSqlApiWhereClause();
+            var joins = query.JoinedEntities.ToJoinClause();
+            if (joins.HasValue())
+            {
+                builder.Append($"{joins}");
+            }
+
+            var wheres = query.Wheres.ToWhereClause();
             if (wheres.HasValue())
             {
                 builder.Append($" WHERE {wheres}");
             }
 
-            var orderBy = query.ToAzureCosmosSqlApiOrderByClause();
+            var orderBy = query.ToOrderByClause();
             if (orderBy.HasValue())
             {
                 builder.Append($" ORDER BY {orderBy}");
@@ -521,19 +505,22 @@ namespace Storage.Azure
             return builder.ToString();
         }
 
-        private static string ToAzureCosmosSqlApiSelectClause<TQueryableEntity>(
-            this QueryClause<TQueryableEntity> query)
-            where TQueryableEntity : IQueryableEntity
+        private static string ToSelectClause(this IEnumerable<SelectDefinition> selects)
         {
-            if (query.PrimaryEntity.Selects.Any())
+            var definitions = selects
+                .Safe().ToList();
+            if (definitions.HasAny())
             {
                 var builder = new StringBuilder();
 
                 builder.Append(
                     $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{AzureCosmosSqlApiRepository.IdentifierPropertyName}");
-                foreach (var select in query.PrimaryEntity.Selects)
+                foreach (var select in definitions)
                 {
-                    builder.Append($", {AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{select.FieldName}");
+                    if (!IsIdProperty(select.FieldName))
+                    {
+                        builder.Append($", {AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{select.FieldName}");
+                    }
                 }
 
                 return builder.ToString();
@@ -542,7 +529,7 @@ namespace Storage.Azure
             return @"*";
         }
 
-        private static string ToAzureCosmosSqlApiOrderByClause<TQueryableEntity>(
+        private static string ToOrderByClause<TQueryableEntity>(
             this QueryClause<TQueryableEntity> query)
             where TQueryableEntity : IQueryableEntity
         {
@@ -551,11 +538,52 @@ namespace Storage.Azure
                 ? "ASC"
                 : "DESC";
             var by = query.GetDefaultOrdering();
+            if (IsIdProperty(by))
+            {
+                by = AzureCosmosSqlApiRepository.IdentifierPropertyName;
+            }
 
             return $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{by} {direction}";
         }
 
-        public static string ToAzureCosmosSqlApiWhereClause(this IReadOnlyList<WhereExpression> wheres)
+        private static string ToJoinClause(this IReadOnlyList<QueriedEntity> joinedEntities)
+        {
+            if (!joinedEntities.Any())
+            {
+                return null;
+            }
+
+            var builder = new StringBuilder();
+            foreach (var entity in joinedEntities)
+            {
+                builder.Append(entity.Join.ToJoinClause());
+            }
+
+            return builder.ToString();
+        }
+
+        private static string ToJoinClause(this JoinDefinition join)
+        {
+            var joinType = join.Type.ToJoinType();
+
+            return
+                $" {joinType} JOIN {join.Right.EntityName} ON {AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{join.Left.JoinedFieldName}={join.Right.EntityName}.{join.Right.JoinedFieldName}";
+        }
+
+        private static string ToJoinType(this JoinType type)
+        {
+            switch (type)
+            {
+                case JoinType.Inner:
+                    return "INNER";
+                case JoinType.Left:
+                    return "LEFT";
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            }
+        }
+
+        private static string ToWhereClause(this IReadOnlyList<WhereExpression> wheres)
         {
             if (!wheres.Any())
             {
@@ -565,30 +593,30 @@ namespace Storage.Azure
             var builder = new StringBuilder();
             foreach (var where in wheres)
             {
-                builder.Append(where.ToAzureCosmosSqlApiWhereClause());
+                builder.Append(where.ToWhereClause());
             }
 
             return builder.ToString();
         }
 
-        private static string ToAzureCosmosSqlApiWhereClause(this WhereExpression where)
+        private static string ToWhereClause(this WhereExpression where)
         {
             if (where.Condition != null)
             {
                 var condition = where.Condition;
 
                 return
-                    $"{where.Operator.ToAzureCosmosSqlApiOperatorClause()}{condition.ToAzureCosmosSqlApiConditionClause()}";
+                    $"{where.Operator.ToOperatorClause()}{condition.ToConditionClause()}";
             }
 
             if (where.NestedWheres != null && where.NestedWheres.Any())
             {
                 var builder = new StringBuilder();
-                builder.Append($"{where.Operator.ToAzureCosmosSqlApiOperatorClause()}");
+                builder.Append($"{where.Operator.ToOperatorClause()}");
                 builder.Append("(");
                 foreach (var nestedWhere in where.NestedWheres)
                 {
-                    builder.Append($"{nestedWhere.ToAzureCosmosSqlApiWhereClause()}");
+                    builder.Append($"{nestedWhere.ToWhereClause()}");
                 }
 
                 builder.Append(")");
@@ -599,7 +627,7 @@ namespace Storage.Azure
             return string.Empty;
         }
 
-        private static string ToAzureCosmosSqlApiOperatorClause(this LogicalOperator op)
+        private static string ToOperatorClause(this LogicalOperator op)
         {
             switch (op)
             {
@@ -614,7 +642,7 @@ namespace Storage.Azure
             }
         }
 
-        private static string ToAzureCosmosSqlApiConditionClause(this ConditionOperator op)
+        private static string ToConditionClause(this ConditionOperator op)
         {
             switch (op)
             {
@@ -635,79 +663,84 @@ namespace Storage.Azure
             }
         }
 
-        private static string ToAzureCosmosSqlApiConditionClause(this WhereCondition condition)
+        private static string ToConditionClause(this WhereCondition condition)
         {
             var fieldName = condition.FieldName;
-            if (fieldName.EqualsOrdinal(nameof(QueryEntity.Id)))
+            if (IsIdProperty(fieldName))
             {
                 fieldName = AzureCosmosSqlApiRepository.IdentifierPropertyName;
             }
 
-            var @operator = condition.Operator.ToAzureCosmosSqlApiConditionClause();
+            var @operator = condition.Operator.ToConditionClause();
 
             var value = condition.Value;
-            var escapedFieldName = $"[\"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName}\"]";
+            var fieldNameExpression = $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}[\"{fieldName}\"]";
             switch (value)
             {
                 case string text:
-                    return $"{escapedFieldName} {@operator} '{text}'";
+                    return $"{fieldNameExpression} {@operator} '{text}'";
 
                 case Enum @enum:
-                    return $"{escapedFieldName} {@operator} '{@enum.ToString()}'";
+                    return $"{fieldNameExpression} {@operator} '{@enum.ToString()}'";
 
                 case DateTime dateTime:
                     return dateTime.HasValue()
-                        ? $"{escapedFieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ss.fffffffZ}'"
-                        : $"{escapedFieldName} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ssZ}'";
+                        ? $"{fieldNameExpression} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ss.fffffffZ}'"
+                        : $"{fieldNameExpression} {@operator} '{dateTime:yyyy-MM-ddTHH:mm:ssZ}'";
 
                 case DateTimeOffset dateTimeOffset:
                     return dateTimeOffset == DateTimeOffset.MinValue
-                        ? $"{escapedFieldName} {@operator} '{dateTimeOffset:yyyy-MM-ddTHH:mm:ssK}'"
-                        : $"{escapedFieldName} {@operator} '{dateTimeOffset:O}'";
+                        ? $"{fieldNameExpression} {@operator} '{dateTimeOffset:yyyy-MM-ddTHH:mm:ssK}'"
+                        : $"{fieldNameExpression} {@operator} '{dateTimeOffset:O}'";
 
                 case bool _:
                     return
-                        $"{escapedFieldName} {@operator} {value.ToString().ToLowerInvariant()}";
+                        $"{fieldNameExpression} {@operator} {value.ToString().ToLowerInvariant()}";
 
                 case double _:
                 case int _:
                 case long _:
-                    return $"{escapedFieldName} {@operator} {value}";
+                    return $"{fieldNameExpression} {@operator} {value}";
 
                 case byte[] bytes:
                     return
-                        $"{escapedFieldName} {@operator} '{Convert.ToBase64String(bytes)}'";
+                        $"{fieldNameExpression} {@operator} '{Convert.ToBase64String(bytes)}'";
 
                 case Guid guid:
-                    return $"{escapedFieldName} {@operator} '{guid:D}'";
+                    return $"{fieldNameExpression} {@operator} '{guid:D}'";
 
                 case null:
-                    return $"{escapedFieldName} {@operator} null";
+                    return $"{fieldNameExpression} {@operator} null";
 
                 default:
-                    return value.ToOtherValueString(fieldName, @operator);
+                    return value.ToWhereConditionOtherValueString(fieldName, @operator);
             }
         }
 
-        private static string ToOtherValueString(this object value, string fieldName, string @operator)
+        private static string ToWhereConditionOtherValueString(this object value, string fieldName, string @operator)
         {
-            var escapedFieldName = $"[\"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}.{fieldName}\"]";
+            var fieldNameExpression = $"{AzureCosmosSqlApiRepository.PrimaryContainerAlias}[\"{fieldName}\"]";
             if (value == null)
             {
-                return $"{escapedFieldName} {@operator} null";
+                return $"{fieldNameExpression} {@operator} null";
             }
 
             if (value is IPersistableValueObject valueObject)
             {
                 return
-                    $"{escapedFieldName} {@operator} '{valueObject.Dehydrate()}'";
+                    $"{fieldNameExpression} {@operator} '{valueObject.Dehydrate()}'";
             }
 
             var escapedValue = value
                 .ToString()
                 .Replace("\"", "\\\"");
 
-            return $"{escapedFieldName} {@operator} '{escapedValue}'";
+            return $"{fieldNameExpression} {@operator} '{escapedValue}'";
+        }
+
+        private static bool IsIdProperty(string fieldName)
+        {
+            return fieldName.EqualsIgnoreCase(AzureCosmosSqlApiRepository.IdentifierPropertyName);
         }
     }
 }

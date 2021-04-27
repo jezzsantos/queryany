@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using Domain.Interfaces;
 using Newtonsoft.Json;
 using QueryAny;
@@ -56,120 +57,79 @@ namespace Storage
                     : FirstProperty<TQueryableEntity>();
         }
 
-        private static List<string> GetAllSelectedFields<TQueryableEntity>(this QueryClause<TQueryableEntity> query)
-            where TQueryableEntity : IQueryableEntity
-
-        {
-            var primarySelects = query.PrimaryEntity.Selects;
-            var joinedSelects = query.JoinedEntities.SelectMany(je => je.Selects);
-
-            return primarySelects
-                .Select(select => select.FieldName)
-                .Concat(joinedSelects.Select(select => select.JoinedFieldName))
-                .ToList();
-        }
-
-        public static List<QueryEntity> JoinResults(this JoinDefinition joinDefinition,
-            IReadOnlyDictionary<string, IReadOnlyDictionary<string, object>> leftEntities,
-            IReadOnlyDictionary<string, IReadOnlyDictionary<string, object>> rightEntities,
+        public static List<QueryEntity> FetchAllIntoMemory<TQueryableEntity>(this QueryClause<TQueryableEntity> query,
+            IRepository repository,
             RepositoryEntityMetadata metadata,
-            Func<KeyValuePair<string, IReadOnlyDictionary<string, object>>,
-                KeyValuePair<string, IReadOnlyDictionary<string, object>>,
-                KeyValuePair<string, IReadOnlyDictionary<string, object>>> mapFunc = null)
-        {
-            switch (joinDefinition.Type)
-            {
-                case JoinType.Inner:
-                    var innerJoin = from lefts in leftEntities
-                        join rights in rightEntities on lefts.Value[joinDefinition.Left.JoinedFieldName] equals
-                            rights.Value[joinDefinition.Right.JoinedFieldName]
-                            into joined
-                        from result in joined
-                        select mapFunc?.Invoke(lefts, result) ?? lefts;
-
-                    return innerJoin
-                        .Select(e => EntityFromContainerProperties(e.Value, metadata))
-                        .ToList();
-
-                case JoinType.Left:
-                    var leftJoin = from lefts in leftEntities
-                        join rights in rightEntities on lefts.Value[joinDefinition.Left.JoinedFieldName] equals
-                            rights.Value[joinDefinition.Right.JoinedFieldName]
-                            into joined
-                        from result in joined.DefaultIfEmpty()
-                        select mapFunc?.Invoke(lefts, result) ?? lefts;
-
-                    return leftJoin
-                        .Select(e => EntityFromContainerProperties(e.Value, metadata))
-                        .ToList();
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(JoinType));
-            }
-        }
-
-        public static Func<KeyValuePair<string, IReadOnlyDictionary<string, object>>,
-                KeyValuePair<string, IReadOnlyDictionary<string, object>>,
-                KeyValuePair<string, IReadOnlyDictionary<string, object>>>
-            ProjectSelectedJoinedProperties(this IReadOnlyList<SelectDefinition> selects)
-        {
-            return (leftEntity, rightEntity) =>
-            {
-                var selectedFromJoinPropertyNames = selects
-                    .Where(x => x.JoinedFieldName.HasValue())
-                    .ToList();
-                if (!selectedFromJoinPropertyNames.Any())
-                {
-                    return leftEntity;
-                }
-
-                var leftEntityProperties = leftEntity.Value.ToObjectDictionary();
-                var rightEntityProperties = rightEntity.Value.ToObjectDictionary();
-                foreach (var select in selectedFromJoinPropertyNames)
-                {
-                    if (!rightEntityProperties.HasPropertyValue(select.FieldName)) //select.FieldName
-                    {
-                        continue;
-                    }
-
-                    leftEntityProperties.CreatePropertyIfNotExists(select.JoinedFieldName); //select.JoinedFiledName
-                    leftEntityProperties.CopyPropertyValue(rightEntityProperties, select);
-                }
-
-                return leftEntity;
-            };
-        }
-
-        public static List<QueryEntity> CherryPickSelectedProperties<TQueryableEntity>(
-            this IEnumerable<QueryEntity> entities,
-            QueryClause<TQueryableEntity> query, RepositoryEntityMetadata metadata,
-            IEnumerable<string> includeAdditionalProperties = null)
+            Func<Dictionary<string, IReadOnlyDictionary<string, object>>> getPrimaryEntities,
+            Func<QueriedEntity, Dictionary<string, IReadOnlyDictionary<string, object>>> getJoinedEntities)
             where TQueryableEntity : IQueryableEntity
         {
-            var selectedPropertyNames = query.GetAllSelectedFields();
-            if (!selectedPropertyNames.Any())
+            repository.GuardAgainstNull(nameof(repository));
+            query.GuardAgainstNull(nameof(query));
+            metadata.GuardAgainstNull(nameof(metadata));
+            getPrimaryEntities.GuardAgainstNull(nameof(getPrimaryEntities));
+            getJoinedEntities.GuardAgainstNull(nameof(getJoinedEntities));
+
+            var take = query.GetDefaultTake(repository);
+            if (take == 0)
             {
-                return entities.ToList();
+                return new List<QueryEntity>();
             }
 
-            selectedPropertyNames = selectedPropertyNames
-                .Concat(new[] {nameof(QueryEntity.Id)})
-                .Concat(includeAdditionalProperties ?? Enumerable.Empty<string>())
+            var primaryEntities = getPrimaryEntities();
+            if (!primaryEntities.HasAny())
+            {
+                return new List<QueryEntity>();
+            }
+
+            var joinedContainers = query.JoinedEntities
+                .Where(je => je.Join.Exists())
+                .ToDictionary(je => je.EntityName, je => new
+                {
+                    Collection = getJoinedEntities(je),
+                    JoinedEntity = je
+                });
+
+            List<KeyValuePair<string, IReadOnlyDictionary<string, object>>> joinedEntities = null;
+            if (!joinedContainers.Any())
+            {
+                joinedEntities = primaryEntities
+                    .Select(pe => new KeyValuePair<string, IReadOnlyDictionary<string, object>>(pe.Key, pe.Value))
+                    .ToList();
+            }
+            else
+            {
+                foreach (var joinedContainer in joinedContainers)
+                {
+                    var joinedEntity = joinedContainer.Value.JoinedEntity;
+                    var join = joinedEntity.Join;
+                    var rightEntities = joinedContainer.Value.Collection
+                        .ToDictionary(e => e.Key, e => e.Value);
+
+                    joinedEntities = join
+                        .JoinResults(primaryEntities, rightEntities,
+                            joinedEntity.Selects.ProjectSelectedJoinedProperties());
+                }
+            }
+
+            var results = joinedEntities?.AsQueryable();
+            var orderBy = query.ToDynamicLinqOrderByClause();
+            var skip = query.GetDefaultSkip();
+
+            if (query.Wheres.Any())
+            {
+                var whereBy = query.Wheres.ToDynamicLinqWhereClause();
+                results = results
+                    .Where(whereBy);
+            }
+            return results
+                .OrderBy(orderBy)
+                .Skip(skip)
+                .Take(take)
+                .Select(sel => new KeyValuePair<string, IReadOnlyDictionary<string, object>>(sel.Key, sel.Value))
+                .CherryPickSelectedProperties(query)
+                .Select(ped => QueryEntity.FromProperties(ped.Value, metadata))
                 .ToList();
-
-            return entities
-                .Select(resultEntity => resultEntity.Properties
-                    .Where(resultEntityProperty => selectedPropertyNames.Contains(resultEntityProperty.Key)))
-                .Select(selectedProperties =>
-                    EntityFromContainerProperties(selectedProperties.ToObjectDictionary(), metadata))
-                .ToList();
-        }
-
-        private static QueryEntity EntityFromContainerProperties(
-            this IReadOnlyDictionary<string, object> propertyValues, RepositoryEntityMetadata metadata)
-
-        {
-            return QueryEntity.FromProperties(propertyValues, metadata);
         }
 
         public static string ComplexTypeToContainerProperty(this object propertyValue)
@@ -211,6 +171,122 @@ namespace Storage
             }
 
             return null;
+        }
+
+        private static List<KeyValuePair<string, IReadOnlyDictionary<string, object>>> JoinResults(
+            this JoinDefinition joinDefinition,
+            IReadOnlyDictionary<string, IReadOnlyDictionary<string, object>> leftEntities,
+            IReadOnlyDictionary<string, IReadOnlyDictionary<string, object>> rightEntities,
+            Func<KeyValuePair<string, IReadOnlyDictionary<string, object>>,
+                KeyValuePair<string, IReadOnlyDictionary<string, object>>,
+                KeyValuePair<string, IReadOnlyDictionary<string, object>>> mapFunc = null)
+        {
+            switch (joinDefinition.Type)
+            {
+                case JoinType.Inner:
+                    var innerJoin = from lefts in leftEntities
+                        join rights in rightEntities on lefts.Value[joinDefinition.Left.JoinedFieldName] equals
+                            rights.Value[joinDefinition.Right.JoinedFieldName]
+                            into joined
+                        from result in joined
+                        select mapFunc?.Invoke(lefts, result) ?? lefts;
+
+                    return innerJoin
+                        .Select(join =>
+                            new KeyValuePair<string, IReadOnlyDictionary<string, object>>(join.Key, join.Value))
+                        .ToList();
+
+                case JoinType.Left:
+                    var leftJoin = from lefts in leftEntities
+                        join rights in rightEntities on lefts.Value[joinDefinition.Left.JoinedFieldName] equals
+                            rights.Value[joinDefinition.Right.JoinedFieldName]
+                            into joined
+                        from result in joined.DefaultIfEmpty()
+                        select mapFunc?.Invoke(lefts, result) ?? lefts;
+
+                    return leftJoin
+                        .Select(join =>
+                            new KeyValuePair<string, IReadOnlyDictionary<string, object>>(join.Key, join.Value))
+                        .ToList();
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(JoinType));
+            }
+        }
+
+        private static Func<KeyValuePair<string, IReadOnlyDictionary<string, object>>,
+                KeyValuePair<string, IReadOnlyDictionary<string, object>>,
+                KeyValuePair<string, IReadOnlyDictionary<string, object>>>
+            ProjectSelectedJoinedProperties(this IReadOnlyList<SelectDefinition> selects)
+        {
+            return (leftEntity, rightEntity) =>
+            {
+                var selectedFromJoinPropertyNames = selects
+                    .Where(x => x.JoinedFieldName.HasValue())
+                    .ToList();
+                if (!selectedFromJoinPropertyNames.Any())
+                {
+                    return leftEntity;
+                }
+
+                var leftEntityProperties = leftEntity.Value.ToObjectDictionary();
+                var rightEntityProperties = rightEntity.Value.ToObjectDictionary();
+                foreach (var select in selectedFromJoinPropertyNames)
+                {
+                    if (!rightEntityProperties.HasPropertyValue(select.FieldName)) //select.FieldName
+                    {
+                        continue;
+                    }
+
+                    leftEntityProperties.CreatePropertyIfNotExists(select.JoinedFieldName); //select.JoinedFiledName
+                    leftEntityProperties.CopyPropertyValue(rightEntityProperties, select);
+                }
+
+                return leftEntity;
+            };
+        }
+
+        private static IEnumerable<KeyValuePair<string, IReadOnlyDictionary<string, object>>>
+            CherryPickSelectedProperties<
+                TQueryableEntity>(this IQueryable<KeyValuePair<string, IReadOnlyDictionary<string, object>>> entities,
+                QueryClause<TQueryableEntity> query)
+            where TQueryableEntity : IQueryableEntity
+        {
+            var selectedPropertyNames = query.GetAllSelectedFields();
+
+            if (!selectedPropertyNames.Any())
+            {
+                return entities;
+            }
+
+            selectedPropertyNames = selectedPropertyNames
+                .Concat(new[] {nameof(QueryEntity.Id)})
+                .ToList();
+
+            return entities
+                .Select(entity => FilterSelectedFields(entity, selectedPropertyNames))
+                .Select(sel => new KeyValuePair<string, IReadOnlyDictionary<string, object>>(sel.Key, sel.Value));
+        }
+
+        private static KeyValuePair<string, IReadOnlyDictionary<string, object>> FilterSelectedFields(
+            KeyValuePair<string, IReadOnlyDictionary<string, object>> entity, List<string> allowedFieldNames)
+        {
+            return new KeyValuePair<string, IReadOnlyDictionary<string, object>>(entity.Key,
+                entity.Value.Where(fieldNameValue => allowedFieldNames.Contains(fieldNameValue.Key))
+                    .ToDictionary(pair => pair.Key, pair => pair.Value));
+        }
+
+        private static List<string> GetAllSelectedFields<TQueryableEntity>(this QueryClause<TQueryableEntity> query)
+            where TQueryableEntity : IQueryableEntity
+
+        {
+            var primarySelects = query.PrimaryEntity.Selects;
+            var joinedSelects = query.JoinedEntities.SelectMany(je => je.Selects);
+
+            return primarySelects
+                .Select(select => select.FieldName)
+                .Concat(joinedSelects.Select(select => select.JoinedFieldName))
+                .ToList();
         }
 
         private static bool HasPropertyValue(this Dictionary<string, object> entityProperties, string propertyName)
