@@ -1,6 +1,7 @@
 ﻿namespace Domain.Interfaces.Entities
 {
-    public interface IIdentifierFactory
+    public interface
+        IIdentifierFactory
     {
         Identifier Create(IIdentifiableEntity entity);
 

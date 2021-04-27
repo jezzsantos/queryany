@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Domain.Interfaces;
 using Newtonsoft.Json;
 using QueryAny;
-using QueryAny.Primitives;
 using ServiceStack;
 
 namespace Storage

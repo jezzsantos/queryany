@@ -1,5 +1,5 @@
-﻿using Domain.Interfaces.Entities;
-using QueryAny.Primitives;
+﻿using Domain.Interfaces;
+using Domain.Interfaces.Entities;
 using ServiceStack.FluentValidation;
 
 namespace Api.Common.Validators

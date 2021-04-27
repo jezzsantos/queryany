@@ -4,7 +4,7 @@ using System.Linq;
 using Domain.Interfaces.Entities;
 using QueryAny;
 
-namespace InfrastructureServices.UnitTests
+namespace InfrastructureServices.UnitTests.Eventing
 {
     [EntityName("acontainername")]
     public class TestAggregateRoot : IPersistableAggregateRoot
@@ -25,6 +25,9 @@ namespace InfrastructureServices.UnitTests
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         public DateTime? LastPersistedAtUtc { get; }
+
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
+        public bool? IsDeleted { get; }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         public long ChangeVersion => Events.Any()

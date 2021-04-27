@@ -9,7 +9,6 @@ using CarsDomain;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
-using QueryAny.Primitives;
 using ServiceStack;
 
 namespace CarsApplication

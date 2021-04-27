@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Domain.Interfaces;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
-using QueryAny.Primitives;
 using ServiceStack.Configuration;
 using Storage.Interfaces;
 

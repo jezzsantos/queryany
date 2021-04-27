@@ -3,12 +3,20 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using QueryAny;
-using QueryAny.Primitives;
 
 namespace Domain.Interfaces
 {
     public static class QueryAnyExtensions
     {
+        public static bool HasAnyJoins<TEntity>(this QueryClause<TEntity> query)
+            where TEntity : IQueryableEntity
+        {
+            query.GuardAgainstNull(nameof(query));
+
+            return query.JoinedEntities
+                .Any(je => je.Join.Exists());
+        }
+
         public static QueryClause<TEntity> WithSearchOptions<TEntity>(this QueryClause<TEntity> query,
             SearchOptions options)
             where TEntity : IQueryableEntity

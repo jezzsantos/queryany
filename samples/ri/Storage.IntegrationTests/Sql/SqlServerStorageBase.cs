@@ -2,8 +2,8 @@
 using System.Diagnostics;
 using System.ServiceProcess;
 using System.Threading;
+using Domain.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using QueryAny.Primitives;
 
 namespace Storage.IntegrationTests.Sql
 {

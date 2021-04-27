@@ -4,7 +4,6 @@ using System.Linq;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using QueryAny;
-using QueryAny.Primitives;
 using ServiceStack;
 
 namespace Storage.IntegrationTests

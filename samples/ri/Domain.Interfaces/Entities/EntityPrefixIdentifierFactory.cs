@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using QueryAny.Primitives;
+using System.Linq;
 
 namespace Domain.Interfaces.Entities
 {
@@ -10,6 +9,7 @@ namespace Domain.Interfaces.Entities
         private const string UnknownEntityPrefix = "xxx";
         private const string Delimiter = "_";
         private readonly Dictionary<Type, string> prefixes;
+        private readonly List<string> supportedPrefixes = new List<string>();
 
         protected EntityPrefixIdentifierFactory(Dictionary<Type, string> prefixes)
         {
@@ -18,21 +18,49 @@ namespace Domain.Interfaces.Entities
             this.prefixes = new Dictionary<Type, string>(prefixes) {{typeof(EntityEvent), "evt"}};
         }
 
-        public Identifier Create(IIdentifiableEntity entity)
+        public IEnumerable<Type> RegisteredTypes => this.prefixes.Keys;
+
+        public IReadOnlyList<string> SupportedPrefixes => this.supportedPrefixes;
+
+#if TESTINGONLY
+        public Dictionary<string, string> LastCreatedIds { get; } = new Dictionary<string, string>();
+#endif
+
+        public void AddSupportedPrefix(string prefix)
         {
-            var random = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+            prefix.GuardAgainstNull(nameof(prefix));
+            prefix.GuardAgainstInvalid(Validations.IdentifierPrefix, nameof(prefix));
+
+            this.supportedPrefixes.Add(prefix);
+        }
+
+        public static string ConvertGuid(Guid guid, string prefix)
+        {
+            prefix.GuardAgainstNullOrEmpty(nameof(prefix));
+
+            var random = Convert.ToBase64String(guid.ToByteArray())
                 .Replace("+", string.Empty)
                 .Replace("/", string.Empty)
                 .Replace("=", string.Empty);
 
-            var entityType = entity.GetType();
-            if (this.prefixes.ContainsKey(entityType))
-            {
-                var prefix = this.prefixes[entity.GetType()];
-                return $"{prefix}{Delimiter}{random}".ToIdentifier();
-            }
+            return $"{prefix}{Delimiter}{random}".ToIdentifier();
+        }
 
-            return $"{UnknownEntityPrefix}{Delimiter}{random}".ToIdentifier();
+        public Identifier Create(IIdentifiableEntity entity)
+        {
+            var entityType = entity.GetType();
+            var prefix = this.prefixes.ContainsKey(entityType)
+                ? this.prefixes[entity.GetType()]
+                : UnknownEntityPrefix;
+
+            var guid = Guid.NewGuid();
+            var identifier = ConvertGuid(guid, prefix);
+
+#if TESTINGONLY
+            LastCreatedIds.Add(identifier, guid.ToString("D"));
+#endif
+
+            return identifier.ToIdentifier();
         }
 
         public bool IsValid(Identifier value)
@@ -50,15 +78,25 @@ namespace Domain.Interfaces.Entities
             }
 
             var prefix = id.Substring(0, delimiterIndex);
-            if (!this.prefixes.ContainsValue(prefix)
+            if (!IsKnownPrefix(prefix)
                 && prefix != UnknownEntityPrefix)
             {
                 return false;
             }
 
-            var suffix = id.Substring(delimiterIndex + 1);
+            return Validations.Identifier.Matches(id);
+        }
 
-            return Regex.IsMatch(suffix, @"^[\d\w]{10,22}$");
+        private bool IsKnownPrefix(string prefix)
+        {
+            prefix.GuardAgainstNull(nameof(prefix));
+
+            var allPossiblePrefixes = this.prefixes
+                .Select(pre => pre.Value)
+                .Concat(SupportedPrefixes)
+                .Distinct();
+
+            return allPossiblePrefixes.Contains(prefix);
         }
     }
 }

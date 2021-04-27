@@ -1,17 +1,41 @@
 ﻿using System;
-using QueryAny.Primitives;
 
 namespace Domain.Interfaces
 {
     public static class GuardExtensions
     {
-        public static void GuardAgainstInvalid(this string value, ValidationFormat format, string parameterName,
+        public static void GuardAgainstNull(this object instance, string parameterName = null)
+        {
+            if (instance == null)
+            {
+                var ex = parameterName == null
+                    ? new ArgumentNullException()
+                    : new ArgumentNullException(parameterName);
+
+                throw ex;
+            }
+        }
+
+        public static void GuardAgainstNullOrEmpty(this string instance, string parameterName = null)
+        {
+            if (!instance.HasValue())
+            {
+                var ex = parameterName == null
+                    ? new ArgumentNullException()
+                    : new ArgumentNullException(parameterName);
+
+                throw ex;
+            }
+        }
+
+        public static void GuardAgainstInvalid<TValue>(this TValue value, ValidationFormat<TValue> format,
+            string parameterName,
             string errorMessage = null)
         {
             format.GuardAgainstNull(nameof(format));
             parameterName.GuardAgainstNullOrEmpty(nameof(parameterName));
 
-            var isMatch = format.IsMatchedWith(value);
+            var isMatch = format.Matches(value);
             if (!isMatch)
             {
                 if (errorMessage.HasValue())

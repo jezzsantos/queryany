@@ -23,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Include="..\..\..\src\Common\FluentAssertionExtensions.cs">
+      <Compile Include="..\Common\FluentAssertionExtensions.cs">
         <Link>FluentAssertionExtensions.cs</Link>
       </Compile>
       <Compile Include="..\..\..\src\Common\FluentAssertionValidationExtensions.cs">

@@ -1,10 +1,69 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Domain.Interfaces
 {
     public static class CollectionExtensions
     {
+        public static IEnumerable<T> Safe<T>(this IEnumerable<T> enumerable)
+        {
+            return enumerable ?? Enumerable.Empty<T>();
+        }
+
+        public static string Join<T>(this IEnumerable<T> values)
+        {
+            return values.Join(",");
+        }
+
+        public static string Join<T>(this IEnumerable<T> values, string separator)
+        {
+            var stringBuilder = new StringBuilder();
+            foreach (var value in values)
+            {
+                if (stringBuilder.Length > 0)
+                {
+                    stringBuilder.Append(separator);
+                }
+
+                stringBuilder.Append(value);
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        public static string SafeJoin(this IEnumerable<string> values, string separator)
+        {
+            if (values.NotExists())
+            {
+                return null;
+            }
+            return values.Join(separator);
+        }
+
+        public static string[] SafeSplit(this string value, string[] delimiters,
+            StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries)
+        {
+            if (!value.HasValue())
+            {
+                return new string[]
+                {
+                };
+            }
+
+            return value.Split(delimiters, options);
+        }
+
+        public static string[] SafeSplit(this string value, string delimiter,
+            StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries)
+        {
+            return value.SafeSplit(new[]
+            {
+                delimiter
+            }, options);
+        }
+
         public static Dictionary<TKey, TValue> AsDictionary<TKey, TValue>(
             this IReadOnlyDictionary<TKey, TValue> readOnlyDictionary)
         {
@@ -17,6 +76,39 @@ namespace Domain.Interfaces
         {
             return readOnlyDictionary
                 .ToDictionary(pair => pair.Key, pair => pair.Value);
+        }
+
+        public static string JoinAsOredChoices(this IEnumerable<string> list, string orKeyword = ",")
+        {
+            return list.Join($"{orKeyword} ");
+        }
+
+        public static string JoinAsOredChoices<TValue>(this Dictionary<string, TValue> dic, string orKeyword = ",")
+        {
+            return dic.Select(item => item.Key).JoinAsOredChoices(orKeyword);
+        }
+
+        public static bool HasAny<T>(this IEnumerable<T> collection)
+        {
+            return collection.Safe().Any();
+        }
+
+        public static bool HasNone<T>(this IEnumerable<T> collection)
+        {
+            return !HasAny(collection);
+        }
+
+        public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source,
+            Func<TSource, TKey> keySelector)
+        {
+            var seenKeys = new HashSet<TKey>();
+            foreach (var element in source)
+            {
+                if (seenKeys.Add(keySelector(element)))
+                {
+                    yield return element;
+                }
+            }
         }
     }
 }

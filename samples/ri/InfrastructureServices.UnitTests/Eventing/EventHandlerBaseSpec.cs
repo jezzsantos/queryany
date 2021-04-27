@@ -8,16 +8,15 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Storage.Interfaces;
 
-namespace InfrastructureServices.UnitTests
+namespace InfrastructureServices.UnitTests.Eventing
 {
     [TestClass, TestCategory("Unit")]
     public class EventHandlerBaseSpec
     {
-        private Mock<Action<string, List<EventStreamStateChangeEvent>>> action;
-        private TestEventHandler handler;
+        private readonly Mock<Action<string, List<EventStreamStateChangeEvent>>> action;
+        private readonly TestEventHandler handler;
 
-        [TestInitialize]
-        public void Initialize()
+        public EventHandlerBaseSpec()
         {
             this.action = new Mock<Action<string, List<EventStreamStateChangeEvent>>>();
             this.handler = new TestEventHandler(this.action);
@@ -150,7 +149,8 @@ namespace InfrastructureServices.UnitTests
     {
         private readonly Mock<Action<string, List<EventStreamStateChangeEvent>>> mock;
 
-        public TestEventHandler(Mock<Action<string, List<EventStreamStateChangeEvent>>> mock) : base(Mock.Of<ILogger>(),
+        public TestEventHandler(Mock<Action<string, List<EventStreamStateChangeEvent>>> mock) : base(
+            Mock.Of<ILogger>(),
             Mock.Of<IEventStreamStorage<TestAggregateRoot>>())
         {
             this.mock = mock;

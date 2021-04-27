@@ -70,6 +70,24 @@ namespace Domain.Interfaces.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The DateTime value must be a UTC DateTime value .
+        /// </summary>
+        internal static string DateTimeExtensions_DateTimeIsNotUtc {
+            get {
+                return ResourceManager.GetString("DateTimeExtensions_DateTimeIsNotUtc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The timezone is not a valid IANA timezone.
+        /// </summary>
+        internal static string DateTimeExtensions_InvalidTimezone {
+            get {
+                return ResourceManager.GetString("DateTimeExtensions_InvalidTimezone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Access to the resource is forbidden to the current user.
         /// </summary>
         internal static string ForbiddenException_Message {
@@ -79,11 +97,29 @@ namespace Domain.Interfaces.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The hydrating properties do not contain an Identifier property with a non null value.
+        ///   Looks up a localized string similar to Parameter cannot be empty..
         /// </summary>
-        internal static string HydrationIdentifierFactory_InvalidId {
+        internal static string Guard_ArgumentCanNotBeEmpty {
             get {
-                return ResourceManager.GetString("HydrationIdentifierFactory_InvalidId", resourceCulture);
+                return ResourceManager.GetString("Guard_ArgumentCanNotBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter cannot be null..
+        /// </summary>
+        internal static string Guard_ArgumentCanNotBeNull {
+            get {
+                return ResourceManager.GetString("Guard_ArgumentCanNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter must be a {0}..
+        /// </summary>
+        internal static string Guard_ArgumentTypeNotExpected {
+            get {
+                return ResourceManager.GetString("Guard_ArgumentTypeNotExpected", resourceCulture);
             }
         }
         
@@ -93,6 +129,42 @@ namespace Domain.Interfaces.Properties {
         internal static string MethodNotAllowedException_Message {
             get {
                 return ResourceManager.GetString("MethodNotAllowedException_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Member is not a field.
+        /// </summary>
+        internal static string Reflector_ErrorNotField {
+            get {
+                return ResourceManager.GetString("Reflector_ErrorNotField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not a member access.
+        /// </summary>
+        internal static string Reflector_ErrorNotMemberAccess {
+            get {
+                return ResourceManager.GetString("Reflector_ErrorNotMemberAccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not a method call.
+        /// </summary>
+        internal static string Reflector_ErrorNotMethodCall {
+            get {
+                return ResourceManager.GetString("Reflector_ErrorNotMethodCall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Member is not a property.
+        /// </summary>
+        internal static string Reflector_ErrorNotProperty {
+            get {
+                return ResourceManager.GetString("Reflector_ErrorNotProperty", resourceCulture);
             }
         }
         

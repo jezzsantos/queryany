@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using ApplicationServices;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
-using QueryAny.Primitives;
 using Storage.Interfaces;
 
 namespace InfrastructureServices.Eventing.Notifications

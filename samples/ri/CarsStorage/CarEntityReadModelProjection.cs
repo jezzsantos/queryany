@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using CarsApplication.ReadModels;
 using CarsDomain;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
-using QueryAny.Primitives;
 using Storage;
 using Storage.Interfaces.ReadModels;
 

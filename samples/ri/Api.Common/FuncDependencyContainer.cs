@@ -1,6 +1,5 @@
 ﻿using Domain.Interfaces;
 using Funq;
-using QueryAny.Primitives;
 
 namespace Api.Common
 {

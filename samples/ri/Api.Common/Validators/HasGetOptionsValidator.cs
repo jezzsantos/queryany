@@ -2,7 +2,6 @@
 using Api.Common.Properties;
 using Api.Interfaces;
 using Domain.Interfaces;
-using QueryAny.Primitives;
 using ServiceStack.FluentValidation;
 
 namespace Api.Common.Validators

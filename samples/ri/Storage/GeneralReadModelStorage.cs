@@ -2,7 +2,6 @@
 using Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using QueryAny;
-using QueryAny.Primitives;
 using Storage.Interfaces.ReadModels;
 
 namespace Storage

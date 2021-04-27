@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using QueryAny;
-using QueryAny.Primitives;
 using ServiceStack;
 using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;

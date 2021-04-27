@@ -1,11 +1,11 @@
 ﻿using System.Linq;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using PersonsApplication.ReadModels;
 using PersonsApplication.Storage;
 using PersonsDomain;
 using QueryAny;
-using QueryAny.Primitives;
 using Storage;
 using Storage.Interfaces;
 

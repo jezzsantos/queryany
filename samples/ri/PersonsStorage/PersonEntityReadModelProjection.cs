@@ -1,9 +1,9 @@
 ﻿using System;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using PersonsApplication.ReadModels;
 using PersonsDomain;
-using QueryAny.Primitives;
 using Storage;
 using Storage.Interfaces.ReadModels;
 

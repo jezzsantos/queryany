@@ -96,6 +96,25 @@ namespace Domain.Interfaces.UnitTests
 
             result.Should().BeTrue();
         }
+
+        [TestMethod]
+        public void WhenIsValidWithKnownSupportedPrefix_ThenReturnsTrue()
+        {
+            this.factory.AddSupportedPrefix("another");
+
+            var result = this.factory.IsValid(Identifier.Create("another_123456789012"));
+
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void WhenConvertGuidWithKnownGuid_ThenReturnsConverted()
+        {
+            var id = EntityPrefixIdentifierFactory.ConvertGuid(new Guid("65dd0b02-170b-4ea1-a5a5-00d2808b9aee"),
+                "known");
+
+            id.Should().Be("known_AgvdZQsXoU6lpQDSgIua7g");
+        }
     }
 
     public class TestEntityPrefixIdentifierFactory : EntityPrefixIdentifierFactory

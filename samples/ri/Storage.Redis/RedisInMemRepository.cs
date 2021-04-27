@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
+using Domain.Interfaces;
 using QueryAny;
-using QueryAny.Primitives;
 using ServiceStack;
 using ServiceStack.Configuration;
 using ServiceStack.Redis;

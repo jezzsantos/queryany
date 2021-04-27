@@ -1,8 +1,8 @@
 ﻿using Api.Interfaces.ServiceOperations.Persons;
+using Domain.Interfaces;
 using PersonsApi.Properties;
-using PersonsDomain;
-using QueryAny.Primitives;
 using ServiceStack.FluentValidation;
+using Validations = PersonsDomain.Validations;
 
 namespace PersonsApi.Services.Persons
 {

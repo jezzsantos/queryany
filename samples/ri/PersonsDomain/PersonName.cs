@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using QueryAny.Primitives;
 
 namespace PersonsDomain
 {

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using CarsDomain.Properties;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using QueryAny.Primitives;
 using ServiceStack;
 
 namespace CarsDomain

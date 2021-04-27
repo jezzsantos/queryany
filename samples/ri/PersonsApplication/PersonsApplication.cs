@@ -6,7 +6,6 @@ using DomainServices;
 using Microsoft.Extensions.Logging;
 using PersonsApplication.Storage;
 using PersonsDomain;
-using QueryAny.Primitives;
 using ServiceStack;
 using PersonName = PersonsDomain.PersonName;
 

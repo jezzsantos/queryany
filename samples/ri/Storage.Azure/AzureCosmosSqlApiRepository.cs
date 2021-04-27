@@ -4,11 +4,11 @@ using System.Dynamic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json.Linq;
 using QueryAny;
-using QueryAny.Primitives;
 using ServiceStack.Configuration;
 
 namespace Storage.Azure

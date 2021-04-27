@@ -18,6 +18,27 @@
     <resheader name="writer">
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
+    <data name="Guard_ArgumentCanNotBeEmpty" xml:space="preserve">
+    <value>Parameter cannot be empty.</value>
+    </data>
+    <data name="Guard_ArgumentCanNotBeNull" xml:space="preserve">
+      <value>Parameter cannot be null.</value>
+    </data>
+    <data name="Guard_ArgumentTypeNotExpected" xml:space="preserve">
+      <value>Parameter must be a {0}.</value>
+    </data>
+    <data name="Reflector_ErrorNotField" xml:space="preserve">
+      <value>Member is not a field</value>
+    </data>
+    <data name="Reflector_ErrorNotMemberAccess" xml:space="preserve">
+      <value>Not a member access</value>
+    </data>
+    <data name="Reflector_ErrorNotMethodCall" xml:space="preserve">
+      <value>Not a method call</value>
+    </data>
+    <data name="Reflector_ErrorNotProperty" xml:space="preserve">
+      <value>Member is not a property</value>
+    </data>
     <data name="ForbiddenException_Message">
         <value>Access to the resource is forbidden to the current user</value>
     </data>
@@ -36,10 +57,13 @@
     <data name="RuleViolationException_Message">
         <value>A pre-condition of the current request for the resource has not been met</value>
     </data>
-    <data name="HydrationIdentifierFactory_InvalidId" xml:space="preserve">
-        <value>The hydrating properties do not contain an Identifier property with a non null value</value>
-    </data>
     <data name="ChangeEventMigrator_UnknownType" xml:space="preserve">
         <value>Failed to deserialize event '{0}'. The serialized type: '{1}' cannot be found in the current AppDomain. Perhaps the type '{1}' has been renamed or no longer exists in the codebase?</value>
+    </data>
+    <data name="DateTimeExtensions_InvalidTimezone" xml:space="preserve">
+        <value>The timezone is not a valid IANA timezone</value>
+    </data>
+    <data name="DateTimeExtensions_DateTimeIsNotUtc" xml:space="preserve">
+        <value>The DateTime value must be a UTC DateTime value </value>
     </data>
 </root>

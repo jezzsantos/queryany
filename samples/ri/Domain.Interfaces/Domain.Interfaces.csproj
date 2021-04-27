@@ -12,10 +12,10 @@
     <PackageReference Include="ServiceStack.Interfaces.Core" Version="5.10.0" />
     <PackageReference Include="ServiceStack.Text.Core" Version="5.10.0" />
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.1.2" />
+    <PackageReference Include="TimeZoneConverter" Version="3.3.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\QueryAny.Primitives\QueryAny.Primitives.csproj" />
     <ProjectReference Include="..\..\..\src\QueryAny\QueryAny.csproj" />
   </ItemGroup>
 

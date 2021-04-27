@@ -5,7 +5,6 @@ using System.Reflection;
 using Api.Common.Properties;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using QueryAny.Primitives;
 using ServiceStack;
 
 namespace Api.Common

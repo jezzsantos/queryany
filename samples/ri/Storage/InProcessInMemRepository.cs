@@ -5,7 +5,6 @@ using System.Linq;
 using System.Linq.Dynamic.Core;
 using Domain.Interfaces;
 using QueryAny;
-using QueryAny.Primitives;
 using Storage.Interfaces;
 
 namespace Storage

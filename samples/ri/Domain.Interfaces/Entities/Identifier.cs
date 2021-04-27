@@ -1,16 +1,19 @@
-﻿using QueryAny.Primitives;
+﻿using System.Collections.Generic;
+using System.Linq;
+using ServiceStack;
 
 namespace Domain.Interfaces.Entities
 {
     public class Identifier : SingleValueObjectBase<Identifier, string>
     {
+        private Identifier() : base(string.Empty)
+        {
+        }
+
         private Identifier(string identifier) : base(identifier)
         {
             identifier.GuardAgainstNullOrEmpty(nameof(identifier));
-        }
-
-        private Identifier() : base(string.Empty)
-        {
+            AutoMapping.RegisterConverter((Identifier valueObject) => valueObject?.Value);
         }
 
         public static Identifier Empty()
@@ -44,6 +47,11 @@ namespace Domain.Interfaces.Entities
         public static Identifier ToIdentifier(this string id)
         {
             return Identifier.Create(id);
+        }
+
+        public static List<Identifier> ToIdentifiers(this List<string> ids)
+        {
+            return ids.Select(id => id.ToIdentifier()).ToList();
         }
     }
 }

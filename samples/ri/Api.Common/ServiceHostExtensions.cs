@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Net;
 using Domain.Interfaces;
-using QueryAny.Primitives;
 using ServiceStack;
 using ServiceStack.Text;
 using ServiceStack.Validation;

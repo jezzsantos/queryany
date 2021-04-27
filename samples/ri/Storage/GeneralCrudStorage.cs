@@ -3,7 +3,6 @@ using System.Linq;
 using Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using QueryAny;
-using QueryAny.Primitives;
 using ServiceStack;
 using Storage.Interfaces;
 using Storage.Properties;

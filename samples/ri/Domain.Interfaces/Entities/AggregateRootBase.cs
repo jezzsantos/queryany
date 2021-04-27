@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using QueryAny;
-using QueryAny.Primitives;
 
 namespace Domain.Interfaces.Entities
 {
@@ -46,6 +45,7 @@ namespace Domain.Interfaces.Entities
 
             var now = DateTime.UtcNow;
             LastPersistedAtUtc = null;
+            IsDeleted = null;
             CreatedAtUtc = this.isInstantiating
                 ? now
                 : DateTime.MinValue;
@@ -68,6 +68,8 @@ namespace Domain.Interfaces.Entities
         public DateTime LastModifiedAtUtc { get; private set; }
 
         public DateTime? LastPersistedAtUtc { get; private set; }
+
+        public bool? IsDeleted { get; }
 
         public Identifier Id { get; }
 

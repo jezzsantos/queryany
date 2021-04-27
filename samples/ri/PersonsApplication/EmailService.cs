@@ -1,6 +1,6 @@
-﻿using DomainServices;
+﻿using Domain.Interfaces;
+using DomainServices;
 using PersonsApplication.Storage;
-using QueryAny.Primitives;
 
 namespace PersonsApplication
 {

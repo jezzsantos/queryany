@@ -2,7 +2,6 @@
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
 using QueryAny;
-using QueryAny.Primitives;
 using ServiceStack;
 using Storage.Interfaces;
 using Storage.Properties;

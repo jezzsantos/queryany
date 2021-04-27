@@ -1,8 +1,8 @@
 ﻿using Api.Common;
 using Api.Interfaces;
 using Api.Interfaces.ServiceOperations.Persons;
+using Domain.Interfaces;
 using PersonsApplication;
-using QueryAny.Primitives;
 using ServiceStack;
 
 namespace PersonsApi.Services.Persons

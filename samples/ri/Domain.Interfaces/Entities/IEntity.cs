@@ -7,6 +7,8 @@ namespace Domain.Interfaces.Entities
     {
         DateTime? LastPersistedAtUtc { get; }
 
+        bool? IsDeleted { get; }
+
         DateTime CreatedAtUtc { get; }
 
         DateTime LastModifiedAtUtc { get; }

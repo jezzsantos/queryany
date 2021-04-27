@@ -1,6 +1,6 @@
 ﻿using System.IO;
+using Domain.Interfaces;
 using Microsoft.Extensions.Logging;
-using QueryAny.Primitives;
 using Storage.Interfaces;
 
 namespace Storage

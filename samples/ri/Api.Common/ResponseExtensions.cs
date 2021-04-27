@@ -1,5 +1,5 @@
 ﻿using Application.Resources;
-using QueryAny.Primitives;
+using Domain.Interfaces;
 using ServiceStack;
 using ServiceStack.Web;
 

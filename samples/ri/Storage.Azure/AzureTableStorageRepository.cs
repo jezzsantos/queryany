@@ -9,7 +9,6 @@ using Domain.Interfaces.Entities;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.Cosmos.Table.Protocol;
 using QueryAny;
-using QueryAny.Primitives;
 using ServiceStack;
 using ServiceStack.Configuration;
 

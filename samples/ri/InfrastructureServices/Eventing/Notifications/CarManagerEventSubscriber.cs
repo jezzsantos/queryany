@@ -1,9 +1,9 @@
 ﻿using ApplicationServices;
 using CarsApplication;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using InfrastructureServices.Identity;
 using PersonsDomain;
-using QueryAny.Primitives;
 
 namespace InfrastructureServices.Eventing.Notifications
 {

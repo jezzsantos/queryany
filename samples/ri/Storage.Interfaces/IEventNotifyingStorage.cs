@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using QueryAny.Primitives;
+using Domain.Interfaces;
 
 namespace Storage.Interfaces
 {

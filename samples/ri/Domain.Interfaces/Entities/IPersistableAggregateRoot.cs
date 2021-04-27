@@ -8,6 +8,8 @@ namespace Domain.Interfaces.Entities
     {
         DateTime? LastPersistedAtUtc { get; }
 
+        bool? IsDeleted { get; }
+
         long ChangeVersion { get; }
 
         List<EntityEvent> GetChanges();

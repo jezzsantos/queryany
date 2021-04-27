@@ -1,5 +1,4 @@
 ﻿using System;
-using QueryAny.Primitives;
 
 namespace Domain.Interfaces.Entities
 {

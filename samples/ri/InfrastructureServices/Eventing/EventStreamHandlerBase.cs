@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Domain.Interfaces;
 using InfrastructureServices.Properties;
 using Microsoft.Extensions.Logging;
-using QueryAny.Primitives;
 using Storage.Interfaces;
 
 namespace InfrastructureServices.Eventing

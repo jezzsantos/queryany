@@ -1,7 +1,7 @@
 ﻿using Api.Interfaces.ServiceOperations.Persons;
 using Application.Resources;
 using ApplicationServices;
-using QueryAny.Primitives;
+using Domain.Interfaces;
 using ServiceStack;
 
 namespace InfrastructureServices.ApplicationServices

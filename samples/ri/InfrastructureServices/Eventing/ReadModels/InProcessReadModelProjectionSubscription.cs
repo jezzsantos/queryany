@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using Microsoft.Extensions.Logging;
-using QueryAny.Primitives;
 using Storage;
 using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;

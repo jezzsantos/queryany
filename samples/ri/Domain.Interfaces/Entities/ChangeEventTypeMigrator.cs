@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Domain.Interfaces.Properties;
-using QueryAny.Primitives;
+using ServiceStack;
 using ServiceStack.Text;
 
 namespace Domain.Interfaces.Entities
@@ -31,10 +31,10 @@ namespace Domain.Interfaces.Entities
             }
 
             var eventType = Type.GetType(migratedTypeName);
-            if (eventType == null)
+            if (eventType.NotExists())
             {
                 throw new InvalidOperationException(
-                    Resources.ChangeEventMigrator_UnknownType.Format(eventId, originalEventTypeName));
+                    Resources.ChangeEventMigrator_UnknownType.Fmt(eventId, originalEventTypeName));
             }
 
             return (IChangeEvent) JsonSerializer.DeserializeFromString(eventJson, eventType);

@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Storage.Interfaces;
 
-namespace InfrastructureServices.UnitTests
+namespace InfrastructureServices.UnitTests.Eventing
 {
     [TestClass, TestCategory("Unit")]
     public class DomainEventNotificationProducerSpec

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using QueryAny.Primitives;
 using ServiceStack;
 
 namespace Domain.Interfaces.Entities

@@ -4,7 +4,7 @@ using Api.Interfaces;
 using Api.Interfaces.ServiceOperations.Cars;
 using Application.Resources;
 using CarsApplication;
-using QueryAny.Primitives;
+using Domain.Interfaces;
 using ServiceStack;
 
 namespace CarsApi.Services.Cars
