@@ -23,13 +23,16 @@ namespace Storage.Azure
         private readonly string connectionString;
         private readonly Dictionary<string, Container> containers = new Dictionary<string, Container>();
         private readonly string databaseName;
+        private readonly IRecorder recorder;
         private CosmosClient client;
         private bool databaseExistenceHasBeenChecked;
 
-        private AzureCosmosSqlApiRepository(string connectionString, string databaseName)
+        private AzureCosmosSqlApiRepository(IRecorder recorder, string connectionString, string databaseName)
         {
+            recorder.GuardAgainstNull(nameof(recorder));
             connectionString.GuardAgainstNullOrEmpty(nameof(connectionString));
             databaseName.GuardAgainstNullOrEmpty(nameof(databaseName));
+            this.recorder = recorder;
             this.connectionString = connectionString;
             this.databaseName = databaseName;
         }
@@ -98,8 +101,9 @@ namespace Storage.Azure
 
             try
             {
-                var query = new QueryDefinition(@"SELECT VALUE COUNT(1) FROM c");
-                var count = container.GetItemQueryIterator<int>(query);
+                const string query = @"SELECT VALUE COUNT(1) FROM c";
+                this.recorder.TraceInformation($"Executed SQL statement: {query}");
+                var count = container.GetItemQueryIterator<int>(new QueryDefinition(query));
 
                 return count.Count();
             }
@@ -131,6 +135,7 @@ namespace Storage.Azure
                 if (!query.HasAnyJoins())
                 {
                     var containerQuery = query.ToCosmosSqlApiQueryClause(containerName, this);
+                    this.recorder.TraceInformation($"Executed SQL statement: {containerQuery}");
                     results = container.GetItemQueryIterator<object>(new QueryDefinition(containerQuery)).ToList()
                         .Select(jObj => QueryEntity.FromProperties(jObj.FromContainerEntity(metadata), metadata))
                         .ToList();
@@ -171,6 +176,7 @@ namespace Storage.Azure
             where TQueryableEntity : IQueryableEntity
         {
             var filter = query.PrimaryEntity.Selects.ToCosmosSqlApiSelectClause(containerName);
+            this.recorder.TraceInformation($"Executed SQL statement: {filter}");
             return container.GetItemQueryIterator<object>(new QueryDefinition(filter))
                 .ToList()
                 .ToDictionary(jObj => jObj.Property(IdentifierPropertyName).Value.ToString(),
@@ -193,22 +199,25 @@ namespace Storage.Azure
             }
 
             var filter = selected.ToCosmosSqlApiSelectClause(containerName);
+            this.recorder.TraceInformation($"Executed SQL statement: {filter}");
             return container.GetItemQueryIterator<object>(new QueryDefinition(filter))
                 .ToList()
                 .ToDictionary(jObj => jObj.Property(IdentifierPropertyName).Value.ToString(),
                     jObj => jObj.FromContainerEntity(metadata));
         }
 
-        public static AzureCosmosSqlApiRepository FromSettings(IAppSettings settings, string databaseName)
+        public static AzureCosmosSqlApiRepository FromSettings(IRecorder recorder, IAppSettings settings,
+            string databaseName)
         {
             settings.GuardAgainstNull(nameof(settings));
+            recorder.GuardAgainstNull(nameof(recorder));
             databaseName.GuardAgainstNullOrEmpty(nameof(databaseName));
 
             var accountKey = settings.GetString("AzureCosmosDbAccountKey");
             var hostName = settings.GetString("AzureCosmosDbHostName");
             var localEmulatorConnectionString = $"AccountEndpoint=https://{hostName}:8081/;AccountKey={accountKey}";
 
-            return new AzureCosmosSqlApiRepository(localEmulatorConnectionString, databaseName);
+            return new AzureCosmosSqlApiRepository(recorder, localEmulatorConnectionString, databaseName);
         }
 
         private void EnsureConnected()

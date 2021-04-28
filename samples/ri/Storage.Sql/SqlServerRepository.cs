@@ -199,7 +199,7 @@ namespace Storage.Sql
             }
         }
 
-        private Dictionary<string, object> ExecuteSingleSelect(string commandText, bool throwOnError = true)
+        private Dictionary<string, object> ExecuteSingleSelect(string commandText)
         {
             using (var connection = new SqlConnection(this.connectionString))
             {
@@ -225,17 +225,12 @@ namespace Storage.Sql
                 }
                 catch (Exception ex)
                 {
-                    this.recorder.Crash(CrashLevel.NonCritical, ex, $"Failed executing SQL statement: {commandText}");
-                    if (throwOnError)
-                    {
-                        throw;
-                    }
-                    return null;
+                    throw new InvalidOperationException($"Failed executing SQL statement: {commandText}", ex);
                 }
             }
         }
 
-        private void ExecuteInsert(string tableName, Dictionary<string, object> properties, bool throwOnError = true)
+        private void ExecuteInsert(string tableName, Dictionary<string, object> properties)
         {
             var columnNames = string.Join(',', properties.Select(p => p.Key));
             var columnIndex = 1;
@@ -262,16 +257,12 @@ namespace Storage.Sql
                 }
                 catch (Exception ex)
                 {
-                    this.recorder.Crash(CrashLevel.NonCritical, ex, $"Failed executing SQL statement: {commandText}");
-                    if (throwOnError)
-                    {
-                        throw;
-                    }
+                    throw new InvalidOperationException($"Failed executing SQL statement: {commandText}", ex);
                 }
             }
         }
 
-        private void ExecuteUpdate(string tableName, Dictionary<string, object> properties, bool throwOnError = true)
+        private void ExecuteUpdate(string tableName, Dictionary<string, object> properties)
         {
             var columnIndex = 1;
             var columnValueExpressions = string.Join(',', properties.Select(p => $"{p.Key}=@{columnIndex++}"));
@@ -299,16 +290,12 @@ namespace Storage.Sql
                 }
                 catch (Exception ex)
                 {
-                    this.recorder.Crash(CrashLevel.NonCritical, ex, $"Failed executing SQL statement: {commandText}");
-                    if (throwOnError)
-                    {
-                        throw;
-                    }
+                    throw new InvalidOperationException($"Failed executing SQL statement: {commandText}", ex);
                 }
             }
         }
 
-        private object ExecuteScalarCommand(string commandText, bool throwOnError = true)
+        private object ExecuteScalarCommand(string commandText)
         {
             using (var connection = new SqlConnection(this.connectionString))
             {
@@ -327,25 +314,20 @@ namespace Storage.Sql
                 }
                 catch (Exception ex)
                 {
-                    this.recorder.Crash(CrashLevel.NonCritical, ex, $"Failed executing SQL statement: {commandText}");
-                    if (throwOnError)
-                    {
-                        throw;
-                    }
-                    return null;
+                    throw new InvalidOperationException($"Failed executing SQL statement: {commandText}", ex);
                 }
             }
         }
 
-        private void ExecuteCommand(string commandText, bool throwOnError = true)
+        private void ExecuteCommand(string commandText)
         {
             using (var connection = new SqlConnection(this.connectionString))
             {
-                ExecuteCommand(commandText, connection, throwOnError);
+                ExecuteCommand(commandText, connection);
             }
         }
 
-        private void ExecuteCommand(string commandText, SqlConnection connection, bool throwOnError = true)
+        private void ExecuteCommand(string commandText, SqlConnection connection)
         {
             try
             {
@@ -359,11 +341,7 @@ namespace Storage.Sql
             }
             catch (Exception ex)
             {
-                this.recorder.Crash(CrashLevel.NonCritical, ex, $"Failed executing SQL statement: {commandText}");
-                if (throwOnError)
-                {
-                    throw;
-                }
+                throw new InvalidOperationException($"Failed executing SQL statement: {commandText}", ex);
             }
         }
     }
@@ -402,9 +380,13 @@ namespace Storage.Sql
 
         public static bool IsDbNull(this object value)
         {
+            var isNullBinary = value is SqlBinary binary
+                ? binary.IsNull
+                : false;
+
             return value == null
                    || value == DBNull.Value
-                   || value is SqlBinary binary && binary.IsNull;
+                   || isNullBinary;
         }
 
         public static bool IsMaximumAllowableDate(this DateTime dateTime)

@@ -17,7 +17,7 @@ namespace Storage.IntegrationTests.Azure
             InitializeAllTests();
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var settings = new NetCoreAppSettings(config);
-            repository = AzureCosmosSqlApiRepository.FromSettings(settings, "TestDatabase");
+            repository = AzureCosmosSqlApiRepository.FromSettings(Recorder, settings, "TestDatabase");
             AzureCosmosStorageBase.InitializeAllTests(context, null);
         }
 
