@@ -10,6 +10,7 @@ using Microsoft.Azure.Cosmos.Table.Protocol;
 using QueryAny;
 using ServiceStack;
 using ServiceStack.Configuration;
+using Storage.Azure.Properties;
 
 namespace Storage.Azure
 {
@@ -568,30 +569,30 @@ namespace Storage.Azure
             var builder = new StringBuilder();
             foreach (var where in wheres)
             {
-                builder.Append(where.ToAzureTableStorageWhereClause());
+                builder.Append(where.ToWhereClause());
             }
 
             return builder.ToString();
         }
 
-        private static string ToAzureTableStorageWhereClause(this WhereExpression where)
+        private static string ToWhereClause(this WhereExpression where)
         {
             if (where.Condition != null)
             {
                 var condition = where.Condition;
 
                 return
-                    $"{where.Operator.ToAzureTableStorageWhereClause()}{condition.ToAzureTableStorageWhereClause()}";
+                    $"{where.Operator.ToOperatorClause()}{condition.ToConditionClause()}";
             }
 
             if (where.NestedWheres != null && where.NestedWheres.Any())
             {
                 var builder = new StringBuilder();
-                builder.Append($"{where.Operator.ToAzureTableStorageWhereClause()}");
+                builder.Append($"{where.Operator.ToOperatorClause()}");
                 builder.Append("(");
                 foreach (var nestedWhere in where.NestedWheres)
                 {
-                    builder.Append($"{nestedWhere.ToAzureTableStorageWhereClause()}");
+                    builder.Append($"{nestedWhere.ToWhereClause()}");
                 }
 
                 builder.Append(")");
@@ -602,7 +603,7 @@ namespace Storage.Azure
             return string.Empty;
         }
 
-        private static string ToAzureTableStorageWhereClause(this LogicalOperator op)
+        private static string ToOperatorClause(this LogicalOperator op)
         {
             switch (op)
             {
@@ -617,7 +618,7 @@ namespace Storage.Azure
             }
         }
 
-        private static string ToAzureTableStorageWhereClause(this ConditionOperator op)
+        private static string ToConditionClause(this ConditionOperator op)
         {
             switch (op)
             {
@@ -638,12 +639,12 @@ namespace Storage.Azure
             }
         }
 
-        private static string ToAzureTableStorageWhereClause(this WhereCondition condition)
+        private static string ToConditionClause(this WhereCondition condition)
         {
             var fieldName = condition.FieldName.EqualsOrdinal(nameof(QueryEntity.Id))
                 ? TableConstants.RowKey
                 : condition.FieldName;
-            var conditionOperator = condition.Operator.ToAzureTableStorageWhereClause();
+            var conditionOperator = condition.Operator.ToConditionClause();
 
             var value = condition.Value;
             switch (value)

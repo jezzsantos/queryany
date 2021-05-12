@@ -749,13 +749,13 @@ namespace Storage.Sql
                 var condition = where.Condition;
 
                 return
-                    $"{where.Operator.ToLogicalOperatorClause()}{condition.ToWhereConditionClause(joinedEntities)}";
+                    $"{where.Operator.ToOperatorClause()}{condition.ToConditionClause(joinedEntities)}";
             }
 
             if (where.NestedWheres != null && where.NestedWheres.Any())
             {
                 var builder = new StringBuilder();
-                builder.Append($"{where.Operator.ToLogicalOperatorClause()}");
+                builder.Append($"{where.Operator.ToOperatorClause()}");
                 builder.Append("(");
                 foreach (var nestedWhere in where.NestedWheres)
                 {
@@ -770,7 +770,7 @@ namespace Storage.Sql
             return string.Empty;
         }
 
-        private static string ToLogicalOperatorClause(this LogicalOperator op)
+        private static string ToOperatorClause(this LogicalOperator op)
         {
             switch (op)
             {
@@ -785,11 +785,11 @@ namespace Storage.Sql
             }
         }
 
-        private static string ToWhereConditionClause(this WhereCondition condition,
+        private static string ToConditionClause(this WhereCondition condition,
             IReadOnlyList<QueriedEntity> joinedEntities)
         {
-            var fieldName = ToWhereConditionFieldName(condition.FieldName, joinedEntities);
-            var @operator = condition.Operator.ToWhereConditionOperatorClause();
+            var fieldName = ToFieldName(condition.FieldName, joinedEntities);
+            var @operator = condition.Operator.ToConditionClause();
 
             var value = condition.Value;
             switch (value)
@@ -819,7 +819,7 @@ namespace Storage.Sql
 
                 case byte[] bytes:
                     return
-                        $"{fieldName} {@operator} {ToWhereConditionHexByteArray(bytes)}";
+                        $"{fieldName} {@operator} {ToHexByteArray(bytes)}";
 
                 case Guid guid:
                     return $"{fieldName} {@operator} '{guid:D}'";
@@ -834,7 +834,7 @@ namespace Storage.Sql
             }
         }
 
-        private static string ToWhereConditionOperatorClause(this ConditionOperator op)
+        private static string ToConditionClause(this ConditionOperator op)
         {
             switch (op)
             {
@@ -855,7 +855,7 @@ namespace Storage.Sql
             }
         }
 
-        private static string ToWhereConditionFieldName(string fieldName, IReadOnlyList<QueriedEntity> joinedEntities)
+        private static string ToFieldName(string fieldName, IReadOnlyList<QueriedEntity> joinedEntities)
         {
             if (joinedEntities.Any())
             {
@@ -872,7 +872,7 @@ namespace Storage.Sql
             return $"{SqlServerRepository.PrimaryTableAlias}.{fieldName}";
         }
 
-        private static string ToWhereConditionHexByteArray(byte[] bytes)
+        private static string ToHexByteArray(byte[] bytes)
         {
             if (bytes == null || bytes.Length == 0)
             {

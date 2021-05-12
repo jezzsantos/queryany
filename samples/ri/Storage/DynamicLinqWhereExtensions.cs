@@ -17,7 +17,7 @@ namespace Storage
             where TQueryableEntity : IQueryableEntity
 
         {
-            var orderBy = query.GetDefaultOrdering().ToDynamicLinqFieldName();
+            var orderBy = query.GetDefaultOrdering().ToFieldName();
             orderBy = $"{orderBy}{(query.ResultOptions.OrderBy.Direction == OrderDirection.Descending ? " DESC" : "")}";
 
             return orderBy;
@@ -28,30 +28,30 @@ namespace Storage
             var builder = new StringBuilder();
             foreach (var where in wheres)
             {
-                builder.Append(where.ToDynamicLinqWhereClause());
+                builder.Append(where.ToWhereClause());
             }
 
             return builder.ToString();
         }
 
-        private static string ToDynamicLinqWhereClause(this WhereExpression where)
+        private static string ToWhereClause(this WhereExpression where)
         {
             if (where.Condition != null)
             {
                 var condition = where.Condition;
 
                 return
-                    $"{where.Operator.ToDynamicLinqWhereClause()}{condition.ToDynamicLinqWhereClause()}";
+                    $"{where.Operator.ToOperatorClause()}{condition.ToConditionClause()}";
             }
 
             if (where.NestedWheres != null && where.NestedWheres.Any())
             {
                 var builder = new StringBuilder();
-                builder.Append($"{where.Operator.ToDynamicLinqWhereClause()}");
+                builder.Append($"{where.Operator.ToOperatorClause()}");
                 builder.Append("(");
                 foreach (var nestedWhere in where.NestedWheres)
                 {
-                    builder.Append($"{nestedWhere.ToDynamicLinqWhereClause()}");
+                    builder.Append($"{nestedWhere.ToWhereClause()}");
                 }
 
                 builder.Append(")");
@@ -62,7 +62,7 @@ namespace Storage
             return string.Empty;
         }
 
-        private static string ToDynamicLinqWhereClause(this LogicalOperator op)
+        private static string ToOperatorClause(this LogicalOperator op)
         {
             switch (op)
             {
@@ -77,7 +77,7 @@ namespace Storage
             }
         }
 
-        private static string ToDynamicLinqWhereClause(this ConditionOperator op)
+        private static string ToConditionClause(this ConditionOperator op)
         {
             switch (op)
             {
@@ -98,15 +98,15 @@ namespace Storage
             }
         }
 
-        private static string ToDynamicLinqFieldName(this string fieldName)
+        private static string ToFieldName(this string fieldName)
         {
             return $"Value[\"{fieldName}\"]";
         }
 
-        private static string ToDynamicLinqWhereClause(this WhereCondition condition)
+        private static string ToConditionClause(this WhereCondition condition)
         {
-            var fieldName = condition.FieldName.ToDynamicLinqFieldName();
-            var @operator = condition.Operator.ToDynamicLinqWhereClause();
+            var fieldName = condition.FieldName.ToFieldName();
+            var @operator = condition.Operator.ToConditionClause();
             var value = condition.Value;
 
             if (value is string)
@@ -157,10 +157,10 @@ namespace Storage
                 return $"Double({fieldName}) {@operator} {value}";
             }
 
-            return value.OtherTypeToString(fieldName, @operator);
+            return value.ToWhereConditionOtherValueString(fieldName, @operator);
         }
 
-        private static string OtherTypeToString(this object value, string fieldName, string @operator)
+        private static string ToWhereConditionOtherValueString(this object value, string fieldName, string @operator)
         {
             if (value == null)
             {
