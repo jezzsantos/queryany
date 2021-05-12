@@ -150,7 +150,7 @@ namespace Storage
             }
 
             var results = query.FetchAllIntoMemory(this, metadata, () => QueryPrimaryEntities(containerName),
-                je => QueryJoiningContainer(je));
+                QueryJoiningContainer);
 
             return results;
         }

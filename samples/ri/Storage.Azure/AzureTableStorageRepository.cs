@@ -634,6 +634,8 @@ namespace Storage.Azure
                     return "le";
                 case ConditionOperator.NotEqualTo:
                     return "ne";
+                case ConditionOperator.Like:
+                    throw new NotSupportedException(Resources.AzureTableStorageRepository_LikeNotSupported);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(op), op, null);
             }

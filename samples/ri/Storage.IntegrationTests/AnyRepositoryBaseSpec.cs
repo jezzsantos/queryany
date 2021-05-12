@@ -29,6 +29,10 @@ namespace Storage.IntegrationTests
         private RepoInfo repo;
         private RepoInfo secondJoiningRepo;
 
+        protected IRepository Repository => this.repo.Repository;
+
+        protected string ContainerName => this.repo.ContainerName;
+
         protected static void InitializeAllTests()
         {
             container = new Container();
@@ -324,7 +328,7 @@ namespace Storage.IntegrationTests
             updated.Id.Should().Be(entity.Id);
             updated.Properties.GetValueOrDefault<string>(nameof(TestRepositoryEntity.AStringValue)).Should()
                 .Be("updated");
-            updated.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
+            updated.LastPersistedAtUtc.Should().BeNear(DateTime.UtcNow);
         }
 
         [TestMethod]
@@ -545,6 +549,42 @@ namespace Storage.IntegrationTests
 
             results.Count.Should().Be(1);
             results[0].Id.Should().Be(entity1.Id);
+        }
+
+        [TestMethod]
+        public virtual void WhenQueryForStringValueWithLikeExact_ThenReturnsResult()
+        {
+            var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestRepositoryEntity {AStringValue = "avalue"}));
+            var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestRepositoryEntity {AStringValue = "avalue"}));
+            var query = Query.From<TestRepositoryEntity>()
+                .Where(e => e.AStringValue, ConditionOperator.Like, "avalue");
+
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
+
+            results.Count.Should().Be(2);
+            results[0].Id.Should().Be(entity1.Id);
+            results[1].Id.Should().Be(entity2.Id);
+        }
+
+        [TestMethod]
+        public virtual void WhenQueryForStringValueWithLikePartial_ThenReturnsResult()
+        {
+            var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestRepositoryEntity {AStringValue = "avalue1"}));
+            var entity2 = this.repo.Repository.Add(this.repo.ContainerName,
+                CommandEntity.FromType(new TestRepositoryEntity {AStringValue = "avalue2"}));
+            var query = Query.From<TestRepositoryEntity>()
+                .Where(e => e.AStringValue, ConditionOperator.Like, "value");
+
+            var results = this.repo.Repository.Query(this.repo.ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
+
+            results.Count.Should().Be(2);
+            results[0].Id.Should().Be(entity1.Id);
+            results[1].Id.Should().Be(entity2.Id);
         }
 
         [TestMethod]

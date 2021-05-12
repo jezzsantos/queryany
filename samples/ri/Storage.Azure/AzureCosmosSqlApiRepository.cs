@@ -656,6 +656,7 @@ namespace Storage.Azure
             switch (op)
             {
                 case ConditionOperator.EqualTo:
+                case ConditionOperator.Like:
                     return "=";
                 case ConditionOperator.GreaterThan:
                     return ">";
@@ -687,6 +688,10 @@ namespace Storage.Azure
             switch (value)
             {
                 case string text:
+                    if (condition.Operator == ConditionOperator.Like)
+                    {
+                        return $"{fieldNameExpression} LIKE '%{text}%'";
+                    }
                     return $"{fieldNameExpression} {@operator} '{text}'";
 
                 case Enum @enum:

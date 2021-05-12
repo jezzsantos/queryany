@@ -795,6 +795,11 @@ namespace Storage.Sql
             switch (value)
             {
                 case string text:
+                    if (condition.Operator == ConditionOperator.Like)
+                    {
+                        return $"{fieldName} LIKE '%{text}%'";
+                    }
+
                     return $"{fieldName} {@operator} '{text}'";
 
                 case DateTime dateTime:
@@ -839,6 +844,7 @@ namespace Storage.Sql
             switch (op)
             {
                 case ConditionOperator.EqualTo:
+                case ConditionOperator.Like:
                     return "=";
                 case ConditionOperator.GreaterThan:
                     return ">";

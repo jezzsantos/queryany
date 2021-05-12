@@ -82,6 +82,7 @@ namespace Storage
             switch (op)
             {
                 case ConditionOperator.EqualTo:
+                case ConditionOperator.Like:
                     return "==";
                 case ConditionOperator.GreaterThan:
                     return ">";
@@ -111,6 +112,11 @@ namespace Storage
 
             if (value is string)
             {
+                if (condition.Operator == ConditionOperator.Like)
+                {
+                    return $"String({fieldName}).contains(\"{value}\")";
+                }
+
                 return $"String({fieldName}) {@operator} \"{value}\"";
             }
 

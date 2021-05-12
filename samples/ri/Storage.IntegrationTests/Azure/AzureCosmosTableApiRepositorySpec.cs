@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
@@ -34,6 +35,26 @@ namespace Storage.IntegrationTests.Azure
                 Repository = repository,
                 ContainerName = typeof(TEntity).GetEntityNameSafe()
             };
+        }
+
+        [TestMethod, ExpectedException(typeof(NotSupportedException))]
+        public override void WhenQueryForStringValueWithLikeExact_ThenReturnsResult()
+        {
+            var query = Query.From<TestRepositoryEntity>()
+                .Where(e => e.AStringValue, ConditionOperator.Like, "value");
+
+            Repository.Query(ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
+        }
+
+        [TestMethod, ExpectedException(typeof(NotSupportedException))]
+        public override void WhenQueryForStringValueWithLikePartial_ThenReturnsResult()
+        {
+            var query = Query.From<TestRepositoryEntity>()
+                .Where(e => e.AStringValue, ConditionOperator.Like, "value");
+
+            Repository.Query(ContainerName, query,
+                RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
         }
     }
 }
