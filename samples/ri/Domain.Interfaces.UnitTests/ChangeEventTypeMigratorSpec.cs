@@ -4,6 +4,7 @@ using Domain.Interfaces.Entities;
 using Domain.Interfaces.Properties;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using UnitTesting.Common;
 
 namespace Domain.Interfaces.UnitTests
 {

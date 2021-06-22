@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using Domain.Interfaces;
+using Common;
 using FluentAssertions;
 using Funq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

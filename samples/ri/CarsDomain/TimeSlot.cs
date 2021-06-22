@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CarsDomain.Properties;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 
 namespace CarsDomain

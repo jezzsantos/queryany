@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Api.Common.Properties;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using ServiceStack;
 

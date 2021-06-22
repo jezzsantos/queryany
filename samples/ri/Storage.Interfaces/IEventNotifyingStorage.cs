@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Domain.Interfaces;
+using Common;
 
 namespace Storage.Interfaces
 {

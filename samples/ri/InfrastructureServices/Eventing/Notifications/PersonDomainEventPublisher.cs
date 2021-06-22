@@ -1,5 +1,5 @@
 ﻿using System;
-using ApplicationServices;
+using ApplicationServices.Interfaces;
 using Domain.Interfaces.Entities;
 using PersonsDomain;
 

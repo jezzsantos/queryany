@@ -1,6 +1,6 @@
 ﻿using System;
 using CarsDomain.Properties;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using QueryAny;
 

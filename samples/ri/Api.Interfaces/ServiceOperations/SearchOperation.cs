@@ -1,4 +1,4 @@
-﻿using Domain.Interfaces;
+﻿using Application.Interfaces;
 
 namespace Api.Interfaces.ServiceOperations
 {

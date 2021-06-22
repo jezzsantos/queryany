@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using QueryAny;
 using Storage.Interfaces.ReadModels;

@@ -1,4 +1,5 @@
-﻿using Domain.Interfaces;
+﻿using Common;
+using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 
 namespace PersonsDomain

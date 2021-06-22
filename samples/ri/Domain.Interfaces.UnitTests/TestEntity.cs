@@ -1,4 +1,5 @@
 ﻿using System;
+using Common;
 using Domain.Interfaces.Entities;
 
 namespace Domain.Interfaces.UnitTests

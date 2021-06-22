@@ -17,10 +17,4 @@
       <ProjectReference Include="..\Api.Interfaces\Api.Interfaces.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Compile Include="..\Common\FluentAssertionExtensions.cs">
-        <Link>FluentAssertionExtensions.cs</Link>
-      </Compile>
-    </ItemGroup>
-
 </Project>

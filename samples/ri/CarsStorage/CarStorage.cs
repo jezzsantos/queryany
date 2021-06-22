@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Application.Interfaces;
+using Application.Interfaces.Storage;
 using CarsApplication.ReadModels;
 using CarsApplication.Storage;
 using CarsDomain;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using QueryAny;
 using Storage;

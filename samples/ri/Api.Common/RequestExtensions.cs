@@ -1,4 +1,4 @@
-﻿using Domain.Interfaces;
+﻿using Application.Interfaces;
 using InfrastructureServices.Identity;
 using ServiceStack.Web;
 

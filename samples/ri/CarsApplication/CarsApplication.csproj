@@ -8,7 +8,8 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Application.Common\Application.Common.csproj" />
-      <ProjectReference Include="..\ApplicationServices\ApplicationServices.csproj" />
+      <ProjectReference Include="..\Application.Interfaces\Application.Interfaces.csproj" />
+      <ProjectReference Include="..\ApplicationServices.Interfaces\ApplicationServices.Interfaces.csproj" />
       <ProjectReference Include="..\CarsDomain\CarsDomain.csproj" />
       <ProjectReference Include="..\Domain.Interfaces\Domain.Interfaces.csproj" />
       <ProjectReference Include="..\Storage.Interfaces\Storage.Interfaces.csproj" />

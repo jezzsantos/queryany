@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using CarsApplication.ReadModels;
 using CarsDomain;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using Storage;
 using Storage.Interfaces.ReadModels;

@@ -1,10 +1,10 @@
 ﻿using System;
 using Api.Common;
-using Api.Interfaces;
 using Api.Interfaces.ServiceOperations.Cars;
+using Application.Interfaces;
 using Application.Resources;
 using CarsApplication;
-using Domain.Interfaces;
+using Common;
 using ServiceStack;
 
 namespace CarsApi.Services.Cars

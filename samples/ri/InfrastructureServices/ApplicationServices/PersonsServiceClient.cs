@@ -1,7 +1,7 @@
 ﻿using Api.Interfaces.ServiceOperations.Persons;
 using Application.Resources;
-using ApplicationServices;
-using Domain.Interfaces;
+using ApplicationServices.Interfaces;
+using Common;
 using ServiceStack;
 
 namespace InfrastructureServices.ApplicationServices

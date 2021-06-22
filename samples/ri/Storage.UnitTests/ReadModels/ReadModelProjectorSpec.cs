@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,6 +9,7 @@ using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;
 using Storage.ReadModels;
 using Storage.ReadModels.Properties;
+using UnitTesting.Common;
 
 namespace Storage.UnitTests.ReadModels
 {

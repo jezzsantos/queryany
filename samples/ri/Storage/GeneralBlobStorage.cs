@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using Domain.Interfaces;
+using Common;
 using Storage.Interfaces;
 
 namespace Storage

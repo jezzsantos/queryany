@@ -1,6 +1,6 @@
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
-using DomainServices;
+using DomainServices.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using Microsoft.Data.SqlClient;
 using QueryAny;

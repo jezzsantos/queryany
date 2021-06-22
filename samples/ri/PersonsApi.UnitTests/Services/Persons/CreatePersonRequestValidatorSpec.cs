@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PersonsApi.Properties;
 using PersonsApi.Services.Persons;
 using ServiceStack.FluentValidation;
+using UnitTesting.Common;
 
 namespace PersonsApi.UnitTests.Services.Persons
 {

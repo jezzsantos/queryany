@@ -1,6 +1,6 @@
 ﻿using System;
+using Application.Interfaces;
 using Application.Resources;
-using Domain.Interfaces;
 
 namespace CarsApplication
 {

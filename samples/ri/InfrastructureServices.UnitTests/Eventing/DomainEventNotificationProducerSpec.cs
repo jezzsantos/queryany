@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using ApplicationServices;
-using Domain.Interfaces;
+using ApplicationServices.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using InfrastructureServices.Eventing.Notifications;
@@ -9,6 +9,7 @@ using InfrastructureServices.Properties;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Storage.Interfaces;
+using UnitTesting.Common;
 
 namespace InfrastructureServices.UnitTests.Eventing
 {

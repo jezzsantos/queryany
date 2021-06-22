@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Api.Common;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Funq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 using ServiceStack;
+using UnitTesting.Common;
 
 namespace Storage.IntegrationTests
 {

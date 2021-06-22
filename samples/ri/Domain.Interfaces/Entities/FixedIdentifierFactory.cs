@@ -1,4 +1,6 @@
-﻿namespace Domain.Interfaces.Entities
+﻿using Common;
+
+namespace Domain.Interfaces.Entities
 {
     public class FixedIdentifierFactory : IIdentifierFactory
     {

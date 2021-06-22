@@ -1,5 +1,5 @@
 using System;
-using Domain.Interfaces;
+using Common;
 
 namespace Api.Common
 {

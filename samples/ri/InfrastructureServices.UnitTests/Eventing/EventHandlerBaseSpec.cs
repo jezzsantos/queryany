@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Domain.Interfaces;
+using Common;
 using FluentAssertions;
 using InfrastructureServices.Eventing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

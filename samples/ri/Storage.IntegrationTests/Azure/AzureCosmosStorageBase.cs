@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Domain.Interfaces;
+using Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Storage.IntegrationTests.Azure

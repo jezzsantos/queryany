@@ -70,8 +70,8 @@ namespace CarsApi.IntegrationTests
             car.Manufacturer.Year.Should().Be(2010);
             car.Manufacturer.Make.Should().Be(Manufacturer.Makes[0]);
             car.Manufacturer.Model.Should().Be(Manufacturer.Models[0]);
-            car.Owner.Id.Should().Be(CurrentCallerConstants.AnonymousUserId);
-            car.Managers.Single().Id.Should().Be(CurrentCallerConstants.AnonymousUserId);
+            car.Owner.Id.Should().Be(CallerConstants.AnonymousUserId);
+            car.Managers.Single().Id.Should().Be(CallerConstants.AnonymousUserId);
         }
 
         [TestMethod]

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Domain.Interfaces;
+using Common;
 using QueryAny;
 using ServiceStack;
 using Storage.Interfaces;

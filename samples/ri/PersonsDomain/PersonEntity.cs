@@ -1,7 +1,7 @@
 ﻿using System;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
-using DomainServices;
+using DomainServices.Interfaces;
 using PersonsDomain.Properties;
 using QueryAny;
 

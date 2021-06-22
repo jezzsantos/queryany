@@ -6,11 +6,11 @@ namespace Application.Resources
     {
         public static readonly Person Anonymous = new Person
         {
-            Id = CurrentCallerConstants.AnonymousUserId,
+            Id = CallerConstants.AnonymousUserId,
             Name = new PersonName
             {
-                FirstName = CurrentCallerConstants.AnonymousUserName,
-                LastName = CurrentCallerConstants.AnonymousUserName
+                FirstName = CallerConstants.AnonymousUserName,
+                LastName = CallerConstants.AnonymousUserName
             },
             Email = null,
             PhoneNumber = null

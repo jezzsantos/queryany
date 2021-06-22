@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Application.Interfaces;
 using CarsApplication.ReadModels;
 using CarsDomain;
-using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 
 namespace CarsApplication.Storage

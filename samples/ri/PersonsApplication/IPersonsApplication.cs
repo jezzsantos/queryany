@@ -1,5 +1,5 @@
-﻿using Application.Resources;
-using Domain.Interfaces;
+﻿using Application.Interfaces;
+using Application.Resources;
 
 namespace PersonsApplication
 {

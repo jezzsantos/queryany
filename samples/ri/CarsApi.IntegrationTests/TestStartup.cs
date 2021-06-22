@@ -1,9 +1,9 @@
-using ApplicationServices;
+using ApplicationServices.Interfaces;
 using CarsApplication.ReadModels;
 using CarsApplication.Storage;
 using CarsDomain;
 using CarsStorage;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using InfrastructureServices.Eventing.ReadModels;
 using Microsoft.AspNetCore.Builder;

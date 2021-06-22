@@ -1,11 +1,11 @@
 ﻿using System.Reflection;
 using Api.Common;
-using ApplicationServices;
+using ApplicationServices.Interfaces;
 using CarsApplication;
 using CarsApplication.Storage;
 using CarsDomain;
 using CarsStorage;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using Funq;
 using InfrastructureServices.ApplicationServices;

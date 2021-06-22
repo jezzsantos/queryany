@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CarsDomain.Properties;
-using Domain.Interfaces;
+using Common;
 
 namespace CarsDomain
 {

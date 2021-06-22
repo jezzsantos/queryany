@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using CarsDomain.Properties;
+using Common;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 

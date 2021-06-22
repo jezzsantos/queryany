@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Domain.Interfaces;
-using InfrastructureServices.Properties;
+using Common;
 using Storage.Interfaces;
 
 namespace InfrastructureServices.Eventing
@@ -91,7 +90,7 @@ namespace InfrastructureServices.Eventing
             if (!eventStream.HasContiguousVersions())
             {
                 throw new InvalidOperationException(
-                    Resources.EventStreamHandlerBase_OutOfOrderEvents.Format(streamName));
+                    string.Format(streamName));
             }
         }
 

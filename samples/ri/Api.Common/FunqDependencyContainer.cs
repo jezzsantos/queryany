@@ -1,4 +1,4 @@
-﻿using Domain.Interfaces;
+﻿using Common;
 using Funq;
 
 namespace Api.Common

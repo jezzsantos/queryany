@@ -1,4 +1,5 @@
-﻿using ServiceStack;
+﻿using Application.Interfaces;
+using ServiceStack;
 
 namespace Api.Interfaces.ServiceOperations
 {

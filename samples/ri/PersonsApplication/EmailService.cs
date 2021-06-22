@@ -1,5 +1,5 @@
-﻿using Domain.Interfaces;
-using DomainServices;
+﻿using Common;
+using DomainServices.Interfaces;
 using PersonsApplication.Storage;
 
 namespace PersonsApplication

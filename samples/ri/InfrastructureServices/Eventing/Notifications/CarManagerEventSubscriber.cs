@@ -1,6 +1,6 @@
-﻿using ApplicationServices;
+﻿using ApplicationServices.Interfaces;
 using CarsApplication;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using InfrastructureServices.Identity;
 using PersonsDomain;

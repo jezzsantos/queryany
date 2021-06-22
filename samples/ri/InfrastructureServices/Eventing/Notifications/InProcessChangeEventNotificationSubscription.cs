@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using ApplicationServices;
-using Domain.Interfaces;
+using ApplicationServices.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using Storage.Interfaces;
 

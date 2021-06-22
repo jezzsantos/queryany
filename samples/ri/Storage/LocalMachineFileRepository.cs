@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Domain.Interfaces;
+using Common;
 using QueryAny;
 using ServiceStack;
 using ServiceStack.Configuration;

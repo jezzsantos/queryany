@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using PersonsApplication.ReadModels;
 using PersonsApplication.Storage;

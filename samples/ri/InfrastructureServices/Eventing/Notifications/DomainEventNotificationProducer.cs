@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ApplicationServices;
-using Domain.Interfaces;
+using ApplicationServices.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using InfrastructureServices.Properties;
 using Storage.Interfaces;
@@ -71,14 +71,14 @@ namespace InfrastructureServices.Eventing.Notifications
             var eventToPublish = pair.Publisher.Publish(@event);
             if (eventToPublish == null)
             {
-                throw new InvalidOperationException(Resources.DomainEventNotificationProducer_PublisherError.Format(
+                throw new InvalidOperationException(string.Format(
                     pair.Publisher.GetType().Name,
                     changeEvent.Id, changeEvent.Metadata.Fqn));
             }
 
             if (!pair.Subscriber.Notify(eventToPublish))
             {
-                throw new InvalidOperationException(Resources.DomainEventNotificationProducer_SubscriberError.Format(
+                throw new InvalidOperationException(string.Format(
                     pair.Subscriber.GetType().Name,
                     changeEvent.Id, changeEvent.Metadata.Fqn));
             }
@@ -92,7 +92,7 @@ namespace InfrastructureServices.Eventing.Notifications
             if (pair == null)
             {
                 throw new InvalidOperationException(
-                    Resources.DomainEventNotificationProducer_PublisherSubscriberPairNotConfigured.Format(
+                    string.Format(
                         entityTypeName));
             }
 

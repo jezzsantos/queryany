@@ -1,7 +1,7 @@
 ﻿using Api.Common;
-using Api.Interfaces;
 using Api.Interfaces.ServiceOperations.Persons;
-using Domain.Interfaces;
+using Application.Interfaces;
+using Common;
 using PersonsApplication;
 using ServiceStack;
 

@@ -1,5 +1,5 @@
 ﻿using Application.Resources;
-using Domain.Interfaces;
+using Common;
 using ServiceStack;
 using ServiceStack.Web;
 

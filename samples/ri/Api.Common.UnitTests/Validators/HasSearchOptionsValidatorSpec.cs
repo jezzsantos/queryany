@@ -1,12 +1,12 @@
 using Api.Common.Properties;
 using Api.Common.Validators;
-using Api.Interfaces;
-using Domain.Interfaces;
+using Application.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using ServiceStack.FluentValidation;
 using ServiceStack.FluentValidation.Results;
+using UnitTesting.Common;
 
 namespace Api.Common.UnitTests.Validators
 {

@@ -2,7 +2,7 @@
 using Api.Common.Validators;
 using Api.Interfaces.ServiceOperations.Cars;
 using CarsApi.Properties;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using ServiceStack.FluentValidation;
 

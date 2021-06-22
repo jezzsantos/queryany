@@ -5,6 +5,7 @@ using CarsDomain;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ServiceStack.FluentValidation;
+using UnitTesting.Common;
 
 namespace CarsApi.UnitTests.Services.Cars
 {

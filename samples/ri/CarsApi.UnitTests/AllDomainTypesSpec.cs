@@ -1,5 +1,5 @@
 ﻿using Api.Common;
-using Domain.Interfaces;
+using Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 

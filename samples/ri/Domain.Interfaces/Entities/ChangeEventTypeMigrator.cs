@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Common;
 using Domain.Interfaces.Properties;
 using ServiceStack;
 using ServiceStack.Text;

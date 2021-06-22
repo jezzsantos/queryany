@@ -19,10 +19,4 @@
     <ProjectReference Include="..\QueryAny\QueryAny.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="..\Common\FluentAssertionExtensions.cs">
-      <Link>FluentAssertionExtensions.cs</Link>
-    </Compile>
-  </ItemGroup>
-
 </Project>

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Domain.Interfaces;
+using Common;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using ServiceStack.Configuration;

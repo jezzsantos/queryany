@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,6 +10,7 @@ using QueryAny;
 using Storage.Interfaces;
 using Storage.Properties;
 using Storage.UnitTests.ReadModels;
+using UnitTesting.Common;
 
 namespace Storage.UnitTests
 {

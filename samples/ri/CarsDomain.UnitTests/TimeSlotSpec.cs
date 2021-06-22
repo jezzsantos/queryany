@@ -2,6 +2,7 @@
 using CarsDomain.Properties;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using UnitTesting.Common;
 
 namespace CarsDomain.UnitTests
 {

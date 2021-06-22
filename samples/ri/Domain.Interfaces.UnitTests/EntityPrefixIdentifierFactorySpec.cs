@@ -92,7 +92,7 @@ namespace Domain.Interfaces.UnitTests
         [TestMethod]
         public void WhenIsValidWithAnonymousUserId_ThenReturnsTrue()
         {
-            var result = this.factory.IsValid(CurrentCallerConstants.AnonymousUserId.ToIdentifier());
+            var result = this.factory.IsValid(CallerConstants.AnonymousUserId.ToIdentifier());
 
             result.Should().BeTrue();
         }

@@ -1,5 +1,5 @@
 ﻿using Application.Resources;
-using ApplicationServices;
+using ApplicationServices.Interfaces;
 
 namespace CarsApi.IntegrationTests
 {

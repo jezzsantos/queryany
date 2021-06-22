@@ -1,4 +1,4 @@
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using InfrastructureServices.Eventing.ReadModels;
 using Microsoft.AspNetCore.Builder;

@@ -1,5 +1,5 @@
 using System;
-using Domain.Interfaces;
+using Common;
 using Microsoft.Extensions.Logging;
 using ServiceStack;
 #if !TESTINGONLY

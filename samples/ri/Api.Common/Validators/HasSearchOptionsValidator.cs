@@ -1,6 +1,6 @@
 ﻿using Api.Common.Properties;
-using Api.Interfaces;
-using Domain.Interfaces;
+using Application.Interfaces;
+using Common;
 using ServiceStack.FluentValidation;
 
 namespace Api.Common.Validators

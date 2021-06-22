@@ -2,10 +2,9 @@
 using Api.Interfaces.ServiceOperations.Cars;
 using CarsApi.Properties;
 using CarsDomain;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using ServiceStack.FluentValidation;
-using Validations = CarsDomain.Validations;
 
 namespace CarsApi.Services.Cars
 {

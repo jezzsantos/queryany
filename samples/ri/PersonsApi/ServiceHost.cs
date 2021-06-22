@@ -1,9 +1,9 @@
 ﻿using System.Reflection;
 using Api.Common;
-using ApplicationServices;
-using Domain.Interfaces;
+using ApplicationServices.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
-using DomainServices;
+using DomainServices.Interfaces;
 using Funq;
 using PersonsApplication;
 using PersonsApplication.Storage;

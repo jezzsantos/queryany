@@ -1,6 +1,8 @@
+using Application.Interfaces;
+using Common;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using DomainServices;
+using DomainServices.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -72,12 +74,12 @@ namespace PersonsApplication.UnitTests
         public void WhenGetAnonymousUser_ThenReturnsAnonymousPerson()
         {
             var result =
-                this.personsApplication.Get(this.caller.Object, CurrentCallerConstants.AnonymousUserId,
+                this.personsApplication.Get(this.caller.Object, CallerConstants.AnonymousUserId,
                     new GetOptions());
 
-            result.Id.Should().Be(CurrentCallerConstants.AnonymousUserId);
-            result.Name.FirstName.Should().Be(CurrentCallerConstants.AnonymousUserName);
-            result.Name.LastName.Should().Be(CurrentCallerConstants.AnonymousUserName);
+            result.Id.Should().Be(CallerConstants.AnonymousUserId);
+            result.Name.FirstName.Should().Be(CallerConstants.AnonymousUserName);
+            result.Name.LastName.Should().Be(CallerConstants.AnonymousUserName);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Api.Common.Validators;
 using Api.Interfaces.ServiceOperations.Persons;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using PersonsApi.Properties;
 using ServiceStack.FluentValidation;

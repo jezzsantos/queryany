@@ -18,6 +18,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Api.Common\Api.Common.csproj" />
+      <ProjectReference Include="..\IntegrationTesting.Common\IntegrationTesting.Common.csproj" />
       <ProjectReference Include="..\Storage.Azure\Storage.Azure.csproj" />
       <ProjectReference Include="..\Storage.Redis\Storage.Redis.csproj" />
       <ProjectReference Include="..\Storage.Sql\Storage.Sql.csproj" />
@@ -35,12 +36,6 @@
       <Content Include="Sql\RegenerateDatabase.sql">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Include="..\Common\FluentAssertionExtensions.cs">
-        <Link>FluentAssertionExtensions.cs</Link>
-      </Compile>
     </ItemGroup>
 
 </Project>

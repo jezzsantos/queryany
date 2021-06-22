@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Application.Interfaces;
 using Application.Resources;
-using ApplicationServices;
+using ApplicationServices.Interfaces;
 using CarsApplication.Storage;
 using CarsDomain;
-using Domain.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

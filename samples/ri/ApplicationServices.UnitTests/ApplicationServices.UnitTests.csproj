@@ -9,20 +9,14 @@
     <ItemGroup>
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
-        <PackageReference Include="Moq" Version="4.14.5" />
+        <PackageReference Include="Moq" Version="4.15.2" />
         <PackageReference Include="MSTest.TestAdapter" Version="2.1.0" />
         <PackageReference Include="MSTest.TestFramework" Version="2.1.0" />
         <PackageReference Include="coverlet.collector" Version="1.2.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\ApplicationServices\ApplicationServices.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Compile Include="..\Common\FluentAssertionExtensions.cs">
-            <Link>FluentAssertionExtensions.cs</Link>
-        </Compile>
+        <ProjectReference Include="..\ApplicationServices.Interfaces\ApplicationServices.Interfaces.csproj" />
     </ItemGroup>
 
 </Project>

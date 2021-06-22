@@ -1,8 +1,10 @@
 ﻿using Application;
+using Application.Interfaces;
 using Application.Resources;
+using Common;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
-using DomainServices;
+using DomainServices.Interfaces;
 using PersonsApplication.Storage;
 using PersonsDomain;
 using ServiceStack;
@@ -49,7 +51,7 @@ namespace PersonsApplication
             caller.GuardAgainstNull(nameof(caller));
             id.GuardAgainstNullOrEmpty(nameof(id));
 
-            if (id.ToIdentifier() == CurrentCallerConstants.AnonymousUserId)
+            if (id.ToIdentifier() == CallerConstants.AnonymousUserId)
             {
                 return Person.Anonymous;
             }
