@@ -3,25 +3,24 @@ using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using Domain.Interfaces.Properties;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UnitTesting.Common;
+using Xunit;
 
 namespace Domain.Interfaces.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class ChangeEventTypeMigratorSpec
     {
-        private Dictionary<string, string> mappings;
-        private ChangeEventTypeMigrator migrator;
+        private readonly Dictionary<string, string> mappings;
+        private readonly ChangeEventTypeMigrator migrator;
 
-        [TestInitialize]
-        public void Initialize()
+        public ChangeEventTypeMigratorSpec()
         {
             this.mappings = new Dictionary<string, string>();
             this.migrator = new ChangeEventTypeMigrator(this.mappings);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRehydrateAndTypeKnown_ThenReturnsNewInstance()
         {
             var eventJson = EntityEvent.ToData(new TestChangeEvent {EntityId = "anentityid"});
@@ -31,7 +30,7 @@ namespace Domain.Interfaces.UnitTests
             result.As<TestChangeEvent>().EntityId.Should().Be("anentityid");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRehydrateAndUnknownType_ThenThrows()
         {
             var eventJson = EntityEvent.ToData(new TestChangeEvent {EntityId = "anentityid"});
@@ -41,7 +40,7 @@ namespace Domain.Interfaces.UnitTests
                 .WithMessageLike(Resources.ChangeEventMigrator_UnknownType);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRehydrateAndUnknownTypeAndMappingStillNotExist_ThenThrows()
         {
             this.mappings.Add("anunknowntype", "anotherunknowntype");
@@ -52,7 +51,7 @@ namespace Domain.Interfaces.UnitTests
                 .WithMessageLike(Resources.ChangeEventMigrator_UnknownType);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRehydrateAndUnknownTypeAndMappingExists_ThenReturnsNewInstance()
         {
             this.mappings.Add("anunknowntype", typeof(TestRenamedChangeEvent).AssemblyQualifiedName);

@@ -2,28 +2,26 @@ using Api.Common.Properties;
 using Api.Common.Validators;
 using Application.Interfaces;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using ServiceStack.FluentValidation;
 using ServiceStack.FluentValidation.Results;
 using UnitTesting.Common;
+using Xunit;
 
 namespace Api.Common.UnitTests.Validators
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class HasSearchOptionsValidatorSpec
     {
-        private HasSearchOptionsDto dto;
-        private Mock<IHasGetOptionsValidator> getOptionsValidator;
-        private HasSearchOptionsValidator validator;
+        private readonly HasSearchOptionsDto dto;
+        private readonly HasSearchOptionsValidator validator;
 
-        [TestInitialize]
-        public void Initialize()
+        public HasSearchOptionsValidatorSpec()
         {
-            this.getOptionsValidator = new Mock<IHasGetOptionsValidator>();
-            this.getOptionsValidator.Setup(gv => gv.Validate(It.IsAny<IValidationContext>()))
+            var getOptionsValidator = new Mock<IHasGetOptionsValidator>();
+            getOptionsValidator.Setup(gv => gv.Validate(It.IsAny<IValidationContext>()))
                 .Returns(new ValidationResult());
-            this.validator = new HasSearchOptionsValidator(this.getOptionsValidator.Object);
+            this.validator = new HasSearchOptionsValidator(getOptionsValidator.Object);
             this.dto = new HasSearchOptionsDto
             {
                 Limit = 0,
@@ -33,13 +31,13 @@ namespace Api.Common.UnitTests.Validators
             };
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAllPropertiesValid_ThenSucceeds()
         {
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLimitIsNull_ThenSucceeds()
         {
             this.dto.Limit = null;
@@ -47,7 +45,7 @@ namespace Api.Common.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLimitIsMin_ThenSucceeds()
         {
             this.dto.Limit = SearchOptions.NoLimit;
@@ -55,7 +53,7 @@ namespace Api.Common.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLimitIsLessThanMax_ThenSucceeds()
         {
             this.dto.Limit = SearchOptions.MaxLimit - 1;
@@ -63,7 +61,7 @@ namespace Api.Common.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLimitIsLessThanMin_ThenThrows()
         {
             this.dto.Limit = SearchOptions.NoLimit - 1;
@@ -72,7 +70,7 @@ namespace Api.Common.UnitTests.Validators
                 .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidLimit);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLimitIsGreaterThanMax_ThenThrows()
         {
             this.dto.Limit = SearchOptions.MaxLimit + 1;
@@ -81,7 +79,7 @@ namespace Api.Common.UnitTests.Validators
                 .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidLimit);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenOffsetIsNull_ThenSucceeds()
         {
             this.dto.Offset = null;
@@ -89,7 +87,7 @@ namespace Api.Common.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenOffsetIsMin_ThenSucceeds()
         {
             this.dto.Offset = SearchOptions.NoOffset;
@@ -97,7 +95,7 @@ namespace Api.Common.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenOffsetIsLessThanMax_ThenSucceeds()
         {
             this.dto.Offset = SearchOptions.MaxLimit - 1;
@@ -105,7 +103,7 @@ namespace Api.Common.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenOffsetIsLessThanMin_ThenThrows()
         {
             this.dto.Offset = SearchOptions.NoOffset - 1;
@@ -114,7 +112,7 @@ namespace Api.Common.UnitTests.Validators
                 .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidOffset);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenOffsetIsGreaterThanMax_ThenThrows()
         {
             this.dto.Offset = SearchOptions.MaxLimit + 1;
@@ -123,7 +121,7 @@ namespace Api.Common.UnitTests.Validators
                 .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidOffset);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSortIsNull_ThenSucceeds()
         {
             this.dto.Sort = null;
@@ -131,7 +129,7 @@ namespace Api.Common.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSortIsInvalid_ThenThrows()
         {
             this.dto.Sort = "*";
@@ -140,7 +138,7 @@ namespace Api.Common.UnitTests.Validators
                 .WithMessageLike(Resources.HasSearchOptionsValidator_InvalidSort);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFilterIsNull_ThenSucceeds()
         {
             this.dto.Filter = null;
@@ -148,7 +146,7 @@ namespace Api.Common.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFilterIsInvalid_ThenThrows()
         {
             this.dto.Filter = "*";

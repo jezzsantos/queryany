@@ -4,17 +4,17 @@ using System.Linq;
 using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using QueryAny;
 using Storage.Interfaces;
 using Storage.Properties;
 using Storage.UnitTests.ReadModels;
 using UnitTesting.Common;
+using Xunit;
 
 namespace Storage.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class GeneralEventStreamStorageSpec
     {
         private readonly Mock<IDomainFactory> domainFactory;
@@ -36,7 +36,7 @@ namespace Storage.UnitTests
             this.storage.OnEventStreamStateChanged += (sender, args) => { this.stateChangedEvent = args; };
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLoadAndNoEventsFound_ThenReturnsNewEntity()
         {
             var aggregate = new TestAggregateRoot(null);
@@ -64,7 +64,7 @@ namespace Storage.UnitTests
                 )));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLoadAndEventsFound_ThenReturnsNewEntityWithEvents()
         {
             var lastPersisted = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(1));
@@ -106,7 +106,7 @@ namespace Storage.UnitTests
                 )));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSaveAndAggregateHasNoIdentifier_ThenThrowsConflict()
         {
             this.storage
@@ -114,7 +114,7 @@ namespace Storage.UnitTests
                 .Should().Throw<ResourceConflictException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSaveAndNoEvents_ThenDoesNothing()
         {
             this.repository.Setup(
@@ -129,7 +129,7 @@ namespace Storage.UnitTests
             this.stateChangedEvent.Should().BeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSaveAndConcurrencyConflict_ThenThrows()
         {
             var @event = CreateEventEntity("aneventid1", 10, DateTime.UtcNow);
@@ -154,7 +154,7 @@ namespace Storage.UnitTests
                 .WithMessageLike(Resources.GeneralEventStreamStorage_LoadConcurrencyConflictWritingEventStream);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSaveAndEvents_ThenAddsEventsToRepositoryAndClears()
         {
             var event1 = CreateEventEntity("aneventid1", 1, DateTime.UtcNow);

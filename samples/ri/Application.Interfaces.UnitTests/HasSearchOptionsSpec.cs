@@ -1,22 +1,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Application.Interfaces.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class HasSearchOptionsSpec
     {
-        private SearchOptionsDto hasSearchOptions;
+        private readonly SearchOptionsDto hasSearchOptions;
 
-        [TestInitialize]
-        public void Initialize()
+        public HasSearchOptionsSpec()
         {
             this.hasSearchOptions = new SearchOptionsDto();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToSearchOptionsAndNullOptions_ThenReturnsNull()
         {
             var result = ((SearchOptionsDto) null).ToSearchOptions();
@@ -24,7 +23,7 @@ namespace Application.Interfaces.UnitTests
             result.Should().BeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToSearchOptionsAndAllUndefined_ThenReturnsSearchOptions()
         {
             var result = this.hasSearchOptions.ToSearchOptions();
@@ -36,7 +35,7 @@ namespace Application.Interfaces.UnitTests
             result.Filter.Fields.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToSearchOptionsAndLimit_ThenReturnsSearchOptions()
         {
             this.hasSearchOptions.Limit = 9;
@@ -51,7 +50,7 @@ namespace Application.Interfaces.UnitTests
             result.Filter.Fields.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToSearchOptionsAndNoLimit_ThenReturnsSearchOptions()
         {
             this.hasSearchOptions.Limit = SearchOptions.NoLimit;
@@ -66,7 +65,7 @@ namespace Application.Interfaces.UnitTests
             result.Filter.Fields.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToSearchOptionsAndSingleSort_ThenReturnsSearchOptions()
         {
             this.hasSearchOptions.Sort = "+Field1";
@@ -84,7 +83,7 @@ namespace Application.Interfaces.UnitTests
             result.Sort.Direction.Should().Be(SortDirection.Descending);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToSearchOptionsAndFilters_ThenReturnsSearchOptions()
         {
             this.hasSearchOptions.Filter = "Field1;Field2";
@@ -96,7 +95,7 @@ namespace Application.Interfaces.UnitTests
             result.Filter.Fields[1].Should().Be("Field2");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToSearchOptionsAndAllUndefinedWithDefaults_ThenReturnsSearchOptions()
         {
             var result = this.hasSearchOptions.ToSearchOptions(9, 99, "-asort", "afilter");
@@ -109,7 +108,7 @@ namespace Application.Interfaces.UnitTests
             result.Filter.Fields[0].Should().Be("afilter");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToSearchOptionsAndAllUndefinedWithDefaultMaxLimit_ThenReturnsSearchOptions()
         {
             var result = this.hasSearchOptions.ToSearchOptions(0, 99, "-asort", "afilter");
@@ -122,7 +121,7 @@ namespace Application.Interfaces.UnitTests
             result.Filter.Fields[0].Should().Be("afilter");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToSearchOptionsWithDefaults_ThenReturnsSearchOptions()
         {
             this.hasSearchOptions.Limit = 6;
@@ -140,7 +139,7 @@ namespace Application.Interfaces.UnitTests
             result.Filter.Fields[0].Should().Be("afilter1");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToMetadataSafeWithNullSearchOptions_ThenReturnsDefaultSearchMetadata()
         {
             var results = ((SearchOptions) null).ToMetadataSafe();
@@ -148,7 +147,7 @@ namespace Application.Interfaces.UnitTests
             results.Total.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToMetadataSafeWithNullSearchOptionsAndTotal_ThenReturnsDefaultSearchMetadata()
         {
             var results = ((SearchOptions) null).ToMetadataSafe(11);
@@ -156,7 +155,7 @@ namespace Application.Interfaces.UnitTests
             results.Total.Should().Be(11);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToMetadataSafeWithInitialSearchOptions_ThenReturnsSearchMetadata()
         {
             var searchOptions = new SearchOptions();
@@ -166,7 +165,7 @@ namespace Application.Interfaces.UnitTests
             results.Total.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToMetadataSafe_ThenReturnsPopulatedSearchMetadata()
         {
             var searchOptions = new SearchOptions
@@ -195,7 +194,7 @@ namespace Application.Interfaces.UnitTests
             results.Filter.Fields[0].Should().Be("afilterfield");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToMetadataSafeAndTotal_ThenReturnsPopulatedSearchMetadata()
         {
             var searchOptions = new SearchOptions
@@ -225,18 +224,17 @@ namespace Application.Interfaces.UnitTests
         }
     }
 
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class GivenASearchOptions
     {
-        private SearchOptions searchOptions;
+        private readonly SearchOptions searchOptions;
 
-        [TestInitialize]
-        public void Initialize()
+        public GivenASearchOptions()
         {
             this.searchOptions = new SearchOptions();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenApplyWithMetadataAndNoLimit_ThenTakesDefaultLimit()
         {
             this.searchOptions.Limit = SearchOptions.NoLimit;
@@ -253,7 +251,7 @@ namespace Application.Interfaces.UnitTests
             result.Metadata.Total.Should().Be(SearchOptions.MaxLimit + 1);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenApplyWithMetadataAndLimitLessThanMax_ThenTakesLimit()
         {
             this.searchOptions.Limit = SearchOptions.MaxLimit - 1;
@@ -266,7 +264,7 @@ namespace Application.Interfaces.UnitTests
             result.Metadata.Total.Should().Be(SearchOptions.MaxLimit + 1);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenApplyWithMetadataAndLimitGreaterThanMax_ThenTakesMaxLimit()
         {
             this.searchOptions.Limit = SearchOptions.MaxLimit + 1;
@@ -279,7 +277,7 @@ namespace Application.Interfaces.UnitTests
             result.Metadata.Total.Should().Be(SearchOptions.MaxLimit + 1);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenApplyWithMetadataAndLimitLessThanMaxAndQueriedLessThanLimit_ThenTakesMaxQueried()
         {
             this.searchOptions.Limit = SearchOptions.MaxLimit - 1;
@@ -292,7 +290,7 @@ namespace Application.Interfaces.UnitTests
             result.Metadata.Total.Should().Be(66);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenApplyWithMetadataAndLimitGreaterThanMaxAndQueriedLessThanLimit_ThenTakesMaxQueried()
         {
             this.searchOptions.Limit = SearchOptions.MaxLimit + 1;
@@ -305,7 +303,7 @@ namespace Application.Interfaces.UnitTests
             result.Metadata.Total.Should().Be(66);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenApplyWithMetadataAndSortIsNull_ThenNoOrdering()
         {
             this.searchOptions.Sort = null;
@@ -327,7 +325,7 @@ namespace Application.Interfaces.UnitTests
             result.Metadata.Total.Should().Be(3);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenApplyWithMetadataAndSortByIsEmpty_ThenNoOrdering()
         {
             this.searchOptions.Sort = new Sorting {By = string.Empty};
@@ -349,7 +347,7 @@ namespace Application.Interfaces.UnitTests
             result.Metadata.Total.Should().Be(3);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenApplyWithMetadataAndSortByIsUnknown_ThenNoOrdering()
         {
             this.searchOptions.Sort = new Sorting {By = "unknown"};
@@ -371,7 +369,7 @@ namespace Application.Interfaces.UnitTests
             result.Metadata.Total.Should().Be(3);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenApplyWithMetadataAndSortDirectionDescending_ThenOrderingByDefault()
         {
             this.searchOptions.Sort = new Sorting {By = "AProperty"};
@@ -393,7 +391,7 @@ namespace Application.Interfaces.UnitTests
             result.Metadata.Total.Should().Be(3);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenApplyWithMetadataAndSortDirectionAscending_ThenOrderingAscending()
         {
             this.searchOptions.Sort = new Sorting {By = "AProperty", Direction = SortDirection.Ascending};
@@ -415,7 +413,7 @@ namespace Application.Interfaces.UnitTests
             result.Metadata.Total.Should().Be(3);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenApplyWithMetadataAndSortDirectionDescending_ThenOrderingDescending()
         {
             this.searchOptions.Sort = new Sorting {By = "AProperty", Direction = SortDirection.Descending};

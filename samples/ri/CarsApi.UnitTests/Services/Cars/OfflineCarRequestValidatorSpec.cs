@@ -4,26 +4,24 @@ using CarsApi.Properties;
 using CarsApi.Services.Cars;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using ServiceStack.FluentValidation;
 using UnitTesting.Common;
+using Xunit;
 
 namespace CarsApi.UnitTests.Services.Cars
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class OfflineCarRequestValidatorSpec
     {
-        private OfflineCarRequest dto;
-        private Mock<IIdentifierFactory> identifierFactory;
-        private OfflineCarRequestValidator validator;
+        private readonly OfflineCarRequest dto;
+        private readonly OfflineCarRequestValidator validator;
 
-        [TestInitialize]
-        public void Initialize()
+        public OfflineCarRequestValidatorSpec()
         {
-            this.identifierFactory = new Mock<IIdentifierFactory>();
-            this.identifierFactory.Setup(f => f.IsValid(It.IsAny<Identifier>())).Returns(true);
-            this.validator = new OfflineCarRequestValidator(this.identifierFactory.Object);
+            var identifierFactory = new Mock<IIdentifierFactory>();
+            identifierFactory.Setup(f => f.IsValid(It.IsAny<Identifier>())).Returns(true);
+            this.validator = new OfflineCarRequestValidator(identifierFactory.Object);
             this.dto = new OfflineCarRequest
             {
                 Id = "anid",
@@ -32,13 +30,13 @@ namespace CarsApi.UnitTests.Services.Cars
             };
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAllProperties_ThenSucceeds()
         {
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFromIsMin_ThenThrows()
         {
             this.dto.FromUtc = DateTime.MinValue;
@@ -49,7 +47,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageLike(Resources.OfflineCarRequestValidator_InvalidFrom);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFromInPast_ThenThrows()
         {
             this.dto.FromUtc = DateTime.UtcNow.Subtract(TimeSpan.FromMilliseconds(1));
@@ -60,7 +58,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageLike(Resources.OfflineCarRequestValidator_PastFrom);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFromIsGreaterThanTo_ThenThrows()
         {
             this.dto.FromUtc = DateTime.UtcNow.AddSeconds(1);
@@ -72,7 +70,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageLike(Resources.OfflineCarRequestValidator_FromAfterTo);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToIsMin_ThenThrows()
         {
             this.dto.ToUtc = DateTime.MinValue;
@@ -83,7 +81,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageLike(Resources.OfflineCarRequestValidator_InvalidTo);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToInPast_ThenThrows()
         {
             this.dto.ToUtc = DateTime.UtcNow.Subtract(TimeSpan.FromMilliseconds(1));
@@ -94,7 +92,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageLike(Resources.OfflineCarRequestValidator_PastTo);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToIsFuture_ThenSucceeds()
         {
             this.dto.ToUtc = DateTime.UtcNow.AddSeconds(1);

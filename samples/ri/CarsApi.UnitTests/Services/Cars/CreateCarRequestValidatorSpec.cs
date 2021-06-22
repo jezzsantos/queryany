@@ -3,20 +3,19 @@ using CarsApi.Properties;
 using CarsApi.Services.Cars;
 using CarsDomain;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ServiceStack.FluentValidation;
 using UnitTesting.Common;
+using Xunit;
 
 namespace CarsApi.UnitTests.Services.Cars
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class CreateCarRequestValidatorSpec
     {
-        private CreateCarRequest dto;
-        private CreateCarRequestValidator validator;
+        private readonly CreateCarRequest dto;
+        private readonly CreateCarRequestValidator validator;
 
-        [TestInitialize]
-        public void Initialize()
+        public CreateCarRequestValidatorSpec()
         {
             this.validator = new CreateCarRequestValidator();
             this.dto = new CreateCarRequest
@@ -27,13 +26,13 @@ namespace CarsApi.UnitTests.Services.Cars
             };
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAllProperties_ThenSucceeds()
         {
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenYearIsZero_ThenThrows()
         {
             this.dto.Year = 0;
@@ -44,7 +43,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageLike(Resources.CreateCarRequestValidator_InvalidYear);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenYearIsTooOld_ThenThrows()
         {
             this.dto.Year = Manufacturer.MinYear - 1;
@@ -55,7 +54,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageLike(Resources.CreateCarRequestValidator_InvalidYear);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenYearIsTooNew_ThenThrows()
         {
             this.dto.Year = Manufacturer.MaxYear + 1;
@@ -66,7 +65,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageLike(Resources.CreateCarRequestValidator_InvalidYear);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMakeIsNull_ThenThrows()
         {
             this.dto.Make = null;
@@ -77,7 +76,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageForNotEmpty();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMakeIsUnknown_ThenThrows()
         {
             this.dto.Make = "unknownmake";
@@ -88,7 +87,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageLike(Resources.CreateCarRequestValidator_InvalidMake);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenModelIsNull_ThenThrows()
         {
             this.dto.Model = null;
@@ -99,7 +98,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageForNotEmpty();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenModelIsUnknown_ThenThrows()
         {
             this.dto.Model = "unknownmake";

@@ -1,13 +1,13 @@
 ﻿using System.IO;
 using Common;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Storage.Interfaces;
+using Xunit;
 
 namespace Storage.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class GeneralBlobStorageSpec
     {
         private readonly Mock<IBlobository> blobository;
@@ -20,7 +20,7 @@ namespace Storage.UnitTests
             this.storage = new GeneralBlobStorage(recorder.Object, "acontainername", this.blobository.Object);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetAndNotExists_ThenReturnsNull()
         {
             var stream = new MemoryStream();
@@ -33,7 +33,7 @@ namespace Storage.UnitTests
             this.blobository.Verify(blo => blo.Download("acontainername", "ablobname", stream));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGet_ThenDownloadsFromRepo()
         {
             var stream = new MemoryStream();
@@ -46,7 +46,7 @@ namespace Storage.UnitTests
             this.blobository.Verify(blo => blo.Download("acontainername", "ablobname", stream));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSave_ThenUploadsToRepo()
         {
             var data = new byte[0];

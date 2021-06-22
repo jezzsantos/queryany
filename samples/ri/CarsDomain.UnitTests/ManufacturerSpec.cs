@@ -1,15 +1,15 @@
 ﻿using System;
 using CarsDomain.Properties;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UnitTesting.Common;
+using Xunit;
 
 namespace CarsDomain.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class ManufacturerSpec
     {
-        [TestMethod]
+        [Fact]
         public void WhenConstructAndZeroYear_ThenThrows()
         {
             Action a = () => new Manufacturer(0, Manufacturer.Makes[0], Manufacturer.Models[0]);
@@ -17,7 +17,7 @@ namespace CarsDomain.UnitTests
                 .WithMessageLike(Resources.Manufacturer_InvalidYear);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructAndYearLessThanMin_ThenThrows()
         {
             Action a = () => new Manufacturer(Manufacturer.MinYear - 1, Manufacturer.Makes[0], Manufacturer.Models[0]);
@@ -25,7 +25,7 @@ namespace CarsDomain.UnitTests
                 .WithMessageLike(Resources.Manufacturer_InvalidYear);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructAndYearGreaterThanMax_ThenThrows()
         {
             Action a = () => new Manufacturer(Manufacturer.MaxYear + 1, Manufacturer.Makes[0], Manufacturer.Models[0]);
@@ -33,7 +33,7 @@ namespace CarsDomain.UnitTests
                 .WithMessageLike(Resources.Manufacturer_InvalidYear);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructAndMakeUnknown_ThenThrows()
         {
             Action a = () => new Manufacturer(Manufacturer.MinYear, "unknown", Manufacturer.Models[0]);
@@ -41,7 +41,7 @@ namespace CarsDomain.UnitTests
                 .WithMessageLike(Resources.Manufacturer_UnknownMake);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructAndModelUnknown_ThenThrows()
         {
             Action a = () => new Manufacturer(Manufacturer.MinYear, Manufacturer.Makes[0], "unknown");
@@ -49,7 +49,7 @@ namespace CarsDomain.UnitTests
                 .WithMessageLike(Resources.Manufacturer_UnknownModel);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstruct_ThenSucceeds()
         {
             var manufacturer = new Manufacturer(Manufacturer.MinYear, Manufacturer.Makes[0], Manufacturer.Models[0]);

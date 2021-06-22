@@ -2,22 +2,21 @@
 using System.Collections.Generic;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Domain.Interfaces.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class EntityPrefixIdentifierFactorySpec
     {
-        private TestEntityPrefixIdentifierFactory factory;
+        private readonly TestEntityPrefixIdentifierFactory factory;
 
-        [TestInitialize]
-        public void Initialize()
+        public EntityPrefixIdentifierFactorySpec()
         {
             this.factory = new TestEntityPrefixIdentifierFactory();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCreateWithUnknownEntityType_ThenReturnsGuid()
         {
             var result = this.factory.Create(new UnknownEntity());
@@ -25,7 +24,7 @@ namespace Domain.Interfaces.UnitTests
             result.ToString().Should().MatchRegex(@"xxx_[\d\w]{10,22}");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCreateWithKnownEntity_ThenReturnsId()
         {
             var result = this.factory.Create(new KnownEntity());
@@ -33,7 +32,7 @@ namespace Domain.Interfaces.UnitTests
             result.ToString().Should().MatchRegex(@"kno_[\d\w]{10,22}");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIsValidWithNull_ThenReturnsFalse()
         {
             var result = this.factory.IsValid(null);
@@ -41,7 +40,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIsValidWithTooShortId_ThenReturnsFalse()
         {
             var result = this.factory.IsValid(Identifier.Create("tooshort"));
@@ -49,7 +48,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIsValidWithInvalidPrefix_ThenReturnsFalse()
         {
             var result = this.factory.IsValid(Identifier.Create("999_123456789012"));
@@ -57,7 +56,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIsValidWithTooShortRandomPart_ThenReturnsFalse()
         {
             var result = this.factory.IsValid(Identifier.Create("xxx_123456789"));
@@ -65,7 +64,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIsValidWithTooLongRandomPart_ThenReturnsFalse()
         {
             var result = this.factory.IsValid(Identifier.Create("xxx_12345678901234567890123"));
@@ -73,7 +72,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIsValidWithUnknownPrefix_ThenReturnsTrue()
         {
             var result = this.factory.IsValid(Identifier.Create("xxx_123456789012"));
@@ -81,7 +80,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIsValidWithKnownPrefix_ThenReturnsTrue()
         {
             var result = this.factory.IsValid(Identifier.Create("kno_123456789012"));
@@ -89,7 +88,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIsValidWithAnonymousUserId_ThenReturnsTrue()
         {
             var result = this.factory.IsValid(CallerConstants.AnonymousUserId.ToIdentifier());
@@ -97,7 +96,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIsValidWithKnownSupportedPrefix_ThenReturnsTrue()
         {
             this.factory.AddSupportedPrefix("another");
@@ -107,7 +106,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConvertGuidWithKnownGuid_ThenReturnsConverted()
         {
             var id = EntityPrefixIdentifierFactory.ConvertGuid(new Guid("65dd0b02-170b-4ea1-a5a5-00d2808b9aee"),

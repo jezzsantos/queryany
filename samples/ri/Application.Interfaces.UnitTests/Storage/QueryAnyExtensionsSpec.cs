@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using Application.Interfaces.Storage;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
+using Xunit;
 
 namespace Application.Interfaces.UnitTests.Storage
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class QueryAnyExtensionsSpec
     {
-        [TestMethod]
+        [Fact]
         public void WhenWithSearchOptionsAndNullOptions_ThenThrows()
         {
             Query.Empty<TestEntity>()
@@ -18,7 +18,7 @@ namespace Application.Interfaces.UnitTests.Storage
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWithSearchOptionsWithDefaultOptions_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()
@@ -31,7 +31,7 @@ namespace Application.Interfaces.UnitTests.Storage
             query.PrimaryEntity.Selects.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWithSearchOptionsWithOffset_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()
@@ -40,7 +40,7 @@ namespace Application.Interfaces.UnitTests.Storage
             query.ResultOptions.Offset.Should().Be(9);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWithSearchOptionsWithLimit_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()
@@ -49,7 +49,7 @@ namespace Application.Interfaces.UnitTests.Storage
             query.ResultOptions.Limit.Should().Be(9);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWithSearchOptionsWithUnknownSortProperty_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()
@@ -60,7 +60,7 @@ namespace Application.Interfaces.UnitTests.Storage
             query.ResultOptions.OrderBy.Direction.Should().Be(ResultOptions.DefaultOrderDirection);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWithSearchOptionsWithSortDescending_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()
@@ -71,7 +71,7 @@ namespace Application.Interfaces.UnitTests.Storage
             query.ResultOptions.OrderBy.Direction.Should().Be(OrderDirection.Descending);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWithSearchOptionsWithUnknownFilterFields_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()
@@ -89,7 +89,7 @@ namespace Application.Interfaces.UnitTests.Storage
             query.PrimaryEntity.Selects.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWithSearchOptionsWithLowerCaseFilterFields_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()
@@ -111,7 +111,7 @@ namespace Application.Interfaces.UnitTests.Storage
             query.PrimaryEntity.Selects[0].JoinedFieldName.Should().BeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWithSearchOptionsWithFilterFields_ThenReturnsQuery()
         {
             var query = Query.Empty<TestEntity>()

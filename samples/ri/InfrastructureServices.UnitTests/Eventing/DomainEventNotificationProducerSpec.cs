@@ -6,27 +6,23 @@ using Domain.Interfaces.Entities;
 using FluentAssertions;
 using InfrastructureServices.Eventing.Notifications;
 using InfrastructureServices.Properties;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Storage.Interfaces;
 using UnitTesting.Common;
+using Xunit;
 
 namespace InfrastructureServices.UnitTests.Eventing
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class DomainEventNotificationProducerSpec
     {
-        private ChangeEventTypeMigrator changeEventTypeMigrator;
-        private DomainEventNotificationProducer notificationProducer;
-        private Mock<IDomainEventPublisherSubscriberPair> pair;
-        private List<IDomainEventPublisherSubscriberPair> pairs;
-        private Mock<IRecorder> recorder;
+        private readonly DomainEventNotificationProducer notificationProducer;
+        private readonly Mock<IDomainEventPublisherSubscriberPair> pair;
 
-        [TestInitialize]
-        public void Initialize()
+        public DomainEventNotificationProducerSpec()
         {
-            this.recorder = new Mock<IRecorder>();
-            this.changeEventTypeMigrator = new ChangeEventTypeMigrator();
+            var recorder = new Mock<IRecorder>();
+            var changeEventTypeMigrator = new ChangeEventTypeMigrator();
             this.pair = new Mock<IDomainEventPublisherSubscriberPair>();
             this.pair.Setup(p => p.Publisher.EntityType)
                 .Returns(typeof(string));
@@ -34,13 +30,13 @@ namespace InfrastructureServices.UnitTests.Eventing
                 .Returns((IChangeEvent) null);
             this.pair.Setup(p => p.Subscriber.Notify(It.IsAny<IChangeEvent>()))
                 .Returns(true);
-            this.pairs = new List<IDomainEventPublisherSubscriberPair> {this.pair.Object};
-            this.notificationProducer = new DomainEventNotificationProducer(this.recorder.Object,
-                this.changeEventTypeMigrator,
-                this.pairs.ToArray());
+            var pairs = new List<IDomainEventPublisherSubscriberPair> {this.pair.Object};
+            this.notificationProducer = new DomainEventNotificationProducer(recorder.Object,
+                changeEventTypeMigrator,
+                pairs.ToArray());
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWriteEventStreamAndNoEvents_ThenReturns()
         {
             this.notificationProducer.WriteEventStream("astreamname", new List<EventStreamStateChangeEvent>());
@@ -48,7 +44,7 @@ namespace InfrastructureServices.UnitTests.Eventing
             this.pair.Verify(p => p.Publisher.Publish(It.IsAny<IChangeEvent>()), Times.Never);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWriteEventStreamAndNoConfiguredSubscriber_ThenThrows()
         {
             this.pair.Setup(p => p.Publisher.EntityType)
@@ -66,7 +62,7 @@ namespace InfrastructureServices.UnitTests.Eventing
             this.pair.Verify(p => p.Publisher.Publish(It.IsAny<IChangeEvent>()), Times.Never);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWriteEventStreamAndDeserializationOfEventsFails_ThenThrows()
         {
             this.notificationProducer
@@ -84,7 +80,7 @@ namespace InfrastructureServices.UnitTests.Eventing
                 .WithMessageLike(Resources.DomainEventNotificationProducer_UnexpectedError);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWriteEventStreamAndFirstEverEvent_ThenNotifiesEvents()
         {
             this.pair.Setup(p => p.Publisher.Publish(It.IsAny<IChangeEvent>()))
@@ -132,7 +128,7 @@ namespace InfrastructureServices.UnitTests.Eventing
             )));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWriteEventStream_ThenNotifiesEvents()
         {
             this.pair.Setup(p => p.Publisher.Publish(It.IsAny<IChangeEvent>()))

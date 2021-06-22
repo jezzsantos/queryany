@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Linq;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Common.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class StringExtensionsSpec
     {
-        [TestMethod]
+        [Fact]
         public void WhenIsOneOfWithNullSource_ThenThrows()
         {
             FluentActions.Invoking(() => ((string) null).IsOneOf("avalue"))
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIsOneOfWithEmptyCollection_ThenReturnsFalse()
         {
             var result = "avalue".IsOneOf();
@@ -23,7 +23,7 @@ namespace Common.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIsOneOfAndIncluded_ThenReturnsTrue()
         {
             var result = "avalue".IsOneOf("avalue", "anothervalue");
@@ -31,7 +31,7 @@ namespace Common.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIsOneOfAndExcluded_ThenReturnsFalse()
         {
             var result = "avalue".IsOneOf("anothervalue1", "anothervalue2");
@@ -39,7 +39,7 @@ namespace Common.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIsOneOfAndIncludedAndWrongCase_ThenReturnsFalse()
         {
             var result = "AVALUE".IsOneOf("avalue", "anothervalue");
@@ -47,7 +47,7 @@ namespace Common.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSplitParagraphsAndValueIsNull_ThenReturnsEmptyArray()
         {
             var result = ((string) null).SplitParagraphs();
@@ -55,7 +55,7 @@ namespace Common.UnitTests
             result.Should().BeEmpty();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSplitParagraphsAndValueIsEmpty_ThenReturnsEmptyArray()
         {
             var result = string.Empty.SplitParagraphs();
@@ -63,7 +63,7 @@ namespace Common.UnitTests
             result.Should().BeEmpty();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSplitParagraphsAndValueContainsSingleLine_ThenReturnsEmptyArray()
         {
             var result = "avalue".SplitParagraphs();
@@ -71,7 +71,7 @@ namespace Common.UnitTests
             result.Single().Should().Be("avalue");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSplitParagraphsAndValueContainsMultipleLinesWithWindowsLineBreaks_ThenReturnsEmptyArray()
         {
             var result = "\r\navalue1\r\navalue2\r\n".SplitParagraphs();
@@ -81,7 +81,7 @@ namespace Common.UnitTests
             result[1].Should().Be("avalue2");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSplitParagraphsAndValueContainsMultipleLinesWithUnixLineBreaks_ThenReturnsEmptyArray()
         {
             var result = "\ravalue1\ravalue2\r".SplitParagraphs();
@@ -91,7 +91,7 @@ namespace Common.UnitTests
             result[1].Should().Be("avalue2");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSplitParagraphsAndValueContainsMultipleLinesWithUnusualLineBreaks_ThenReturnsEmptyArray()
         {
             var result = "\navalue1\navalue2\n".SplitParagraphs();

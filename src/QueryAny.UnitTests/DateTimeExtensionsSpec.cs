@@ -1,14 +1,14 @@
 ﻿using System;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny.Primitives;
+using Xunit;
 
 namespace QueryAny.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class DateTimeExtensionsSpec
     {
-        [TestMethod]
+        [Fact]
         public void WhenHasValueAndMinValue_ThenReturnsFalse()
         {
             var result = DateTime.MinValue.HasValue();
@@ -16,7 +16,7 @@ namespace QueryAny.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenHasValueAndMinValueToUtc_ThenReturnsFalse()
         {
             var result = DateTime.MinValue.ToUniversalTime().HasValue();
@@ -24,7 +24,7 @@ namespace QueryAny.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenHasValueAndMinValueToLocal_ThenReturnsFalse()
         {
             var result = DateTime.MinValue.ToLocalTime().HasValue();
@@ -32,7 +32,7 @@ namespace QueryAny.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenHasValueAndUtcMinValue_ThenReturnsFalse()
         {
             var result = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc).HasValue();
@@ -40,7 +40,7 @@ namespace QueryAny.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenHasValueAndLocalMinValue_ThenReturnsFalse()
         {
             var result = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Local).HasValue();
@@ -48,7 +48,7 @@ namespace QueryAny.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenHasValueAndUnspecifiedMinValue_ThenReturnsFalse()
         {
             var result = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Unspecified).HasValue();
@@ -56,7 +56,7 @@ namespace QueryAny.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenHasValueAndNotMinValue_ThenReturnsTrue()
         {
             var result = DateTime.UtcNow.HasValue();

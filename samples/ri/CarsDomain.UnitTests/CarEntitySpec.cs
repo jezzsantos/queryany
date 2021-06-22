@@ -4,26 +4,23 @@ using CarsDomain.Properties;
 using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using UnitTesting.Common;
+using Xunit;
 
 namespace CarsDomain.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class CarEntitySpec
     {
-        private CarEntity entity;
-        private Mock<IIdentifierFactory> identifierFactory;
-        private Mock<IRecorder> recorder;
+        private readonly CarEntity entity;
 
-        [TestInitialize]
-        public void Initialize()
+        public CarEntitySpec()
         {
-            this.recorder = new Mock<IRecorder>();
-            this.identifierFactory = new Mock<IIdentifierFactory>();
+            var recorder = new Mock<IRecorder>();
+            var identifierFactory = new Mock<IIdentifierFactory>();
             var entityCount = 0;
-            this.identifierFactory.Setup(f => f.Create(It.IsAny<IIdentifiableEntity>()))
+            identifierFactory.Setup(f => f.Create(It.IsAny<IIdentifiableEntity>()))
                 .Returns((IIdentifiableEntity e) =>
                 {
                     if (e is UnavailabilityEntity)
@@ -32,10 +29,10 @@ namespace CarsDomain.UnitTests
                     }
                     return "anid".ToIdentifier();
                 });
-            this.entity = new CarEntity(this.recorder.Object, this.identifierFactory.Object);
+            this.entity = new CarEntity(recorder.Object, identifierFactory.Object);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSetManufacturer_ThenManufactured()
         {
             var manufacturer =
@@ -47,7 +44,7 @@ namespace CarsDomain.UnitTests
             this.entity.Events[1].Should().BeOfType<Events.Car.ManufacturerChanged>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSetOwnership_ThenOwnedAndManaged()
         {
             var owner = new VehicleOwner("anownerid");
@@ -58,7 +55,7 @@ namespace CarsDomain.UnitTests
             this.entity.Events[1].Should().BeOfType<Events.Car.OwnershipChanged>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRegistered_ThenRegistered()
         {
             this.entity.Register(new LicensePlate(LicensePlate.Jurisdictions[0], "anumber"));
@@ -67,7 +64,7 @@ namespace CarsDomain.UnitTests
             this.entity.Events[1].Should().BeOfType<Events.Car.RegistrationChanged>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenOfflineAndNotManufactured_ThenThrows()
         {
             this.entity.SetOwnership(new VehicleOwner("anownerid"));
@@ -78,7 +75,7 @@ namespace CarsDomain.UnitTests
                 .WithMessageLike(Resources.CarEntity_NotManufactured);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenOfflineAndNotOwned_ThenThrows()
         {
             this.entity.SetManufacturer(new Manufacturer(Manufacturer.MinYear + 1, Manufacturer.Makes[0],
@@ -90,7 +87,7 @@ namespace CarsDomain.UnitTests
                 .WithMessageLike(Resources.CarEntity_NotOwned);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenOfflineAndNotRegistered_ThenThrows()
         {
             this.entity.SetManufacturer(new Manufacturer(Manufacturer.MinYear + 1, Manufacturer.Makes[0],
@@ -102,7 +99,7 @@ namespace CarsDomain.UnitTests
                 .WithMessageLike(Resources.CarEntity_NotRegistered);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenOffline_ThenUnavailable()
         {
             var from = DateTime.UtcNow.AddDays(1);
@@ -120,7 +117,7 @@ namespace CarsDomain.UnitTests
             this.entity.Events[4].As<Events.Car.UnavailabilitySlotAdded>().EntityId.Should().Be("anunavailbilityid1");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAddUnavailableAndNotExist_ThenCreatesUnavailability()
         {
             var datum = DateTime.UtcNow;
@@ -134,7 +131,7 @@ namespace CarsDomain.UnitTests
             this.entity.Events[4].Should().BeOfType<Events.Car.UnavailabilitySlotAdded>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAddUnavailableAndCausedByReservationButNoReference_ThenThrows()
         {
             var datum = DateTime.UtcNow;
@@ -148,7 +145,7 @@ namespace CarsDomain.UnitTests
                 .WithMessageLike(Resources.Unavailability_ReservationWithoutReference);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAddUnavailableWithIntersectingSlotWithSameCauseNoReference_ThenReplacesEntity()
         {
             var datum = DateTime.UtcNow;
@@ -165,7 +162,7 @@ namespace CarsDomain.UnitTests
             this.entity.Events[5].Should().BeOfType<Events.Car.UnavailabilitySlotAdded>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAddUnavailableWithIntersectingSlotWithSameCauseSameReference_ThenReplacesEntity()
         {
             var datum = DateTime.UtcNow;
@@ -182,7 +179,7 @@ namespace CarsDomain.UnitTests
             this.entity.Events[5].Should().BeOfType<Events.Car.UnavailabilitySlotAdded>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAddUnavailableWithIntersectingSlotWithDifferentCauseNoReference_ThenThrows()
         {
             var datum = DateTime.UtcNow;
@@ -197,7 +194,7 @@ namespace CarsDomain.UnitTests
                 .WithMessageLike(Resources.Unavailability_OverlappingSlot);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAddUnavailableWithIntersectingSlotWithSameCauseDifferentReference_ThenThrows()
         {
             var datum = DateTime.UtcNow;
@@ -212,7 +209,7 @@ namespace CarsDomain.UnitTests
                 .WithMessageLike(Resources.Unavailability_OverlappingSlot);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAddUnavailableWithIntersectingSlotWithDifferentCauseDifferentReference_ThenThrows()
         {
             var datum = DateTime.UtcNow;
@@ -227,7 +224,7 @@ namespace CarsDomain.UnitTests
                 .WithMessageLike(Resources.Unavailability_OverlappingSlot);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAddUnavailableWithNotIntersectingSlotSameCause_ThenAddsUnavailability()
         {
             var datum = DateTime.UtcNow;
@@ -245,7 +242,7 @@ namespace CarsDomain.UnitTests
             this.entity.Events[5].Should().BeOfType<Events.Car.UnavailabilitySlotAdded>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAddUnavailableWithNotIntersectingSlotDifferentCause_ThenAddsUnavailability()
         {
             var datum = DateTime.UtcNow;
@@ -263,7 +260,7 @@ namespace CarsDomain.UnitTests
             this.entity.Events[5].Should().BeOfType<Events.Car.UnavailabilitySlotAdded>();
         }
 
-        [TestMethod]
+        [Fact]
         public void
             WhenAddUnavailableWithNotIntersectingSlotDifferentCauseAndDifferentReference_ThenAddsUnavailability()
         {

@@ -2,13 +2,13 @@
 using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using QueryAny;
+using Xunit;
 
 namespace Storage.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class GeneralQueryStorageSpec
     {
         private readonly Mock<IRepository> repository;
@@ -24,7 +24,7 @@ namespace Storage.UnitTests
                     this.repository.Object);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCount_ThenGetsCountFromRepo()
         {
             this.storage.Count();
@@ -32,7 +32,7 @@ namespace Storage.UnitTests
             this.repository.Verify(repo => repo.Count("acontainername"));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDestroyAll_ThenGetsCountFromRepo()
         {
             this.storage.DestroyAll();
@@ -40,7 +40,7 @@ namespace Storage.UnitTests
             this.repository.Verify(repo => repo.DestroyAll("acontainername"));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryWithNullQuery_ThenReturnsEmptyResults()
         {
             var result = this.storage.Query(null);
@@ -53,7 +53,7 @@ namespace Storage.UnitTests
                 Times.Never);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryWithEmptyQuery_ThenReturnsEmptyResults()
         {
             var query = Query.Empty<TestDto>();
@@ -67,7 +67,7 @@ namespace Storage.UnitTests
                 Times.Never);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndDeleted_ThenReturnsNonDeletedResults()
         {
             var query = Query.From<TestDto>().WhereAll();
@@ -89,7 +89,7 @@ namespace Storage.UnitTests
             result.Results[1].Id.Should().Be("anid3");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndDeletedAndIncludeDeleted_ThenReturnsDeletedResults()
         {
             var query = Query.From<TestDto>().WhereAll();
@@ -112,7 +112,7 @@ namespace Storage.UnitTests
             result.Results[2].Id.Should().Be("anid3");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQuery_ThenReturnsAllResults()
         {
             var query = Query.From<TestDto>().WhereAll();
@@ -127,7 +127,7 @@ namespace Storage.UnitTests
             result.Results.Should().BeEquivalentTo(results);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetAndNotExists_ThenReturnsNull()
         {
             this.repository.Setup(repo =>
@@ -143,7 +143,7 @@ namespace Storage.UnitTests
                     It.IsAny<RepositoryEntityMetadata>()));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetAndSoftDeleted_ThenReturnsNull()
         {
             this.repository.Setup(repo =>
@@ -162,7 +162,7 @@ namespace Storage.UnitTests
                     It.IsAny<RepositoryEntityMetadata>()));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetAndSoftDeletedAndIncludeDeleted_ThenRetrievesFromRepository()
         {
             this.repository.Setup(repo =>
@@ -181,7 +181,7 @@ namespace Storage.UnitTests
                     It.IsAny<RepositoryEntityMetadata>()));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGet_ThenRetrievesFromRepository()
         {
             this.repository.Setup(repo =>

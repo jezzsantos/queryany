@@ -1,20 +1,20 @@
 ﻿using System;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Domain.Interfaces.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class ValidationsSpec
     {
-        [TestMethod]
+        [Fact]
         public void WhenValidationFormatCtorWithNull_ThenThrows()
         {
             FluentActions.Invoking(() => new ValidationFormat(null))
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMatchesHasFunction_ThenReturnsTrue()
         {
             var validationFormat = new ValidationFormat(x => true);
@@ -24,7 +24,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMatchesHasFunction_ThenReturnsFalse()
         {
             var validationFormat = new ValidationFormat(x => false);
@@ -34,7 +34,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMatchesHasExpression_ThenReturnsTrue()
         {
             var validationFormat = new ValidationFormat(@"^avalue$");
@@ -44,7 +44,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMatchesHasExpressionAndIsNotTooLong_ThenReturnsTrue()
         {
             var validationFormat = new ValidationFormat(@"^a*$", 1, 10);
@@ -54,7 +54,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMatchesHasExpressionAndIsTooLong_ThenReturnsFalse()
         {
             var validationFormat = new ValidationFormat(@"^a*$", 1, 1);
@@ -64,7 +64,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEmailWithNoName_ThenReturnsFalse()
         {
             var result = Validations.Email.Matches("@company.com");
@@ -72,7 +72,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEmailWithWhitespaceName_ThenReturnsFalse()
         {
             var result = Validations.Email.Matches(" @company.com");
@@ -80,7 +80,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEmailWithCommonFormat_ThenReturnsTrue()
         {
             var result = Validations.Email.Matches("aname@acompany.com");
@@ -88,7 +88,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEmailWithMultiLevelDomainFormat_ThenReturnsTrue()
         {
             var result = Validations.Email.Matches("aname@anaustraliancompany.com.au");
@@ -96,7 +96,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDescriptiveNameWithTooShort_ThenReturnsFalse()
         {
             var result = Validations.DescriptiveName(2, 10).Matches("a");
@@ -104,7 +104,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDescriptiveNameIsEmpty_ThenReturnsFalse()
         {
             var result = Validations.DescriptiveName().Matches("");
@@ -112,7 +112,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDescriptiveNameWithTooLong_ThenReturnsFalse()
         {
             var result = Validations.DescriptiveName(2, 10).Matches("atoolongstring");
@@ -120,7 +120,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDescriptiveNameWithInvalidPrintableChar_ThenReturnsFalse()
         {
             var result = Validations.DescriptiveName(2, 10).Matches("^aninvalidstring");
@@ -128,7 +128,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDescriptiveNameWithLeastChars_ThenReturnsTrue()
         {
             var result = Validations.DescriptiveName(6, 10).Matches("avalue");
@@ -136,7 +136,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDescriptiveNameWithMaxChars_ThenReturnsTrue()
         {
             var result = Validations.DescriptiveName(2, 6).Matches("avalue");
@@ -144,7 +144,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDescriptiveNameWithValidChars_ThenReturnsTrue()
         {
             var result = Validations.DescriptiveName().Matches("avalue");
@@ -152,7 +152,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenTimezoneWithUnknownIana_ThenReturnsFalse()
         {
             var result = Validations.Timezone.Matches("unknown");
@@ -160,7 +160,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenTimezoneWithIanaZone_ThenReturnsTrue()
         {
             var result = Validations.Timezone.Matches("Pacific/Auckland");
@@ -168,7 +168,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenTimezoneWithWindowsZone_ThenReturnsFalse()
         {
             var result = Validations.Timezone.Matches("Central Standard Time");
@@ -176,7 +176,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFreeFormTextWithTooShort_ThenReturnsFalse()
         {
             var result = Validations.FreeformText(2, 10).Matches("a");
@@ -184,7 +184,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFreeFormTextWithTooLong_ThenReturnsFalse()
         {
             var result = Validations.FreeformText(2, 10).Matches("atoolongstring");
@@ -192,7 +192,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFreeFormTextWithInvalidPrintableChar_ThenReturnsFalse()
         {
             var result = Validations.FreeformText(2, 10).Matches("^aninvalidstring");
@@ -200,7 +200,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFreeFormTextWithLeastChars_ThenReturnsTrue()
         {
             var result = Validations.FreeformText(6, 10).Matches("avalue");
@@ -208,7 +208,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFreeFormTextWithMaxChars_ThenReturnsTrue()
         {
             var result = Validations.FreeformText(2, 6).Matches("avalue");
@@ -216,7 +216,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFreeFormTextWithValidChars_ThenReturnsTrue()
         {
             var result = Validations.FreeformText().Matches("avalue");
@@ -224,7 +224,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFreeFormTextWithMultiLineInWindows_ThenReturnsTrue()
         {
             var result = Validations.FreeformText().Matches("\r\naline1\r\naline2\r\n");
@@ -232,7 +232,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFreeFormTextWithMultiLineInUnix_ThenReturnsTrue()
         {
             var result = Validations.FreeformText().Matches("\raline1\raline2\r");
@@ -240,7 +240,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFreeFormTextWithZeroMinAndEmpty_ThenReturnsTrue()
         {
             var result = Validations.FreeformText(0, 10).Matches("");
@@ -248,14 +248,14 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAnythingWithTooShort_ThenReturnsFalse()
         {
             var result = Validations.Anything(2, 10).Matches("a");
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAnythingWithTooLong_ThenReturnsFalse()
         {
             var result = Validations.Anything(2, 10).Matches("atoolongstring");
@@ -263,7 +263,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAnythingWithLeastChars_ThenReturnsTrue()
         {
             var result = Validations.Anything(6, 10).Matches("avalue");
@@ -271,7 +271,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAnythingWithMaxChars_ThenReturnsTrue()
         {
             var result = Validations.Anything(2, 6).Matches("avalue");
@@ -279,7 +279,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAnythingWithSpecialCharacters_ThenReturnsTrue()
         {
             var result = Validations.Anything().Matches("atext^是⎈𐂯؄💩⚡");
@@ -287,7 +287,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMarkdownTextWithTooShort_ThenReturnsFalse()
         {
             var result = Validations.Markdown(2, 10).Matches("a");
@@ -295,7 +295,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMarkdownTextWithTooLong_ThenReturnsFalse()
         {
             var result = Validations.Markdown(2, 10).Matches("atoolongstring");
@@ -303,7 +303,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMarkdownTextWithInvalidPrintableChar_ThenReturnsFalse()
         {
             var result = Validations.Markdown(2, 10).Matches("^aninvalidstring");
@@ -311,7 +311,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMarkdownTextWithLeastChars_ThenReturnsTrue()
         {
             var result = Validations.Markdown(6, 10).Matches("avalue");
@@ -319,7 +319,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMarkdownTextWithMaxChars_ThenReturnsTrue()
         {
             var result = Validations.Markdown(2, 6).Matches("avalue");
@@ -327,7 +327,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMarkdownTextWithValidChars_ThenReturnsTrue()
         {
             var result = Validations.Markdown().Matches("avalue");
@@ -335,7 +335,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMarkdownTextWithMultiLineInWindows_ThenReturnsTrue()
         {
             var result = Validations.Markdown().Matches("\r\naline1\r\naline2\r\n");
@@ -343,7 +343,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMarkdownTextWithMultiLineInUnix_ThenReturnsTrue()
         {
             var result = Validations.Markdown().Matches("\raline1\raline2\r");
@@ -351,7 +351,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMarkdownTextWithZeroMinAndEmpty_ThenReturnsTrue()
         {
             var result = Validations.Markdown(0, 10).Matches("");
@@ -359,7 +359,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenMarkdownWithValidChars_ThenReturnsTrue()
         {
             var result = Validations.Markdown().Matches("avalue😛");
@@ -368,10 +368,10 @@ namespace Domain.Interfaces.UnitTests
         }
     }
 
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class PasswordValidationsSpec
     {
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndTooShort_ThenReturnsFalse()
         {
             var result = Validations.Password.Strict.Function("1Short");
@@ -379,7 +379,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndTooLong_ThenReturnsFalse()
         {
             var result =
@@ -388,7 +388,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndJustNumberAndSpecial_ThenReturnsFalse()
         {
             var result = Validations.Password.Strict.Function("1234!@#$");
@@ -396,7 +396,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndJustNumberAndLower_ThenReturnsFalse()
         {
             var result = Validations.Password.Strict.Function("1234abcd");
@@ -404,7 +404,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndJustNumberAndUpper_ThenReturnsFalse()
         {
             var result = Validations.Password.Strict.Function("1234ABCD");
@@ -412,7 +412,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndJustUpperAndLower_ThenReturnsFalse()
         {
             var result = Validations.Password.Strict.Function("abcdABCD");
@@ -420,7 +420,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndJustUpperAndSpecial_ThenReturnsFalse()
         {
             var result = Validations.Password.Strict.Function("ABCD!@#$");
@@ -428,7 +428,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndJustLowerAndSpecial_ThenReturnsFalse()
         {
             var result = Validations.Password.Strict.Function("abcd!@#$");
@@ -436,7 +436,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndJustSpecial_ThenReturnsFalse()
         {
             var result = Validations.Password.Strict.Function("!@#$%^&*");
@@ -444,7 +444,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndJustNumber_ThenReturnsFalse()
         {
             var result = Validations.Password.Strict.Function("12345678");
@@ -452,7 +452,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndJustLower_ThenReturnsFalse()
         {
             var result = Validations.Password.Strict.Function("abcdefgh");
@@ -460,7 +460,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndJustUpper_ThenReturnsFalse()
         {
             var result = Validations.Password.Strict.Function("ABCDEFGH");
@@ -468,7 +468,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndHasAllClasses_ThenReturnsTrue()
         {
             var result = Validations.Password.Strict.Function("1Password!");
@@ -476,7 +476,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndOmitsNumber_ThenReturnsTrue()
         {
             var result = Validations.Password.Strict.Function("Password!");
@@ -484,7 +484,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndOmitsSpecialChar_ThenReturnsTrue()
         {
             var result = Validations.Password.Strict.Function("1Password");
@@ -492,7 +492,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndOmitsUppercase_ThenReturnsTrue()
         {
             var result = Validations.Password.Strict.Function("1password!");
@@ -500,7 +500,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenStrictAndOmitsLowercase_ThenReturnsTrue()
         {
             var result = Validations.Password.Strict.Function("1PASSWORD!");
@@ -508,7 +508,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLooseAndTooShort_ThenReturnsFalse()
         {
             var result = Validations.Password.Loose.Matches("1234");
@@ -516,7 +516,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLooseAndOnlyNumbers_ThenReturnsTrue()
         {
             var result = Validations.Password.Loose.Matches("12345678");
@@ -524,7 +524,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLooseAndOnlyLowercase_ThenReturnsTrue()
         {
             var result = Validations.Password.Loose.Matches("apassword");
@@ -532,7 +532,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLooseAndTooLong_ThenReturnsFalse()
         {
             var result = Validations.Password.Loose.Matches(new string('a', Validations.Password.MaxLength + 1));

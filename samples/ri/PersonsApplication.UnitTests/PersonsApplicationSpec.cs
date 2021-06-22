@@ -4,26 +4,25 @@ using Domain.Interfaces;
 using Domain.Interfaces.Entities;
 using DomainServices.Interfaces;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using PersonsApplication.ReadModels;
 using PersonsApplication.Storage;
 using PersonsDomain;
+using Xunit;
 
 namespace PersonsApplication.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class PersonsApplicationSpec
     {
-        private Mock<ICurrentCaller> caller;
-        private Mock<IIdentifierFactory> idFactory;
-        private PersonsApplication personsApplication;
-        private Mock<IRecorder> recorder;
-        private Mock<IPersonStorage> storage;
-        private Mock<IEmailService> uniqueEmailService;
+        private readonly Mock<ICurrentCaller> caller;
+        private readonly Mock<IIdentifierFactory> idFactory;
+        private readonly PersonsApplication personsApplication;
+        private readonly Mock<IRecorder> recorder;
+        private readonly Mock<IPersonStorage> storage;
+        private readonly Mock<IEmailService> uniqueEmailService;
 
-        [TestInitialize]
-        public void Initialize()
+        public PersonsApplicationSpec()
         {
             this.recorder = new Mock<IRecorder>();
             this.idFactory = new Mock<IIdentifierFactory>();
@@ -40,7 +39,7 @@ namespace PersonsApplication.UnitTests
                     this.uniqueEmailService.Object);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCreate_ThenReturnsPerson()
         {
             var entity = new PersonEntity(this.recorder.Object, this.idFactory.Object, this.uniqueEmailService.Object);
@@ -58,7 +57,7 @@ namespace PersonsApplication.UnitTests
                 )));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGet_ThenReturnsPerson()
         {
             this.storage.Setup(s => s.GetPerson(It.IsAny<Identifier>()))
@@ -70,7 +69,7 @@ namespace PersonsApplication.UnitTests
             result.Id.Should().Be("anid");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetAnonymousUser_ThenReturnsAnonymousPerson()
         {
             var result =

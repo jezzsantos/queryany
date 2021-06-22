@@ -1,12 +1,12 @@
 ﻿using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Xunit;
 
 namespace Storage.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class GeneralCrudStorageSpec
     {
         private readonly Mock<IRepository> repository;
@@ -20,7 +20,7 @@ namespace Storage.UnitTests
                 new GeneralCrudStorage<TestDto>(recorder.Object, this.repository.Object);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDeleteAndNotExists_ThenReturns()
         {
             this.storage.Delete("anid".ToIdentifier());
@@ -30,7 +30,7 @@ namespace Storage.UnitTests
             this.repository.Verify(repo => repo.Remove(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDeleteAndDestroy_ThenRemovesFromRepository()
         {
             this.repository.Setup(repo =>
@@ -44,7 +44,7 @@ namespace Storage.UnitTests
             this.repository.Verify(repo => repo.Remove("acontainername", "anid"));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDeleteSoftAndAlreadySoftDeleted_ThenReturns()
         {
             this.repository.Setup(repo =>
@@ -61,7 +61,7 @@ namespace Storage.UnitTests
             this.repository.Verify(repo => repo.Remove(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDeleteSoft_ThenReplacesToRepository()
         {
             this.repository.Setup(repo =>
@@ -77,7 +77,7 @@ namespace Storage.UnitTests
             )));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetAndNotExists_ThenReturnsNull()
         {
             this.repository.Setup(repo =>
@@ -93,7 +93,7 @@ namespace Storage.UnitTests
                     It.IsAny<RepositoryEntityMetadata>()));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetAndSoftDeleted_ThenReturnsNull()
         {
             this.repository.Setup(repo =>
@@ -112,7 +112,7 @@ namespace Storage.UnitTests
                     It.IsAny<RepositoryEntityMetadata>()));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetAndSoftDeletedAndIncludeDeleted_ThenRetrievesFromRepository()
         {
             this.repository.Setup(repo =>
@@ -131,7 +131,7 @@ namespace Storage.UnitTests
                     It.IsAny<RepositoryEntityMetadata>()));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGet_ThenRetrievesFromRepository()
         {
             this.repository.Setup(repo =>
@@ -147,7 +147,7 @@ namespace Storage.UnitTests
                     It.IsAny<RepositoryEntityMetadata>()));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenResurrectAndEntityNotExists_ThenReturnsNull()
         {
             var result = this.storage.ResurrectDeleted("anid".ToIdentifier());
@@ -159,7 +159,7 @@ namespace Storage.UnitTests
                 repo => repo.Replace(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CommandEntity>()), Times.Never);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenResurrectAndNotSoftDeleted_ThenReturnsEntity()
         {
             this.repository.Setup(repo =>
@@ -176,7 +176,7 @@ namespace Storage.UnitTests
                 repo => repo.Replace(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CommandEntity>()), Times.Never);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenResurrectAndSoftDeleted_ThenReturnsEntity()
         {
             this.repository.Setup(repo =>
@@ -196,7 +196,7 @@ namespace Storage.UnitTests
                 ce.IsDeleted == false)));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenUpsertAndEntityIdNotExists_ThenThrowsNotFound()
         {
             this.storage
@@ -204,7 +204,7 @@ namespace Storage.UnitTests
                 .Should().Throw<ResourceNotFoundException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenUpsertAndEntityIdIsEmpty_ThenThrowsNotFound()
         {
             this.storage
@@ -212,7 +212,7 @@ namespace Storage.UnitTests
                 .Should().Throw<ResourceNotFoundException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenUpsertAndSoftDeleted_ThenThrowsNotFound()
         {
             this.repository.Setup(repo =>
@@ -228,7 +228,7 @@ namespace Storage.UnitTests
                 .Should().Throw<ResourceNotFoundException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenUpsertAndSoftDeletedWithIncludeDeleted_ThenResurrectsAndReplacesInRepository()
         {
             this.repository.Setup(repo =>
@@ -253,7 +253,7 @@ namespace Storage.UnitTests
             result.Id.Should().Be("anid".ToIdentifier());
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenUpsertAndEntityNotExists_ThenAddsToRepository()
         {
             var entity = new TestDto {Id = "anid".ToIdentifier()};
@@ -272,7 +272,7 @@ namespace Storage.UnitTests
             this.repository.Verify(repo => repo.Add("acontainername", It.IsAny<CommandEntity>()));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenUpsertAndEntityExists_ThenReplacesInRepository()
         {
             var entity = new TestDto {Id = "anupsertedid".ToIdentifier(), AStringValue = "anewvalue"};
@@ -297,7 +297,7 @@ namespace Storage.UnitTests
                 repo.Replace("acontainername", "anupsertedid", It.IsAny<CommandEntity>()));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCount_ThenGetsCountFromRepo()
         {
             this.storage.Count();
@@ -305,7 +305,7 @@ namespace Storage.UnitTests
             this.repository.Verify(repo => repo.Count("acontainername"));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDestroyAll_ThenGetsCountFromRepo()
         {
             this.storage.DestroyAll();

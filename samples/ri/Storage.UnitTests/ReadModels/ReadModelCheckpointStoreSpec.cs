@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using QueryAny;
 using Storage.Interfaces.ReadModels;
 using Storage.ReadModels;
+using Xunit;
 
 namespace Storage.UnitTests.ReadModels
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class ReadModelCheckpointStoreSpec
     {
         private readonly Mock<IIdentifierFactory> idFactory;
@@ -35,7 +35,7 @@ namespace Storage.UnitTests.ReadModels
                 domainFactory.Object, this.repository.Object);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLoadCheckpointAndNotExists_ThenReturns1()
         {
             var result = this.store.LoadCheckpoint("astreamname");
@@ -43,7 +43,7 @@ namespace Storage.UnitTests.ReadModels
             result.Should().Be(1);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLoadCheckpointAndExists_ThenReturnsPosition()
         {
             this.repository.Setup(repo => repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<Checkpoint>>(),
@@ -58,7 +58,7 @@ namespace Storage.UnitTests.ReadModels
             result.Should().Be(10);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSaveCheckpointAndNotExists_ThenSavesPosition()
         {
             this.idFactory.Setup(idf => idf.Create(It.IsAny<IIdentifiableEntity>()))
@@ -74,7 +74,7 @@ namespace Storage.UnitTests.ReadModels
             )));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSaveCheckpointAndExists_ThenSavesPosition()
         {
             var existing = new Checkpoint {Id = "anid".ToIdentifier(), Position = 1};

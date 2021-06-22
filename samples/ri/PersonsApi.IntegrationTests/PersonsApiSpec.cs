@@ -1,59 +1,30 @@
 using Api.Interfaces.ServiceOperations.Persons;
 using FluentAssertions;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using IntegrationTesting.Common;
 using PersonsApplication.ReadModels;
 using PersonsDomain;
-using ServiceStack;
 using Storage.Interfaces;
+using Xunit;
 
 namespace PersonsApi.IntegrationTests
 {
-    [TestClass, TestCategory("Integration.Web")]
-    public class PersonsApiSpec
+    [Trait("Category", "Integration.Web"), Collection("ThisAssembly")]
+    public class PersonsApiSpec : IClassFixture<ApiSpecSetup<TestStartup>>
     {
-        private const string ServiceUrl = "http://localhost:2000/";
-        private static IWebHost webHost;
-        private static IEventStreamStorage<PersonEntity> personEventingStorage;
-        private static IQueryStorage<Person> personQueryStorage;
+        private readonly ApiSpecSetup<TestStartup> setup;
 
-        [ClassInitialize]
-        public static void InitializeAllTests(TestContext context)
+        public PersonsApiSpec(ApiSpecSetup<TestStartup> setup)
         {
-            webHost = WebHost.CreateDefaultBuilder(null)
-                .UseModularStartup<TestStartup>()
-                .UseUrls(ServiceUrl)
-                .UseKestrel()
-                .ConfigureLogging((ctx, builder) => builder.AddConsole())
-                .Build();
-            webHost.Start();
-
-            var container = HostContext.Container;
-            personQueryStorage = container.Resolve<IQueryStorage<Person>>();
-            personEventingStorage = container.Resolve<IEventStreamStorage<PersonEntity>>();
+            this.setup = setup;
+            this.setup = setup;
+            this.setup.Resolve<IQueryStorage<Person>>().DestroyAll();
+            this.setup.Resolve<IEventStreamStorage<PersonEntity>>().DestroyAll();
         }
 
-        [ClassCleanup]
-        public static void CleanupAllTests()
-        {
-            webHost?.StopAsync().GetAwaiter().GetResult();
-        }
-
-        [TestInitialize]
-        public void Initialize()
-        {
-            personEventingStorage.DestroyAll();
-            personQueryStorage.DestroyAll();
-        }
-
-        [TestMethod]
+        [Fact]
         public void WhenCreatePerson_ThenReturnsPerson()
         {
-            var client = new JsonServiceClient(ServiceUrl);
-
-            var person = client.Post(new CreatePersonRequest
+            var person = this.setup.Api.Post(new CreatePersonRequest
             {
                 FirstName = "afirstname",
                 LastName = "alastname"
@@ -62,18 +33,16 @@ namespace PersonsApi.IntegrationTests
             person.Should().NotBeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetPerson_ThenReturnsPerson()
         {
-            var client = new JsonServiceClient(ServiceUrl);
-
-            var person = client.Post(new CreatePersonRequest
+            var person = this.setup.Api.Post(new CreatePersonRequest
             {
                 FirstName = "afirstname",
                 LastName = "alastname"
             }).Person;
 
-            person = client.Get(new GetPersonRequest
+            person = this.setup.Api.Get(new GetPersonRequest
             {
                 Id = person.Id
             }).Person;

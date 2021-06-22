@@ -1,27 +1,24 @@
 ﻿using Api.Common;
 using Common;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Xunit;
 
 namespace CarsApi.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class AllDomainTypesSpec
     {
-        private Mock<IDependencyContainer> dependencyContainer;
-        private DomainFactory domainFactory;
-        private Mock<IRecorder> recorder;
+        private readonly DomainFactory domainFactory;
 
-        [TestInitialize]
-        public void Initialize()
+        public AllDomainTypesSpec()
         {
-            this.recorder = new Mock<IRecorder>();
-            this.dependencyContainer = new Mock<IDependencyContainer>();
-            this.dependencyContainer.Setup(dc => dc.Resolve<IRecorder>()).Returns(this.recorder.Object);
-            this.domainFactory = new DomainFactory(this.dependencyContainer.Object);
+            var recorder = new Mock<IRecorder>();
+            var dependencyContainer = new Mock<IDependencyContainer>();
+            dependencyContainer.Setup(dc => dc.Resolve<IRecorder>()).Returns(recorder.Object);
+            this.domainFactory = new DomainFactory(dependencyContainer.Object);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRegisterAllEntities_ThenAllEntitiesRegistered()
         {
             this.domainFactory.RegisterDomainTypesFromAssemblies(ServiceHost.AssembliesContainingDomainEntities);

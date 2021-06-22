@@ -1,22 +1,22 @@
 ﻿using System;
 using CarsDomain.Properties;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UnitTesting.Common;
+using Xunit;
 
 namespace CarsDomain.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class LicensePlateSpec
     {
-        [TestMethod]
+        [Fact]
         public void WhenConstructAndNullJurisdiction_ThenThrows()
         {
             Action a = () => new LicensePlate(null, "anumber");
             a.Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructAndUnknownJurisdiction_ThenThrows()
         {
             Action a = () => new LicensePlate("unknown", "anumber");
@@ -24,21 +24,21 @@ namespace CarsDomain.UnitTests
                 .WithMessageLike(Resources.LicensePlate_UnknownJurisdiction);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructAndNullNumber_ThenThrows()
         {
             Action a = () => new LicensePlate(LicensePlate.Jurisdictions[0], null);
             a.Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructAndInvalidNumber_ThenThrows()
         {
             Action a = () => new LicensePlate(LicensePlate.Jurisdictions[0], "^invalid^");
             a.Should().Throw<ArgumentOutOfRangeException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructAndKnownJurisdiction_ThenSucceeds()
         {
             var plate = new LicensePlate(LicensePlate.Jurisdictions[0], "anumber");

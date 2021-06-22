@@ -1,15 +1,15 @@
 ﻿using System;
 using Common.Properties;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UnitTesting.Common;
+using Xunit;
 
 namespace Common.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class DateTimeExtensionsSpec
     {
-        [TestMethod]
+        [Fact]
         public void WhenHasValueAndMinValue_ThenReturnsFalse()
         {
             var result = DateTime.MinValue.HasValue();
@@ -17,7 +17,7 @@ namespace Common.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenHasValueAndMinValueToUtc_ThenReturnsFalse()
         {
             var result = DateTime.MinValue.ToUniversalTime().HasValue();
@@ -25,7 +25,7 @@ namespace Common.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenHasValueAndMinValueToLocal_ThenReturnsFalse()
         {
             var result = DateTime.MinValue.ToLocalTime().HasValue();
@@ -33,7 +33,7 @@ namespace Common.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenHasValueAndUtcMinValue_ThenReturnsFalse()
         {
             var result = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc).HasValue();
@@ -41,7 +41,7 @@ namespace Common.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenHasValueAndLocalMinValue_ThenReturnsFalse()
         {
             var result = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Local).HasValue();
@@ -49,7 +49,7 @@ namespace Common.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenHasValueAndUnspecifiedMinValue_ThenReturnsFalse()
         {
             var result = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Unspecified).HasValue();
@@ -57,7 +57,7 @@ namespace Common.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenHasValueAndNotMinValue_ThenReturnsTrue()
         {
             var result = DateTime.UtcNow.HasValue();
@@ -65,7 +65,7 @@ namespace Common.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToLocalTimeWithMinDateTime_ThenThrows()
         {
             DateTime.MinValue
@@ -73,7 +73,7 @@ namespace Common.UnitTests
                 .Should().Throw<ArgumentOutOfRangeException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToLocalTimeWithLocalDateTime_ThenThrows()
         {
             DateTime.Now
@@ -82,7 +82,7 @@ namespace Common.UnitTests
                 .WithMessageLike(Resources.DateTimeExtensions_DateTimeIsNotUtc);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToLocalTimeWithNullTimezone_ThenThrows()
         {
             DateTime.UtcNow
@@ -90,7 +90,7 @@ namespace Common.UnitTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToLocalTimeWithInvalidTimezone_ThenThrows()
         {
             DateTime.UtcNow
@@ -99,7 +99,7 @@ namespace Common.UnitTests
                 .WithMessageLike(Resources.DateTimeExtensions_InvalidTimezone);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToLocalTimeWithLocalTimezoneOfThisMachine_ThenReturnsLocalTime()
         {
             var datum = DateTime.Now.ToLocalTime();

@@ -2,24 +2,23 @@
 using Api.Interfaces.ServiceOperations.Persons;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using PersonsApi.Properties;
 using PersonsApi.Services.Persons;
 using ServiceStack.FluentValidation;
 using UnitTesting.Common;
+using Xunit;
 
 namespace PersonsApi.UnitTests.Services.Persons
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class GetPersonRequestValidatorSpec
     {
-        private GetPersonRequest dto;
-        private Mock<IIdentifierFactory> identifierFactory;
-        private GetPersonRequestValidator validator;
+        private readonly GetPersonRequest dto;
+        private readonly Mock<IIdentifierFactory> identifierFactory;
+        private readonly GetPersonRequestValidator validator;
 
-        [TestInitialize]
-        public void Initialize()
+        public GetPersonRequestValidatorSpec()
         {
             this.identifierFactory = new Mock<IIdentifierFactory>();
             this.identifierFactory.Setup(f => f.IsValid(It.IsAny<Identifier>())).Returns(true);
@@ -30,13 +29,13 @@ namespace PersonsApi.UnitTests.Services.Persons
             };
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAllProperties_ThenSucceeds()
         {
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIdIsNull_ThenThrows()
         {
             this.dto.Id = null;
@@ -47,7 +46,7 @@ namespace PersonsApi.UnitTests.Services.Persons
                 .WithValidationMessageLike(Resources.AnyValidator_InvalidId);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenIdIsInvalid_ThenThrows()
         {
             this.identifierFactory.Setup(f => f.IsValid(It.IsAny<Identifier>())).Returns(false);

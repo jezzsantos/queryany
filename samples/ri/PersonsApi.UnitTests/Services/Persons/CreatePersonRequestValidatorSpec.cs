@@ -1,21 +1,20 @@
 ﻿using Api.Interfaces.ServiceOperations.Persons;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PersonsApi.Properties;
 using PersonsApi.Services.Persons;
 using ServiceStack.FluentValidation;
 using UnitTesting.Common;
+using Xunit;
 
 namespace PersonsApi.UnitTests.Services.Persons
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class CreatePersonRequestValidatorSpec
     {
-        private CreatePersonRequest dto;
-        private CreatePersonRequestValidator validator;
+        private readonly CreatePersonRequest dto;
+        private readonly CreatePersonRequestValidator validator;
 
-        [TestInitialize]
-        public void Initialize()
+        public CreatePersonRequestValidatorSpec()
         {
             this.validator = new CreatePersonRequestValidator();
             this.dto = new CreatePersonRequest
@@ -25,13 +24,13 @@ namespace PersonsApi.UnitTests.Services.Persons
             };
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAllProperties_ThenSucceeds()
         {
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFirstNameIsNull_ThenThrows()
         {
             this.dto.FirstName = null;
@@ -42,7 +41,7 @@ namespace PersonsApi.UnitTests.Services.Persons
                 .WithValidationMessageForNotEmpty();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenFirstNameIsInvalid_ThenThrows()
         {
             this.dto.FirstName = "^invalid^";
@@ -53,7 +52,7 @@ namespace PersonsApi.UnitTests.Services.Persons
                 .WithValidationMessageLike(Resources.CreatePersonRequestValidator_InvalidFirstName);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLastNameIsNull_ThenThrows()
         {
             this.dto.LastName = null;
@@ -64,7 +63,7 @@ namespace PersonsApi.UnitTests.Services.Persons
                 .WithValidationMessageForNotEmpty();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLastNameIsInvalid_ThenThrows()
         {
             this.dto.LastName = "^invalid^";

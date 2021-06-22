@@ -1,13 +1,13 @@
 ﻿using System;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace CarsDomain.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class VehicleOwnerSpec
     {
-        [TestMethod]
+        [Fact]
         public void WhenConstructedWithNullOwnerId_ThenThrows()
         {
             Action a = () => new VehicleOwner(null);
@@ -15,7 +15,7 @@ namespace CarsDomain.UnitTests
             a.Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructed_ThenOwnerIdAssigned()
         {
             var owner = new VehicleOwner("anownerid");

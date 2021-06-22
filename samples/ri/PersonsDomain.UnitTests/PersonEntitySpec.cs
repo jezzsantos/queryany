@@ -2,35 +2,32 @@ using Common;
 using Domain.Interfaces.Entities;
 using DomainServices.Interfaces;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using PersonsDomain.Properties;
+using Xunit;
 
 namespace PersonsDomain.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class PersonEntitySpec
     {
-        private PersonEntity entity;
-        private Mock<IIdentifierFactory> identifierFactory;
-        private Mock<IRecorder> recorder;
-        private Mock<IEmailService> uniqueEmailService;
+        private readonly PersonEntity entity;
+        private readonly Mock<IEmailService> uniqueEmailService;
 
-        [TestInitialize]
-        public void Initialize()
+        public PersonEntitySpec()
         {
-            this.recorder = new Mock<IRecorder>();
-            this.identifierFactory = new Mock<IIdentifierFactory>();
-            this.identifierFactory.Setup(f => f.Create(It.IsAny<IIdentifiableEntity>()))
+            var recorder = new Mock<IRecorder>();
+            var identifierFactory = new Mock<IIdentifierFactory>();
+            identifierFactory.Setup(f => f.Create(It.IsAny<IIdentifiableEntity>()))
                 .Returns("apersonid".ToIdentifier);
             this.uniqueEmailService = new Mock<IEmailService>();
             this.uniqueEmailService.Setup(ues => ues.EnsureEmailIsUnique(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(true);
-            this.entity = new PersonEntity(this.recorder.Object, this.identifierFactory.Object,
+            this.entity = new PersonEntity(recorder.Object, identifierFactory.Object,
                 this.uniqueEmailService.Object);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSetName_ThenNameAndDisplayNameAssigned()
         {
             this.entity.SetName(new PersonName("afirstname", "alastname"));
@@ -40,7 +37,7 @@ namespace PersonsDomain.UnitTests
             this.entity.Events[1].Should().BeOfType<Events.Person.NameChanged>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSetDisplayName_ThenEmailAssigned()
         {
             this.entity.SetDisplayName(new PersonDisplayName("adisplayname"));
@@ -49,7 +46,7 @@ namespace PersonsDomain.UnitTests
             this.entity.Events[1].Should().BeOfType<Events.Person.DisplayNameChanged>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSetEmail_ThenEmailAssigned()
         {
             this.entity.SetEmail(new Email("anemail@company.com"));
@@ -58,7 +55,7 @@ namespace PersonsDomain.UnitTests
             this.entity.Events[1].Should().BeOfType<Events.Person.EmailChanged>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSetEmailAndNotUnique_ThenThrows()
         {
             this.uniqueEmailService.Setup(ues => ues.EnsureEmailIsUnique(It.IsAny<string>(), It.IsAny<string>()))
@@ -70,7 +67,7 @@ namespace PersonsDomain.UnitTests
                 .Should().Throw<RuleViolationException>(Resources.PersonEntity_EmailNotUnique);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSetPhoneNumber_ThenEmailAssigned()
         {
             this.entity.SetPhoneNumber(new PhoneNumber("+64277888111"));

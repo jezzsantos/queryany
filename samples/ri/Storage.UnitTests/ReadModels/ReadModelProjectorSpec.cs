@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Storage.Interfaces;
 using Storage.Interfaces.ReadModels;
 using Storage.ReadModels;
 using Storage.ReadModels.Properties;
 using UnitTesting.Common;
+using Xunit;
 
 namespace Storage.UnitTests.ReadModels
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class ReadModelProjectorSpec
     {
         private readonly Mock<IReadModelCheckpointStore> checkpointStore;
@@ -35,7 +35,7 @@ namespace Storage.UnitTests.ReadModels
                 changeEventTypeMigrator, projections.ToArray());
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWriteEventStreamAndNoEvents_ThenReturns()
         {
             this.projector.WriteEventStream("astreamname", new List<EventStreamStateChangeEvent>());
@@ -45,7 +45,7 @@ namespace Storage.UnitTests.ReadModels
             this.checkpointStore.Verify(cs => cs.SaveCheckpoint(It.IsAny<string>(), It.IsAny<long>()), Times.Never);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWriteEventStreamAndNoConfiguredProjection_ThenThrows()
         {
             this.projection.Setup(prj => prj.EntityType)
@@ -65,7 +65,7 @@ namespace Storage.UnitTests.ReadModels
             this.checkpointStore.Verify(cs => cs.SaveCheckpoint(It.IsAny<string>(), It.IsAny<long>()), Times.Never);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWriteEventStreamAndEventVersionGreaterThanCheckpoint_ThenThrows()
         {
             this.checkpointStore.Setup(cs => cs.LoadCheckpoint("astreamname"))
@@ -85,7 +85,7 @@ namespace Storage.UnitTests.ReadModels
                 .WithMessageLike(Resources.ReadModelProjector_UnexpectedError);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWriteEventStreamAndEventVersionLessThanCheckpoint_ThenSkipsPreviousVersions()
         {
             this.checkpointStore.Setup(cs => cs.LoadCheckpoint("astreamname"))
@@ -132,7 +132,7 @@ namespace Storage.UnitTests.ReadModels
             this.checkpointStore.Verify(cs => cs.SaveCheckpoint("astreamname", 7));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWriteEventStreamAndDeserializationOfEventsFails_ThenThrows()
         {
             this.checkpointStore.Setup(cs => cs.LoadCheckpoint("astreamname"))
@@ -153,7 +153,7 @@ namespace Storage.UnitTests.ReadModels
                 .WithMessageLike(Resources.ReadModelProjector_UnexpectedError);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWriteEventStreamAndFirstEverEvent_ThenProjectsEvents()
         {
             const long startingCheckpoint = ReadModelCheckpointStore.StartingCheckpointPosition;
@@ -201,7 +201,7 @@ namespace Storage.UnitTests.ReadModels
             this.checkpointStore.Verify(cs => cs.SaveCheckpoint("astreamname", startingCheckpoint + 3));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenWriteEventStream_ThenProjectsEvents()
         {
             this.checkpointStore.Setup(cs => cs.LoadCheckpoint("astreamname"))

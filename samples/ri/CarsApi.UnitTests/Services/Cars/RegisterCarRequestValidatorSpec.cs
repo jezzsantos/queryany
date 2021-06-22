@@ -4,26 +4,24 @@ using CarsApi.Services.Cars;
 using CarsDomain;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using ServiceStack.FluentValidation;
 using UnitTesting.Common;
+using Xunit;
 
 namespace CarsApi.UnitTests.Services.Cars
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class RegisterCarRequestValidatorSpec
     {
-        private RegisterCarRequest dto;
-        private Mock<IIdentifierFactory> identifierFactory;
-        private RegisterCarRequestValidator validator;
+        private readonly RegisterCarRequest dto;
+        private readonly RegisterCarRequestValidator validator;
 
-        [TestInitialize]
-        public void Initialize()
+        public RegisterCarRequestValidatorSpec()
         {
-            this.identifierFactory = new Mock<IIdentifierFactory>();
-            this.identifierFactory.Setup(f => f.IsValid(It.IsAny<Identifier>())).Returns(true);
-            this.validator = new RegisterCarRequestValidator(this.identifierFactory.Object);
+            var identifierFactory = new Mock<IIdentifierFactory>();
+            identifierFactory.Setup(f => f.IsValid(It.IsAny<Identifier>())).Returns(true);
+            this.validator = new RegisterCarRequestValidator(identifierFactory.Object);
             this.dto = new RegisterCarRequest
             {
                 Id = "anid",
@@ -32,13 +30,13 @@ namespace CarsApi.UnitTests.Services.Cars
             };
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAllProperties_ThenSucceeds()
         {
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenJurisdictionIsNull_ThenThrows()
         {
             this.dto.Jurisdiction = null;
@@ -49,7 +47,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageForNotEmpty();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenJurisdictionNotValid_ThenThrows()
         {
             this.dto.Jurisdiction = "invalid";
@@ -60,7 +58,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageLike(Resources.RegisterCarRequestValidator_InvalidJurisdiction);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenJurisdiction_ThenSucceeds()
         {
             this.dto.Jurisdiction = LicensePlate.Jurisdictions[0];
@@ -68,7 +66,7 @@ namespace CarsApi.UnitTests.Services.Cars
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenNumberIsNull_ThenThrows()
         {
             this.dto.Number = null;
@@ -79,7 +77,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageForNotEmpty();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenNumberNotValid_ThenThrows()
         {
             this.dto.Number = "##aninvalidnumber##";
@@ -90,7 +88,7 @@ namespace CarsApi.UnitTests.Services.Cars
                 .WithValidationMessageLike(Resources.RegisterCarRequestValidator_InvalidNumber);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenNumber_ThenSucceeds()
         {
             this.dto.Number = "ABC123";

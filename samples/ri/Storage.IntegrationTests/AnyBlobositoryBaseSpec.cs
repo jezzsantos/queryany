@@ -3,9 +3,9 @@ using System.IO;
 using Common;
 using FluentAssertions;
 using Funq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 using ServiceStack;
+using Xunit;
 
 namespace Storage.IntegrationTests
 {
@@ -19,26 +19,18 @@ namespace Storage.IntegrationTests
     public abstract class AnyBlobositoryBaseSpec
     {
         private static readonly IRecorder Recorder = NullRecorder.Instance;
-        private static Container container;
-        private BloboInfo blobo;
+        private readonly BloboInfo blobo;
 
-        protected static void InitializeAllTests()
+        protected AnyBlobositoryBaseSpec(IBlobository blobository)
         {
-            container = new Container();
+            var container = new Container();
             container.AddSingleton(Recorder);
-        }
-
-        [TestInitialize]
-        public void Initialize()
-        {
-            this.blobo = GetBlobository<TestRepositoryEntity>();
+            this.blobo = new BloboInfo
+                {Blobository = blobository, ContainerName = typeof(TestRepositoryEntity).GetEntityNameSafe()};
             this.blobo.Blobository.DestroyAll(this.blobo.ContainerName);
         }
 
-        protected abstract BloboInfo GetBlobository<TQueryableEntity>()
-            where TQueryableEntity : IQueryableEntity;
-
-        [TestMethod]
+        [Fact]
         public void WhenDownloadWithNullContainerName_ThenThrows()
         {
             this.blobo.Blobository
@@ -46,7 +38,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDownloadWithNullBlobName_ThenThrows()
         {
             this.blobo.Blobository
@@ -54,7 +46,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDownloadWithNullStream_ThenThrows()
         {
             this.blobo.Blobository
@@ -62,7 +54,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDownloadAndNotExists_ThenReturnsNull()
         {
             var result = this.blobo.Blobository.Download(this.blobo.ContainerName, "ablobname", new MemoryStream());
@@ -70,7 +62,7 @@ namespace Storage.IntegrationTests
             result.Should().BeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDownloadAndExists_ThenReturnsBlob()
         {
             var data = new byte[] {0x00, 0x01, 0x02};
@@ -85,7 +77,7 @@ namespace Storage.IntegrationTests
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenUploadAndContainerNameIsNull_ThenThrows()
         {
             this.blobo.Blobository
@@ -93,7 +85,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenUploadAndBlobNameIsNull_ThenThrows()
         {
             this.blobo.Blobository
@@ -101,7 +93,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenUploadAndContentTypeIsNull_ThenThrows()
         {
             this.blobo.Blobository
@@ -109,7 +101,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenUploadAndDataIsNull_ThenThrows()
         {
             this.blobo.Blobository
@@ -117,7 +109,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenUploadAndExists_ThenOverwrites()
         {
             var data = new byte[] {0x00, 0x01, 0x02};
@@ -136,7 +128,7 @@ namespace Storage.IntegrationTests
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenUploadAndNotExists_ThenAddsNewBLob()
         {
             var data = new byte[] {0x00, 0x01, 0x02};

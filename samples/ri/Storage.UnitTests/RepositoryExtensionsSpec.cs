@@ -1,13 +1,13 @@
 ﻿using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
+using Xunit;
 
 namespace Storage.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class RepositoryExtensionsSpec
     {
-        [TestMethod]
+        [Fact]
         public void
             WhenGetDefaultOrderingAndNoOrderingAndEntityNotHaveDefaultOrderingPropertyNorBackupPropertyName_ThenReturnsFirstPropertyNameOrdering()
         {
@@ -17,7 +17,7 @@ namespace Storage.UnitTests
             result.Should().Be(nameof(TestDtoWithoutDefaultOrderingOrBackupProperty.APropertyName));
         }
 
-        [TestMethod]
+        [Fact]
         public void
             WhenGetDefaultOrderingAndNoOrderingAndEntityNotHaveDefaultOrderingProperty_ThenReturnsBackupOrdering()
         {
@@ -27,7 +27,7 @@ namespace Storage.UnitTests
             result.Should().Be(RepositoryExtensions.BackupOrderingPropertyName);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetDefaultOrderingAndNoOrdering_ThenReturnsDefaultOrdering()
         {
             var result = Query.From<TestDtoWithDefaultProperty>().WhereAll()
@@ -36,7 +36,7 @@ namespace Storage.UnitTests
             result.Should().Be(RepositoryExtensions.DefaultOrderingPropertyName);
         }
 
-        // [TestMethod]
+        // [Fact]
         // public void WhenGetDefaultOrderingAndOrderingNotExistsOnEntity_ThenReturnsDefaultOrdering()
         // {
         //     var result = Query.From<TestDtoWithDefaultProperty>().WhereAll()
@@ -46,7 +46,7 @@ namespace Storage.UnitTests
         //     result.Should().Be(RepositoryExtensions.DefaultOrderingPropertyName);
         // }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetDefaultOrderingAndOrderingExistsOnEntity_ThenReturnsNamedOrdering()
         {
             var result = Query.From<TestDtoWithDefaultProperty>().WhereAll()
@@ -56,7 +56,7 @@ namespace Storage.UnitTests
             result.Should().Be(nameof(TestDtoWithDefaultProperty.APropertyName));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetDefaultOrderingWithSelectionsAndNoOrdering_ThenReturnsDefaultOrdering()
         {
             var result = Query.From<TestDtoWithDefaultProperty>()
@@ -67,7 +67,7 @@ namespace Storage.UnitTests
             result.Should().Be(RepositoryExtensions.DefaultOrderingPropertyName);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetDefaultOrderingWithSelectionsAndNoOrderingAndNoDefaultSelection_ThenReturnsBackupOrdering()
         {
             var result = Query.From<TestDtoWithDefaultProperty>()
@@ -78,7 +78,7 @@ namespace Storage.UnitTests
             result.Should().Be(RepositoryExtensions.BackupOrderingPropertyName);
         }
 
-        [TestMethod]
+        [Fact]
         public void
             WhenGetDefaultOrderingWithSelectionsAndNoOrderingAndNoBackupSelection_ThenReturnsFirstSelectedPropertyOrdering()
         {
@@ -90,7 +90,7 @@ namespace Storage.UnitTests
             result.Should().Be(nameof(TestDtoWithDefaultProperty.APropertyName));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetDefaultOrderingWithSelectionsAndOrdering_ThenReturnsSelectedNamedOrdering()
         {
             var result = Query.From<TestDtoWithDefaultProperty>()

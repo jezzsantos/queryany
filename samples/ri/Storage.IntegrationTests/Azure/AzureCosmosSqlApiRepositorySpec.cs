@@ -1,39 +1,36 @@
+using System;
+using Common;
 using Microsoft.Extensions.Configuration;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using QueryAny;
 using ServiceStack;
 using Storage.Azure;
+using Xunit;
 
 namespace Storage.IntegrationTests.Azure
 {
-    [TestClass, TestCategory("Integration.Storage.NOCI")]
-    public class AzureCosmosSqlApiRepositorySpec : AnyRepositoryBaseSpec
+    public class AzureCosmosSqlApiRepositorySpecSetup : IDisposable
     {
-        private static AzureCosmosSqlApiRepository repository;
-
-        [ClassInitialize]
-        public static void InitializeAllTests(TestContext context)
+        public AzureCosmosSqlApiRepositorySpecSetup()
         {
-            InitializeAllTests();
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var settings = new NetCoreAppSettings(config);
-            repository = AzureCosmosSqlApiRepository.FromSettings(Recorder, settings, "TestDatabase");
-            AzureCosmosStorageBase.InitializeAllTests(context, null);
+            Repository = AzureCosmosSqlApiRepository.FromSettings(NullRecorder.Instance, settings, "TestDatabase");
+            AzureCosmosStorageBase.InitializeAllTests(null);
         }
 
-        [ClassCleanup]
-        public static void CleanupAllTests()
+        public IRepository Repository { get; }
+
+        public void Dispose()
         {
             AzureCosmosStorageBase.CleanupAllTests();
         }
+    }
 
-        protected override RepoInfo GetRepository<TEntity>()
+    [Trait("Category", "Integration.Storage.NOCI")]
+    public class AzureCosmosSqlApiRepositorySpec : AnyRepositoryBaseSpec,
+        IClassFixture<AzureCosmosSqlApiRepositorySpecSetup>
+    {
+        public AzureCosmosSqlApiRepositorySpec(AzureCosmosSqlApiRepositorySpecSetup setup) : base(setup.Repository)
         {
-            return new RepoInfo
-            {
-                Repository = repository,
-                ContainerName = typeof(TEntity).GetEntityNameSafe()
-            };
         }
     }
 }

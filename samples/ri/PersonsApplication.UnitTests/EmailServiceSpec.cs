@@ -1,27 +1,26 @@
 ﻿using System;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using PersonsApplication.ReadModels;
 using PersonsApplication.Storage;
+using Xunit;
 
 namespace PersonsApplication.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class EmailServiceSpec
     {
-        private EmailService service;
-        private Mock<IPersonStorage> storage;
+        private readonly EmailService service;
+        private readonly Mock<IPersonStorage> storage;
 
-        [TestInitialize]
-        public void Initialize()
+        public EmailServiceSpec()
         {
             this.storage = new Mock<IPersonStorage>();
             this.service = new EmailService(this.storage.Object);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEnsureEmailIsUniqueAndNoPersons_ThenReturnsTrue()
         {
             this.storage.Setup(s => s.FindByEmailAddress(It.IsAny<string>()))
@@ -32,7 +31,7 @@ namespace PersonsApplication.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEnsureEmailIsUniqueAndNotPersonId_ThenReturnsFalse()
         {
             this.storage.Setup(s => s.FindByEmailAddress(It.IsAny<string>()))
@@ -43,7 +42,7 @@ namespace PersonsApplication.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEnsureEmailIsUniqueAndMatchesPersonId_ThenReturnsTrue()
         {
             this.storage.Setup(s => s.FindByEmailAddress(It.IsAny<string>()))

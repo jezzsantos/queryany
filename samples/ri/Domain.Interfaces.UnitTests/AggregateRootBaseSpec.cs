@@ -4,44 +4,41 @@ using System.Linq;
 using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Xunit;
 
 namespace Domain.Interfaces.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class AggregateRootBaseSpec
     {
-        private TestAggregateRoot aggregate;
-        private Mock<IDependencyContainer> dependencyContainer;
-        private Mock<IIdentifierFactory> idFactory;
-        private Mock<IRecorder> recorder;
-        private ChangeEventTypeMigrator typeMigrator;
+        private readonly TestAggregateRoot aggregate;
+        private readonly Mock<IDependencyContainer> dependencyContainer;
+        private readonly ChangeEventTypeMigrator typeMigrator;
 
-        [TestInitialize]
-        public void Initialize()
+        public AggregateRootBaseSpec()
         {
-            this.recorder = new Mock<IRecorder>();
-            this.idFactory = new Mock<IIdentifierFactory>();
-            this.idFactory.Setup(idf => idf.Create(It.IsAny<IIdentifiableEntity>()))
+            var recorder = new Mock<IRecorder>();
+            var idFactory = new Mock<IIdentifierFactory>();
+            idFactory.Setup(idf => idf.Create(It.IsAny<IIdentifiableEntity>()))
                 .Returns("anid".ToIdentifier());
             this.dependencyContainer = new Mock<IDependencyContainer>();
             this.dependencyContainer.Setup(dc => dc.Resolve<IRecorder>())
-                .Returns(this.recorder.Object);
+                .Returns(recorder.Object);
             this.dependencyContainer.Setup(dc => dc.Resolve<IIdentifierFactory>())
-                .Returns(this.idFactory.Object);
+                .Returns(idFactory.Object);
             this.typeMigrator = new ChangeEventTypeMigrator();
 
-            this.aggregate = new TestAggregateRoot(this.recorder.Object, this.idFactory.Object);
+            this.aggregate = new TestAggregateRoot(recorder.Object, idFactory.Object);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructed_ThenIdentifierIsAssigned()
         {
             this.aggregate.Id.Should().Be("anid".ToIdentifier());
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructed_ThenDatesAssigned()
         {
             var now = DateTime.UtcNow;
@@ -51,13 +48,13 @@ namespace Domain.Interfaces.UnitTests
             this.aggregate.LastModifiedAtUtc.Should().BeAfter(this.aggregate.CreatedAtUtc);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructed_ThenChangeVersion0()
         {
             this.aggregate.ChangeVersion.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructed_ThenRaisesEvent()
         {
             this.aggregate.Events.Count().Should().Be(1);
@@ -65,7 +62,7 @@ namespace Domain.Interfaces.UnitTests
             this.aggregate.LastModifiedAtUtc.Should().BeAfter(this.aggregate.CreatedAtUtc);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRehydrateAndCreates_ThenReturnsInstance()
         {
             var result = TestAggregateRoot.Rehydrate()("anid".ToIdentifier(), this.dependencyContainer.Object,
@@ -74,7 +71,7 @@ namespace Domain.Interfaces.UnitTests
             result.Id.Should().Be("anid".ToIdentifier());
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRehydrate_ThenRaisesNoEvents()
         {
             var container = new Mock<IDependencyContainer>();
@@ -93,7 +90,7 @@ namespace Domain.Interfaces.UnitTests
             created.LastModifiedAtUtc.Should().Be(DateTime.MinValue);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenChangeProperty_ThenRaisesEventAndModified()
         {
             this.aggregate.ChangeProperty("achangedvalue");
@@ -105,7 +102,7 @@ namespace Domain.Interfaces.UnitTests
             this.aggregate.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, 50);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenGetChanges_ThenReturnsEventEntities()
         {
             this.aggregate.ChangeProperty("avalue1");
@@ -123,7 +120,7 @@ namespace Domain.Interfaces.UnitTests
             result[1].Metadata.Fqn.Should().Be(typeof(TestAggregateRoot.ChangeEvent).AssemblyQualifiedName);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLoadChangesAgainAndEventVersionsMismatched_ThenThrows()
         {
             ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
@@ -142,7 +139,7 @@ namespace Domain.Interfaces.UnitTests
                 .Throw<InvalidOperationException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLoadChangesAgain_ThenAppendsEvents()
         {
             ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
@@ -160,7 +157,7 @@ namespace Domain.Interfaces.UnitTests
             this.aggregate.ChangeVersion.Should().Be(4);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenLoadChanges_ThenSetsEventsAndUpdatesVersion()
         {
             ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
@@ -173,7 +170,7 @@ namespace Domain.Interfaces.UnitTests
             this.aggregate.ChangeVersion.Should().Be(3);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToEventAfterGetChanges_ThenReturnsOriginalEvent()
         {
             this.aggregate.ChangeProperty("avalue");
@@ -191,7 +188,7 @@ namespace Domain.Interfaces.UnitTests
             changed.As<TestAggregateRoot.ChangeEvent>().APropertyName.Should().Be("avalue");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenClearChanges_ThenResetsLastPersisted()
         {
             this.aggregate.ClearChanges();

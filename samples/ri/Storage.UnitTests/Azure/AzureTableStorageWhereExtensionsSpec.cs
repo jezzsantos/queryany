@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 using Storage.Azure;
+using Xunit;
 
 namespace Storage.UnitTests.Azure
 {
     // ReSharper disable once InconsistentNaming
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class AzureStorageTableWhereExtensionsSpec
     {
-        [TestMethod]
+        [Fact]
         public void WhenToAzureTableStorageWhereClauseAndSingleCondition_ThenReturnsSqlExpression()
         {
             var wheres = new List<WhereExpression>
@@ -31,7 +31,7 @@ namespace Storage.UnitTests.Azure
             result.Should().Be("afield1 eq 'astringvalue'");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToAzureTableStorageWhereClauseAndMultipleConditions_ThenReturnsSqlExpression()
         {
             var wheres = new List<WhereExpression>
@@ -62,7 +62,7 @@ namespace Storage.UnitTests.Azure
             result.Should().Be("afield1 eq 'astringvalue' and afield2 ge 'astringvalue'");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToAzureTableStorageWhereClauseAndNestedConditions_ThenReturnsSqlExpression()
         {
             var wheres = new List<WhereExpression>

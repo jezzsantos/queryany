@@ -1,29 +1,29 @@
 ﻿using System;
 using CarsDomain.Properties;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UnitTesting.Common;
+using Xunit;
 
 namespace CarsDomain.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class TimeSlotSpec
     {
-        [TestMethod]
+        [Fact]
         public void WhenConstructAndMinFrom_ThenThrows()
         {
             Action a = () => new TimeSlot(DateTime.MinValue, DateTime.UtcNow);
             a.Should().Throw<ArgumentOutOfRangeException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructAndMinTo_ThenThrows()
         {
             Action a = () => new TimeSlot(DateTime.UtcNow, DateTime.MinValue);
             a.Should().Throw<ArgumentOutOfRangeException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructAndToNotAfterFrom_ThenThrows()
         {
             var datum = DateTime.UtcNow;
@@ -32,7 +32,7 @@ namespace CarsDomain.UnitTests
                 .WithMessageLike(Resources.TimeSlot_FromDateBeforeToDate);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructAndToAfterFrom_ThenSucceeds()
         {
             var datum = DateTime.UtcNow;

@@ -1,14 +1,14 @@
 ﻿using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ServiceStack;
+using Xunit;
 
 namespace Domain.Interfaces.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class IdentifierSpec
     {
-        [TestMethod]
+        [Fact]
         public void WhenAutoMapperMapsIdentifier_ThenMapsToStringValue()
         {
             var @object = new TestObject

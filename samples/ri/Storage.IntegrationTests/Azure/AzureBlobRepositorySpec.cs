@@ -1,39 +1,34 @@
+using System;
 using Microsoft.Extensions.Configuration;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using QueryAny;
 using ServiceStack;
 using Storage.Azure;
+using Xunit;
 
 namespace Storage.IntegrationTests.Azure
 {
-    [TestClass, TestCategory("Integration.Storage")]
-    public class AzureBlobBlobositorySpec : AnyBlobositoryBaseSpec
+    public class AzureBlobRepositorySpecSetup : IDisposable
     {
-        private static AzureBlobStorageRepository blobository;
-
-        [ClassInitialize]
-        public static void InitializeAllTests(TestContext context)
+        public AzureBlobRepositorySpecSetup()
         {
-            InitializeAllTests();
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var settings = new NetCoreAppSettings(config);
-            blobository = AzureBlobStorageRepository.FromSettings(settings);
+            Blobository = AzureBlobStorageRepository.FromSettings(settings);
             AzureStorageAccountBase.InitializeAllTests();
         }
 
-        [ClassCleanup]
-        public static void CleanupAllTests()
+        public IBlobository Blobository { get; }
+
+        public void Dispose()
         {
             AzureStorageAccountBase.CleanupAllTests();
         }
+    }
 
-        protected override BloboInfo GetBlobository<TEntity>()
+    [Trait("Category", "Integration.Storage")]
+    public class AzureBlobRepositorySpec : AnyBlobositoryBaseSpec, IClassFixture<AzureBlobRepositorySpecSetup>
+    {
+        public AzureBlobRepositorySpec(AzureBlobRepositorySpecSetup setup) : base(setup.Blobository)
         {
-            return new BloboInfo
-            {
-                Blobository = blobository,
-                ContainerName = typeof(TEntity).GetEntityNameSafe()
-            };
         }
     }
 }

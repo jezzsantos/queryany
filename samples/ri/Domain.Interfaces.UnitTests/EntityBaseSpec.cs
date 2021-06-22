@@ -2,42 +2,39 @@
 using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using UnitTesting.Common;
+using Xunit;
 
 namespace Domain.Interfaces.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class EntityBaseSpec
     {
-        private Mock<IDependencyContainer> dependencyContainer;
-        private TestEntity entity;
-        private Mock<IIdentifierFactory> idFactory;
-        private Mock<IRecorder> recorder;
+        private readonly TestEntity entity;
 
-        [TestInitialize]
-        public void Initialize()
+        public EntityBaseSpec()
         {
-            this.recorder = new Mock<IRecorder>();
-            this.idFactory = new Mock<IIdentifierFactory>();
-            this.idFactory.Setup(idf => idf.Create(It.IsAny<TestEntity>()))
+            var recorder = new Mock<IRecorder>();
+            var idFactory = new Mock<IIdentifierFactory>();
+            idFactory.Setup(idf => idf.Create(It.IsAny<TestEntity>()))
                 .Returns("anid".ToIdentifier());
-            this.dependencyContainer = new Mock<IDependencyContainer>();
-            this.dependencyContainer.Setup(dc => dc.Resolve<IRecorder>())
-                .Returns(this.recorder.Object);
-            this.dependencyContainer.Setup(dc => dc.Resolve<IIdentifierFactory>())
-                .Returns(this.idFactory.Object);
+            var dependencyContainer = new Mock<IDependencyContainer>();
+            dependencyContainer.Setup(dc => dc.Resolve<IRecorder>())
+                .Returns(recorder.Object);
+            dependencyContainer.Setup(dc => dc.Resolve<IIdentifierFactory>())
+                .Returns(idFactory.Object);
 
-            this.entity = new TestEntity(this.recorder.Object, this.idFactory.Object);
+            this.entity = new TestEntity(recorder.Object, idFactory.Object);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructed_ThenIdentifierIsAssigned()
         {
             this.entity.Id.Should().Be("anid".ToIdentifier());
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructed_ThenDatesAssigned()
         {
             var now = DateTime.UtcNow;
@@ -47,7 +44,7 @@ namespace Domain.Interfaces.UnitTests
             this.entity.LastModifiedAtUtc.Should().Be(this.entity.CreatedAtUtc);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenChangeProperty_ThenModified()
         {
             this.entity.ChangeProperty("avalue");
@@ -55,7 +52,7 @@ namespace Domain.Interfaces.UnitTests
             this.entity.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenChangePropertyAndSetAggregateEventHandler_ThenEventHandledByHandler()
         {
             object handledAggregateEvent = null;
@@ -67,7 +64,7 @@ namespace Domain.Interfaces.UnitTests
             {
                 APropertyName = "avalue"
             });
-            this.entity.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
+            this.entity.LastModifiedAtUtc.Should().BeNear(DateTime.UtcNow);
         }
     }
 }

@@ -1,11 +1,11 @@
 ﻿using Common;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Xunit;
 
 namespace Storage.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class GeneralReadModelStorageSpec
     {
         private readonly Mock<IRepository> repository;
@@ -21,7 +21,7 @@ namespace Storage.UnitTests
                 new GeneralReadModelStorage<TestReadModel>(recorder.Object, this.repository.Object);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCreateWithNoAction_ThenCreatesAndReturnsDto()
         {
             var result = this.storage.Create("anid");
@@ -32,7 +32,7 @@ namespace Storage.UnitTests
             )));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCreateWithInitialisingAction_ThenCreatesAndReturnsDto()
         {
             var result = this.storage.Create("anid", entity => entity.APropertyName = "avalue");
@@ -44,7 +44,7 @@ namespace Storage.UnitTests
             )));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenUpdateAndNotExists_ThenThrows()
         {
             this.repository.Setup(repo =>
@@ -56,7 +56,7 @@ namespace Storage.UnitTests
                 .Should().Throw<ResourceNotFoundException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenUpdate_ThenUpdatesAndReturnsDto()
         {
             this.repository.Setup(repo =>

@@ -2,33 +2,31 @@
 using Api.Common.Validators;
 using Application.Interfaces;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ServiceStack.FluentValidation;
 using UnitTesting.Common;
+using Xunit;
 
 namespace Api.Common.UnitTests.Validators
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class HasGetOptionsValidatorSpec
     {
-        private HasGetOptionsDto dto;
+        private readonly HasGetOptionsDto dto;
+        private readonly HasGetOptionsValidator validator;
 
-        private HasGetOptionsValidator validator;
-
-        [TestInitialize]
-        public void Initialize()
+        public HasGetOptionsValidatorSpec()
         {
             this.validator = new HasGetOptionsValidator();
             this.dto = new HasGetOptionsDto();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAllPropertiesValid_ThenSucceeds()
         {
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEmbedIsNull_ThenSucceeds()
         {
             this.dto.Embed = null;
@@ -36,7 +34,7 @@ namespace Api.Common.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEmbedIsOff_ThenSucceeds()
         {
             this.dto.Embed = HasGetOptions.EmbedNone;
@@ -44,7 +42,7 @@ namespace Api.Common.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEmbedIsTopLevelField_ThenSucceeds()
         {
             this.dto.Embed = "aresourceref";
@@ -52,7 +50,7 @@ namespace Api.Common.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEmbedIsChildLevelField_ThenSucceeds()
         {
             this.dto.Embed = "aresourceref.achildresourceref";
@@ -60,7 +58,7 @@ namespace Api.Common.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEmbedIsGrandChildLevelField_ThenSucceeds()
         {
             this.dto.Embed = "aresourceref.achildresourceref.agrandchildresourceref";
@@ -68,7 +66,7 @@ namespace Api.Common.UnitTests.Validators
             this.validator.ValidateAndThrow(this.dto);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEmbedIsInvalidResourceReference_ThenThrows()
         {
             this.dto.Embed = "^aresourceref";
@@ -77,7 +75,7 @@ namespace Api.Common.UnitTests.Validators
                 .WithMessageLike(Resources.HasGetOptionsValidator_InvalidEmbed);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEmbedIsInvalidChildResourceReference_ThenThrows()
         {
             this.dto.Embed = "aresourceref.^achildresourceref";
@@ -86,7 +84,7 @@ namespace Api.Common.UnitTests.Validators
                 .WithMessageLike(Resources.HasGetOptionsValidator_InvalidEmbed);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEmbedIsInvalidGrandChildResourceReference_ThenThrows()
         {
             this.dto.Embed = "aresourceref.achildresourceref.^agrandchildresourceref";
@@ -95,7 +93,7 @@ namespace Api.Common.UnitTests.Validators
                 .WithMessageLike(Resources.HasGetOptionsValidator_InvalidEmbed);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEmbedContainsTooManyResources_ThenThrows()
         {
             this.dto.Embed =

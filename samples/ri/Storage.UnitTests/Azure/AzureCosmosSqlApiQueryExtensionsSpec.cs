@@ -1,13 +1,13 @@
 ﻿using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using QueryAny;
 using Storage.Azure;
+using Xunit;
 
 namespace Storage.UnitTests.Azure
 {
     // ReSharper disable once InconsistentNaming
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class AzureCosmosSqlApiQueryExtensionsSpec
     {
         private readonly Mock<IRepository> repository;
@@ -19,7 +19,7 @@ namespace Storage.UnitTests.Azure
                 .Returns(99);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToAzureCosmosSqlApiQueryClauseAndNoSelects_ThenReturnsSqlExpression()
         {
             var query = Query.Empty<TestQueryEntity>();
@@ -29,7 +29,7 @@ namespace Storage.UnitTests.Azure
             result.Should().Be("SELECT * FROM acontainername t ORDER BY t.AStringValue ASC OFFSET 0 LIMIT 99");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToAzureCosmosSqlApiQueryClauseAndSingleSelect_ThenReturnsSqlExpression()
         {
             var query = Query.From<TestQueryEntity>()
@@ -43,7 +43,7 @@ namespace Storage.UnitTests.Azure
                     "SELECT t.id, t.ABooleanValue FROM acontainername t ORDER BY t.ABooleanValue ASC OFFSET 0 LIMIT 99");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToAzureCosmosSqlApiQueryClauseAndMultipleSelects_ThenReturnsSqlExpression()
         {
             var query = Query.From<TestQueryEntity>()

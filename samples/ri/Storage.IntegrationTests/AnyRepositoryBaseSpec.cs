@@ -7,10 +7,10 @@ using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Funq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
 using ServiceStack;
 using UnitTesting.Common;
+using Xunit;
 
 namespace Storage.IntegrationTests
 {
@@ -23,40 +23,34 @@ namespace Storage.IntegrationTests
 
     public abstract class AnyRepositoryBaseSpec
     {
-        protected static readonly IRecorder Recorder = NullRecorder.Instance;
-        private static Container container;
-        private IDomainFactory domainFactory;
-        private RepoInfo firstJoiningRepo;
-        private RepoInfo repo;
-        private RepoInfo secondJoiningRepo;
+        private static readonly IRecorder Recorder = NullRecorder.Instance;
+        private readonly IDomainFactory domainFactory;
+        private readonly RepoInfo firstJoiningRepo;
+        private readonly RepoInfo repo;
+        private readonly RepoInfo secondJoiningRepo;
+
+        protected AnyRepositoryBaseSpec(IRepository repository)
+        {
+            var container = new Container();
+            container.AddSingleton(Recorder);
+            this.domainFactory = DomainFactory.CreateRegistered(new FunqDependencyContainer(container),
+                typeof(TestRepositoryEntity).Assembly);
+            this.repo = new RepoInfo
+                {Repository = repository, ContainerName = typeof(TestRepositoryEntity).GetEntityNameSafe()};
+            this.repo.Repository.DestroyAll(this.repo.ContainerName);
+            this.firstJoiningRepo = new RepoInfo
+                {Repository = repository, ContainerName = typeof(FirstJoiningTestQueryableEntity).GetEntityNameSafe()};
+            this.firstJoiningRepo.Repository.DestroyAll(this.firstJoiningRepo.ContainerName);
+            this.secondJoiningRepo = new RepoInfo
+                {Repository = repository, ContainerName = typeof(SecondJoiningTestQueryableEntity).GetEntityNameSafe()};
+            this.secondJoiningRepo.Repository.DestroyAll(this.secondJoiningRepo.ContainerName);
+        }
 
         protected IRepository Repository => this.repo.Repository;
 
         protected string ContainerName => this.repo.ContainerName;
 
-        protected static void InitializeAllTests()
-        {
-            container = new Container();
-            container.AddSingleton(Recorder);
-        }
-
-        [TestInitialize]
-        public void Initialize()
-        {
-            this.domainFactory = DomainFactory.CreateRegistered(new FunqDependencyContainer(container),
-                typeof(TestRepositoryEntity).Assembly);
-            this.repo = GetRepository<TestRepositoryEntity>();
-            this.repo.Repository.DestroyAll(this.repo.ContainerName);
-            this.firstJoiningRepo = GetRepository<FirstJoiningTestQueryableEntity>();
-            this.firstJoiningRepo.Repository.DestroyAll(this.firstJoiningRepo.ContainerName);
-            this.secondJoiningRepo = GetRepository<SecondJoiningTestQueryableEntity>();
-            this.secondJoiningRepo.Repository.DestroyAll(this.secondJoiningRepo.ContainerName);
-        }
-
-        protected abstract RepoInfo GetRepository<TQueryableEntity>()
-            where TQueryableEntity : IQueryableEntity;
-
-        [TestMethod]
+        [Fact]
         public void WhenAddWithNullEntity_ThenThrows()
         {
             this.repo.Repository
@@ -64,7 +58,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAddWithNullContainer_ThenThrows()
         {
             var entity = new CommandEntity("anid");
@@ -73,7 +67,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAdd_ThenAddsEntity()
         {
             var entity = new CommandEntity("anid");
@@ -82,7 +76,7 @@ namespace Storage.IntegrationTests
             this.repo.Repository.Count(this.repo.ContainerName).Should().Be(1);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRemoveWithNullId_ThenThrows()
         {
             this.repo.Repository
@@ -90,7 +84,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRemoveWithNullContainer_ThenThrows()
         {
             this.repo.Repository
@@ -98,7 +92,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRemoveAndEntityExists_ThenDeletesEntity()
         {
             var entity = new CommandEntity("anid");
@@ -109,7 +103,7 @@ namespace Storage.IntegrationTests
             this.repo.Repository.Count(this.repo.ContainerName).Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRemoveAndEntityNotExists_ThenReturns()
         {
             this.repo.Repository.Remove(this.repo.ContainerName, "anid".ToIdentifier());
@@ -117,7 +111,7 @@ namespace Storage.IntegrationTests
             this.repo.Repository.Count(this.repo.ContainerName).Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRetrieveWithNullId_ThenThrows()
         {
             this.repo.Repository
@@ -125,7 +119,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRetrieveWithNullContainer_ThenThrows()
         {
             this.repo.Repository
@@ -133,7 +127,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRetrieveWithNullMetadata_ThenThrows()
         {
             this.repo.Repository
@@ -141,7 +135,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRetrieveAndNotExists_ThenReturnsNull()
         {
             var entity =
@@ -151,7 +145,7 @@ namespace Storage.IntegrationTests
             entity.Should().BeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRetrieveAndExists_ThenReturnsEntity()
         {
             var entity = CommandEntity.FromType(new TestRepositoryEntity
@@ -226,7 +220,7 @@ namespace Storage.IntegrationTests
                 .Be(ComplexValueObject.Create("avalue", 25, true));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRetrieveAndExistsWithDefaultValues_ThenReturnsEntity()
         {
             var entity = CommandEntity.FromType(new TestRepositoryEntity
@@ -293,7 +287,7 @@ namespace Storage.IntegrationTests
                 .Be(default);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenReplaceWithNullId_ThenThrows()
         {
             this.repo.Repository
@@ -301,7 +295,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenReplaceWithNullContainer_ThenThrows()
         {
             this.repo.Repository
@@ -309,7 +303,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenReplaceWithNullEntity_ThenThrows()
         {
             this.repo.Repository
@@ -317,7 +311,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenReplaceExisting_ThenReturnsUpdated()
         {
             var entity = new CommandEntity("anid");
@@ -332,7 +326,7 @@ namespace Storage.IntegrationTests
             updated.LastPersistedAtUtc.Should().BeNear(DateTime.UtcNow);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCountWithNullContainer_ThenThrows()
         {
             this.repo.Repository
@@ -340,7 +334,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCountAndEmpty_ThenReturnsZero()
         {
             var count = this.repo.Repository.Count(this.repo.ContainerName);
@@ -348,7 +342,7 @@ namespace Storage.IntegrationTests
             count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCountAndNotEmpty_ThenReturnsCount()
         {
             this.repo.Repository.Add(this.repo.ContainerName, new CommandEntity("anid1"));
@@ -359,7 +353,7 @@ namespace Storage.IntegrationTests
             count.Should().Be(2);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenDestroyAllWithNullContainer_ThenThrows()
         {
             this.repo.Repository
@@ -367,7 +361,7 @@ namespace Storage.IntegrationTests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndQueryIsNull_ThenReturnsEmptyResults()
         {
             this.repo.Repository.Add(this.repo.ContainerName, CommandEntity.FromType(new TestRepositoryEntity
@@ -382,7 +376,7 @@ namespace Storage.IntegrationTests
             results.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndEmpty_ThenReturnsEmptyResults()
         {
             var query = Query.Empty<TestRepositoryEntity>();
@@ -397,7 +391,7 @@ namespace Storage.IntegrationTests
             results.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndWhereAll_ThenReturnsAllResults()
         {
             var query = Query.From<TestRepositoryEntity>()
@@ -415,7 +409,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndNoEntities_ThenReturnsEmptyResults()
         {
             var query = Query.From<TestRepositoryEntity>()
@@ -427,7 +421,7 @@ namespace Storage.IntegrationTests
             results.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndNoMatch_ThenReturnsEmptyResults()
         {
             var query = Query.From<TestRepositoryEntity>()
@@ -443,7 +437,7 @@ namespace Storage.IntegrationTests
             results.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndMatchOne_ThenReturnsResult()
         {
             var query = Query.From<TestRepositoryEntity>()
@@ -461,7 +455,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndMatchMany_ThenReturnsResults()
         {
             var query = Query.From<TestRepositoryEntity>()
@@ -485,7 +479,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryWithId_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -502,7 +496,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForStringValue_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -519,7 +513,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullStringValue_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -535,7 +529,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNotNullStringValue_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -552,7 +546,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public virtual void WhenQueryForStringValueWithLikeExact_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -570,7 +564,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public virtual void WhenQueryForStringValueWithLikePartial_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -588,7 +582,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForAnEnumValue_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -605,7 +599,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForANullableAnEnumValue_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -622,7 +616,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForDateTimeUtcValue_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -641,7 +635,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableDateTimeUtcValue_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -660,7 +654,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForDateTimeOffsetValue_ThenReturnsResult()
         {
             var dateTimeOffset1 = DateTimeOffset.UtcNow;
@@ -679,7 +673,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableDateTimeOffsetValue_ThenReturnsResult()
         {
             var dateTimeOffset1 = DateTimeOffset.UtcNow;
@@ -698,7 +692,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForMinDateTimeValue_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -717,7 +711,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableMinDateTimeValue_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -736,7 +730,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableMinDateTimeOffsetValue_ThenReturnsResult()
         {
             var dateTimeOffset1 = DateTimeOffset.Now;
@@ -755,7 +749,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForDateTimeUtcValueGreaterThan_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -774,7 +768,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForDateTimeUtcValueGreaterThanOrEqualTo_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -794,7 +788,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForDateTimeUtcValueLessThan_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -813,7 +807,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForDateTimeUtcValueLessThanOrEqual_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -833,7 +827,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForDateTimeUtcValueNotEqual_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -852,7 +846,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableDateTimeUtcValueGreaterThan_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -871,7 +865,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableDateTimeUtcValueGreaterThanOrEqualTo_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -891,7 +885,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableDateTimeUtcValueLessThan_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -910,7 +904,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableDateTimeUtcValueLessThanOrEqual_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -930,7 +924,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableDateTimeUtcValueNotEqual_ThenReturnsResult()
         {
             var dateTime1 = DateTime.UtcNow;
@@ -949,7 +943,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForDateTimeOffsetValueGreaterThan_ThenReturnsResult()
         {
             var dateTimeOffset1 = DateTimeOffset.Now;
@@ -968,7 +962,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForDateTimeOffsetValueGreaterThanOrEqualTo_ThenReturnsResult()
         {
             var dateTimeOffset1 = DateTimeOffset.Now;
@@ -988,7 +982,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForDateTimeOffsetValueLessThan_ThenReturnsResult()
         {
             var dateTimeOffset1 = DateTimeOffset.Now;
@@ -1007,7 +1001,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForDateTimeOffsetValueLessThanOrEqual_ThenReturnsResult()
         {
             var dateTimeOffset1 = DateTimeOffset.Now;
@@ -1027,7 +1021,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForDateTimeOffsetValueNotEqual_ThenReturnsResult()
         {
             var dateTimeOffset1 = DateTimeOffset.Now;
@@ -1046,7 +1040,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableDateTimeOffsetValueGreaterThan_ThenReturnsResult()
         {
             var dateTimeOffset1 = DateTimeOffset.Now;
@@ -1065,7 +1059,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableDateTimeOffsetValueGreaterThanOrEqualTo_ThenReturnsResult()
         {
             var dateTimeOffset1 = DateTimeOffset.Now;
@@ -1085,7 +1079,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableDateTimeOffsetValueLessThan_ThenReturnsResult()
         {
             var dateTimeOffset1 = DateTimeOffset.Now;
@@ -1104,7 +1098,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableDateTimeOffsetValueLessThanOrEqual_ThenReturnsResult()
         {
             var dateTimeOffset1 = DateTimeOffset.Now;
@@ -1124,7 +1118,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableDateTimeOffsetValueNotEqual_ThenReturnsResult()
         {
             var dateTimeOffset1 = DateTimeOffset.Now;
@@ -1143,7 +1137,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForBoolValue_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -1159,7 +1153,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableBoolValue_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -1176,7 +1170,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForIntValue_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -1192,7 +1186,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForIntValueGreaterThan_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -1208,7 +1202,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForIntValueGreaterThanOrEqualTo_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1226,7 +1220,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForIntValueLessThan_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1242,7 +1236,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForIntValueLessThanOrEqual_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1260,7 +1254,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForIntValueNotEqual_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1276,7 +1270,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableIntValue_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -1293,7 +1287,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableIntValueGreaterThan_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -1310,7 +1304,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableIntValueGreaterThanOrEqualTo_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1328,7 +1322,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableIntValueLessThan_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1345,7 +1339,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableIntValueLessThanOrEqual_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1363,7 +1357,7 @@ namespace Storage.IntegrationTests
             results[1].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableIntValueNotEqual_ThenReturnsResult()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1380,7 +1374,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForLongValue_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -1396,7 +1390,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableLongValue_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -1413,7 +1407,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForDoubleValue_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -1429,7 +1423,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableDoubleValue_ThenReturnsResult()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -1446,7 +1440,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForGuidValue_ThenReturnsResult()
         {
             var guid1 = Guid.NewGuid();
@@ -1464,7 +1458,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullableGuidValue_ThenReturnsResult()
         {
             var guid1 = Guid.NewGuid();
@@ -1483,7 +1477,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForBinaryValue_ThenReturnsResult()
         {
             var binary1 = new byte[] {0x01};
@@ -1502,7 +1496,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity2.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForComplexNonValueObjectValue_ThenReturnsResult()
         {
             var complex1 = new ComplexNonValueObject {APropertyValue = "avalue1"};
@@ -1524,7 +1518,7 @@ namespace Storage.IntegrationTests
                 .ToString().Should().Be(complex2.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullComplexNonValueObjectValue_ThenReturnsResult()
         {
             var complex1 = new ComplexNonValueObject {APropertyValue = "avalue1"};
@@ -1545,7 +1539,7 @@ namespace Storage.IntegrationTests
                 .Should().BeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNotEqualNullComplexNonValueObjectValue_ThenReturnsResult()
         {
             var complex1 = new ComplexNonValueObject {APropertyValue = "avalue1"};
@@ -1566,7 +1560,7 @@ namespace Storage.IntegrationTests
                 .ToString().Should().Be(complex1.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForComplexValueObjectValue_ThenReturnsResult()
         {
             var complex1 = ComplexValueObject.Create("avalue1", 25, true);
@@ -1587,7 +1581,7 @@ namespace Storage.IntegrationTests
                 this.domainFactory).Should().BeEquivalentTo(complex2);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNullComplexValueObjectValue_ThenReturnsResult()
         {
             var complex1 = ComplexValueObject.Create("avalue1", 25, true);
@@ -1607,7 +1601,7 @@ namespace Storage.IntegrationTests
                 this.domainFactory).Should().BeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryForNotEqualNullComplexValueObjectValue_ThenReturnsResult()
         {
             var complex1 = ComplexValueObject.Create("avalue1", 25, true);
@@ -1627,7 +1621,7 @@ namespace Storage.IntegrationTests
                 this.domainFactory).Should().BeEquivalentTo(complex1);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndNoSelects_ThenReturnsResultWithAllPropertiesPopulated()
         {
             var entity = CommandEntity.FromType(new TestRepositoryEntity
@@ -1675,7 +1669,7 @@ namespace Storage.IntegrationTests
                 this.domainFactory).Should().BeEquivalentTo(ComplexValueObject.Create("avalue", 25, true));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndSelect_ThenReturnsResultWithOnlySelectedPropertiesPopulated()
         {
             var entity = CommandEntity.FromType(new TestRepositoryEntity
@@ -1724,7 +1718,7 @@ namespace Storage.IntegrationTests
                 this.domainFactory).Should().BeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryWithInnerJoinAndOtherCollectionNotExists_ThenReturnsNoResults()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -1739,7 +1733,7 @@ namespace Storage.IntegrationTests
             results.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryWithInnerJoinOnOtherCollection_ThenReturnsOnlyMatchedResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1761,7 +1755,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryWithLeftJoinAndOtherCollectionNotExists_ThenReturnsAllPrimaryResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1777,7 +1771,7 @@ namespace Storage.IntegrationTests
             results[0].Id.Should().Be(entity1.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryWithLeftJoinOnOtherCollection_ThenReturnsAllPrimaryResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1803,7 +1797,7 @@ namespace Storage.IntegrationTests
             results[2].Id.Should().Be(entity3.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryWithSelectFromInnerJoinAndOtherCollectionNotExists_ThenReturnsNoResults()
         {
             this.repo.Repository.Add(this.repo.ContainerName,
@@ -1819,7 +1813,7 @@ namespace Storage.IntegrationTests
             results.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryWithSelectFromInnerJoinOnOtherCollection_ThenReturnsAggregatedResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1845,7 +1839,7 @@ namespace Storage.IntegrationTests
             results[0].GetValueOrDefault<bool>(nameof(TestJoinedRepositoryEntity.ABooleanValue)).Should().Be(false);
         }
 
-        [TestMethod]
+        [Fact]
         public void
             WhenQueryWithSelectFromInnerJoinOnOtherCollectionAndWhereOnAProjectField_ThenReturnsAggregatedResults()
         {
@@ -1872,7 +1866,7 @@ namespace Storage.IntegrationTests
             results[0].GetValueOrDefault<bool>(nameof(TestJoinedRepositoryEntity.ABooleanValue)).Should().Be(false);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryWithSelectFromInnerJoinAndResultContainsDuplicateFieldNames_ThenReturnsAggregatedResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1903,7 +1897,7 @@ namespace Storage.IntegrationTests
             results[0].GetValueOrDefault<int>(nameof(TestJoinedRepositoryEntity.AIntValue)).Should().Be(9);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryWithSelectFromLeftJoinAndOtherCollectionNotExists_ThenReturnsUnAggregatedResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1921,7 +1915,7 @@ namespace Storage.IntegrationTests
             results[0].GetValueOrDefault<int>(nameof(TestJoinedRepositoryEntity.AIntValue)).Should().Be(7);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryWithSelectFromLeftJoinOnOtherCollection_ThenReturnsPartiallyAggregatedResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
@@ -1953,7 +1947,7 @@ namespace Storage.IntegrationTests
             results[2].GetValueOrDefault<int>(nameof(TestJoinedRepositoryEntity.AIntValue)).Should().Be(7);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryWithSelectFromInnerJoinOnMultipleOtherCollections_ThenReturnsAggregatedResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName, CommandEntity.FromType(
@@ -1987,8 +1981,8 @@ namespace Storage.IntegrationTests
             results[0].GetValueOrDefault<long>(nameof(TestJoinedRepositoryEntity.ALongValue)).Should().Be(8);
         }
 
-        [TestMethod]
-        public void WhenQueryWithSelectFromInnerJoinAndOrderByOnAProjectedField_ThenReturnsAggregatedResults()
+        [Fact]
+        public void WhenQueryWithSelectFromInnerJoinAndOrderByOnAProjectField_ThenReturnsAggregatedResults()
         {
             var entity1 = this.repo.Repository.Add(this.repo.ContainerName,
                 CommandEntity.FromType(new TestRepositoryEntity {AStringValue = "avalue1", AIntValue = 7}));
@@ -2016,7 +2010,7 @@ namespace Storage.IntegrationTests
             results[0].GetValueOrDefault<bool>(nameof(TestJoinedRepositoryEntity.ABooleanValue)).Should().Be(false);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndNoOrderBy_ThenReturnsResultsSortedByLastPersistedAtUtcAscending()
         {
             var entities = CreateMultipleEntities(100);
@@ -2030,7 +2024,7 @@ namespace Storage.IntegrationTests
             VerifyOrderedResults(results, entities);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndOrderByOnUnSelectedField_ThenReturnsResultsSortedByDateCreatedAscending()
         {
             var entities =
@@ -2047,7 +2041,7 @@ namespace Storage.IntegrationTests
             VerifyOrderedResults(results, entities);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndOrderByProperty_ThenReturnsResultsSortedByPropertyAscending()
         {
             var entities =
@@ -2063,7 +2057,7 @@ namespace Storage.IntegrationTests
             VerifyOrderedResultsInReverse(results, entities);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndOrderByPropertyDescending_ThenReturnsResultsSortedByPropertyDescending()
         {
             var entities =
@@ -2079,7 +2073,7 @@ namespace Storage.IntegrationTests
             VerifyOrderedResultsInReverse(results, entities);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndNoTake_ThenReturnsAllResults()
         {
             var entities =
@@ -2094,7 +2088,7 @@ namespace Storage.IntegrationTests
             VerifyOrderedResults(results, entities);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndZeroTake_ThenReturnsNoResults()
         {
             CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = $"avalue{counter:000}");
@@ -2109,7 +2103,7 @@ namespace Storage.IntegrationTests
             results.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndTakeLessThanAvailable_ThenReturnsAsManyResults()
         {
             var entities =
@@ -2125,7 +2119,7 @@ namespace Storage.IntegrationTests
             VerifyOrderedResults(results, entities, 0, 10);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndTakeMoreThanAvailable_ThenReturnsAllResults()
         {
             var entities =
@@ -2141,7 +2135,7 @@ namespace Storage.IntegrationTests
             VerifyOrderedResults(results, entities, 0, 10);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndTakeAndOrderByPropertyDescending_ThenReturnsAsManyResults()
         {
             var entities =
@@ -2158,7 +2152,7 @@ namespace Storage.IntegrationTests
             VerifyOrderedResultsInReverse(results, entities, 0, 10);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndTakeAndOrderByDescending_ThenReturnsFirstPageOfResults()
         {
             var entities =
@@ -2175,7 +2169,7 @@ namespace Storage.IntegrationTests
             VerifyOrderedResultsInReverse(results, entities, 0, 10);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndTakeAndSkipAndOrderBy_ThenReturnsNextPageOfResults()
         {
             var entities =
@@ -2193,7 +2187,7 @@ namespace Storage.IntegrationTests
             VerifyOrderedResultsInReverse(results, entities, 10, 10);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenQueryAndTakeAndSkipAllAvailable_ThenReturnsNoResults()
         {
             CreateMultipleEntities(100, (counter, entity) => entity.AStringValue = $"avalue{counter:000}");

@@ -5,13 +5,13 @@ using Api.Common.Properties;
 using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using UnitTesting.Common;
+using Xunit;
 
 namespace Api.Common.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class DomainFactorySpec
     {
         private readonly DomainFactory factory;
@@ -31,7 +31,7 @@ namespace Api.Common.UnitTests
             this.factory = new DomainFactory(dependencyContainer.Object);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRegisterAndNoAssemblies_ThenRegistersNone()
         {
             this.factory.RegisterDomainTypesFromAssemblies();
@@ -40,7 +40,7 @@ namespace Api.Common.UnitTests
             this.factory.ValueObjectFactories.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRegisterAndAssemblyContainsNoFactories_ThenRegistersNone()
         {
             this.factory.RegisterDomainTypesFromAssemblies(typeof(Exactly).Assembly);
@@ -49,7 +49,7 @@ namespace Api.Common.UnitTests
             this.factory.ValueObjectFactories.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRegisterAndAssemblyContainsFactories_ThenRegistersFactories()
         {
             this.factory.RegisterDomainTypesFromAssemblies(typeof(DomainFactorySpec).Assembly);
@@ -60,7 +60,7 @@ namespace Api.Common.UnitTests
             this.factory.ValueObjectFactories.First().Key.Should().Be(typeof(TestValueObject));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCreateEntityAndTypeNotExist_ThenThrows()
         {
             this.factory
@@ -70,7 +70,7 @@ namespace Api.Common.UnitTests
                 .WithMessageLike(Resources.DomainFactory_EntityTypeNotFound);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCreateEntityAndExists_ThenReturnsEntityInstance()
         {
             this.factory.RegisterDomainTypesFromAssemblies(typeof(DomainFactorySpec).Assembly);
@@ -85,7 +85,7 @@ namespace Api.Common.UnitTests
             result.APropertyValue.Should().Be("avalue");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCreateValueObjectAndTypeNotExist_ThenThrows()
         {
             this.factory
@@ -95,7 +95,7 @@ namespace Api.Common.UnitTests
                 .WithMessageLike(Resources.DomainFactory_ValueObjectTypeNotFound);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCreateValueObjectAndExists_ThenReturnsEntityInstance()
         {
             this.factory.RegisterDomainTypesFromAssemblies(typeof(DomainFactorySpec).Assembly);

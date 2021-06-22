@@ -1,44 +1,39 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using QueryAny;
+﻿using System;
+using Common;
+using Microsoft.Extensions.Configuration;
 using ServiceStack;
 using Storage.Sql;
+using Xunit;
 
 namespace Storage.IntegrationTests.Sql
 {
-    [TestClass, TestCategory("Integration.Storage")]
-    public class SqlServerRepositorySpec : AnyRepositoryBaseSpec
+    public class SqlServerRepositorySpecSetup : IDisposable
     {
-        private static SqlServerRepository repository;
-
-        [ClassInitialize]
-        public static void InitializeAllTests(TestContext context)
+        public SqlServerRepositorySpecSetup()
         {
-            InitializeAllTests();
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var settings = new NetCoreAppSettings(config);
             var serviceName = settings.GetString("SqlServerServiceName");
-            const string databaseName = "TestDatabase";
-            repository = SqlServerRepository.FromSettings(Recorder, settings);
-            SqlServerStorageBase.InitializeAllTests(serviceName, databaseName);
+            Repository = SqlServerRepository.FromSettings(NullRecorder.Instance, settings);
+            SqlServerStorageBase.InitializeAllTests(serviceName, "TestDatabase");
         }
 
-        [ClassCleanup]
-        public static void CleanupAllTests()
+        public IRepository Repository { get; }
+
+        public void Dispose()
         {
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var settings = new NetCoreAppSettings(config);
             var serviceName = settings.GetString("SqlServerServiceName");
             SqlServerStorageBase.CleanupAllTests(serviceName);
         }
+    }
 
-        protected override RepoInfo GetRepository<TEntity>()
+    [Trait("Category", "Integration.Storage")]
+    public class SqlServerRepositorySpec : AnyRepositoryBaseSpec, IClassFixture<SqlServerRepositorySpecSetup>
+    {
+        public SqlServerRepositorySpec(SqlServerRepositorySpecSetup setup) : base(setup.Repository)
         {
-            return new RepoInfo
-            {
-                Repository = repository,
-                ContainerName = typeof(TEntity).GetEntityNameSafe()
-            };
         }
     }
 }

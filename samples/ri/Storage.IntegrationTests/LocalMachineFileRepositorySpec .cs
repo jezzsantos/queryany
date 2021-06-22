@@ -1,55 +1,44 @@
+using System;
 using Microsoft.Extensions.Configuration;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using QueryAny;
 using ServiceStack;
+using Xunit;
 
 namespace Storage.IntegrationTests
 {
-    [TestClass, TestCategory("Integration.Storage")]
-    public class LocalMachineFileRepositorySpec : AnyRepositoryBaseSpec
+    public class LocalMachineFileRepositorySpecSetup : IDisposable
     {
-        private static LocalMachineFileRepository repository;
-
-        [ClassInitialize]
-        public static void InitializeAllTests(TestContext context)
+        public LocalMachineFileRepositorySpecSetup()
         {
-            InitializeAllTests();
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var settings = new NetCoreAppSettings(config);
-            repository = LocalMachineFileRepository.FromSettings(settings);
+            Repository = LocalMachineFileRepository.FromSettings(settings);
+            Blobository = LocalMachineFileRepository.FromSettings(settings);
         }
 
-        protected override RepoInfo GetRepository<TEntity>()
+        public IRepository Repository { get; }
+
+        public IBlobository Blobository { get; }
+
+        public void Dispose()
         {
-            return new RepoInfo
-            {
-                Repository = repository,
-                ContainerName = typeof(TEntity).GetEntityNameSafe()
-            };
         }
     }
 
-    [TestClass, TestCategory("Integration.Storage")]
-    public class LocalMachineFileBlobositorySpec : AnyBlobositoryBaseSpec
+    [Trait("Category", "Integration.Storage")]
+    public class LocalMachineFileRepositorySpec : AnyRepositoryBaseSpec,
+        IClassFixture<LocalMachineFileRepositorySpecSetup>
     {
-        private static LocalMachineFileRepository blobository;
-
-        [ClassInitialize]
-        public static void InitializeAllTests(TestContext context)
+        public LocalMachineFileRepositorySpec(LocalMachineFileRepositorySpecSetup setup) : base(setup.Repository)
         {
-            InitializeAllTests();
-            var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
-            var settings = new NetCoreAppSettings(config);
-            blobository = LocalMachineFileRepository.FromSettings(settings);
         }
+    }
 
-        protected override BloboInfo GetBlobository<TEntity>()
+    [Trait("Category", "Integration.Storage")]
+    public class LocalMachineFileBlobositorySpec : AnyBlobositoryBaseSpec,
+        IClassFixture<LocalMachineFileRepositorySpecSetup>
+    {
+        public LocalMachineFileBlobositorySpec(LocalMachineFileRepositorySpecSetup setup) : base(setup.Blobository)
         {
-            return new BloboInfo
-            {
-                Blobository = blobository,
-                ContainerName = typeof(TEntity).GetEntityNameSafe()
-            };
         }
     }
 }

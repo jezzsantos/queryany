@@ -1,9 +1,9 @@
 ﻿using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Domain.Interfaces.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class SingleValueObjectSpec
     {
         private readonly TestSingleStringValueObject valueObject;
@@ -13,7 +13,7 @@ namespace Domain.Interfaces.UnitTests
             this.valueObject = new TestSingleStringValueObject("avalue");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAssignInstanceToString_ThenValueAssigned()
         {
             var stringValue = new TestSingleStringValueObject("avalue");
@@ -21,7 +21,7 @@ namespace Domain.Interfaces.UnitTests
             stringValue.StringValue.Should().Be("avalue");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAssignInstanceToEnumThenValueAssigned()
         {
             var enumValue = new TestSingleEnumValueObject(TestEnum.AValue1);
@@ -29,7 +29,7 @@ namespace Domain.Interfaces.UnitTests
             enumValue.EnumValue.Should().Be(TestEnum.AValue1);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEquateWithSameValueObject_ThenReturnsTrue()
         {
             var result = this.valueObject == new TestSingleStringValueObject("avalue");
@@ -37,7 +37,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEquateWithDifferentValueObject_ThenReturnsFalse()
         {
             var result = this.valueObject == new TestSingleStringValueObject("anothervalue");
@@ -45,7 +45,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEquateWithSameStringValue_ThenReturnsTrue()
         {
             var result = this.valueObject == "avalue";
@@ -53,7 +53,7 @@ namespace Domain.Interfaces.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEquateWithDifferentStringValue_ThenReturnsFalse()
         {
             var result = this.valueObject == "anothervalue";

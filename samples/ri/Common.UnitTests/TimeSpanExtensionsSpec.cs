@@ -1,13 +1,13 @@
 ﻿using System;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Common.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class TimeSpanExtensionsSpec
     {
-        [TestMethod]
+        [Fact]
         public void WhenToTimeSpanWithNullValue_ThenReturnsZero()
         {
             var result = ((string) null).ToTimeSpan();
@@ -15,7 +15,7 @@ namespace Common.UnitTests
             result.Should().Be(TimeSpan.Zero);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToTimeSpanWithNonZeroValue_ThenReturnsValue()
         {
             var result = "PT1H".ToTimeSpan();
@@ -23,7 +23,7 @@ namespace Common.UnitTests
             result.Should().Be(TimeSpan.FromHours(1));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToTimeSpanWithOtherValue_ThenReturnsZero()
         {
             var span = TimeSpan.FromDays(1);
@@ -33,7 +33,7 @@ namespace Common.UnitTests
             result.Should().Be(span);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToTimeSpanWithNullValueAndDefaultValue_ThenReturnsDefaultValue()
         {
             var defaultValue = TimeSpan.FromHours(1);
@@ -43,7 +43,7 @@ namespace Common.UnitTests
             result.Should().Be(defaultValue);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToTimeSpanWithInvalidTimeSpanValue_ThenReturnsZero()
         {
             var result = "notavalidtimespan".ToTimeSpan();
@@ -51,7 +51,7 @@ namespace Common.UnitTests
             result.Should().Be(TimeSpan.Zero);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToTimeSpanWithInvalidTimeSpanValueAndDefaultValue_ThenReturnsDefaultValue()
         {
             var defaultValue = TimeSpan.FromHours(1);
@@ -61,7 +61,7 @@ namespace Common.UnitTests
             result.Should().Be(defaultValue);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToTimeSpanWithStringSerializedSpan_ThenReturnsTimeSpan()
         {
             var span = TimeSpan.FromHours(1);

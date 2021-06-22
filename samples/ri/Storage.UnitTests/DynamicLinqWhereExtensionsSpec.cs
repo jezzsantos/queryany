@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QueryAny;
+using Xunit;
 
 namespace Storage.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class DynamicLinqWhereExtensionsSpec
     {
-        [TestMethod]
+        [Fact]
         public void WhenToDynamicLinqWhereClauseAndSingleCondition_ThenReturnsLinq()
         {
             var wheres = new List<WhereExpression>
@@ -29,7 +29,7 @@ namespace Storage.UnitTests
             result.Should().Be("String(Value[\"afield1\"]) == \"astringvalue\"");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToDynamicLinqWhereClauseAndMultipleConditions_ThenReturnsLinq()
         {
             var wheres = new List<WhereExpression>
@@ -62,7 +62,7 @@ namespace Storage.UnitTests
                     "String(Value[\"afield1\"]) == \"astringvalue\" and String(Value[\"afield2\"]) >= \"astringvalue\"");
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenToDynamicLinqWhereClauseAndNestedConditions_ThenReturnsLinq()
         {
             var wheres = new List<WhereExpression>

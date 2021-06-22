@@ -4,13 +4,13 @@ using System.Linq;
 using Common;
 using FluentAssertions;
 using InfrastructureServices.Eventing;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Storage.Interfaces;
+using Xunit;
 
 namespace InfrastructureServices.UnitTests.Eventing
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class EventHandlerBaseSpec
     {
         private readonly Mock<Action<string, List<EventStreamStateChangeEvent>>> action;
@@ -22,7 +22,7 @@ namespace InfrastructureServices.UnitTests.Eventing
             this.handler = new TestEventHandler(this.action);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEventStreamChangedEventRaisedAndNoEvents_ThenDoesNotWriteEvents()
         {
             this.handler.OnEventStreamStateChanged(null,
@@ -32,7 +32,7 @@ namespace InfrastructureServices.UnitTests.Eventing
                 rms => rms("astreamname", It.IsAny<List<EventStreamStateChangeEvent>>()), Times.Never);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEventStreamChangedEventRaisedAndFromDifferentStreams_ThenWritesBatchedEvents()
         {
             this.handler.OnEventStreamStateChanged(null,
@@ -71,7 +71,7 @@ namespace InfrastructureServices.UnitTests.Eventing
                 )), Times.Once);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEventStreamChangedEventRaisedAndFromDifferentStreamsAndWriteFails_ThenWritesRemainingBatches()
         {
             this.action.Setup(rms =>
@@ -114,7 +114,7 @@ namespace InfrastructureServices.UnitTests.Eventing
                 )), Times.Once);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenEventStreamChangedEventRaisedAndEventsAreOutOfOrder_ThenThrows()
         {
             this.handler.OnEventStreamStateChanged(null,

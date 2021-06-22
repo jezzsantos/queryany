@@ -1,49 +1,39 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using QueryAny;
+using System;
+using Xunit;
 
 namespace Storage.IntegrationTests
 {
-    [TestClass, TestCategory("Integration.Storage")]
-    public class InProcessInMemRepositorySpec : AnyRepositoryBaseSpec
+    public class InProcessInMemRepositorySpecSetup : IDisposable
     {
-        private static InProcessInMemRepository repository;
-
-        [ClassInitialize]
-        public static void InitializeAllTests(TestContext context)
+        public InProcessInMemRepositorySpecSetup()
         {
-            InitializeAllTests();
-            repository = new InProcessInMemRepository();
+            Repository = new InProcessInMemRepository();
+            Blobository = new InProcessInMemRepository();
         }
 
-        protected override RepoInfo GetRepository<TEntity>()
+        public IRepository Repository { get; }
+
+        public IBlobository Blobository { get; }
+
+        public void Dispose()
         {
-            return new RepoInfo
-            {
-                Repository = repository,
-                ContainerName = typeof(TEntity).GetEntityNameSafe()
-            };
         }
     }
 
-    [TestClass, TestCategory("Integration.Storage")]
-    public class InProcessInMemBlobositorySpec : AnyBlobositoryBaseSpec
+    [Trait("Category", "Integration.Storage")]
+    public class InProcessInMemRepositorySpec : AnyRepositoryBaseSpec, IClassFixture<InProcessInMemRepositorySpecSetup>
     {
-        private static InProcessInMemRepository blobository;
-
-        [ClassInitialize]
-        public static void InitializeAllTests(TestContext context)
+        public InProcessInMemRepositorySpec(InProcessInMemRepositorySpecSetup setup) : base(setup.Repository)
         {
-            InitializeAllTests();
-            blobository = new InProcessInMemRepository();
         }
+    }
 
-        protected override BloboInfo GetBlobository<TEntity>()
+    [Trait("Category", "Integration.Storage")]
+    public class InProcessInMemBlobositorySpec : AnyBlobositoryBaseSpec,
+        IClassFixture<InProcessInMemRepositorySpecSetup>
+    {
+        public InProcessInMemBlobositorySpec(InProcessInMemRepositorySpecSetup setup) : base(setup.Blobository)
         {
-            return new BloboInfo
-            {
-                Blobository = blobository,
-                ContainerName = typeof(TEntity).GetEntityNameSafe()
-            };
         }
     }
 }

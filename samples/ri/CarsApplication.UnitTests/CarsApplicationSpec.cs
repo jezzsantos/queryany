@@ -9,24 +9,23 @@ using CarsDomain;
 using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Xunit;
 using Car = CarsApplication.ReadModels.Car;
 
 namespace CarsApplication.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class CarsApplicationSpec
     {
-        private Mock<ICurrentCaller> caller;
-        private CarsApplication carsApplication;
-        private Mock<IIdentifierFactory> idFactory;
-        private Mock<IPersonsService> personService;
-        private Mock<IRecorder> recorder;
-        private Mock<ICarStorage> storage;
+        private readonly Mock<ICurrentCaller> caller;
+        private readonly CarsApplication carsApplication;
+        private readonly Mock<IIdentifierFactory> idFactory;
+        private readonly Mock<IPersonsService> personService;
+        private readonly Mock<IRecorder> recorder;
+        private readonly Mock<ICarStorage> storage;
 
-        [TestInitialize]
-        public void Initialize()
+        public CarsApplicationSpec()
         {
             this.recorder = new Mock<IRecorder>();
             this.idFactory = new Mock<IIdentifierFactory>();
@@ -42,7 +41,7 @@ namespace CarsApplication.UnitTests
                 this.personService.Object);
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenCreate_ThenReturnsCar()
         {
             var person = new Person
@@ -68,7 +67,7 @@ namespace CarsApplication.UnitTests
                     && e.Managers.Managers.Single() == "apersonid")));
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenRegister_ThenRegistersCar()
         {
             var entity = new CarEntity(this.recorder.Object, this.idFactory.Object);
@@ -87,7 +86,7 @@ namespace CarsApplication.UnitTests
             result.Should().NotBeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenReserve_ThenReservesCar()
         {
             var fromUtc = DateTime.UtcNow.AddMinutes(1);
@@ -106,7 +105,7 @@ namespace CarsApplication.UnitTests
             result.Should().NotBeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenSearchAvailable_ThenReturnsAvailableCars()
         {
             this.storage.Setup(s =>

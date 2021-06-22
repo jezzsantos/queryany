@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Common;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Storage.IntegrationTests.Azure
 {
@@ -14,7 +13,7 @@ namespace Storage.IntegrationTests.Azure
         private const string EmulatorResetArgs = @"/ResetDataPath";
         private const string EmulatorShutdownArgs = @"/Shutdown";
 
-        public static void InitializeAllTests(TestContext context, string startupArguments)
+        public static void InitializeAllTests(string startupArguments)
         {
             EnsureAzureCosmosDbEmulatorIsStarted(startupArguments);
         }

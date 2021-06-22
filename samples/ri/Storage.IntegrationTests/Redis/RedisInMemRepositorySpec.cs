@@ -1,39 +1,34 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using QueryAny;
+﻿using System;
+using Microsoft.Extensions.Configuration;
 using ServiceStack;
 using Storage.Redis;
+using Xunit;
 
 namespace Storage.IntegrationTests.Redis
 {
-    [TestClass, TestCategory("Integration.Storage")]
-    public class RedisInMemRepositorySpec : AnyRepositoryBaseSpec
+    public class RedisInMemRepositorySpecSetup : IDisposable
     {
-        private static RedisInMemRepository repository;
-
-        [ClassInitialize]
-        public static void InitializeAllTests(TestContext context)
+        public RedisInMemRepositorySpecSetup()
         {
-            InitializeAllTests();
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var settings = new NetCoreAppSettings(config);
-            repository = RedisInMemRepository.FromSettings(settings);
+            Repository = RedisInMemRepository.FromSettings(settings);
             RedisInMemStorageBase.InitializeAllTests();
         }
 
-        [ClassCleanup]
-        public static void CleanupAllTests()
+        public IRepository Repository { get; }
+
+        public void Dispose()
         {
             RedisInMemStorageBase.CleanupAllTests();
         }
+    }
 
-        protected override RepoInfo GetRepository<TEntity>()
+    [Trait("Category", "Integration.Storage")]
+    public class RedisInMemRepositorySpec : AnyRepositoryBaseSpec, IClassFixture<RedisInMemRepositorySpecSetup>
+    {
+        public RedisInMemRepositorySpec(RedisInMemRepositorySpecSetup setup) : base(setup.Repository)
         {
-            return new RepoInfo
-            {
-                Repository = repository,
-                ContainerName = typeof(TEntity).GetEntityNameSafe()
-            };
         }
     }
 }

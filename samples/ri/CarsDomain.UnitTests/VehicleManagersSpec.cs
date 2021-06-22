@@ -1,27 +1,26 @@
 ﻿using Domain.Interfaces.Entities;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace CarsDomain.UnitTests
 {
-    [TestClass, TestCategory("Unit")]
+    [Trait("Category", "Unit")]
     public class VehicleManagersSpec
     {
-        private VehicleManagers managers;
+        private readonly VehicleManagers managers;
 
-        [TestInitialize]
-        public void Initialize()
+        public VehicleManagersSpec()
         {
             this.managers = new VehicleManagers();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenConstructed_ThenHasNoManagers()
         {
             this.managers.Managers.Should().BeEmpty();
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAddAndManagerNotExist_ThenAddsManager()
         {
             this.managers.Add("amanagerid".ToIdentifier());
@@ -30,7 +29,7 @@ namespace CarsDomain.UnitTests
             this.managers.Managers[0].Should().Be("amanagerid".ToIdentifier());
         }
 
-        [TestMethod]
+        [Fact]
         public void WhenAddAndManagerAndExist_ThenDoesNotManager()
         {
             this.managers.Add("amanagerid".ToIdentifier());
