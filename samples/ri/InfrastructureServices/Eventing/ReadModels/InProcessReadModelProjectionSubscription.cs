@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Application.Storage.Interfaces;
+using Application.Storage.Interfaces.ReadModels;
 using Common;
 using Domain.Interfaces.Entities;
 using Storage;
-using Storage.Interfaces;
-using Storage.Interfaces.ReadModels;
 using Storage.ReadModels;
 
 namespace InfrastructureServices.Eventing.ReadModels

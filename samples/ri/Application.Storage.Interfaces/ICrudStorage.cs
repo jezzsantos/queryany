@@ -1,6 +1,6 @@
 ﻿using QueryAny;
 
-namespace Storage.Interfaces
+namespace Application.Storage.Interfaces
 {
     public interface ICrudStorage<TDto> where TDto : IPersistableDto, new()
     {

@@ -18,7 +18,7 @@ EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CarsDomain", "..\samples\ri\CarsDomain\CarsDomain.csproj", "{976E2F12-0A56-4A6D-A2D0-44E6C59FAB91}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Storage.Interfaces", "..\samples\ri\Storage.Interfaces\Storage.Interfaces.csproj", "{5D40AABA-D31A-4D9F-B997-5FB8772D69EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application.Storage.Interfaces", "..\samples\ri\Application.Storage.Interfaces\Application.Storage.Interfaces.csproj", "{5D40AABA-D31A-4D9F-B997-5FB8772D69EF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain.Interfaces", "..\samples\ri\Domain.Interfaces\Domain.Interfaces.csproj", "{562FA530-3242-49B8-BA06-A66E5CD4ED63}"
 EndProject

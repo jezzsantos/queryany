@@ -2,7 +2,7 @@
 using Domain.Interfaces.Entities;
 using QueryAny;
 
-namespace Storage.Interfaces.ReadModels
+namespace Application.Storage.Interfaces.ReadModels
 {
     [EntityName("checkpoints")]
     public class Checkpoint : IIdentifiableEntity, IQueryableEntity

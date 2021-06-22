@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Storage.Interfaces;
+using Application.Storage.Interfaces;
 
 namespace InfrastructureServices.Eventing
 {

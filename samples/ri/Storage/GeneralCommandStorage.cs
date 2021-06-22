@@ -1,8 +1,8 @@
-﻿using Common;
+﻿using Application.Storage.Interfaces;
+using Common;
 using Domain.Interfaces.Entities;
 using QueryAny;
 using ServiceStack;
-using Storage.Interfaces;
 using Storage.Properties;
 
 namespace Storage

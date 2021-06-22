@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Api.Common;
+using Application.Storage.Interfaces;
 using ApplicationServices.Interfaces;
 using CarsApplication;
 using CarsApplication.Storage;
@@ -12,7 +13,6 @@ using InfrastructureServices.ApplicationServices;
 using InfrastructureServices.Eventing.Notifications;
 using ServiceStack;
 using ServiceStack.Configuration;
-using Storage.Interfaces;
 using IRepository = Storage.IRepository;
 
 namespace CarsApiHost

@@ -1,9 +1,9 @@
 using Api.Interfaces.ServiceOperations.Persons;
+using Application.Storage.Interfaces;
 using FluentAssertions;
 using IntegrationTesting.Common;
 using PersonsApplication.ReadModels;
 using PersonsDomain;
-using Storage.Interfaces;
 using Xunit;
 
 namespace PersonsApi.IntegrationTests

@@ -1,7 +1,7 @@
 ﻿using System;
 using QueryAny;
 
-namespace Storage.Interfaces
+namespace Application.Storage.Interfaces
 {
     public interface IPersistableDto : IHasIdentity, IQueryableEntity
     {

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Application.Storage.Interfaces.ReadModels;
 using Domain.Interfaces.Entities;
 using PersonsDomain;
-using Storage.Interfaces.ReadModels;
 
 namespace PersonsApplication
 {

@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Application.Storage.Interfaces;
 using Common;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using ServiceStack.Configuration;
-using Storage.Interfaces;
 
 namespace Storage.Azure
 {

@@ -1,8 +1,8 @@
 ﻿using System.IO;
+using Application.Storage.Interfaces;
 using Common;
 using FluentAssertions;
 using Moq;
-using Storage.Interfaces;
 using Xunit;
 
 namespace Storage.UnitTests

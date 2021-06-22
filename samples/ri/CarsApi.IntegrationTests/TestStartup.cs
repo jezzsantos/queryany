@@ -1,3 +1,4 @@
+using Application.Storage.Interfaces;
 using ApplicationServices.Interfaces;
 using CarsApiHost;
 using CarsApplication.ReadModels;
@@ -14,7 +15,6 @@ using Microsoft.Extensions.Hosting;
 using ServiceStack;
 using ServiceStack.Configuration;
 using Storage;
-using Storage.Interfaces;
 
 namespace CarsApi.IntegrationTests
 {

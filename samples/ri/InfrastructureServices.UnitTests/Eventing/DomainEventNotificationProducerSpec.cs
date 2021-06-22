@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Application.Storage.Interfaces;
 using ApplicationServices.Interfaces;
 using Common;
 using Domain.Interfaces.Entities;
@@ -7,7 +8,6 @@ using FluentAssertions;
 using InfrastructureServices.Eventing.Notifications;
 using InfrastructureServices.Properties;
 using Moq;
-using Storage.Interfaces;
 using UnitTesting.Common;
 using Xunit;
 

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using Application.Storage.Interfaces.ReadModels;
 using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Moq;
 using QueryAny;
-using Storage.Interfaces.ReadModels;
 using Storage.ReadModels;
 using Xunit;
 

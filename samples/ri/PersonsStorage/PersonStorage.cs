@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Application.Storage.Interfaces;
 using Common;
 using Domain.Interfaces.Entities;
 using PersonsApplication.ReadModels;
@@ -6,7 +7,6 @@ using PersonsApplication.Storage;
 using PersonsDomain;
 using QueryAny;
 using Storage;
-using Storage.Interfaces;
 
 namespace PersonsStorage
 {

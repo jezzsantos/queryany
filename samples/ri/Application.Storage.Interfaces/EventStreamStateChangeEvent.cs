@@ -1,7 +1,7 @@
 ﻿using System;
 using Domain.Interfaces.Entities;
 
-namespace Storage.Interfaces
+namespace Application.Storage.Interfaces
 {
     public class EventStreamStateChangeEvent
     {

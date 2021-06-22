@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
 using Api.Interfaces.ServiceOperations.Cars;
+using Application.Storage.Interfaces;
 using CarsApplication.ReadModels;
 using CarsDomain;
 using Domain.Interfaces;
 using FluentAssertions;
 using IntegrationTesting.Common;
-using Storage.Interfaces;
 using Xunit;
 using Car = Application.Common.Resources.Car;
 

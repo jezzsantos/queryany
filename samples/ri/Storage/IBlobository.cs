@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using Storage.Interfaces;
+using Application.Storage.Interfaces;
 
 namespace Storage
 {

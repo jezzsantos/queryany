@@ -15,6 +15,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Api.Common\Api.Common.csproj" />
+      <ProjectReference Include="..\ArchitectureTesting.Common\ArchitectureTesting.Common.csproj" />
       <ProjectReference Include="..\Domain.Interfaces\Domain.Interfaces.csproj" />
       <ProjectReference Include="..\PersonsApiHost\PersonsApiHost.csproj" />
       <ProjectReference Include="..\PersonsDomain\PersonsDomain.csproj" />

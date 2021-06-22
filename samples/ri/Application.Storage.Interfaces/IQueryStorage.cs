@@ -1,7 +1,7 @@
 ﻿using Domain.Interfaces.Entities;
 using QueryAny;
 
-namespace Storage.Interfaces
+namespace Application.Storage.Interfaces
 {
     public interface IQueryStorage<TDto> where TDto : IQueryableEntity, new()
     {

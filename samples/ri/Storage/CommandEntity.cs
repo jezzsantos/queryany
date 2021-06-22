@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using Application.Storage.Interfaces;
+using Application.Storage.Interfaces.ReadModels;
 using Common;
 using Domain.Interfaces.Entities;
 using QueryAny;
 using ServiceStack;
-using Storage.Interfaces;
-using Storage.Interfaces.ReadModels;
 
 namespace Storage
 {

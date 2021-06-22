@@ -1,3 +1,4 @@
+using Application.Storage.Interfaces;
 using Common;
 using Domain.Interfaces.Entities;
 using InfrastructureServices.Eventing.ReadModels;
@@ -13,7 +14,6 @@ using PersonsStorage;
 using ServiceStack;
 using ServiceStack.Configuration;
 using Storage;
-using Storage.Interfaces;
 
 namespace PersonsApi.IntegrationTests
 {

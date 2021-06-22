@@ -4,6 +4,8 @@ using System.Net;
 using System.Reflection;
 using Api.Common.Validators;
 using Application.Interfaces;
+using Application.Storage.Interfaces;
+using Application.Storage.Interfaces.ReadModels;
 using ApplicationServices.Interfaces;
 using Common;
 using Domain.Interfaces.Entities;
@@ -14,8 +16,6 @@ using ServiceStack;
 using ServiceStack.Text;
 using ServiceStack.Validation;
 using Storage;
-using Storage.Interfaces;
-using Storage.Interfaces.ReadModels;
 using IRepository = Storage.IRepository;
 
 namespace Api.Common

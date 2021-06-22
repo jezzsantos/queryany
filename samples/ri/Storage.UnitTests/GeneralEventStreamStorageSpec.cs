@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Application.Storage.Interfaces;
 using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Moq;
 using QueryAny;
-using Storage.Interfaces;
 using Storage.Properties;
 using Storage.UnitTests.ReadModels;
 using UnitTesting.Common;

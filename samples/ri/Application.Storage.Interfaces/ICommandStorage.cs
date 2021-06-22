@@ -1,6 +1,6 @@
 ﻿using Domain.Interfaces.Entities;
 
-namespace Storage.Interfaces
+namespace Application.Storage.Interfaces
 {
     public interface ICommandStorage<TEntity>
         where TEntity : IPersistableEntity

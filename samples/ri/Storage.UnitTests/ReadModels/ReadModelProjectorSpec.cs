@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using Application.Storage.Interfaces;
+using Application.Storage.Interfaces.ReadModels;
 using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Moq;
-using Storage.Interfaces;
-using Storage.Interfaces.ReadModels;
 using Storage.ReadModels;
 using Storage.ReadModels.Properties;
 using UnitTesting.Common;

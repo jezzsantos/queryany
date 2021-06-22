@@ -1,7 +1,7 @@
 ﻿using System;
+using Application.Storage.Interfaces.ReadModels;
 using CarsDomain;
 using QueryAny;
-using Storage.Interfaces.ReadModels;
 
 namespace CarsApplication.ReadModels
 {

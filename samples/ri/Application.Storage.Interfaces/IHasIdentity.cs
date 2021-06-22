@@ -1,4 +1,4 @@
-﻿namespace Storage.Interfaces
+﻿namespace Application.Storage.Interfaces
 {
     public interface IHasIdentity
     {

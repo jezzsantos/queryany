@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Application.Storage.Interfaces;
 using Common;
 using FluentAssertions;
 using InfrastructureServices.Eventing;
 using Moq;
-using Storage.Interfaces;
 using Xunit;
 
 namespace InfrastructureServices.UnitTests.Eventing

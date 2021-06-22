@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using QueryAny;
 
-namespace Storage.Interfaces
+namespace Application.Storage.Interfaces
 {
     public class QueryResults<TEntity> where TEntity : IQueryableEntity
     {

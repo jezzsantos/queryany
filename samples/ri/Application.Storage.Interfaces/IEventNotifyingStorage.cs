@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Common;
 
-namespace Storage.Interfaces
+namespace Application.Storage.Interfaces
 {
     public interface IEventNotifyingStorage
     {

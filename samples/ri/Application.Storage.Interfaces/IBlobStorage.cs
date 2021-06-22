@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Storage.Interfaces
+namespace Application.Storage.Interfaces
 {
     public interface IBlobStorage
     {

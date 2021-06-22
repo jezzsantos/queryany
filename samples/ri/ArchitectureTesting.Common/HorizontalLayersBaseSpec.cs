@@ -1,4 +1,6 @@
+using ArchUnitNET.xUnit;
 using Xunit;
+using static ArchUnitNET.Fluent.ArchRuleDefinition;
 
 namespace ArchitectureTesting.Common
 {

@@ -1,7 +1,7 @@
 ﻿using System;
+using Application.Storage.Interfaces.ReadModels;
 using Common;
 using QueryAny;
-using Storage.Interfaces.ReadModels;
 
 namespace Storage
 {

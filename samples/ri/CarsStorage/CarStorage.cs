@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Application.Interfaces;
 using Application.Interfaces.Storage;
+using Application.Storage.Interfaces;
 using CarsApplication.ReadModels;
 using CarsApplication.Storage;
 using CarsDomain;
@@ -10,7 +11,6 @@ using Common;
 using Domain.Interfaces.Entities;
 using QueryAny;
 using Storage;
-using Storage.Interfaces;
 
 namespace CarsStorage
 {

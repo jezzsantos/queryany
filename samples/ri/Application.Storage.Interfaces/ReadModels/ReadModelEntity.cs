@@ -1,6 +1,6 @@
 using System;
 
-namespace Storage.Interfaces.ReadModels
+namespace Application.Storage.Interfaces.ReadModels
 {
     public class ReadModelEntity : IReadModelEntity
     {

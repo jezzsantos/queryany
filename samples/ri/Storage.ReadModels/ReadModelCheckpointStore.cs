@@ -1,8 +1,8 @@
 ﻿using System.Linq;
+using Application.Storage.Interfaces.ReadModels;
 using Common;
 using Domain.Interfaces.Entities;
 using QueryAny;
-using Storage.Interfaces.ReadModels;
 
 namespace Storage.ReadModels
 {

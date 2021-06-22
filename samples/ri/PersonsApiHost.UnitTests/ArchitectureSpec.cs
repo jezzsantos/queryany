@@ -1,7 +1,7 @@
 ﻿using ArchitectureTesting.Common;
 using Xunit;
 
-namespace CarsApiHost.UnitTests
+namespace PersonsApiHost.UnitTests
 {
     [Trait("Category", "Unit.Architecture"), Collection("ThisAssembly")]
     public class HorizontalLayersSpec : HorizontalLayersBaseSpec<Startup>

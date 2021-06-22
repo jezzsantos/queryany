@@ -1,6 +1,6 @@
 ﻿using System.IO;
+using Application.Storage.Interfaces;
 using Common;
-using Storage.Interfaces;
 
 namespace Storage
 {

@@ -1,5 +1,5 @@
-﻿using QueryAny;
-using Storage.Interfaces.ReadModels;
+﻿using Application.Storage.Interfaces.ReadModels;
+using QueryAny;
 
 namespace Storage.UnitTests
 {

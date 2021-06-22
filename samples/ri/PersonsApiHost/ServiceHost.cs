@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Api.Common;
+using Application.Storage.Interfaces;
 using ApplicationServices.Interfaces;
 using Common;
 using Domain.Interfaces.Entities;
@@ -10,7 +11,6 @@ using PersonsApplication.Storage;
 using PersonsDomain;
 using PersonsStorage;
 using ServiceStack;
-using Storage.Interfaces;
 using IRepository = Storage.IRepository;
 
 namespace PersonsApiHost

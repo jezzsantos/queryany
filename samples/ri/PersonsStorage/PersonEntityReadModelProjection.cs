@@ -1,10 +1,10 @@
 ﻿using System;
+using Application.Storage.Interfaces.ReadModels;
 using Common;
 using Domain.Interfaces.Entities;
 using PersonsApplication.ReadModels;
 using PersonsDomain;
 using Storage;
-using Storage.Interfaces.ReadModels;
 
 namespace PersonsStorage
 {

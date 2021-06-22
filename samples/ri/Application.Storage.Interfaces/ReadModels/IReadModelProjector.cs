@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Storage.Interfaces.ReadModels
+namespace Application.Storage.Interfaces.ReadModels
 {
     public interface IReadModelProjector
     {
