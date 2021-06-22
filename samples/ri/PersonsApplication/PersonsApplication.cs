@@ -1,6 +1,6 @@
-﻿using Application;
+﻿using Application.Common;
+using Application.Common.Resources;
 using Application.Interfaces;
-using Application.Resources;
 using Common;
 using Domain.Interfaces;
 using Domain.Interfaces.Entities;
@@ -71,7 +71,7 @@ namespace PersonsApplication
         public static Person ToPerson(this ReadModels.Person readModel)
         {
             var dto = readModel.ConvertTo<Person>();
-            dto.Name = new Application.Resources.PersonName
+            dto.Name = new Application.Common.Resources.PersonName
                 {FirstName = readModel.FirstName, LastName = readModel.LastName};
             return dto;
         }

@@ -1,6 +1,6 @@
 ﻿using Domain.Interfaces;
 
-namespace Application.Resources
+namespace Application.Common.Resources
 {
     public class Person : IIdentifiableResource
     {

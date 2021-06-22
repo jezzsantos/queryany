@@ -1,4 +1,4 @@
-﻿using Application.Resources;
+﻿using Application.Common.Resources;
 using ApplicationServices.Interfaces;
 
 namespace CarsApi.IntegrationTests

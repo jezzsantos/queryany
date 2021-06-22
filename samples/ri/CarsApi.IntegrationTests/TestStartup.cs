@@ -1,4 +1,5 @@
 using ApplicationServices.Interfaces;
+using CarsApiHost;
 using CarsApplication.ReadModels;
 using CarsApplication.Storage;
 using CarsDomain;

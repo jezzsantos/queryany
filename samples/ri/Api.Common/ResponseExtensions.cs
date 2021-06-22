@@ -1,4 +1,4 @@
-﻿using Application.Resources;
+﻿using Application.Common.Resources;
 using Common;
 using ServiceStack;
 using ServiceStack.Web;

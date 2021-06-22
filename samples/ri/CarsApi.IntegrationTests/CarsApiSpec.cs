@@ -8,7 +8,7 @@ using FluentAssertions;
 using IntegrationTesting.Common;
 using Storage.Interfaces;
 using Xunit;
-using Car = Application.Resources.Car;
+using Car = Application.Common.Resources.Car;
 
 namespace CarsApi.IntegrationTests
 {

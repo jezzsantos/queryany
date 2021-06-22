@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CarsApi\CarsApi.csproj" />
+    <ProjectReference Include="..\CarsApiHost\CarsApiHost.csproj" />
     <ProjectReference Include="..\IntegrationTesting.Common\IntegrationTesting.Common.csproj" />
   </ItemGroup>
 

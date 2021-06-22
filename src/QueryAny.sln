@@ -22,7 +22,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Storage.Interfaces", "..\sa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain.Interfaces", "..\samples\ri\Domain.Interfaces\Domain.Interfaces.csproj", "{562FA530-3242-49B8-BA06-A66E5CD4ED63}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CarsApi", "..\samples\ri\CarsApi\CarsApi.csproj", "{8583CDF9-BE01-4C0F-995D-81C2C82CBB0A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CarsApiHost", "..\samples\ri\CarsApiHost\CarsApiHost.csproj", "{8583CDF9-BE01-4C0F-995D-81C2C82CBB0A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Storage", "..\samples\ri\Storage\Storage.csproj", "{C7E52D4B-0163-49D9-BF0F-549DBCBA25F1}"
 EndProject
@@ -34,7 +34,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D3EDC65E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain.Interfaces.UnitTests", "..\samples\ri\Domain.Interfaces.UnitTests\Domain.Interfaces.UnitTests.csproj", "{11F7A98D-31B4-45BC-9149-2AA630624871}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarsApi.UnitTests", "..\samples\ri\CarsApi.UnitTests\CarsApi.UnitTests.csproj", "{FF2C1DD8-2EFD-4B9A-8E99-AB8CCA2C9231}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarsApiHost.UnitTests", "..\samples\ri\CarsApiHost.UnitTests\CarsApiHost.UnitTests.csproj", "{FF2C1DD8-2EFD-4B9A-8E99-AB8CCA2C9231}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{99D91965-EF25-4B2C-B176-133B8D47B399}"
 EndProject
@@ -84,13 +84,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationServices.Interfa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonsDomain.UnitTests", "..\samples\ri\PersonsDomain.UnitTests\PersonsDomain.UnitTests.csproj", "{B9523DE9-1A97-41D3-8E0D-98CEBA310754}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonsApi", "..\samples\ri\PersonsApi\PersonsApi.csproj", "{0FC1A2C4-DAE5-41D3-B0AE-9BEE97B4BA1A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonsApiHost", "..\samples\ri\PersonsApiHost\PersonsApiHost.csproj", "{0FC1A2C4-DAE5-41D3-B0AE-9BEE97B4BA1A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api.Common", "..\samples\ri\Api.Common\Api.Common.csproj", "{4341EB4D-3FA2-43A9-9A02-52FBC8038F50}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api.Common.UnitTests", "..\samples\ri\Api.Common.UnitTests\Api.Common.UnitTests.csproj", "{15E36DF4-E90D-40BC-AE8F-BC42412E25D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonsApi.UnitTests", "..\samples\ri\PersonsApi.UnitTests\PersonsApi.UnitTests.csproj", "{A04EA971-11A3-454E-9BE1-E6BEF135B434}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonsApiHost.UnitTests", "..\samples\ri\PersonsApiHost.UnitTests\PersonsApiHost.UnitTests.csproj", "{A04EA971-11A3-454E-9BE1-E6BEF135B434}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonsApi.IntegrationTests", "..\samples\ri\PersonsApi.IntegrationTests\PersonsApi.IntegrationTests.csproj", "{6041644A-BD2E-422D-B0C6-CD227458D60A}"
 EndProject
