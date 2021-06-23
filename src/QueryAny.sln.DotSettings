@@ -286,6 +286,7 @@ public void When$CONDITION$_Then$RESULT$()
     }</s:String>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Blobository/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Persistable/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=queueository/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=rehydrating/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Unavailabilities/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=unavailbility/@EntryIndexedValue">True</s:Boolean>
