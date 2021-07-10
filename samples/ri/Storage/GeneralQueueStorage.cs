@@ -19,7 +19,6 @@ namespace Storage
             this.recorder = recorder;
             this.queueository = queueository;
             this.queueName = typeof(TMessage).GetEntityNameSafe();
-            ;
         }
 
         public void Push(TMessage message)

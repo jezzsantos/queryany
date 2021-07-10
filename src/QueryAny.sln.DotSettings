@@ -81,6 +81,9 @@
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=2ED828C00A95424ABCAEED55E016946C/Shortcut/@EntryValue">guard</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=2ED828C00A95424ABCAEED55E016946C/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=2ED828C00A95424ABCAEED55E016946C/Text/@EntryValue">$variable$.GuardAgainstNull(nameof($variable$));</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=5FCCA601C0052D41816EB829C585A41C/Text/@EntryValue">[Fact]
+public void $METHOD$()
+{$END$}</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/@KeyIndexDefined">True</s:Boolean>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=7626F86D3A9F6C468713C8BAA6ED21DB/Description/@EntryValue">Creates a ValueObject</s:String>
@@ -246,7 +249,7 @@
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BFE44FFF508D5847B2118A6883F654C5/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BFE44FFF508D5847B2118A6883F654C5/Shortcut/@EntryValue">testm</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BFE44FFF508D5847B2118A6883F654C5/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
-	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BFE44FFF508D5847B2118A6883F654C5/Text/@EntryValue">[TestMethod]
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BFE44FFF508D5847B2118A6883F654C5/Text/@EntryValue">[Fact]
 public void When$CONDITION$_Then$RESULT$()
 {$END$}</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=CEDF9F05BABAEB4E86DFECA8F990D1A7/@KeyIndexDefined">True</s:Boolean>
@@ -276,11 +279,10 @@ public void When$CONDITION$_Then$RESULT$()
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Shortcut/@EntryValue">testc</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
-	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Text/@EntryValue">    [TestClass, TestCategory("$Category$")]
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=D151E7737EAE49469801FF560C4BAA5E/Text/@EntryValue">    [Trait("Category", "$Category$")]
     public class $ClassName$
     {
-        [TestInitialize]
-        public void Initialize()
+        public $ClassName$()
         {
         }
     }</s:String>
