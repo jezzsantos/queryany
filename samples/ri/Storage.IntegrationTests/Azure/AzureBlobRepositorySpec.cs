@@ -1,7 +1,11 @@
 using System;
+using System.IO;
+using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using ServiceStack;
 using Storage.Azure;
+using Storage.Azure.Properties;
+using UnitTesting.Common;
 using Xunit;
 
 namespace Storage.IntegrationTests.Azure
@@ -27,8 +31,38 @@ namespace Storage.IntegrationTests.Azure
     [Trait("Category", "Integration.Storage")]
     public class AzureBlobRepositorySpec : AnyBlobositoryBaseSpec, IClassFixture<AzureBlobRepositorySpecSetup>
     {
+        private readonly AzureBlobRepositorySpecSetup setup;
+
         public AzureBlobRepositorySpec(AzureBlobRepositorySpecSetup setup) : base(setup.Blobository)
         {
+            this.setup = setup;
+        }
+
+        [Fact]
+        public void WhenDownloadWithInvalidContainerName_ThenThrows()
+        {
+            this.setup.Blobository
+                .Invoking(x => x.Download("^aninvalidcontainername^", "ablobname", Stream.Null))
+                .Should().Throw<ArgumentOutOfRangeException>()
+                .WithMessageLike(Resources.AzureQueueStorageRepository_InvalidStorageName);
+        }
+
+        [Fact]
+        public void WhenUploadWithInvalidContainerName_ThenThrows()
+        {
+            this.setup.Blobository
+                .Invoking(x => x.Upload("^aninvalidcontainername^", "ablobname", "aconttenttype", new byte[0]))
+                .Should().Throw<ArgumentOutOfRangeException>()
+                .WithMessageLike(Resources.AzureQueueStorageRepository_InvalidStorageName);
+        }
+
+        [Fact]
+        public void WhenDestroyAllWithInvalidContainerName_ThenThrows()
+        {
+            this.setup.Blobository
+                .Invoking(x => x.DestroyAll("^aninvalidcontainername^"))
+                .Should().Throw<ArgumentOutOfRangeException>()
+                .WithMessageLike(Resources.AzureQueueStorageRepository_InvalidStorageName);
         }
     }
 }

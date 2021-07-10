@@ -18,7 +18,7 @@ namespace Storage.Azure
         public AzureQueueStorageRepository(IRecorder recorder, string connectionString)
         {
             recorder.GuardAgainstNull(nameof(recorder));
-            connectionString.GuardAgainstNull(nameof(connectionString));
+            connectionString.GuardAgainstNullOrEmpty(nameof(connectionString));
             this.connectionString = connectionString;
             this.recorder = recorder;
         }
@@ -148,8 +148,9 @@ namespace Storage.Azure
                 this.client.UpdateMessage(message?.MessageId, message?.PopReceipt, (string) null, TimeSpan.Zero));
         }
 
-        private QueueClient EnsureQueue(string queueName)
+        private QueueClient EnsureQueue(string name)
         {
+            var queueName = name.SanitiseAndValidateStorageName();
             EnsureConnected(queueName);
 
             if (IsContainerExistenceCheckPerformed(queueName))

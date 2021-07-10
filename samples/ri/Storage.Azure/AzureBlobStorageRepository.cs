@@ -18,7 +18,7 @@ namespace Storage.Azure
 
         public AzureBlobStorageRepository(string connectionString)
         {
-            connectionString.GuardAgainstNull(nameof(connectionString));
+            connectionString.GuardAgainstNullOrEmpty(nameof(connectionString));
             this.connectionString = connectionString;
         }
 
@@ -86,8 +86,9 @@ namespace Storage.Azure
             return new AzureBlobStorageRepository(connectionString);
         }
 
-        private CloudBlobContainer EnsureContainer(string containerName)
+        private CloudBlobContainer EnsureContainer(string name)
         {
+            var containerName = name.SanitiseAndValidateStorageName();
             EnsureConnected();
             var container = this.client.GetContainerReference(containerName);
 

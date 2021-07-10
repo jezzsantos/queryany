@@ -21,4 +21,10 @@
     <data name="AzureTableStorageRepository_LikeNotSupported" xml:space="preserve">
         <value>The operator 'Like' is not supported in this repository</value>
     </data>
+    <data name="AzureQueueStorageRepository_InvalidStorageName" xml:space="preserve">
+        <value>The storage table/blob/queue name: '{0}' contains illegal characters or is not the correct length</value>
+    </data>
+    <data name="AzureQueueStorageRepository_InvalidCosmosContainerName" xml:space="preserve">
+        <value>The cosmos container name: '{0}' contains illegal characters or is not the correct length</value>
+    </data>
 </root>

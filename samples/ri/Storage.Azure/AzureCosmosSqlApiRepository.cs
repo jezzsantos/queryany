@@ -237,22 +237,23 @@ namespace Storage.Azure
             }
         }
 
-        private Container EnsureContainer(string containerName)
+        private Container EnsureContainer(string name)
         {
+            name.ValidateCosmosContainerId();
             EnsureConnected();
 
-            if (this.containers.ContainsKey(containerName))
+            if (this.containers.ContainsKey(name))
             {
-                return this.containers[containerName];
+                return this.containers[name];
             }
 
             var container = this.client.GetDatabase(this.databaseName)
-                .CreateContainerIfNotExistsAsync(containerName, DefaultPartitionKeyPath, DefaultThroughput)
+                .CreateContainerIfNotExistsAsync(name, DefaultPartitionKeyPath, DefaultThroughput)
                 .GetAwaiter()
                 .GetResult().Container;
-            this.containers.Add(containerName, container);
+            this.containers.Add(name, container);
 
-            return this.containers[containerName];
+            return this.containers[name];
         }
 
         private static bool Exists(Container container, string id)

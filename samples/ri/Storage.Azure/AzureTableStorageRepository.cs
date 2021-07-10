@@ -265,12 +265,13 @@ namespace Storage.Azure
             this.client = account.CreateCloudTableClient();
         }
 
-        private CloudTable EnsureTable(string containerName)
+        private CloudTable EnsureTable(string name)
         {
+            var tableName = name.SanitiseAndValidateStorageName();
             EnsureConnected();
-            var table = this.client.GetTableReference(containerName);
+            var table = this.client.GetTableReference(tableName);
 
-            if (IsTableExistenceCheckPerformed(containerName))
+            if (IsTableExistenceCheckPerformed(tableName))
             {
                 return table;
             }

@@ -61,6 +61,24 @@ namespace Storage.Azure.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The cosmos container name: &apos;{0}&apos; contains illegal characters or is not the correct length.
+        /// </summary>
+        internal static string AzureQueueStorageRepository_InvalidCosmosContainerName {
+            get {
+                return ResourceManager.GetString("AzureQueueStorageRepository_InvalidCosmosContainerName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The storage table/blob/queue name: &apos;{0}&apos; contains illegal characters or is not the correct length.
+        /// </summary>
+        internal static string AzureQueueStorageRepository_InvalidStorageName {
+            get {
+                return ResourceManager.GetString("AzureQueueStorageRepository_InvalidStorageName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The operator &apos;Like&apos; is not supported in this repository.
         /// </summary>
         internal static string AzureTableStorageRepository_LikeNotSupported {

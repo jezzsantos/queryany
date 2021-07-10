@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using QueryAny;
 using ServiceStack;
 using Storage.Azure;
+using Storage.Azure.Properties;
+using UnitTesting.Common;
 using Xunit;
 
 namespace Storage.IntegrationTests.Azure
@@ -29,8 +31,65 @@ namespace Storage.IntegrationTests.Azure
     [Trait("Category", "Integration.Storage")]
     public class AzureTableRepositorySpec : AnyRepositoryBaseSpec, IClassFixture<AzureTableRepositorySpecSetup>
     {
+        private readonly AzureTableRepositorySpecSetup setup;
+
         public AzureTableRepositorySpec(AzureTableRepositorySpecSetup setup) : base(setup.Repository)
         {
+            this.setup = setup;
+        }
+
+        [Fact]
+        public void WhenAddWithInvalidTableName_ThenThrows()
+        {
+            this.setup.Repository
+                .Invoking(x => x.Add("^aninvalidtablename^", new CommandEntity("anid")))
+                .Should().Throw<ArgumentOutOfRangeException>()
+                .WithMessageLike(Resources.AzureQueueStorageRepository_InvalidStorageName);
+        }
+
+        [Fact]
+        public void WhenRemoveWithInvalidTableName_ThenThrows()
+        {
+            this.setup.Repository
+                .Invoking(x => x.Remove("^aninvalidtablename^", "anid"))
+                .Should().Throw<ArgumentOutOfRangeException>()
+                .WithMessageLike(Resources.AzureQueueStorageRepository_InvalidStorageName);
+        }
+
+        [Fact]
+        public void WhenReplaceWithInvalidTableName_ThenThrows()
+        {
+            this.setup.Repository
+                .Invoking(x => x.Replace("^aninvalidtablename^", "anid", new CommandEntity("anid")))
+                .Should().Throw<ArgumentOutOfRangeException>()
+                .WithMessageLike(Resources.AzureQueueStorageRepository_InvalidStorageName);
+        }
+
+        [Fact]
+        public void WhenRetrieveWithInvalidTableName_ThenThrows()
+        {
+            this.setup.Repository
+                .Invoking(x => x.Retrieve("^aninvalidtablename^", "anid", RepositoryEntityMetadata.Empty))
+                .Should().Throw<ArgumentOutOfRangeException>()
+                .WithMessageLike(Resources.AzureQueueStorageRepository_InvalidStorageName);
+        }
+
+        [Fact]
+        public void WhenCountWithInvalidTableName_ThenThrows()
+        {
+            this.setup.Repository
+                .Invoking(x => x.Count("^aninvalidtablename^"))
+                .Should().Throw<ArgumentOutOfRangeException>()
+                .WithMessageLike(Resources.AzureQueueStorageRepository_InvalidStorageName);
+        }
+
+        [Fact]
+        public void WhenDestroyAllWithInvalidTableName_ThenThrows()
+        {
+            this.setup.Repository
+                .Invoking(x => x.DestroyAll("^aninvalidtablename^"))
+                .Should().Throw<ArgumentOutOfRangeException>()
+                .WithMessageLike(Resources.AzureQueueStorageRepository_InvalidStorageName);
         }
 
         [Fact]
