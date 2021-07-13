@@ -17,7 +17,7 @@ namespace Storage
     /// </summary>
     public class LocalMachineFileRepository : IRepository, IBlobository
     {
-        private const string PathSettingName = "LocalMachineRepositoryRootPath";
+        private const string PathSettingName = "Storage:LocalMachineRepositoryRootPath";
         public const string NullToken = @"null";
         private readonly string rootPath;
 

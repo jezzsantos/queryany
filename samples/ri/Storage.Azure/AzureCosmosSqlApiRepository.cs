@@ -213,8 +213,8 @@ namespace Storage.Azure
             recorder.GuardAgainstNull(nameof(recorder));
             databaseName.GuardAgainstNullOrEmpty(nameof(databaseName));
 
-            var accountKey = settings.GetString("AzureCosmosDbAccountKey");
-            var hostName = settings.GetString("AzureCosmosDbHostName");
+            var accountKey = settings.GetString("Storage:AzureCosmosDbAccountKey");
+            var hostName = settings.GetString("Storage:AzureCosmosDbHostName");
             var localEmulatorConnectionString = $"AccountEndpoint=https://{hostName}:8081/;AccountKey={accountKey}";
 
             return new AzureCosmosSqlApiRepository(recorder, localEmulatorConnectionString, databaseName);

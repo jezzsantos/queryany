@@ -13,7 +13,7 @@ namespace Storage.IntegrationTests.Sql
         {
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var settings = new NetCoreAppSettings(config);
-            var serviceName = settings.GetString("SqlServerServiceName");
+            var serviceName = settings.GetString("Storage:SqlServerServiceName");
             Repository = SqlServerRepository.FromSettings(NullRecorder.Instance, settings);
             SqlServerStorageBase.InitializeAllTests(serviceName, "TestDatabase");
         }
@@ -24,7 +24,7 @@ namespace Storage.IntegrationTests.Sql
         {
             var config = new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
             var settings = new NetCoreAppSettings(config);
-            var serviceName = settings.GetString("SqlServerServiceName");
+            var serviceName = settings.GetString("Storage:SqlServerServiceName");
             SqlServerStorageBase.CleanupAllTests(serviceName);
         }
     }

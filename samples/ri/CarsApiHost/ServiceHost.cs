@@ -58,7 +58,7 @@ namespace CarsApiHost
                     c.Resolve<IEventStreamStorage<CarEntity>>(), c.Resolve<IRepository>()));
             container.AddSingleton<ICarsApplication, CarsApplication.CarsApplication>();
             container.AddSingleton<IPersonsService>(c =>
-                new PersonsServiceClient(c.Resolve<IAppSettings>().GetString("PersonsApiBaseUrl")));
+                new PersonsServiceClient(c.Resolve<IAppSettings>().GetString("ApplicationServices:PersonsApiBaseUrl")));
         }
     }
 }

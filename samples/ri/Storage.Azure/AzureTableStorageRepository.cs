@@ -209,8 +209,8 @@ namespace Storage.Azure
         {
             settings.GuardAgainstNull(nameof(settings));
 
-            var accountKey = settings.GetString("AzureStorageAccountKey");
-            var accountName = settings.GetString("AzureStorageAccountName");
+            var accountKey = settings.GetString("Storage:AzureStorageAccountKey");
+            var accountName = settings.GetString("Storage:AzureStorageAccountName");
             var connectionString = accountKey.HasValue()
                 ? $"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={accountKey};EndpointSuffix=core.windows.net"
                 : "UseDevelopmentStorage=true";

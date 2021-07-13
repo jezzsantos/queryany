@@ -130,7 +130,7 @@ namespace Storage.Redis
 
         public static RedisInMemRepository FromSettings(IAppSettings settings)
         {
-            var localServerConnectionString = settings.GetString("RedisConnectionString");
+            var localServerConnectionString = settings.GetString("Storage:RedisConnectionString");
             return new RedisInMemRepository(localServerConnectionString);
         }
 

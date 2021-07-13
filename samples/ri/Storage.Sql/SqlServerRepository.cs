@@ -117,9 +117,9 @@ namespace Storage.Sql
         {
             settings.GuardAgainstNull(nameof(settings));
 
-            var serverName = settings.GetString("SqlServerDbServerName");
-            var credentials = settings.GetString("SqlServerDbCredentials");
-            var databaseName = settings.GetString("SqlServerDbName");
+            var serverName = settings.GetString("Storage:SqlServerDbServerName");
+            var credentials = settings.GetString("Storage:SqlServerDbCredentials");
+            var databaseName = settings.GetString("Storage:SqlServerDbName");
             return new SqlServerRepository(recorder,
                 $"Persist Security Info=False;Integrated Security=true;Initial Catalog={databaseName};Server={serverName}{(credentials.HasValue() ? ";" + credentials : "")}");
         }
