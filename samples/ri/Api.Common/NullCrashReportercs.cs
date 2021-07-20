@@ -7,7 +7,6 @@ namespace Api.Common
     {
         public void Crash(CrashLevel level, Exception exception, string caller, string message, object[] args)
         {
-            throw new NotImplementedException();
         }
     }
 }
