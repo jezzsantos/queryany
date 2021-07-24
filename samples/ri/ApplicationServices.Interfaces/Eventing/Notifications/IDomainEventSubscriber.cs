@@ -1,6 +1,6 @@
 ﻿using Domain.Interfaces.Entities;
 
-namespace ApplicationServices.Interfaces
+namespace ApplicationServices.Interfaces.Eventing.Notifications
 {
     public interface IDomainEventSubscriber
     {

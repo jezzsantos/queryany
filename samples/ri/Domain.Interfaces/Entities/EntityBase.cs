@@ -12,6 +12,12 @@ namespace Domain.Interfaces.Entities
     {
         private Action<IChangeEvent> aggregateEntityEventHandler;
 
+        protected EntityBase(IRecorder recorder, IIdentifierFactory idFactory,
+            Action<IChangeEvent> aggregateEventHandler) : this(recorder, idFactory)
+        {
+            SetAggregateEventHandler(aggregateEventHandler);
+        }
+
         protected EntityBase(IRecorder recorder, IIdentifierFactory idFactory)
         {
             recorder.GuardAgainstNull(nameof(recorder));
@@ -35,6 +41,28 @@ namespace Domain.Interfaces.Entities
         // ReSharper disable once MemberCanBePrivate.Global
         protected IIdentifierFactory IdFactory { get; }
 
+        public void SetAggregateEventHandler(Action<IChangeEvent> handler)
+        {
+            this.aggregateEntityEventHandler = handler;
+        }
+
+        public sealed override bool Equals(object obj)
+        {
+            return ReferenceEquals(this, obj) || obj is EntityBase other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.HasValue()
+                ? Id.GetHashCode()
+                : 0;
+        }
+
+        public virtual bool EnsureValidState()
+        {
+            return true;
+        }
+
         public DateTime CreatedAtUtc { get; }
 
         public DateTime LastModifiedAtUtc { get; private set; }
@@ -50,38 +78,27 @@ namespace Domain.Interfaces.Entities
             OnEventRaised(@event);
         }
 
-        void IPublishingEntity.RaiseEvent(IChangeEvent @event)
+        void IPublishingEntity.RaiseEvent(IChangeEvent @event, bool validate)
         {
             OnEventRaised(@event);
+            if (validate)
+            {
+                var isValid = EnsureValidState();
+                if (!isValid)
+                {
+                    throw new RuleViolationException($"The entity with {Id} is in an invalid state.");
+                }
+            }
+
             this.aggregateEntityEventHandler?.Invoke(@event);
             LastModifiedAtUtc = DateTime.UtcNow;
-        }
-
-        public void SetAggregateEventHandler(Action<IChangeEvent> handler)
-        {
-            this.aggregateEntityEventHandler = handler;
-        }
-
-        public sealed override bool Equals(object obj)
-        {
-            return ReferenceEquals(this, obj) || obj is EntityBase other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            // ReSharper disable once NonReadonlyMemberInGetHashCode
-            return Id.HasValue()
-
-                // ReSharper disable once NonReadonlyMemberInGetHashCode
-                ? Id.GetHashCode()
-                : 0;
         }
 
         protected abstract void OnEventRaised(IChangeEvent @event);
 
         protected void RaiseChangeEvent(IChangeEvent @event)
         {
-            ((IPublishingEntity) this).RaiseEvent(@event);
+            ((IPublishingEntity) this).RaiseEvent(@event, true);
         }
 
         private bool Equals(EntityBase entity)

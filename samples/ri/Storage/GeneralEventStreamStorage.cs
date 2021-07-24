@@ -37,10 +37,11 @@ namespace Storage
 
         public void DestroyAll()
         {
-            this.repository.DestroyAll(this.containerName);
+            var eventContainerName = GetEventContainerName();
+            this.repository.DestroyAll(eventContainerName);
         }
 
-        public TAggregateRoot Load(Identifier id)
+        public TAggregateRoot Load(Identifier id, bool returnNullIfNotFound = false)
         {
             id.GuardAgainstNull(nameof(id));
 
@@ -53,7 +54,9 @@ namespace Storage
                     .OrderBy(ee => ee.LastPersistedAtUtc), RepositoryEntityMetadata.FromType<EntityEvent>());
             if (!events.Any())
             {
-                return RehydrateAggregateRoot(id, null);
+                return returnNullIfNotFound
+                    ? default
+                    : RehydrateAggregateRoot(id, null);
             }
 
             var lastPersistedAtUtc = events.Last().LastPersistedAtUtc;

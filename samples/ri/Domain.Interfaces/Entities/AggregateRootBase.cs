@@ -20,7 +20,6 @@ namespace Domain.Interfaces.Entities
         protected AggregateRootBase(IRecorder recorder, IIdentifierFactory idFactory,
             Func<Identifier, IChangeEvent> createdEventFactory) : this(recorder, idFactory,
             Identifier.Empty())
-
         {
             createdEventFactory.GuardAgainstNull(nameof(createdEventFactory));
 
@@ -120,13 +119,20 @@ namespace Domain.Interfaces.Entities
             }
         }
 
-        void IPublishingEntity.RaiseEvent(IChangeEvent @event)
+        void IPublishingEntity.RaiseEvent(IChangeEvent @event, bool validate)
         {
             OnStateChanged(@event);
-            var isValid = EnsureValidState();
-            if (!isValid)
+            if (validate)
             {
-                throw new RuleViolationException($"The entity with {Id} is in an invalid state.");
+                var isValid = EnsureValidState();
+                if (!isValid)
+                {
+                    throw new RuleViolationException($"The entity with {Id} is in an invalid state.");
+                }
+            }
+            else
+            {
+                EnsureBaseValidState();
             }
             LastModifiedAtUtc = DateTime.UtcNow;
             this.events.Add(@event);
@@ -138,23 +144,34 @@ namespace Domain.Interfaces.Entities
         {
             if (this.isInstantiating)
             {
-                ((IPublishingEntity) this).RaiseEvent(@event);
+                ((IPublishingEntity) this).RaiseEvent(@event, false);
             }
         }
 
         protected void RaiseChangeEvent(IChangeEvent @event)
         {
-            ((IPublishingEntity) this).RaiseEvent(@event);
+            ((IPublishingEntity) this).RaiseEvent(@event, true);
         }
 
         protected virtual bool EnsureValidState()
         {
-            return Id.HasValue();
+            return EnsureBaseValidState();
+        }
+
+        private bool EnsureBaseValidState()
+        {
+            if (!Id.HasValue())
+            {
+                throw new RuleViolationException("The entity has no identifier.");
+            }
+
+            return true;
         }
 
         protected static void RaiseToEntity(IPublishedEntityEventHandler entity, IChangeEvent @event)
         {
-            entity?.HandleEvent(@event);
+            @event.EntityId = entity.Id;
+            entity.HandleEvent(@event);
         }
     }
 }

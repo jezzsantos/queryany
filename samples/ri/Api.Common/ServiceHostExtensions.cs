@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using Api.Common.Validators;
 using Application.Interfaces;
 using Application.Storage.Interfaces;
 using Application.Storage.Interfaces.ReadModels;
-using ApplicationServices.Interfaces;
+using ApplicationServices.Interfaces.Eventing.Notifications;
 using Common;
 using Domain.Interfaces.Entities;
 using Funq;
@@ -51,11 +52,14 @@ namespace Api.Common
             container.AddSingleton<IHasGetOptionsValidator, HasGetOptionsValidator>();
         }
 
-        public static void ConfigureRepository(this IAppHost appHost,
+        public static void ConfigureRepositories(this IAppHost appHost,
             Assembly[] assembliesContainingDomainTypes)
         {
             var container = appHost.GetContainer();
-            container.AddSingleton<IDependencyContainer>(new FunqDependencyContainer(container));
+            if (!container.Exists<IDependencyContainer>())
+            {
+                container.AddSingleton<IDependencyContainer>(new FunqDependencyContainer(container));
+            }
             if (!container.Exists<IDomainFactory>())
             {
                 container.AddSingleton<IDomainFactory>(c => DomainFactory.CreateRegistered(
@@ -68,15 +72,10 @@ namespace Api.Common
             }
             container.AddSingleton<IChangeEventMigrator>(c => new ChangeEventTypeMigrator());
 
-            if (!container.Exists<ServiceStack.IRepository>())
+            if (!container.Exists<IRepository>())
             {
                 container.AddSingleton(GetRepository(appHost));
             }
-        }
-
-        public static void ConfigureBlobository(this IAppHost appHost)
-        {
-            var container = appHost.GetContainer();
 
             if (!container.Exists<IBlobository>())
             {
@@ -85,8 +84,8 @@ namespace Api.Common
         }
 
         public static void ConfigureEventing<TAggregateRoot>(this IAppHost appHost,
-            Func<Container, IEnumerable<IReadModelProjection>> projections,
-            Func<Container, IEnumerable<IDomainEventPublisherSubscriberPair>> subscribers)
+            Func<Container, IEnumerable<IReadModelProjection>> projectionsFactory,
+            Func<Container, IEnumerable<IDomainEventPublisherSubscriberPair>> subscribersFactory)
             where TAggregateRoot : IPersistableAggregateRoot
         {
             var container = appHost.GetContainer();
@@ -94,16 +93,56 @@ namespace Api.Common
                 new GeneralEventStreamStorage<TAggregateRoot>(c.Resolve<IRecorder>(), c.Resolve<IDomainFactory>(),
                     c.Resolve<IChangeEventMigrator>(),
                     c.Resolve<IRepository>()));
+
+            var allEventNotifyingStorages = new List<IEventNotifyingStorage>();
+            if (container.Exists<List<IEventNotifyingStorage>>())
+            {
+                allEventNotifyingStorages = container.Resolve<List<IEventNotifyingStorage>>();
+            }
+            var storage = container.Resolve<IEventStreamStorage<TAggregateRoot>>();
+            if (!allEventNotifyingStorages.Contains(storage))
+            {
+                allEventNotifyingStorages.Add(storage);
+            }
+            container.AddSingleton(allEventNotifyingStorages);
+
+            var allProjectionFactories = new List<Func<Container, IEnumerable<IReadModelProjection>>>();
+            if (container.Exists<List<Func<Container, IEnumerable<IReadModelProjection>>>>())
+            {
+                allProjectionFactories = container.Resolve<List<Func<Container, IEnumerable<IReadModelProjection>>>>();
+            }
+            if (!allProjectionFactories.Contains(projectionsFactory))
+            {
+                allProjectionFactories.Add(projectionsFactory);
+            }
+            container.AddSingleton(allProjectionFactories);
+
+            var allSubscriberFactories = new List<Func<Container, IEnumerable<IDomainEventPublisherSubscriberPair>>>();
+            if (container.Exists<List<Func<Container, IEnumerable<IDomainEventPublisherSubscriberPair>>>>())
+            {
+                allSubscriberFactories =
+                    container.Resolve<List<Func<Container, IEnumerable<IDomainEventPublisherSubscriberPair>>>>();
+            }
+            if (!allSubscriberFactories.Contains(subscribersFactory))
+            {
+                allSubscriberFactories.Add(subscribersFactory);
+            }
+            container.AddSingleton(allSubscriberFactories);
+
+            Func<Container, IEnumerable<IReadModelProjection>> allProjections =
+                c => allProjectionFactories.SelectMany(pro => pro(c));
+            Func<Container, IEnumerable<IDomainEventPublisherSubscriberPair>> allSubscribers =
+                c => allSubscriberFactories.SelectMany(sub => sub(c));
+            var allStorages = allEventNotifyingStorages.ToArray();
+
             container.AddSingleton<IReadModelProjectionSubscription>(c => new InProcessReadModelProjectionSubscription(
                 c.Resolve<IRecorder>(), c.Resolve<IIdentifierFactory>(), c.Resolve<IChangeEventMigrator>(),
                 c.Resolve<IDomainFactory>(), c.Resolve<IRepository>(),
-                projections(c), c.Resolve<IEventStreamStorage<TAggregateRoot>>()));
-
+                allProjections(c), allStorages));
             container.AddSingleton<IChangeEventNotificationSubscription>(c =>
                 new InProcessChangeEventNotificationSubscription(
                     c.Resolve<IRecorder>(), c.Resolve<IChangeEventMigrator>(),
-                    subscribers(c),
-                    c.Resolve<IEventStreamStorage<TAggregateRoot>>()));
+                    allSubscribers(c), allStorages));
 
             appHost.AfterInitCallbacks.Add(host =>
             {

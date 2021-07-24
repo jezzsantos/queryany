@@ -37,6 +37,29 @@ namespace Storage.UnitTests
         }
 
         [Fact]
+        public void WhenLoadAndNoEventsFoundAndWantNull_ThenReturnsNull()
+        {
+            var aggregate = new TestAggregateRoot(null);
+            this.repository.Setup(repo =>
+                    repo.Query(It.IsAny<string>(), It.IsAny<QueryClause<EntityEvent>>(),
+                        It.IsAny<RepositoryEntityMetadata>()))
+                .Returns(new List<QueryEntity>());
+            this.domainFactory.Setup(df =>
+                    df.RehydrateAggregateRoot(It.IsAny<Type>(), It.IsAny<Dictionary<string, object>>()))
+                .Returns(aggregate);
+
+            var result = this.storage.Load("anid".ToIdentifier(), true);
+
+            result.Should().BeNull();
+            this.repository.Setup(repo => repo.Query("acontainername", It.Is<QueryClause<IQueryableEntity>>(q =>
+                q.Wheres[0].Condition.FieldName == nameof(EntityEvent.StreamName)
+                && q.Wheres[0].Condition.Value.As<string>() == "acontainername_anid"
+            ), It.IsAny<RepositoryEntityMetadata>()));
+            this.domainFactory.Verify(df => df.RehydrateAggregateRoot(typeof(TestAggregateRoot),
+                It.IsAny<Dictionary<string, object>>()), Times.Never);
+        }
+
+        [Fact]
         public void WhenLoadAndNoEventsFound_ThenReturnsNewEntity()
         {
             var aggregate = new TestAggregateRoot(null);

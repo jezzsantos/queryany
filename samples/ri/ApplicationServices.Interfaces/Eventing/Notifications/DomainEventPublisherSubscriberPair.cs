@@ -1,4 +1,4 @@
-﻿namespace ApplicationServices.Interfaces
+﻿namespace ApplicationServices.Interfaces.Eventing.Notifications
 {
     public class DomainEventPublisherSubscriberPair : IDomainEventPublisherSubscriberPair
     {

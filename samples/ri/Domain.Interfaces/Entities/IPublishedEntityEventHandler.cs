@@ -1,6 +1,6 @@
 ﻿namespace Domain.Interfaces.Entities
 {
-    public interface IPublishedEntityEventHandler
+    public interface IPublishedEntityEventHandler : IIdentifiableEntity
     {
         void HandleEvent(IChangeEvent @event);
     }

@@ -3,7 +3,7 @@ using QueryAny;
 
 namespace Domain.Interfaces.Entities
 {
-    public interface IEntity : IIdentifiableEntity, IQueryableEntity, IPublishingEntity, IPublishedEntityEventHandler
+    public interface IEntity : IQueryableEntity, IPublishingEntity, IPublishedEntityEventHandler
     {
         DateTime? LastPersistedAtUtc { get; }
 

@@ -1,4 +1,4 @@
-﻿using ApplicationServices.Interfaces;
+﻿using ApplicationServices.Interfaces.Eventing.Notifications;
 using CarsApplication;
 using Common;
 using Domain.Interfaces.Entities;

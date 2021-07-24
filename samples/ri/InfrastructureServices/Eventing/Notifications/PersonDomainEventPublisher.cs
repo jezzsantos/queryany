@@ -1,5 +1,5 @@
 ﻿using System;
-using ApplicationServices.Interfaces;
+using ApplicationServices.Interfaces.Eventing.Notifications;
 using Domain.Interfaces.Entities;
 using PersonsDomain;
 

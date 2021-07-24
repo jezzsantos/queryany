@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Application.Storage.Interfaces;
-using ApplicationServices.Interfaces;
+using ApplicationServices.Interfaces.Eventing.Notifications;
 using Common;
 using Domain.Interfaces.Entities;
 using InfrastructureServices.Properties;

@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using Api.Common;
 using Application.Storage.Interfaces;
-using ApplicationServices.Interfaces;
+using ApplicationServices.Interfaces.Eventing.Notifications;
 using Common;
 using Domain.Interfaces.Entities;
 using DomainServices.Interfaces;
@@ -33,7 +33,7 @@ namespace PersonsApiHost
             var debugEnabled = AppSettings.Get(nameof(HostConfig.DebugMode), false);
             this.ConfigureServiceHost<ServiceHost>(debugEnabled);
             this.ConfigureRequestValidation(AssembliesContainingServicesAndValidators);
-            this.ConfigureRepository(AssembliesContainingDomainEntities);
+            this.ConfigureRepositories(AssembliesContainingDomainEntities);
             this.ConfigureEventing<PersonEntity>(c => new[]
             {
                 new PersonEntityReadModelProjection(c.Resolve<IRecorder>(), c.Resolve<IRepository>())

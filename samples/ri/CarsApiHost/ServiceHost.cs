@@ -2,6 +2,7 @@
 using Api.Common;
 using Application.Storage.Interfaces;
 using ApplicationServices.Interfaces;
+using ApplicationServices.Interfaces.Eventing.Notifications;
 using CarsApplication;
 using CarsApplication.Storage;
 using CarsDomain;
@@ -35,7 +36,7 @@ namespace CarsApiHost
             var debugEnabled = AppSettings.Get(nameof(HostConfig.DebugMode), false);
             this.ConfigureServiceHost<ServiceHost>(debugEnabled);
             this.ConfigureRequestValidation(AssembliesContainingServicesAndValidators);
-            this.ConfigureRepository(AssembliesContainingDomainEntities);
+            this.ConfigureRepositories(AssembliesContainingDomainEntities);
             this.ConfigureEventing<CarEntity>(c => new[]
                 {
                     new CarEntityReadModelProjection(c.Resolve<IRecorder>(), c.Resolve<IRepository>())
