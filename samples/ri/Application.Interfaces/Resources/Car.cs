@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Application.Common.Resources
+namespace Application.Interfaces.Resources
 {
     public class Car : IIdentifiableResource
     {

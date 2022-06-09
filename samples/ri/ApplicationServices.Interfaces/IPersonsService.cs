@@ -1,4 +1,4 @@
-﻿using Application.Common.Resources;
+﻿using Application.Interfaces.Resources;
 
 namespace ApplicationServices.Interfaces
 {

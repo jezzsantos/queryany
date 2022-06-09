@@ -1,8 +1,8 @@
 ﻿using System;
 using Api.Common;
 using Api.Interfaces.ServiceOperations.Cars;
-using Application.Common.Resources;
 using Application.Interfaces;
+using Application.Interfaces.Resources;
 using CarsApplication;
 using Common;
 using ServiceStack;

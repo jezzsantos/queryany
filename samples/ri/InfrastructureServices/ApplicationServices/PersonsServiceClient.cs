@@ -1,5 +1,5 @@
 ﻿using Api.Interfaces.ServiceOperations.Persons;
-using Application.Common.Resources;
+using Application.Interfaces.Resources;
 using ApplicationServices.Interfaces;
 using Common;
 using ServiceStack;

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Application.Common.Resources;
+using Application.Interfaces.Resources;
 
 namespace Api.Interfaces.ServiceOperations.Cars
 {

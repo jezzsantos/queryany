@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Application.Common.Resources;
 using Application.Interfaces;
+using Application.Interfaces.Resources;
 using ApplicationServices.Interfaces;
 using CarsApplication.Storage;
 using CarsDomain;

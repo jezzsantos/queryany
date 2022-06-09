@@ -11,6 +11,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Application.Common\Application.Common.csproj" />
+      <ProjectReference Include="..\Application.Interfaces\Application.Interfaces.csproj"/>
       <ProjectReference Include="..\Application.Storage.Interfaces\Application.Storage.Interfaces.csproj" />
     </ItemGroup>
 
