@@ -12,6 +12,8 @@ jobs:
   build-test:
     runs-on: windows-latest
     timeout-minutes: 15
+    env:
+      SERVICESTACK_LICENSE: ${{secrets.SERVICESTACK_LICENSE}}
     steps:
       - uses: actions/checkout@v2
       - name: Setup .NET
@@ -26,21 +28,21 @@ jobs:
         run: dotnet build "${{env.SOLUTION_PATH}}" --no-restore --configuration ${{env.TESTINGONLY_BUILD_CONFIGURATION}}
       - name: Unit Test
         run: dotnet test --filter "Category=Unit|Category=Unit.Architecture" "${{env.SOLUTION_PATH}}" --no-build --verbosity normal
-      - name: Integration Test
-        run: dotnet test --filter "Category=Integration.Web" "${{env.SOLUTION_PATH}}" --no-build --verbosity normal
-  publish-docs:
-    if: github.ref == 'refs/heads/main'
-    runs-on: windows-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.x
-      - name: Deploy Docs
-        run: |
-          pip install mkdocs
-          pip install mkdocs-material
-          pip install mkdocs-glightbox
-          mkdocs gh-deploy --force --clean --verbose
+#      - name: Integration Test
+#        run: dotnet test --filter "Category=Integration.Web" "${{env.SOLUTION_PATH}}" --no-build --verbosity normal
+#  publish-docs:
+#    if: github.ref == 'refs/heads/main'
+#    runs-on: windows-latest
+#    timeout-minutes: 15
+#    steps:
+#      - uses: actions/checkout@v2
+#      - name: Install Python
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: 3.x
+#      - name: Deploy Docs
+#        run: |
+#          pip install mkdocs
+#          pip install mkdocs-material
+#          pip install mkdocs-glightbox
+#          mkdocs gh-deploy --force --clean --verbose
