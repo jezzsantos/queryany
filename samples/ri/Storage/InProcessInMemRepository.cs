@@ -127,9 +127,9 @@ namespace Storage
         {
             containerName.GuardAgainstNullOrEmpty(nameof(containerName));
 
-            if (this.containers.ContainsKey(containerName))
+            if (this.containers.TryGetValue(containerName, out var container))
             {
-                return this.containers[containerName].Count;
+                return container.Count;
             }
 
             return 0;
@@ -173,8 +173,8 @@ namespace Storage
         private Dictionary<string, IReadOnlyDictionary<string, object>> QueryJoiningContainer(
             QueriedEntity joinedEntity)
         {
-            return this.containers.ContainsKey(joinedEntity.EntityName)
-                ? this.containers[joinedEntity.EntityName]
+            return this.containers.TryGetValue(joinedEntity.EntityName, out var container)
+                ? container
                     .ToDictionary(pair => pair.Key, pair => pair.Value)
                 : new Dictionary<string, IReadOnlyDictionary<string, object>>();
         }

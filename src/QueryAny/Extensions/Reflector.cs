@@ -15,7 +15,7 @@ namespace QueryAny.Extensions
             LambdaExpression expression = property;
             if (property.Body.NodeType == ExpressionType.Convert && property.Body.Type == typeof(object))
             {
-                expression = Expression.Lambda(((UnaryExpression) property.Body).Operand, property.Parameters);
+                expression = Expression.Lambda(((UnaryExpression)property.Body).Operand, property.Parameters);
             }
 
             if (expression.Body.NodeType != ExpressionType.MemberAccess)
@@ -60,16 +60,16 @@ namespace QueryAny.Extensions
 
             if (lambda.Body.NodeType == ExpressionType.Convert && lambda.Body.Type == typeof(object))
             {
-                var expression = Expression.Lambda(((UnaryExpression) lambda.Body).Operand, lambda.Parameters);
+                var expression = Expression.Lambda(((UnaryExpression)lambda.Body).Operand, lambda.Parameters);
                 if (expression.NodeType == ExpressionType.Lambda)
                 {
-                    return ((MemberExpression) expression.Body).Member;
+                    return ((MemberExpression)expression.Body).Member;
                 }
             }
 
             if (lambda.Body.NodeType == ExpressionType.MemberAccess)
             {
-                return ((MemberExpression) lambda.Body).Member;
+                return ((MemberExpression)lambda.Body).Member;
             }
 
             throw new ArgumentException(Resources.Reflector_ErrorNotMemberAccess, nameof(lambda));

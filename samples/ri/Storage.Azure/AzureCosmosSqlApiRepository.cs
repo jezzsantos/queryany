@@ -179,7 +179,7 @@ namespace Storage.Azure
             this.recorder.TraceInformation($"Executed SQL statement: {filter}");
             return container.GetItemQueryIterator<object>(new QueryDefinition(filter))
                 .ToList()
-                .ToDictionary(jObj => jObj.Property(IdentifierPropertyName).Value.ToString(),
+                .ToDictionary(jObj => jObj.Property(IdentifierPropertyName)!.Value.ToString(),
                     jObj => jObj.FromContainerEntity(metadata));
         }
 
@@ -202,7 +202,7 @@ namespace Storage.Azure
             this.recorder.TraceInformation($"Executed SQL statement: {filter}");
             return container.GetItemQueryIterator<object>(new QueryDefinition(filter))
                 .ToList()
-                .ToDictionary(jObj => jObj.Property(IdentifierPropertyName).Value.ToString(),
+                .ToDictionary(jObj => jObj.Property(IdentifierPropertyName)!.Value.ToString(),
                     jObj => jObj.FromContainerEntity(metadata));
         }
 
@@ -242,9 +242,9 @@ namespace Storage.Azure
             name.ValidateCosmosContainerId();
             EnsureConnected();
 
-            if (this.containers.ContainsKey(name))
+            if (this.containers.TryGetValue(name, out var ensureContainer))
             {
-                return this.containers[name];
+                return ensureContainer;
             }
 
             var container = this.client.GetDatabase(this.databaseName)

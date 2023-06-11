@@ -25,9 +25,9 @@ namespace Storage
         {
             propertyName.GuardAgainstNullOrEmpty(nameof(propertyName));
 
-            if (this.propertyTypes.ContainsKey(propertyName))
+            if (this.propertyTypes.TryGetValue(propertyName, out var type))
             {
-                return this.propertyTypes[propertyName];
+                return type;
             }
 
             if (!throwIfNotExists)

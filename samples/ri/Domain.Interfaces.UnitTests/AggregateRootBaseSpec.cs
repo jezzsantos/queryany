@@ -5,6 +5,7 @@ using Common;
 using Domain.Interfaces.Entities;
 using FluentAssertions;
 using Moq;
+using UnitTesting.Common;
 using Xunit;
 
 namespace Domain.Interfaces.UnitTests
@@ -95,11 +96,11 @@ namespace Domain.Interfaces.UnitTests
         {
             this.aggregate.ChangeProperty("achangedvalue");
 
-            this.aggregate.Events.Count().Should().Be(2);
+            this.aggregate.Events.Count.Should().Be(2);
             this.aggregate.Events[0].Should().BeOfType<TestAggregateRoot.CreateEvent>();
-            this.aggregate.Events[1].Should().BeEquivalentTo(new TestAggregateRoot.ChangeEvent
-                {APropertyName = "achangedvalue"});
-            this.aggregate.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMilliseconds(50));
+            this.aggregate.Events.Last().Should().BeEquivalentTo(new TestAggregateRoot.ChangeEvent
+                { APropertyName = "achangedvalue" });
+            this.aggregate.LastModifiedAtUtc.Should().BeNear(DateTime.UtcNow);
         }
 
         [Fact]
@@ -123,12 +124,12 @@ namespace Domain.Interfaces.UnitTests
         [Fact]
         public void WhenLoadChangesAgainAndEventVersionsMismatched_ThenThrows()
         {
-            ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
+            ((IPersistableAggregateRoot)this.aggregate).LoadChanges(new List<EntityEvent>
             {
                 CreateEventEntity("aneventid1", 1)
             }, this.typeMigrator);
 
-            ((IPersistableAggregateRoot) this.aggregate)
+            ((IPersistableAggregateRoot)this.aggregate)
                 .Invoking(x => x.LoadChanges(new List<EntityEvent>
                 {
                     CreateEventEntity("aneventid1", 1),
@@ -142,12 +143,12 @@ namespace Domain.Interfaces.UnitTests
         [Fact]
         public void WhenLoadChangesAgain_ThenAppendsEvents()
         {
-            ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
+            ((IPersistableAggregateRoot)this.aggregate).LoadChanges(new List<EntityEvent>
             {
                 CreateEventEntity("aneventid1", 1)
             }, this.typeMigrator);
 
-            ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
+            ((IPersistableAggregateRoot)this.aggregate).LoadChanges(new List<EntityEvent>
             {
                 CreateEventEntity("aneventid2", 2),
                 CreateEventEntity("aneventid3", 3),
@@ -160,7 +161,7 @@ namespace Domain.Interfaces.UnitTests
         [Fact]
         public void WhenLoadChanges_ThenSetsEventsAndUpdatesVersion()
         {
-            ((IPersistableAggregateRoot) this.aggregate).LoadChanges(new List<EntityEvent>
+            ((IPersistableAggregateRoot)this.aggregate).LoadChanges(new List<EntityEvent>
             {
                 CreateEventEntity("aneventid1", 1),
                 CreateEventEntity("aneventid2", 2),
@@ -200,7 +201,7 @@ namespace Domain.Interfaces.UnitTests
         {
             var entity = new EntityEvent();
             entity.SetIdentifier(new FixedIdentifierFactory(id));
-            entity.SetEvent("astreamname", "anentitytype", version, new TestEvent {APropertyValue = "avalue"});
+            entity.SetEvent("astreamname", "anentitytype", version, new TestEvent { APropertyValue = "avalue" });
 
             return entity;
         }

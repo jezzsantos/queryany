@@ -157,10 +157,7 @@ namespace Storage.Sql
                     .ForEach(column =>
                     {
                         var name = sqlDataReader.GetName(column);
-                        if (!result.ContainsKey(name))
-                        {
-                            result.Add(name, sqlDataReader.GetValue(column));
-                        }
+                        result.TryAdd(name, sqlDataReader.GetValue(column));
                     });
 
                 return result;

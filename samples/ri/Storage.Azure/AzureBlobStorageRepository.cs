@@ -118,10 +118,7 @@ namespace Storage.Azure
 
         private bool IsContainerExistenceCheckPerformed(string containerName)
         {
-            if (!this.containerExistenceChecks.ContainsKey(containerName))
-            {
-                this.containerExistenceChecks.Add(containerName, false);
-            }
+            this.containerExistenceChecks.TryAdd(containerName, false);
 
             if (this.containerExistenceChecks[containerName])
             {

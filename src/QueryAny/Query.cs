@@ -13,7 +13,7 @@ namespace QueryAny
         {
             var entities = new QueriedEntities(new List<QueriedEntity>
             {
-                new QueriedEntity(typeof(TPrimaryEntity))
+                new(typeof(TPrimaryEntity))
             });
             entities.UpdateOptions(true);
 

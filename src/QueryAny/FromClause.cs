@@ -15,7 +15,7 @@ namespace QueryAny
         {
             this.entities = new QueriedEntities(new List<QueriedEntity>
             {
-                new QueriedEntity(typeof(TPrimaryEntity))
+                new(typeof(TPrimaryEntity))
             });
         }
 
