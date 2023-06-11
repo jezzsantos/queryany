@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\{{DomainName | string.pascalplural}}Application\{{DomainName | string.pascalplural}}Application.csproj" />
+        <ProjectReference Include="..\Storage\Storage.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,19 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "DebugMode": true,
+  "AllowedHosts": "*",
+  "Storage": {
+    "AzureCosmosDbHostName": "localhost",
+    "AzureCosmosDbAccountKey": "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
+    "LocalMachineRepositoryRootPath": "./queryany"
+  },
+  "ApplicationServices": {
+    "PersonsApiBaseUrl": "https://localhost:5003"
+  }
+}
