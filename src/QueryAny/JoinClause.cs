@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-using QueryAny.Primitives;
+using QueryAny.Extensions;
 
 namespace QueryAny
 {

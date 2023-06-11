@@ -1,4 +1,4 @@
-﻿using QueryAny.Primitives;
+﻿using QueryAny.Extensions;
 
 namespace QueryAny
 {

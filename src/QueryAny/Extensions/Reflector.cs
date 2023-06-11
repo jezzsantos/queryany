@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using QueryAny.Primitives.Properties;
+using QueryAny.Properties;
 
-namespace QueryAny.Primitives
+namespace QueryAny.Extensions
 {
-    public static class Reflector<TTarget>
+    internal static class Reflector<TTarget>
     {
         /// <summary>
         ///     Returns whether the name of the property represented by the lambda expression is valid

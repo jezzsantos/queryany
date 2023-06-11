@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using QueryAny.Primitives;
+using QueryAny.Extensions;
 using QueryAny.Properties;
 
 namespace QueryAny

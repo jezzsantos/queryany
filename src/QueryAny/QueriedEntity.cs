@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using QueryAny.Primitives;
+using QueryAny.Extensions;
 
 namespace QueryAny
 {

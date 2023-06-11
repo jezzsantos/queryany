@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace QueryAny.Primitives
+namespace QueryAny.Extensions
 {
     [DebuggerStepThrough]
-    public static class StringExtensions
+    internal static class StringExtensions
     {
         /// <summary>
         ///     Whether the specified value in not null and not empty
@@ -20,14 +20,6 @@ namespace QueryAny.Primitives
         public static bool EqualsOrdinal(this string value, string other)
         {
             return string.Equals(value, other, StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        ///     Whether the specified value is not exactly equal to other value
-        /// </summary>
-        public static bool NotEqualsOrdinal(this string value, string other)
-        {
-            return !value.EqualsOrdinal(other);
         }
 
         /// <summary>

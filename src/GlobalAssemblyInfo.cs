@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("jezzsantos")]
 [assembly: AssemblyProduct("QueryAny")]
-[assembly: AssemblyCopyright("Copyright 2021, jezzsantos")]
+[assembly: AssemblyCopyright("Copyright 2023, jezzsantos")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]

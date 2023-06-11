@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace QueryAny.Primitives
+namespace QueryAny.Extensions
 {
     [DebuggerStepThrough]
-    public static class GeneralExtensions
+    internal static class GeneralExtensions
     {
         public static void GuardAgainstNull(this object instance, string parameterName = null)
         {

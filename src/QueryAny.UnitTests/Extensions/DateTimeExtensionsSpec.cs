@@ -1,9 +1,9 @@
 ﻿using System;
 using FluentAssertions;
-using QueryAny.Primitives;
+using QueryAny.Extensions;
 using Xunit;
 
-namespace QueryAny.UnitTests
+namespace QueryAny.UnitTests.Extensions
 {
     [Trait("Category", "Unit")]
     public class DateTimeExtensionsSpec

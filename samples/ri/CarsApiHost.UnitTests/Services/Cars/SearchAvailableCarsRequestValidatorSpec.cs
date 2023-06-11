@@ -51,7 +51,7 @@ namespace CarsApiHost.UnitTests.Services.Cars
         [Fact]
         public void WhenFromInPast_ThenThrows()
         {
-            this.dto.FromUtc = DateTime.UtcNow.Subtract(TimeSpan.FromMilliseconds(1));
+            this.dto.FromUtc = DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(1));
 
             this.validator
                 .Invoking(x => x.ValidateAndThrow(this.dto))

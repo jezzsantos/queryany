@@ -1,5 +1,5 @@
 ﻿using System;
-using QueryAny.Primitives;
+using QueryAny.Extensions;
 using QueryAny.Properties;
 
 namespace QueryAny
