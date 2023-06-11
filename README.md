@@ -1,9 +1,12 @@
+[![Build and Test](https://github.com/jezzsantos/QueryAny/actions/workflows/build.yml/badge.svg)](https://github.com/jezzsantos/QueryAny/actions/workflows/build.yml)
+__[![Nuget Tool](https://img.shields.io/nuget/v/QueryAny?style=plastic&label=nuget)](https://www.nuget.org/packages/QueryAny)
+[![Release Notes](https://img.shields.io/nuget/v/QueryAny.svg?label=Release%20Notes&colorB=green)](https://github.com/jezzsantos/QueryAny/wiki/Release-Notes)
+
 # QueryAny
-[![Build status](https://ci.appveyor.com/api/projects/status/qwg1wen94kfe52jp/branch/master?svg=true)](https://ci.appveyor.com/project/JezzSantos/queryany/branch/master) [![NuGet](https://img.shields.io/nuget/v/QueryAny.svg?label=QueryAny)](https://www.nuget.org/packages/QueryAny) [![Release Notes](https://img.shields.io/nuget/v/QueryAny.svg?label=Release%20Notes&colorB=green)](https://github.com/jezzsantos/QueryAny/wiki/Release-Notes)
 
-**QueryAny** is a .NET agnostic query language for use with any database technology. 
+**QueryAny** is a .NET agnostic query language for use with any database technology.
 
-Use it in your `IRepository<T>` pattern implementation, and never leak database query language details (like SQL) into your domain logic again. 
+Use it in your `IRepository<T>` pattern implementation, and never leak database query language details (like SQL) into your domain logic again.
 
 Apply clean architecture principles correctly, and never take a dependency from your domain logic on any database or ORM technology ever again.
 
@@ -14,7 +17,7 @@ Because code changes, and you should protect your core domain from those externa
 * Don't you want to learn how to abstract away your persistence layers? (**Get rid of those ugly SQL statements in your business logic?**)
 * Don't you want to discover how to use other data repositories than the only one you know now? (**Ever wanted to explore what a NoSQL database or In-Memory database was best used for?**)
 * Don't you want to run your unit tests/integration tests faster than you are now without involving your database? (**Then stop testing your databases!**)
-* Have you considered the possibility that an In-memory persistence store (like: Redis/MemCached) is a better performing alternative to using a clumsy database server? 
+* Have you considered the possibility that an In-memory persistence store (like: Redis/MemCached) is a better performing alternative to using a clumsy database server?
 
 OK then, you are going to need help to abstract your persistence layer from your domain objects properly, so that you can write testable domain logic, decouple your architecture and pick and choose your repositories.
 
@@ -51,7 +54,7 @@ Generalizing and abstracting away the database's query language details is not a
 
 ## How?
 
-**QueryAny** is a .NET Standard fluent data store query language, that can be used in any repository interface.
+**QueryAny** is a .NET 6.0 fluent data store query language, that can be used in any repository interface.
 
 You choose to persist data in whatever store you like: SQL, MongoDB, NoSQL, CosmosDB, Redis or even JSON files, and your domain logic will not care a damn where your data is coming from or how it is persisted. Which is exactly what you want to do if you are crafting a new software product or tool, and you want to use [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) principles.
 
@@ -66,7 +69,7 @@ var query = Query.From<OrderEntity>()
     .Select(c => c.Id).Select(c => c.Name)
 ```
 
-Can fetch this data from a SQL database, or from a Non-SQL database, or from JSON files just as easily. 
+Can fetch this data from a SQL database, or from a Non-SQL database, or from JSON files just as easily.
 
 Why should your domain logic need to care where the data/state comes from at all?
 
@@ -78,7 +81,7 @@ Why should your domain logic need to care where the data/state comes from at all
 
 See our [Reference Architecture](https://github.com/jezzsantos/queryany/wiki/Reference-Architecture), and [our design notes](https://github.com/jezzsantos/queryany/wiki/Design) to learn more about how **QueryAny** works.
 
-Our [Reference Architecture](https://github.com/jezzsantos/queryany/wiki/Reference-Architecture) has fast become a very useful example of how to implement a decoupled implementation of a REST API that implements separate domains that follow many of the principles of DDD, but is a good stepping stone for novice/intermediate developers to understand these principles in practice. 
+Our [Reference Architecture](https://github.com/jezzsantos/queryany/wiki/Reference-Architecture) has fast become a very useful example of how to implement a decoupled implementation of a REST API that implements separate domains that follow many of the principles of DDD, but is a good stepping stone for novice/intermediate developers to understand these principles in practice.
 
 ## Contributing
 

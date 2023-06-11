@@ -118,7 +118,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationServices.UnitTes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{26E6E2CD-1CB2-4B7E-BAA8-D67835F58948}"
 ProjectSection(SolutionItems) = preProject
-	..\appveyor.yml = ..\appveyor.yml
+	..\.github\workflows\build.yml = ..\.github\workflows\build.yml
+	..\.github\workflows\release.yml = ..\.github\workflows\release.yml
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application.Interfaces", "..\samples\ri\Application.Interfaces\Application.Interfaces.csproj", "{79CE77FE-964E-4193-9CB4-3B60C0FAA4DF}"
