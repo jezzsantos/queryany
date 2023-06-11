@@ -27,6 +27,7 @@ namespace Storage.IntegrationTests.Redis
             }
         }
 
+#pragma warning disable CA1416
         private static void StartRedisServer()
         {
             using (var controller = new ServiceController(RedisServerServiceName))
@@ -61,5 +62,6 @@ namespace Storage.IntegrationTests.Redis
                 return controller.Status == ServiceControllerStatus.Running;
             }
         }
+#pragma warning restore CA1416
     }
 }

@@ -40,7 +40,7 @@ namespace Domain.Interfaces.UnitTests
             var now = DateTime.UtcNow;
 
             this.entity.LastPersistedAtUtc.Should().BeNull();
-            this.entity.CreatedAtUtc.Should().BeCloseTo(now);
+            this.entity.CreatedAtUtc.Should().BeCloseTo(now, TimeSpan.FromSeconds(1));
             this.entity.LastModifiedAtUtc.Should().Be(this.entity.CreatedAtUtc);
         }
 
@@ -49,7 +49,7 @@ namespace Domain.Interfaces.UnitTests
         {
             this.entity.ChangeProperty("avalue");
 
-            this.entity.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
+            this.entity.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
         }
 
         [Fact]

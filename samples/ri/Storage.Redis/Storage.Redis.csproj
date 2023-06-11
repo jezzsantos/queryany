@@ -10,7 +10,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="ServiceStack.Redis.Core" Version="5.10.0"/>
+      <PackageReference Include="ServiceStack.Redis" Version="6.8.0" />
     </ItemGroup>
 
 </Project>

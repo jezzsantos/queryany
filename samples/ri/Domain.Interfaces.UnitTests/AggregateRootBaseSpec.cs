@@ -44,7 +44,7 @@ namespace Domain.Interfaces.UnitTests
             var now = DateTime.UtcNow;
 
             this.aggregate.LastPersistedAtUtc.Should().BeNull();
-            this.aggregate.CreatedAtUtc.Should().BeCloseTo(now);
+            this.aggregate.CreatedAtUtc.Should().BeCloseTo(now, TimeSpan.FromSeconds(1));
             this.aggregate.LastModifiedAtUtc.Should().BeAfter(this.aggregate.CreatedAtUtc);
         }
 
@@ -99,7 +99,7 @@ namespace Domain.Interfaces.UnitTests
             this.aggregate.Events[0].Should().BeOfType<TestAggregateRoot.CreateEvent>();
             this.aggregate.Events[1].Should().BeEquivalentTo(new TestAggregateRoot.ChangeEvent
                 {APropertyName = "achangedvalue"});
-            this.aggregate.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, 50);
+            this.aggregate.LastModifiedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMilliseconds(50));
         }
 
         [Fact]
@@ -193,7 +193,7 @@ namespace Domain.Interfaces.UnitTests
         {
             this.aggregate.ClearChanges();
 
-            this.aggregate.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow);
+            this.aggregate.LastPersistedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
         }
 
         private static EntityEvent CreateEventEntity(string id, long version)

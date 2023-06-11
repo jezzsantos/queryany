@@ -181,7 +181,7 @@ namespace Storage.IntegrationTests
                     RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
 
             result.Id.Should().Be(entity.Id);
-            result.LastPersistedAtUtc.Should().BeNear(DateTime.UtcNow);
+            result.LastPersistedAtUtc?.Should().BeNear(DateTime.UtcNow);
             result.LastPersistedAtUtc.GetValueOrDefault().Kind.Should().Be(DateTimeKind.Utc);
             result.GetValueOrDefault<string>(nameof(TestRepositoryEntity.AStringValue)).Should().Be("astringvalue");
             result.GetValueOrDefault<AnEnum>(nameof(TestRepositoryEntity.AnEnumValue)).Should().Be(AnEnum.AValue1);
@@ -253,7 +253,7 @@ namespace Storage.IntegrationTests
                     RepositoryEntityMetadata.FromType<TestRepositoryEntity>());
 
             result.Id.Should().Be(entity.Id);
-            result.LastPersistedAtUtc.Should().BeNear(DateTime.UtcNow);
+            result.LastPersistedAtUtc?.Should().BeNear(DateTime.UtcNow);
             result.LastPersistedAtUtc.GetValueOrDefault().Kind.Should().Be(DateTimeKind.Utc);
             result.GetValueOrDefault<string>(nameof(TestRepositoryEntity.AStringValue)).Should().Be(default);
             result.GetValueOrDefault<AnEnum>(nameof(TestRepositoryEntity.AnEnumValue)).Should().Be(AnEnum.None);
@@ -323,7 +323,7 @@ namespace Storage.IntegrationTests
             updated.Id.Should().Be(entity.Id);
             updated.Properties.GetValueOrDefault<string>(nameof(TestRepositoryEntity.AStringValue)).Should()
                 .Be("updated");
-            updated.LastPersistedAtUtc.Should().BeNear(DateTime.UtcNow);
+            updated.LastPersistedAtUtc?.Should().BeNear(DateTime.UtcNow);
         }
 
         [Fact]

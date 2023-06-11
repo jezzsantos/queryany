@@ -56,7 +56,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarsStorage", "..\samples\r
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Library", "Library", "{2DBACB3F-7FEC-4941-ADC8-9910228BD3C4}"
 ProjectSection(SolutionItems) = preProject
-	..\README.md = ..\README.md
 	GlobalAssemblyInfo.cs = GlobalAssemblyInfo.cs
 EndProjectSection
 EndProject
@@ -120,6 +119,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 ProjectSection(SolutionItems) = preProject
 	..\.github\workflows\build.yml = ..\.github\workflows\build.yml
 	..\.github\workflows\release.yml = ..\.github\workflows\release.yml
+	..\CONTRIBUTING.md = ..\CONTRIBUTING.md
+	..\README.md = ..\README.md
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application.Interfaces", "..\samples\ri\Application.Interfaces\Application.Interfaces.csproj", "{79CE77FE-964E-4193-9CB4-3B60C0FAA4DF}"

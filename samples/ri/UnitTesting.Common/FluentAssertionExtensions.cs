@@ -60,7 +60,7 @@ namespace UnitTesting.Common
             string because = "",
             params object[] becauseArgs)
         {
-            return assertions.BeCloseTo(nearbyTime, precision, because, becauseArgs);
+            return assertions.BeCloseTo(nearbyTime, TimeSpan.FromMilliseconds(precision), because, becauseArgs);
         }
     }
 }

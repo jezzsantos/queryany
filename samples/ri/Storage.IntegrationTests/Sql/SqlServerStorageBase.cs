@@ -40,6 +40,7 @@ namespace Storage.IntegrationTests.Sql
             ExecuteSqlCommand(SqlCommandLineTool, RegenerateScriptCommandArgs.Fmt(scriptPath));
         }
 
+#pragma warning disable CA1416
         private static void StartSqlServerServer(string serviceName)
         {
             using (var controller = new ServiceController(serviceName))
@@ -95,5 +96,6 @@ namespace Storage.IntegrationTests.Sql
                 throw new Exception(process.StandardError.ReadToEnd());
             }
         }
+#pragma warning restore CA1416
     }
 }
