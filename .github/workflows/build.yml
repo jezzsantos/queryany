@@ -15,9 +15,9 @@ jobs:
     env:
       SERVICESTACK_LICENSE: ${{secrets.SERVICESTACK_LICENSE}}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 6.0.x
       - name: Restore dependencies
@@ -28,6 +28,7 @@ jobs:
         run: dotnet build "${{env.SOLUTION_PATH}}" --no-restore --configuration ${{env.TESTINGONLY_BUILD_CONFIGURATION}}
       - name: Unit Test
         run: dotnet test --filter "Category=Unit|Category=Unit.Architecture" "${{env.SOLUTION_PATH}}" --no-build --verbosity normal
+# Unable to run integration tests until we can install a self-signed certificate and trust it
 #      - name: Integration Test
 #        run: dotnet test --filter "Category=Integration.Web" "${{env.SOLUTION_PATH}}" --no-build --verbosity normal
 #  publish-docs:

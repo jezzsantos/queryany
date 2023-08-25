@@ -9,15 +9,10 @@ on:
 env:
   IS_CI_BUILD: 'true'
   SOLUTION_PATH: 'src/QueryAny.sln'
-  LIBRARYPROJECT_DIR: 'src/QueryAny'
   LIBRARYPROJECT_PATH: 'src/QueryAny/QueryAny.csproj'
   BUILD_CONFIGURATION: 'Release'
-  OUTPUT_FILENAME: "queryany"
-  OUTPUT_DIR: 'src/QueryAny/bin/Release/net6.0'
-  PUBLISH_DIR: 'src/publish'
-  TAG_NAME: '${{github.ref_name}}'
+  NUGET_PACKAGE_DIR: 'src/QueryAny/bin/Release'
   NUGET_APIKEY: '${{secrets.NUGET_APIKEY}}'
-  NUGET_OUTPUT_DIR: 'src/QueryAny/nupkg'
 
 jobs:
   build:
@@ -28,63 +23,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup .NET
-        uses: actions/setup-dotnet@v2
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 6.0.x
       - name: Restore dependencies
         run: dotnet restore "${{env.SOLUTION_PATH}}"
       - name: Build
         run: dotnet build "${{env.SOLUTION_PATH}}" --no-restore --configuration ${{env.BUILD_CONFIGURATION}}
-      - name: Create Publish folder
-        run: mkdir "${{env.PUBLISH_DIR}}"
-      - name: Package (MacOS)
-        run: |
-          dotnet publish --configuration ${{env.BUILD_CONFIGURATION}} -p:PublishSingleFile=true -p:TreatWarningsAsErrors=true --self-contained true --runtime osx-x64 "${{env.LIBRARYPROJECT_PATH}}"
-          copy "${{env.OUTPUT_DIR}}/osx-x64/publish/${{env.OUTPUT_FILENAME}}" "${{env.PUBLISH_DIR}}/${{env.OUTPUT_FILENAME}}.OSX-x64"
-      - name: Upload Package (MacOS)
-        uses: actions/upload-artifact@v2
-        with:
-          name: OSX-64 Binary
-          path: ${{env.OUTPUT_DIR}}/osx-x64/publish/
-          if-no-files-found: error
-      - name: Package (LinuxOS)
-        run: |
-          dotnet publish --configuration ${{env.BUILD_CONFIGURATION}} -p:PublishSingleFile=true -p:TreatWarningsAsErrors=true --self-contained true --runtime linux-x64 "${{env.LIBRARYPROJECT_PATH}}"
-          copy "${{env.OUTPUT_DIR}}/linux-x64/publish/${{env.OUTPUT_FILENAME}}" "${{env.PUBLISH_DIR}}/${{env.OUTPUT_FILENAME}}.Linux-x64"
-      - name: Upload Package (LinuxOS)
-        uses: actions/upload-artifact@v2
-        with:
-          name: Linux-64 Binary
-          path: ${{env.OUTPUT_DIR}}/linux-x64/publish/
-          if-no-files-found: error
-      - name: Package (Windows)
-        run: |
-          dotnet publish --configuration ${{env.BUILD_CONFIGURATION}} -p:PublishSingleFile=true -p:TreatWarningsAsErrors=true --self-contained true --runtime win-x64 "${{env.LIBRARYPROJECT_PATH}}"
-          copy "${{env.OUTPUT_DIR}}/win-x64/publish/${{env.OUTPUT_FILENAME}}.exe" "${{env.PUBLISH_DIR}}/${{env.OUTPUT_FILENAME}}.Win-x64.exe"
-      - name: Upload Package (Windows)
-        uses: actions/upload-artifact@v2
-        with:
-          name: Win-64 Binary
-          path: ${{env.OUTPUT_DIR}}/win-x64/publish/
-          if-no-files-found: error
       - name: Package NuGet
         run: dotnet pack --configuration ${{env.BUILD_CONFIGURATION}} "${{env.LIBRARYPROJECT_PATH}}"
-      - name: Upload NuGet
-        uses: actions/upload-artifact@v2
-        with:
-          name: Nuget Binary
-          path: ${{env.NUGET_OUTPUT_DIR}}/
-          if-no-files-found: error
       - name: Publish NuGet
         run: |
-          cd "${{env.NUGET_OUTPUT_DIR}}"
+          cd "${{env.NUGET_PACKAGE_DIR}}"
           dotnet nuget push "*.nupkg" --api-key ${{env.NUGET_APIKEY}} --source "https://api.nuget.org/v3/index.json"
-      - name: Create Github Release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{env.TAG_NAME}}
-          prerelease: false
-          draft: true
-          generateReleaseNotes: true
-          artifacts: "${{env.PUBLISH_DIR}}/${{env.OUTPUT_FILENAME}}.OSX-x64,${{env.PUBLISH_DIR}}/${{env.OUTPUT_FILENAME}}.Linux-x64,${{env.PUBLISH_DIR}}/${{env.OUTPUT_FILENAME}}.Win-x64.exe,${{env.NUGET_OUTPUT_DIR}}/*.nupkg"
-        
