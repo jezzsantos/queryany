@@ -11,18 +11,11 @@ namespace QueryAny
         public const OrderDirection DefaultOrderDirection = OrderDirection.Ascending;
         public static readonly string DefaultOrder = null;
 
-        public ResultOptions()
-        {
-            Limit = DefaultLimit;
-            Offset = DefaultOffset;
-            OrderBy = new Ordering(DefaultOrder, DefaultOrderDirection);
-        }
+        public int Limit { get; private set; } = DefaultLimit;
 
-        public int Limit { get; private set; }
+        public int Offset { get; private set; } = DefaultOffset;
 
-        public int Offset { get; private set; }
-
-        public Ordering OrderBy { get; private set; }
+        public Ordering OrderBy { get; private set; } = new(DefaultOrder, DefaultOrderDirection);
 
         internal void SetLimit(int limit)
         {

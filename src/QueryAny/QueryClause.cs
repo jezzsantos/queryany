@@ -35,10 +35,9 @@ namespace QueryAny
             TValue value)
         {
             propertyName.GuardAgainstNull(nameof(propertyName));
-            if (!this.entities.Wheres.Any())
+            if (!CanAddWhereClauses())
             {
-                throw new InvalidOperationException(
-                    "You cannot use an 'AndWhere' before a 'Where', or after a 'WhereAll'");
+                throw new InvalidOperationException(Resources.QueryClause_AndWhereBeforeWheres);
             }
 
             var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
@@ -52,10 +51,9 @@ namespace QueryAny
             TValue value)
         {
             propertyName.GuardAgainstNull(nameof(propertyName));
-            if (!this.entities.Wheres.Any())
+            if (!CanAddWhereClauses())
             {
-                throw new InvalidOperationException(
-                    "You cannot use an 'OrWhere' before a 'Where', or after a 'WhereAll'");
+                throw new InvalidOperationException(Resources.QueryClause_OrWhereBeforeWheres);
             }
 
             var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
@@ -68,10 +66,9 @@ namespace QueryAny
             Func<FromClause<TPrimaryEntity>, QueryClause<TPrimaryEntity>> subWhere)
         {
             subWhere.GuardAgainstNull(nameof(subWhere));
-            if (!this.entities.Wheres.Any())
+            if (!CanAddWhereClauses())
             {
-                throw new InvalidOperationException(
-                    "You cannot use an 'AndWhere' before a 'Where', or after a 'WhereAll'");
+                throw new InvalidOperationException(Resources.QueryClause_AndWhereBeforeWheres);
             }
 
             this.entities.AddCondition(LogicalOperator.And, subWhere);
@@ -84,15 +81,9 @@ namespace QueryAny
         {
             subWhere.GuardAgainstNull(nameof(subWhere));
 
-            bool AnyWhereDefined()
+            if (!CanAddWhereClauses())
             {
-                return this.entities.Wheres.Any();
-            }
-
-            if (!AnyWhereDefined())
-            {
-                throw new InvalidOperationException(
-                    "You cannot use an 'OrWhere' before a 'Where', or after a 'WhereAll'");
+                throw new InvalidOperationException(Resources.QueryClause_OrWhereBeforeWheres);
             }
 
             this.entities.AddCondition(LogicalOperator.Or, subWhere);
@@ -170,6 +161,11 @@ namespace QueryAny
             this.entities.SetOrdering(by, direction);
 
             return new QueryClause<TPrimaryEntity>(this.entities);
+        }
+
+        private bool CanAddWhereClauses()
+        {
+            return this.entities.Options.Wheres == WhereOptions.SomeDefined;
         }
     }
 }

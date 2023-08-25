@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Linq.Expressions;
 using QueryAny.Extensions;
 
@@ -21,12 +20,17 @@ namespace QueryAny
             ConditionOperator condition,
             TValue value)
         {
-            propertyName.GuardAgainstNull(nameof(propertyName));
+            return FromClause<TPrimaryEntity>.Where(this.entities, propertyName, condition, value);
+        }
 
-            var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
-            this.entities.AddWhere(LogicalOperator.None, fieldName, condition, value);
+        public QueryClause<TPrimaryEntity> WhereNoOp()
+        {
+            return FromClause<TPrimaryEntity>.WhereNoOp(this.entities);
+        }
 
-            return new QueryClause<TPrimaryEntity>(this.entities);
+        public QueryClause<TPrimaryEntity> WhereAll()
+        {
+            return FromClause<TPrimaryEntity>.WhereAll(this.entities);
         }
 
         public JoinClause<TPrimaryEntity, TJoinedEntity> AndJoin<TJoiningEntity, TValue>(
@@ -42,17 +46,6 @@ namespace QueryAny
             this.entities.AddJoin<TJoiningEntity>(joiningEntity, fromEntityFieldName, joiningEntityFieldName, type);
 
             return new JoinClause<TPrimaryEntity, TJoinedEntity>(this.entities);
-        }
-
-        public QueryClause<TPrimaryEntity> WhereAll()
-        {
-            if (this.entities.Wheres.Any())
-            {
-                throw new InvalidOperationException(
-                    "You cannot use an 'WhereAll' after a 'Where'");
-            }
-
-            return new QueryClause<TPrimaryEntity>(this.entities);
         }
     }
 }

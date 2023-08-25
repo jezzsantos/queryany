@@ -23,7 +23,8 @@ OK then, you are going to need help to abstract your persistence layer from your
 
 **QueryAny** was developed to provide developers an easy path to mature from being bound by their incumbent database technology to venture out and consider other persistence technologies. Especially for those developers who have gotten stuck at designing every piece of software they build from a database model upwards (Data Modelers). And don't yet know how to de-couple their domains from their persistence layers.
 
-**QueryAny** prevents developers from having to *leak* database assumptions and dependencies into their domain code, as is a common practice when using  ORM libraries and frameworks (eg. Entity Framework, etc). Also, essential for testability, helps developers to swap out their persistence stores when doing various test runs (eg. unit testing versus integration testing). Speed up your testing by a couple orders of magnitude.
+**QueryAny** prevents developers from having to
+*leak* database assumptions and dependencies into their domain code, as is a common practice when using ORM libraries and frameworks (eg. Entity Framework, etc). Also, essential for testability, helps developers to swap out their persistence stores when doing various test runs (eg. unit testing versus integration testing). Speed up your testing by a couple orders of magnitude.
 
 We wanted developers to be able to define their own simple repository interface (eg. `IStorage<TEntity>`), and have that as the only dependency in their domain code. Then, be able to implement that interface in any chosen database technology, and plug it in at runtime.
 

@@ -428,7 +428,7 @@ namespace Storage.Azure
         {
             switch (targetPropertyType)
             {
-                case Type _ when targetPropertyType == typeof(DateTime) || targetPropertyType == typeof(DateTime?):
+                case not null when targetPropertyType == typeof(DateTime) || targetPropertyType == typeof(DateTime?):
                 {
                     DateTimeOffset? dateTimeOffset = null;
                     var dateTime = (DateTime?) property;
@@ -444,8 +444,8 @@ namespace Storage.Azure
                     return EntityProperty.GeneratePropertyForDateTimeOffset(dateTimeOffset);
                 }
 
-                case Type _ when targetPropertyType == typeof(DateTimeOffset) ||
-                                 targetPropertyType == typeof(DateTimeOffset?):
+                case not null when targetPropertyType == typeof(DateTimeOffset) ||
+                                   targetPropertyType == typeof(DateTimeOffset?):
                 {
                     var dateTimeOffset = (DateTimeOffset?) property;
                     if (dateTimeOffset.HasValue)
@@ -458,22 +458,22 @@ namespace Storage.Azure
                     return EntityProperty.GeneratePropertyForDateTimeOffset(dateTimeOffset);
                 }
 
-                case Type _ when targetPropertyType == typeof(bool) || targetPropertyType == typeof(bool?):
+                case not null when targetPropertyType == typeof(bool) || targetPropertyType == typeof(bool?):
                     return EntityProperty.GeneratePropertyForBool((bool?) property);
 
-                case Type _ when targetPropertyType == typeof(int) || targetPropertyType == typeof(int?):
+                case not null when targetPropertyType == typeof(int) || targetPropertyType == typeof(int?):
                     return EntityProperty.GeneratePropertyForInt((int?) property);
 
-                case Type _ when targetPropertyType == typeof(long) || targetPropertyType == typeof(long?):
+                case not null when targetPropertyType == typeof(long) || targetPropertyType == typeof(long?):
                     return EntityProperty.GeneratePropertyForLong((long?) property);
 
-                case Type _ when targetPropertyType == typeof(double) || targetPropertyType == typeof(double?):
+                case not null when targetPropertyType == typeof(double) || targetPropertyType == typeof(double?):
                     return EntityProperty.GeneratePropertyForDouble((double?) property);
 
-                case Type _ when targetPropertyType == typeof(Guid) || targetPropertyType == typeof(Guid?):
+                case not null when targetPropertyType == typeof(Guid) || targetPropertyType == typeof(Guid?):
                     return EntityProperty.GeneratePropertyForGuid((Guid?) property);
 
-                case Type _ when targetPropertyType == typeof(byte[]):
+                case not null when targetPropertyType == typeof(byte[]):
                     return EntityProperty.GeneratePropertyForByteArray((byte[]) property);
 
                 default:

@@ -60,6 +60,33 @@ namespace QueryAny.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You cannot use an &apos;WhereAll&apos; after a &apos;WhereAll&apos;, or after a &apos;Where&apos;, or after a &apos;AndWhere/OrWhere&apos;, or after a &apos;WhereNoOp&apos;.
+        /// </summary>
+        internal static string FromClause_WhereAllAndNotEmpty {
+            get {
+                return ResourceManager.GetString("FromClause_WhereAllAndNotEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot use an &apos;Where&apos; after a &apos;Where&apos;, or after a &apos;AndWhere/OrWhere&apos;, or after a &apos;WhereNoOp&apos;, or after a &apos;WhereAll&apos;.
+        /// </summary>
+        internal static string FromClause_WhereAndNotEmpty {
+            get {
+                return ResourceManager.GetString("FromClause_WhereAndNotEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot use an &apos;WhereNoOp&apos; after a &apos;WhereNoOp&apos;, or  after a &apos;Where&apos;, or after a &apos;AndWhere/OrWhere&apos;, or after a &apos;WhereAll&apos;.
+        /// </summary>
+        internal static string FromClause_WhereNoOpAndNotEmpty {
+            get {
+                return ResourceManager.GetString("FromClause_WhereNoOpAndNotEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parameter cannot be empty..
         /// </summary>
         internal static string Guard_ArgumentCanNotBeEmpty {
@@ -87,6 +114,24 @@ namespace QueryAny.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You cannot use an &apos;WhereAll&apos; after a &apos;WhereAll&apos;, or after a &apos;Where&apos;, or after a &apos;AndWhere/OrWhere&apos;, or after a &apos;WhereNoOp&apos;.
+        /// </summary>
+        internal static string JoinClause_WhereAllAndNotEmpty {
+            get {
+                return ResourceManager.GetString("JoinClause_WhereAllAndNotEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot &apos;Join&apos; on the same Entity (&apos;{0}&apos;) twice.
+        /// </summary>
+        internal static string QueriedEntities_JoinSameEntity {
+            get {
+                return ResourceManager.GetString("QueriedEntities_JoinSameEntity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You cannot &apos;Take&apos; more than once.
         /// </summary>
         internal static string QueriedEntities_LimitAlreadySet {
@@ -110,6 +155,24 @@ namespace QueryAny.Properties {
         internal static string QueriedEntities_OrderByAlreadySet {
             get {
                 return ResourceManager.GetString("QueriedEntities_OrderByAlreadySet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot use an &apos;AndWhere&apos; before a &apos;Where&apos;, or before a &apos;WhereNoOp&apos;, or after a &apos;WhereAll&apos;.
+        /// </summary>
+        internal static string QueryClause_AndWhereBeforeWheres {
+            get {
+                return ResourceManager.GetString("QueryClause_AndWhereBeforeWheres", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot use an &apos;OrWhere&apos; before a &apos;Where&apos;, or before a &apos;WhereNoOp&apos;, or after a &apos;WhereAll&apos;.
+        /// </summary>
+        internal static string QueryClause_OrWhereBeforeWheres {
+            get {
+                return ResourceManager.GetString("QueryClause_OrWhereBeforeWheres", resourceCulture);
             }
         }
         

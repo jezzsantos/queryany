@@ -51,6 +51,24 @@
     <data name="QueryClause_SelectFromJoin_UnknownJoin" xml:space="preserve">
         <value>You cannot 'SelectFromJoin' on entity {0}, because no join for that entity is yet defined</value>
     </data>
+    <data name="FromClause_WhereAllAndNotEmpty" xml:space="preserve">
+        <value>You cannot use an 'WhereAll' after a 'WhereAll', or after a 'Where', or after a 'AndWhere/OrWhere', or after a 'WhereNoOp'</value>
+    </data>
+    <data name="FromClause_WhereNoOpAndNotEmpty" xml:space="preserve">
+        <value>You cannot use an 'WhereNoOp' after a 'WhereNoOp', or  after a 'Where', or after a 'AndWhere/OrWhere', or after a 'WhereAll'</value>
+    </data>
+    <data name="FromClause_WhereAndNotEmpty" xml:space="preserve">
+        <value>You cannot use an 'Where' after a 'Where', or after a 'AndWhere/OrWhere', or after a 'WhereNoOp', or after a 'WhereAll'</value>
+    </data>
+    <data name="QueryClause_AndWhereBeforeWheres" xml:space="preserve">
+        <value>You cannot use an 'AndWhere' before a 'Where', or before a 'WhereNoOp', or after a 'WhereAll'</value>
+    </data>
+    <data name="QueryClause_OrWhereBeforeWheres" xml:space="preserve">
+        <value>You cannot use an 'OrWhere' before a 'Where', or before a 'WhereNoOp', or after a 'WhereAll'</value>
+    </data>
+    <data name="JoinClause_WhereAllAndNotEmpty" xml:space="preserve">
+        <value>You cannot use an 'WhereAll' after a 'WhereAll', or after a 'Where', or after a 'AndWhere/OrWhere', or after a 'WhereNoOp'</value>
+    </data>
     <data name="ResultOptions_InvalidLimit" xml:space="preserve">
         <value>You cannot 'Take' less than 0 results</value>
     </data>
@@ -68,5 +86,8 @@
     </data>
     <data name="QueriedEntities_OrderByAlreadySet" xml:space="preserve">
         <value>You cannot 'OrderBy' more than once</value>
+    </data>
+    <data name="QueriedEntities_JoinSameEntity" xml:space="preserve">
+        <value>You cannot 'Join' on the same Entity ('{0}') twice</value>
     </data>
 </root>

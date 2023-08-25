@@ -1,23 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using QueryAny.Extensions;
+using QueryAny.Properties;
 
 namespace QueryAny
 {
     public class FromClause<TPrimaryEntity>
         where TPrimaryEntity : IQueryableEntity
     {
-        private readonly QueriedEntities entities;
-
-        public FromClause()
+        private readonly QueriedEntities entities = new(new List<QueriedEntity>
         {
-            this.entities = new QueriedEntities(new List<QueriedEntity>
-            {
-                new(typeof(TPrimaryEntity))
-            });
-        }
+            new(typeof(TPrimaryEntity))
+        });
 
         public QueriedEntity PrimaryEntity => this.entities.PrimaryEntity;
 
@@ -29,12 +24,17 @@ namespace QueryAny
             ConditionOperator condition,
             TValue value)
         {
-            propertyName.GuardAgainstNull(nameof(propertyName));
+            return Where(this.entities, propertyName, condition, value);
+        }
 
-            var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
-            this.entities.AddWhere(LogicalOperator.None, fieldName, condition, value);
+        public QueryClause<TPrimaryEntity> WhereNoOp()
+        {
+            return WhereNoOp(this.entities);
+        }
 
-            return new QueryClause<TPrimaryEntity>(this.entities);
+        public QueryClause<TPrimaryEntity> WhereAll()
+        {
+            return WhereAll(this.entities);
         }
 
         public JoinClause<TPrimaryEntity, TJoiningEntity> Join<TJoiningEntity, TValue>(
@@ -50,17 +50,6 @@ namespace QueryAny
             this.entities.AddJoin<TJoiningEntity>(joiningEntity, fromEntityFieldName, joiningEntityFieldName, type);
 
             return new JoinClause<TPrimaryEntity, TJoiningEntity>(this.entities);
-        }
-
-        public QueryClause<TPrimaryEntity> WhereAll()
-        {
-            if (this.entities.Wheres.Any())
-            {
-                throw new InvalidOperationException(
-                    "You cannot use an 'WhereAll' after a 'Where'");
-            }
-
-            return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
         public QueryClause<TPrimaryEntity> Take(int limit)
@@ -83,6 +72,46 @@ namespace QueryAny
             this.entities.SetOrdering(by, direction);
 
             return new QueryClause<TPrimaryEntity>(this.entities);
+        }
+
+        internal static QueryClause<TPrimaryEntity> Where<TValue>(QueriedEntities entities,
+            Expression<Func<TPrimaryEntity, TValue>> propertyName, ConditionOperator condition, TValue value)
+        {
+            propertyName.GuardAgainstNull(nameof(propertyName));
+
+            if (entities.Options.Wheres != WhereOptions.Undefined)
+            {
+                throw new InvalidOperationException(Resources.FromClause_WhereAndNotEmpty);
+            }
+
+            var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
+            entities.AddWhere(LogicalOperator.None, fieldName, condition, value);
+
+            return new QueryClause<TPrimaryEntity>(entities);
+        }
+
+        internal static QueryClause<TPrimaryEntity> WhereNoOp(QueriedEntities entities)
+        {
+            if (entities.Options.Wheres != WhereOptions.Undefined)
+            {
+                throw new InvalidOperationException(Resources.FromClause_WhereNoOpAndNotEmpty);
+            }
+
+            entities.Options.Wheres = WhereOptions.SomeDefined;
+
+            return new QueryClause<TPrimaryEntity>(entities);
+        }
+
+        internal static QueryClause<TPrimaryEntity> WhereAll(QueriedEntities entities)
+        {
+            if (entities.Options.Wheres != WhereOptions.Undefined)
+            {
+                throw new InvalidOperationException(Resources.FromClause_WhereAllAndNotEmpty);
+            }
+
+            entities.Options.Wheres = WhereOptions.AllDefined;
+
+            return new QueryClause<TPrimaryEntity>(entities);
         }
     }
 }

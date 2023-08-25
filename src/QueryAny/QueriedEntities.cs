@@ -47,6 +47,8 @@ namespace QueryAny
                     Value = value
                 }
             });
+
+            Options.Wheres = WhereOptions.SomeDefined;
         }
 
         internal void AddCondition<TPrimaryEntity>(LogicalOperator combine,
@@ -76,7 +78,7 @@ namespace QueryAny
             if (IsEntityAlreadyJoinedAtLeastOnce())
             {
                 throw new InvalidOperationException(
-                    $"You cannot 'Join' on the same Entity ('{joiningEntity.GetEntityNameSafe()}') twice");
+                    Resources.QueriedEntities_JoinSameEntity.Format(joiningEntity.GetEntityNameSafe()));
             }
 
             var joinedEntityCollection = new QueriedEntity(joiningEntity);
