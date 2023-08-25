@@ -381,10 +381,11 @@ Ideally, there would be a mapping between domain Entities and DTO's whenever Ent
 For these reasons and some others, we have taken a design shortcut in persistence mapping by making the Entities opt into supporting persistency in a generic way.
 
 Each domain Entity is required to:
-1. Define a name of a logical collection (i.e. the name of a table, for  use by database repository) (See: [EntityNameAttribute](https://github.com/jezzsantos/queryany/blob/master/src/QueryAny/EntityNameAttribute.cs))
-2. Define a set of properties (object dictionary) that represents the  internal state of the Entity (See: [Dehydrate](https://github.com/jezzsantos/queryany/blob/master/samples/ri/CarsDomain/Entities/EntityBase.cs)).
-3. Define a function that can restore the internal state of the Entity  from a set of properties (See: [Rehydrate](https://github.com/jezzsantos/queryany/blob/master/samples/ri/CarsDomain/Entities/EntityBase.cs)).
-4. Define an Entity factory function that can be called to construct a  new instance of the Entity (See: [EntityFactory](https://github.com/jezzsantos/queryany/blob/master/samples/ri/Storage.Interfaces/IStorage.cs#L13)).
+
+1. Define a name of a logical collection (i.e. the name of a table, for use by database repository) (See: [EntityNameAttribute](https://github.com/jezzsantos/queryany/blob/main/src/QueryAny/EntityNameAttribute.cs))
+2. Define a set of properties (object dictionary) that represents the internal state of the Entity (See: [Dehydrate](https://github.com/jezzsantos/queryany/blob/main/samples/ri/CarsDomain/Entities/EntityBase.cs)).
+3. Define a function that can restore the internal state of the Entity from a set of properties (See: [Rehydrate](https://github.com/jezzsantos/queryany/blob/main/samples/ri/CarsDomain/Entities/EntityBase.cs)).
+4. Define an Entity factory function that can be called to construct a new instance of the Entity (See: [EntityFactory](https://github.com/jezzsantos/queryany/blob/main/samples/ri/Storage.Interfaces/IStorage.cs#L13)).
 
 With this Entity policy in effect, domain Entities can maintain their full OO behaviors and encapsulation whilst participating in persistence schemes, like the one implemented in this RI. Which is typically very hard to design for most developers.
 

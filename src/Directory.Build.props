@@ -17,11 +17,11 @@
         <PackageVersion>$([System.Text.RegularExpressions.Regex]::Match($(Info), $(Pattern), System.Text.RegularExpressions.RegexOptions.Multiline).Groups[1].Value)</PackageVersion>
     </PropertyGroup>
     <PropertyGroup>
-        <PackageLicenseUrl>https://github.com/jezzsantos/queryany/blob/master/LICENSE</PackageLicenseUrl>
+        <PackageLicenseUrl>https://github.com/jezzsantos/queryany/blob/main/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/jezzsantos/queryany</RepositoryUrl>
         <PackageProjectUrl>https://github.com/jezzsantos/queryany</PackageProjectUrl>
         <RepositoryType>GitHub</RepositoryType>
-        <PackageReleaseNotes>https://github.com/jezzsantos/queryany/blob/master/README.md</PackageReleaseNotes>
+        <PackageReleaseNotes>https://github.com/jezzsantos/queryany/blob/main/README.md</PackageReleaseNotes>
         <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
     </PropertyGroup>
 
