@@ -87,42 +87,6 @@ namespace QueryAny.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Parameter cannot be empty..
-        /// </summary>
-        internal static string Guard_ArgumentCanNotBeEmpty {
-            get {
-                return ResourceManager.GetString("Guard_ArgumentCanNotBeEmpty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Parameter cannot be null..
-        /// </summary>
-        internal static string Guard_ArgumentCanNotBeNull {
-            get {
-                return ResourceManager.GetString("Guard_ArgumentCanNotBeNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Parameter must be a {0}..
-        /// </summary>
-        internal static string Guard_ArgumentTypeNotExpected {
-            get {
-                return ResourceManager.GetString("Guard_ArgumentTypeNotExpected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to You cannot use an &apos;WhereAll&apos; after a &apos;WhereAll&apos;, or after a &apos;Where&apos;, or after a &apos;AndWhere/OrWhere&apos;, or after a &apos;WhereNoOp&apos;.
-        /// </summary>
-        internal static string JoinClause_WhereAllAndNotEmpty {
-            get {
-                return ResourceManager.GetString("JoinClause_WhereAllAndNotEmpty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to You cannot &apos;Join&apos; on the same Entity (&apos;{0}&apos;) twice.
         /// </summary>
         internal static string QueriedEntities_JoinSameEntity {
@@ -195,29 +159,11 @@ namespace QueryAny.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Member is not a field.
+        ///   Looks up a localized string similar to The expression is not a property expression or is not convertable.
         /// </summary>
-        internal static string Reflector_ErrorNotField {
+        internal static string Reflector_ErrorNotMemberAccessOrConvertible {
             get {
-                return ResourceManager.GetString("Reflector_ErrorNotField", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Not a member access.
-        /// </summary>
-        internal static string Reflector_ErrorNotMemberAccess {
-            get {
-                return ResourceManager.GetString("Reflector_ErrorNotMemberAccess", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Not a method call.
-        /// </summary>
-        internal static string Reflector_ErrorNotMethodCall {
-            get {
-                return ResourceManager.GetString("Reflector_ErrorNotMethodCall", resourceCulture);
+                return ResourceManager.GetString("Reflector_ErrorNotMemberAccessOrConvertible", resourceCulture);
             }
         }
         

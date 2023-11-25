@@ -24,23 +24,8 @@
             PublicKeyToken=b77a5c561934e089
         </value>
     </resheader>
-    <data name="Guard_ArgumentCanNotBeEmpty" xml:space="preserve">
-        <value>Parameter cannot be empty.</value>
-    </data>
-    <data name="Guard_ArgumentCanNotBeNull" xml:space="preserve">
-        <value>Parameter cannot be null.</value>
-    </data>
-    <data name="Guard_ArgumentTypeNotExpected" xml:space="preserve">
-        <value>Parameter must be a {0}.</value>
-    </data>
-    <data name="Reflector_ErrorNotField" xml:space="preserve">
-        <value>Member is not a field</value>
-    </data>
-    <data name="Reflector_ErrorNotMemberAccess" xml:space="preserve">
-        <value>Not a member access</value>
-    </data>
-    <data name="Reflector_ErrorNotMethodCall" xml:space="preserve">
-        <value>Not a method call</value>
+    <data name="Reflector_ErrorNotMemberAccessOrConvertible" xml:space="preserve">
+        <value>The expression is not a property expression or is not convertable</value>
     </data>
     <data name="Reflector_ErrorNotProperty" xml:space="preserve">
         <value>Member is not a property</value>
@@ -65,9 +50,6 @@
     </data>
     <data name="QueryClause_OrWhereBeforeWheres" xml:space="preserve">
         <value>You cannot use an 'OrWhere' before a 'Where', or before a 'WhereNoOp', or after a 'WhereAll'</value>
-    </data>
-    <data name="JoinClause_WhereAllAndNotEmpty" xml:space="preserve">
-        <value>You cannot use an 'WhereAll' after a 'WhereAll', or after a 'Where', or after a 'AndWhere/OrWhere', or after a 'WhereNoOp'</value>
     </data>
     <data name="ResultOptions_InvalidLimit" xml:space="preserve">
         <value>You cannot 'Take' less than 0 results</value>
