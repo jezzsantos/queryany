@@ -41,7 +41,10 @@ namespace QueryAny
             }
 
             var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
-            this.entities.AddWhere(LogicalOperator.And, fieldName, condition, value);
+            var op = Wheres.Count == 0
+                ? LogicalOperator.None
+                : LogicalOperator.And;
+            this.entities.AddWhere(op, fieldName, condition, value);
 
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
@@ -57,7 +60,10 @@ namespace QueryAny
             }
 
             var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
-            this.entities.AddWhere(LogicalOperator.Or, fieldName, condition, value);
+            var op = Wheres.Count == 0
+                ? LogicalOperator.None
+                : LogicalOperator.Or;
+            this.entities.AddWhere(op, fieldName, condition, value);
 
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
@@ -71,7 +77,10 @@ namespace QueryAny
                 throw new InvalidOperationException(Resources.QueryClause_AndWhereBeforeWheres);
             }
 
-            this.entities.AddCondition(LogicalOperator.And, subWhere);
+            var op = Wheres.Count == 0
+                ? LogicalOperator.None
+                : LogicalOperator.And;
+            this.entities.AddCondition(op, subWhere);
 
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
@@ -86,7 +95,10 @@ namespace QueryAny
                 throw new InvalidOperationException(Resources.QueryClause_OrWhereBeforeWheres);
             }
 
-            this.entities.AddCondition(LogicalOperator.Or, subWhere);
+            var op = Wheres.Count == 0
+                ? LogicalOperator.None
+                : LogicalOperator.Or;
+            this.entities.AddCondition(op, subWhere);
 
             return new QueryClause<TPrimaryEntity>(this.entities);
         }

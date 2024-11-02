@@ -169,5 +169,57 @@ namespace QueryAny.UnitTests
             result.Wheres.Count.Should().Be(0);
             result.Options.Wheres.Should().Be(WhereOptions.SomeDefined);
         }
+
+        [Fact]
+        public void WhenWhereNoOpFollowedByAndWhere_ThenReturnsQueryClauseWithSpecificWheres()
+        {
+            var query = Query.From<FirstTestEntity>();
+
+            var result = query.WhereNoOp()
+                .AndWhere(entity => entity.AFirstStringProperty, ConditionOperator.EqualTo, "avalue");
+
+            result.Wheres.Count.Should().Be(1);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(FirstTestEntity.AFirstStringProperty));
+            result.Wheres[0].Condition.Value.Should().Be("avalue");
+            result.Options.Wheres.Should().Be(WhereOptions.SomeDefined);
+        }
+
+        [Fact]
+        public void WhenWhereNoOpFollowedByOrWhere_ThenReturnsQueryClauseWithSpecificWheres()
+        {
+            var query = Query.From<FirstTestEntity>();
+
+            var result = query.WhereNoOp()
+                .OrWhere(entity => entity.AFirstStringProperty, ConditionOperator.EqualTo, "avalue");
+            result.Wheres.Count.Should().Be(1);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(FirstTestEntity.AFirstStringProperty));
+            result.Wheres[0].Condition.Value.Should().Be("avalue");
+            result.Options.Wheres.Should().Be(WhereOptions.SomeDefined);
+        }
+
+        [Fact]
+        public void WhenWhereNoOpFollowedByMultipleAndWheres_ThenReturnsQueryClauseWithSpecificWheres()
+        {
+            var query = Query.From<FirstTestEntity>();
+
+            var result = query.WhereNoOp()
+                .AndWhere(entity => entity.AFirstStringProperty, ConditionOperator.EqualTo, "avalue1")
+                .AndWhere(entity => entity.AFirstStringProperty, ConditionOperator.EqualTo, "avalue2");
+
+            result.Wheres.Count.Should().Be(2);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(FirstTestEntity.AFirstStringProperty));
+            result.Wheres[0].Condition.Value.Should().Be("avalue1");
+            result.Wheres[1].Operator.Should().Be(LogicalOperator.And);
+            result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[1].Condition.FieldName.Should().Be(nameof(FirstTestEntity.AFirstStringProperty));
+            result.Wheres[1].Condition.Value.Should().Be("avalue2");
+            result.Options.Wheres.Should().Be(WhereOptions.SomeDefined);
+        }
     }
 }

@@ -114,10 +114,32 @@ namespace QueryAny.UnitTests
                 .AndWhere(e => e.AStringProperty, ConditionOperator.NotEqualTo, "2");
 
             result.Wheres.Count.Should().Be(1);
-            result.Wheres[0].Operator.Should().Be(LogicalOperator.And);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
             result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
-            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[0].Condition.Value.Should().Be("2");
+        }
+
+        [Fact]
+        public void WhenAndWhereAfterAndWhereAfterWhereNoOp_ThenCreatesAnAndedWhere()
+        {
+            var query = Query.From<NamedTestEntity>();
+            var clause = query
+                .WhereNoOp();
+
+            var result = clause
+                .AndWhere(e => e.AStringProperty, ConditionOperator.NotEqualTo, "1")
+                .AndWhere(e => e.AStringProperty, ConditionOperator.NotEqualTo, "2");
+
+            result.Wheres.Count.Should().Be(2);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
+            result.Wheres[0].Condition.Value.Should().Be("1");
+            result.Wheres[1].Operator.Should().Be(LogicalOperator.And);
+            result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
+            result.Wheres[1].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
+            result.Wheres[1].Condition.Value.Should().Be("2");
         }
 
         [Fact]
@@ -145,11 +167,11 @@ namespace QueryAny.UnitTests
             result.Wheres.Count.Should().Be(2);
             result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
             result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
-            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[0].Condition.Value.Should().Be("1");
             result.Wheres[1].Operator.Should().Be(LogicalOperator.And);
             result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
-            result.Wheres[1].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[1].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[1].Condition.Value.Should().Be("2");
         }
 
@@ -167,7 +189,7 @@ namespace QueryAny.UnitTests
             result.Wheres.Count.Should().Be(2);
             result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
             result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
-            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[0].Condition.Value.Should().Be("1");
             result.Wheres[1].Operator.Should().Be(LogicalOperator.And);
             result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
@@ -197,10 +219,32 @@ namespace QueryAny.UnitTests
                 .OrWhere(e => e.AStringProperty, ConditionOperator.NotEqualTo, "2");
 
             result.Wheres.Count.Should().Be(1);
-            result.Wheres[0].Operator.Should().Be(LogicalOperator.Or);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
             result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
-            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[0].Condition.Value.Should().Be("2");
+        }
+
+        [Fact]
+        public void WhenOrWhereAfterOrWhereAfterWhereNoOp_ThenCreatesAnOredWhere()
+        {
+            var query = Query.From<NamedTestEntity>();
+            var clause = query
+                .WhereNoOp();
+
+            var result = clause
+                .OrWhere(e => e.AStringProperty, ConditionOperator.NotEqualTo, "1")
+                .OrWhere(e => e.AStringProperty, ConditionOperator.NotEqualTo, "2");
+
+            result.Wheres.Count.Should().Be(2);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
+            result.Wheres[0].Condition.Value.Should().Be("1");
+            result.Wheres[1].Operator.Should().Be(LogicalOperator.Or);
+            result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
+            result.Wheres[1].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
+            result.Wheres[1].Condition.Value.Should().Be("2");
         }
 
         [Fact]
@@ -228,11 +272,11 @@ namespace QueryAny.UnitTests
             result.Wheres.Count.Should().Be(2);
             result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
             result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
-            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[0].Condition.Value.Should().Be("1");
             result.Wheres[1].Operator.Should().Be(LogicalOperator.Or);
             result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
-            result.Wheres[1].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[1].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[1].Condition.Value.Should().Be("2");
         }
 
@@ -250,7 +294,7 @@ namespace QueryAny.UnitTests
             result.Wheres.Count.Should().Be(2);
             result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
             result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
-            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[0].Condition.Value.Should().Be("1");
             result.Wheres[1].Operator.Should().Be(LogicalOperator.Or);
             result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
@@ -271,13 +315,13 @@ namespace QueryAny.UnitTests
             result.Wheres.Count.Should().Be(2);
             result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
             result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
-            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[0].Condition.Value.Should().Be("1");
             result.Wheres[1].Operator.Should().Be(LogicalOperator.And);
             result.Wheres[1].Condition.Should().Be(null);
             result.Wheres[1].NestedWheres.Count.Should().Be(1);
             result.Wheres[1].NestedWheres[0].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
-            result.Wheres[1].NestedWheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[1].NestedWheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[1].NestedWheres[0].Condition.Value.Should().Be("2");
         }
 
@@ -307,13 +351,13 @@ namespace QueryAny.UnitTests
             result.Wheres.Count.Should().Be(2);
             result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
             result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
-            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[0].Condition.Value.Should().Be("1");
             result.Wheres[1].Operator.Should().Be(LogicalOperator.Or);
             result.Wheres[1].Condition.Should().Be(null);
             result.Wheres[1].NestedWheres.Count.Should().Be(1);
             result.Wheres[1].NestedWheres[0].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
-            result.Wheres[1].NestedWheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[1].NestedWheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[1].NestedWheres[0].Condition.Value.Should().Be("2");
         }
 
@@ -345,17 +389,17 @@ namespace QueryAny.UnitTests
             result.Wheres.Count.Should().Be(2);
             result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
             result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
-            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[0].Condition.Value.Should().Be("1");
             result.Wheres[1].Operator.Should().Be(LogicalOperator.And);
             result.Wheres[1].Condition.Should().Be(null);
             result.Wheres[1].NestedWheres.Count.Should().Be(2);
             result.Wheres[1].NestedWheres[0].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
-            result.Wheres[1].NestedWheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[1].NestedWheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[1].NestedWheres[0].Condition.Value.Should().Be("2");
             result.Wheres[1].NestedWheres[1].Operator.Should().Be(LogicalOperator.And);
             result.Wheres[1].NestedWheres[1].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
-            result.Wheres[1].NestedWheres[1].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[1].NestedWheres[1].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[1].NestedWheres[1].Condition.Value.Should().Be("3");
         }
 
@@ -399,7 +443,7 @@ namespace QueryAny.UnitTests
 
             result.PrimaryEntity.Selects.Count.Should().Be(2);
             result.PrimaryEntity.Selects[0].EntityName.Should().Be("aname");
-            result.PrimaryEntity.Selects[0].FieldName.Should().Be("AStringProperty");
+            result.PrimaryEntity.Selects[0].FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.PrimaryEntity.Selects[0].JoinedEntityName.Should().BeNull();
             result.PrimaryEntity.Selects[0].JoinedFieldName.Should().BeNull();
             result.PrimaryEntity.Selects[1].EntityName.Should().Be("aname");
@@ -453,7 +497,7 @@ namespace QueryAny.UnitTests
             result.AllEntities[1].Selects[0].EntityName.Should().Be("first");
             result.AllEntities[1].Selects[0].FieldName.Should().Be("AFirstStringProperty");
             result.AllEntities[1].Selects[0].JoinedEntityName.Should().Be("aname");
-            result.AllEntities[1].Selects[0].JoinedFieldName.Should().Be("AStringProperty");
+            result.AllEntities[1].Selects[0].JoinedFieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
         }
 
         [Fact]
@@ -486,7 +530,7 @@ namespace QueryAny.UnitTests
 
             var result = clause.OrderBy(e => e.AStringProperty);
 
-            result.ResultOptions.OrderBy.By.Should().Be("AStringProperty");
+            result.ResultOptions.OrderBy.By.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.ResultOptions.OrderBy.Direction.Should().Be(OrderDirection.Ascending);
         }
     }

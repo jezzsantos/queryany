@@ -158,6 +158,58 @@ namespace QueryAny.UnitTests
         }
 
         [Fact]
+        public void WhenWhereNoOpFollowedByAndWhere_ThenReturnsQueryClauseWithSpecificWheres()
+        {
+            var query = Query.From<NamedTestEntity>();
+
+            var result = query.WhereNoOp()
+                .AndWhere(entity => entity.AStringProperty, ConditionOperator.EqualTo, "avalue");
+
+            result.Wheres.Count.Should().Be(1);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
+            result.Wheres[0].Condition.Value.Should().Be("avalue");
+            result.Options.Wheres.Should().Be(WhereOptions.SomeDefined);
+        }
+
+        [Fact]
+        public void WhenWhereNoOpFollowedByOrWhere_ThenReturnsQueryClauseWithSpecificWheres()
+        {
+            var query = Query.From<NamedTestEntity>();
+
+            var result = query.WhereNoOp()
+                .OrWhere(entity => entity.AStringProperty, ConditionOperator.EqualTo, "avalue");
+            result.Wheres.Count.Should().Be(1);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
+            result.Wheres[0].Condition.Value.Should().Be("avalue");
+            result.Options.Wheres.Should().Be(WhereOptions.SomeDefined);
+        }
+
+        [Fact]
+        public void WhenWhereNoOpFollowedByMultipleAndWheres_ThenReturnsQueryClauseWithSpecificWheres()
+        {
+            var query = Query.From<NamedTestEntity>();
+
+            var result = query.WhereNoOp()
+                .AndWhere(entity => entity.AStringProperty, ConditionOperator.EqualTo, "avalue1")
+                .AndWhere(entity => entity.AStringProperty, ConditionOperator.EqualTo, "avalue2");
+
+            result.Wheres.Count.Should().Be(2);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
+            result.Wheres[0].Condition.Value.Should().Be("avalue1");
+            result.Wheres[1].Operator.Should().Be(LogicalOperator.And);
+            result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[1].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
+            result.Wheres[1].Condition.Value.Should().Be("avalue2");
+            result.Options.Wheres.Should().Be(WhereOptions.SomeDefined);
+        }
+
+        [Fact]
         public void WhenJoin_ThenCreatesAnInnerJoin()
         {
             var query = Query.From<FirstTestEntity>();
