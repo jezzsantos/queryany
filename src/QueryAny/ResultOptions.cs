@@ -7,7 +7,7 @@ namespace QueryAny
     public class ResultOptions
     {
         public const int DefaultLimit = -1;
-        public const int DefaultOffset = 0;
+        public const int DefaultOffset = -1;
         public const OrderDirection DefaultOrderDirection = OrderDirection.Ascending;
         public static readonly string DefaultOrder = null;
 
