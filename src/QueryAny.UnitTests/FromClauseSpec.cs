@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using FluentAssertions;
 using QueryAny.Properties;
 using Xunit;
@@ -55,7 +56,7 @@ namespace QueryAny.UnitTests
             result.Wheres.Count.Should().Be(1);
             result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
             result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
-            result.Wheres[0].Condition.FieldName.Should().Be("AStringProperty");
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.Wheres[0].Condition.Value.Should().Be("1");
         }
 
@@ -71,8 +72,24 @@ namespace QueryAny.UnitTests
             result.Wheres.Count.Should().Be(1);
             result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
             result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
-            result.Wheres[0].Condition.FieldName.Should().Be("ADateTimeProperty");
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.ADateTimeProperty));
             result.Wheres[0].Condition.Value.Should().Be(datum);
+        }
+
+        [Fact]
+        public void WhenWhereWithArrayProperty_ThenCreatesAWhere()
+        {
+            var array = new[] { "avalue1", "avalue2" }.ToArray();
+            var query = Query.From<NamedTestEntity>();
+
+            var result = query
+                .Where(e => e.AStringProperty, ConditionOperator.IsIn, array);
+
+            result.Wheres.Count.Should().Be(1);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.IsIn);
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
+            result.Wheres[0].Condition.Value.Should().Be(array);
         }
 
         [Fact]
@@ -255,7 +272,7 @@ namespace QueryAny.UnitTests
 
             var result = query.OrderBy(e => e.AStringProperty);
 
-            result.ResultOptions.OrderBy.By.Should().Be("AStringProperty");
+            result.ResultOptions.OrderBy.By.Should().Be(nameof(NamedTestEntity.AStringProperty));
             result.ResultOptions.OrderBy.Direction.Should().Be(OrderDirection.Ascending);
         }
     }

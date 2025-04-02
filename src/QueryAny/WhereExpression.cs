@@ -28,7 +28,8 @@ namespace QueryAny
         LessThan,
         LessThanEqualTo,
         NotEqualTo,
-        Like
+        Like,
+        IsIn
     }
 
     public enum LogicalOperator

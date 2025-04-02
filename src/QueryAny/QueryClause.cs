@@ -31,8 +31,7 @@ namespace QueryAny
         public ResultOptions ResultOptions => this.entities.ResultOptions;
 
         public QueryClause<TPrimaryEntity> AndWhere<TValue>(Expression<Func<TPrimaryEntity, TValue>> propertyName,
-            ConditionOperator condition,
-            TValue value)
+            ConditionOperator condition, TValue value)
         {
             propertyName.GuardAgainstNull(nameof(propertyName));
             if (!CanAddWhereClauses())
@@ -44,14 +43,31 @@ namespace QueryAny
             var op = Wheres.Count == 0
                 ? LogicalOperator.None
                 : LogicalOperator.And;
-            this.entities.AddWhere(op, fieldName, condition, value);
+            this.entities.Where(op, fieldName, condition, value);
+
+            return new QueryClause<TPrimaryEntity>(this.entities);
+        }
+
+        public QueryClause<TPrimaryEntity> AndWhere<TValue>(Expression<Func<TPrimaryEntity, TValue>> propertyName,
+            ConditionOperator condition, TValue[] value)
+        {
+            propertyName.GuardAgainstNull(nameof(propertyName));
+            if (!CanAddWhereClauses())
+            {
+                throw new InvalidOperationException(Resources.QueryClause_AndWhereBeforeWheres);
+            }
+
+            var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
+            var op = Wheres.Count == 0
+                ? LogicalOperator.None
+                : LogicalOperator.And;
+            this.entities.Where(op, fieldName, condition, value);
 
             return new QueryClause<TPrimaryEntity>(this.entities);
         }
 
         public QueryClause<TPrimaryEntity> OrWhere<TValue>(Expression<Func<TPrimaryEntity, TValue>> propertyName,
-            ConditionOperator condition,
-            TValue value)
+            ConditionOperator condition, TValue value)
         {
             propertyName.GuardAgainstNull(nameof(propertyName));
             if (!CanAddWhereClauses())
@@ -63,7 +79,25 @@ namespace QueryAny
             var op = Wheres.Count == 0
                 ? LogicalOperator.None
                 : LogicalOperator.Or;
-            this.entities.AddWhere(op, fieldName, condition, value);
+            this.entities.Where(op, fieldName, condition, value);
+
+            return new QueryClause<TPrimaryEntity>(this.entities);
+        }
+
+        public QueryClause<TPrimaryEntity> OrWhere<TValue>(Expression<Func<TPrimaryEntity, TValue>> propertyName,
+            ConditionOperator condition, TValue[] value)
+        {
+            propertyName.GuardAgainstNull(nameof(propertyName));
+            if (!CanAddWhereClauses())
+            {
+                throw new InvalidOperationException(Resources.QueryClause_OrWhereBeforeWheres);
+            }
+
+            var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
+            var op = Wheres.Count == 0
+                ? LogicalOperator.None
+                : LogicalOperator.Or;
+            this.entities.Where(op, fieldName, condition, value);
 
             return new QueryClause<TPrimaryEntity>(this.entities);
         }

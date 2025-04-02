@@ -9,10 +9,7 @@ namespace QueryAny
     public class FromClause<TPrimaryEntity>
         where TPrimaryEntity : IQueryableEntity
     {
-        private readonly QueriedEntities entities = new(new List<QueriedEntity>
-        {
-            new(typeof(TPrimaryEntity))
-        });
+        private readonly QueriedEntities entities = new([new QueriedEntity(typeof(TPrimaryEntity))]);
 
         public QueriedEntity PrimaryEntity => this.entities.PrimaryEntity;
 
@@ -21,8 +18,13 @@ namespace QueryAny
         public ResultOptions ResultOptions => this.entities.ResultOptions;
 
         public QueryClause<TPrimaryEntity> Where<TValue>(Expression<Func<TPrimaryEntity, TValue>> propertyName,
-            ConditionOperator condition,
-            TValue value)
+            ConditionOperator condition, TValue value)
+        {
+            return Where(this.entities, propertyName, condition, value);
+        }
+
+        public QueryClause<TPrimaryEntity> Where<TValue>(Expression<Func<TPrimaryEntity, TValue>> propertyName,
+            ConditionOperator condition, TValue[] value)
         {
             return Where(this.entities, propertyName, condition, value);
         }
@@ -75,7 +77,7 @@ namespace QueryAny
         }
 
         internal static QueryClause<TPrimaryEntity> Where<TValue>(QueriedEntities entities,
-            Expression<Func<TPrimaryEntity, TValue>> propertyName, ConditionOperator condition, TValue value)
+            Expression<Func<TPrimaryEntity, TValue>> propertyName, ConditionOperator condition, object value)
         {
             propertyName.GuardAgainstNull(nameof(propertyName));
 
@@ -85,7 +87,7 @@ namespace QueryAny
             }
 
             var fieldName = Reflector<TPrimaryEntity>.GetPropertyName(propertyName);
-            entities.AddWhere(LogicalOperator.None, fieldName, condition, value);
+            entities.Where(LogicalOperator.None, fieldName, condition, value);
 
             return new QueryClause<TPrimaryEntity>(entities);
         }

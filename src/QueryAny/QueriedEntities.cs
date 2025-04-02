@@ -33,8 +33,7 @@ namespace QueryAny
 
         public ResultOptions ResultOptions { get; }
 
-        internal void AddWhere<TValue>(LogicalOperator combine, string fieldName, ConditionOperator condition,
-            TValue value)
+        internal void Where(LogicalOperator combine, string fieldName, ConditionOperator condition, object value)
         {
             fieldName.GuardAgainstNullOrEmpty(nameof(fieldName));
             this.wheres.Add(new WhereExpression

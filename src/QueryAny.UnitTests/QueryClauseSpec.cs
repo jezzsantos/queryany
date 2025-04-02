@@ -193,8 +193,30 @@ namespace QueryAny.UnitTests
             result.Wheres[0].Condition.Value.Should().Be("1");
             result.Wheres[1].Operator.Should().Be(LogicalOperator.And);
             result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
-            result.Wheres[1].Condition.FieldName.Should().Be("ADateTimeProperty");
+            result.Wheres[1].Condition.FieldName.Should().Be(nameof(NamedTestEntity.ADateTimeProperty));
             result.Wheres[1].Condition.Value.Should().Be(datum);
+        }
+
+        [Fact]
+        public void WhenAndWhereWithArrayProperty_ThenCreatesAnAndedWhere()
+        {
+            var array = new[] { "avalue1", "avalue2" };
+            var query = Query.From<NamedTestEntity>();
+            var clause = query
+                .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "1");
+
+            var result = clause
+                .AndWhere(e => e.AStringProperty, ConditionOperator.IsIn, array);
+
+            result.Wheres.Count.Should().Be(2);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
+            result.Wheres[0].Condition.Value.Should().Be("1");
+            result.Wheres[1].Operator.Should().Be(LogicalOperator.And);
+            result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.IsIn);
+            result.Wheres[1].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
+            result.Wheres[1].Condition.Value.Should().Be(array);
         }
 
         [Fact]
@@ -298,8 +320,30 @@ namespace QueryAny.UnitTests
             result.Wheres[0].Condition.Value.Should().Be("1");
             result.Wheres[1].Operator.Should().Be(LogicalOperator.Or);
             result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.NotEqualTo);
-            result.Wheres[1].Condition.FieldName.Should().Be("ADateTimeProperty");
+            result.Wheres[1].Condition.FieldName.Should().Be(nameof(NamedTestEntity.ADateTimeProperty));
             result.Wheres[1].Condition.Value.Should().Be(datum);
+        }
+
+        [Fact]
+        public void WhenOrWhereWithArrayProperty_ThenCreatesAnOredWhere()
+        {
+            var array = new[] { "avalue1", "avalue2" };
+            var query = Query.From<NamedTestEntity>();
+            var clause = query
+                .Where(e => e.AStringProperty, ConditionOperator.EqualTo, "1");
+
+            var result = clause
+                .OrWhere(e => e.AStringProperty, ConditionOperator.IsIn, array);
+
+            result.Wheres.Count.Should().Be(2);
+            result.Wheres[0].Operator.Should().Be(LogicalOperator.None);
+            result.Wheres[0].Condition.Operator.Should().Be(ConditionOperator.EqualTo);
+            result.Wheres[0].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
+            result.Wheres[0].Condition.Value.Should().Be("1");
+            result.Wheres[1].Operator.Should().Be(LogicalOperator.Or);
+            result.Wheres[1].Condition.Operator.Should().Be(ConditionOperator.IsIn);
+            result.Wheres[1].Condition.FieldName.Should().Be(nameof(NamedTestEntity.AStringProperty));
+            result.Wheres[1].Condition.Value.Should().Be(array);
         }
 
         [Fact]
@@ -426,7 +470,7 @@ namespace QueryAny.UnitTests
 
             result.PrimaryEntity.Selects.Count.Should().Be(1);
             result.PrimaryEntity.Selects[0].EntityName.Should().Be("aname");
-            result.PrimaryEntity.Selects[0].FieldName.Should().Be("ADateTimeProperty");
+            result.PrimaryEntity.Selects[0].FieldName.Should().Be(nameof(NamedTestEntity.ADateTimeProperty));
             result.PrimaryEntity.Selects[0].JoinedEntityName.Should().BeNull();
             result.PrimaryEntity.Selects[0].JoinedFieldName.Should().BeNull();
         }
@@ -447,7 +491,7 @@ namespace QueryAny.UnitTests
             result.PrimaryEntity.Selects[0].JoinedEntityName.Should().BeNull();
             result.PrimaryEntity.Selects[0].JoinedFieldName.Should().BeNull();
             result.PrimaryEntity.Selects[1].EntityName.Should().Be("aname");
-            result.PrimaryEntity.Selects[1].FieldName.Should().Be("ADateTimeProperty");
+            result.PrimaryEntity.Selects[1].FieldName.Should().Be(nameof(NamedTestEntity.ADateTimeProperty));
             result.PrimaryEntity.Selects[1].JoinedEntityName.Should().BeNull();
             result.PrimaryEntity.Selects[1].JoinedFieldName.Should().BeNull();
         }

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace QueryAny
+﻿namespace QueryAny
 {
     public static class Query
     {
@@ -11,10 +9,7 @@ namespace QueryAny
 
         public static QueryClause<TPrimaryEntity> Empty<TPrimaryEntity>() where TPrimaryEntity : IQueryableEntity
         {
-            var entities = new QueriedEntities(new List<QueriedEntity>
-            {
-                new(typeof(TPrimaryEntity))
-            });
+            var entities = new QueriedEntities([new QueriedEntity(typeof(TPrimaryEntity))]);
             entities.UpdateOptions(true);
 
             return new QueryClause<TPrimaryEntity>(entities);
